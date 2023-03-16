@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar color="primary" prominent>
+    <v-app-bar color="primary" prominent >
       <v-app-bar-nav-icon
         variant="text"
         @click="rail = !rail"
@@ -8,11 +8,10 @@
       <v-toolbar-title>Med Office</v-toolbar-title>
   
       <v-spacer></v-spacer>
-
-      <v-btn v-if="!$vuetify.theme.dark" @click="this.$vuetify.theme.dark = !this.$vuetify.theme.dark"  variant="text" icon="mdi-theme-light-dark"></v-btn>
+      <v-btn @click="toggleTheme" icon="mdi-theme-light-dark"></v-btn>
       <v-divider vertical></v-divider>
            
-      <v-btn variant="text" icon="mdi-disqus"></v-btn>
+      <v-btn icon="mdi-disqus"></v-btn>
       <v-divider vertical></v-divider>
 
       <v-btn
@@ -79,8 +78,19 @@
     data: () => ({
       drawer: true,
       group: null,
-      rail: true
-    }),
+      rail: true,
+      dark: true
+    })
   };
   </script>
+
+<script setup>
+import { useTheme } from 'vuetify/lib/framework.mjs';
+
+const theme = useTheme();
+
+const toggleTheme = () => {
+theme.global.name.value = theme.global.current.value.dark ? 'lightTheme' : 'darkTheme'
+}
+</script>
   

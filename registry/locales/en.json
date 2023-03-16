@@ -2,6 +2,10 @@
     "language": "Language",
     "login": "Login",
     "password": "Password",
-    "signin": "Sign In"
+    "signin": "Sign In",
+    "rlogin": "Login is required",
+    "vlogin": "Login must be less than 15 characters",
+    "rpass": "Password is required",
+    "vpass": "Password must be 5 characters or more"
   }
   

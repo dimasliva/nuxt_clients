@@ -3,7 +3,7 @@
     </div>
   </template>
 
-<script setup lang="ts">
+<script lang="ts">
 definePageMeta({
   middleware: 'auth'
 })

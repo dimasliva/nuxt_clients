@@ -1,5 +1,5 @@
 <template>
-    <v-sheet class="d-flex  align-center h-screen bg-blue-lighten-1">
+    <v-sheet class="d-flex  align-center h-screen" min-width="1100px">
       <v-card class=" mx-auto" width="600" max-height="400">
           <v-row class="bg-blue-darken-4 ma-0 pa-1" justify="center">
             <div class="text-h3">{{ $t('signin') }}</div>
@@ -19,49 +19,44 @@
           v-model="form"
           @submit.prevent="onSubmit"
         >
-            <v-row class="mt-8 pa-4 ">
-              <v-col
-              cols="12"
-              md="6"
-              >
-                <v-text-field
-                variant="underlined"
-                  v-model="login"
-                  :readonly="loading"
-                  :counter="15"
-                  :rules="nameRules"
-                  required
-                  clearable
-                >
-                  <template v-slot:label>
-                    <span>
-                      {{ $t('login') }}
-                    </span>
-                  </template>
-              </v-text-field>
-              </v-col>
 
-              <v-col
-              cols="12"
-              md="6"
-              >
-              <v-text-field
-              variant="underlined"
-              v-model="password"
-              :readonly="loading"
-              :counter="5"
-              :rules="passRules"
-              required
-              clearable
-              >
-              <template v-slot:label>
+        <v-row class="pa-6">
+
+          <v-text-field
+          variant="underlined"
+            v-model="logIn"
+            :counter="15"
+            :readonly="loading"
+            :rules="nameRules"
+            required
+            clearable
+            class="ma-1"
+          >
+            <template v-slot:label>
               <span>
-                {{ $t('password') }}
+                {{ $t('login') }}
               </span>
             </template>
-            </v-text-field>
-            </v-col>
-          </v-row>
+        </v-text-field>
+
+        <v-text-field
+        variant="underlined"
+        v-model="passWord"
+        :readonly="loading"
+        :counter="5"
+        :rules="passRules"
+        required
+            class="ma-1"
+        clearable
+        >
+        <template v-slot:label>
+        <span>
+          {{ $t('password') }}
+        </span>
+      </template>
+      </v-text-field>
+        </v-row>
+
       
           <v-row justify="end">
             <v-btn
@@ -69,9 +64,9 @@
               :loading="loading"
               inline
               color="blue-darken-4"
-              type="submit"
               variant="elevated"
               class="ma-6"
+              type="submit"
             >
             {{ $t('signin') }}
             </v-btn>
@@ -81,41 +76,53 @@
     </v-sheet>
   </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import userCtx from "~~/models/context"
+import i18n from "~~/plugins/i18n";
 
-  export default {
-    data: () => ({
-      form: false,
-      login: null,
-      password: null,
-      loading: false,
-      nameRules : [
-   (v: string) => !!v || "Login is required",
-   (v: string) => (v && v.length <= 15) || "Login must be less than 10 characters",
- ],
- passRules : [
-   (v: string) => !!v || "Password is required",
-   (v: string) => v.length >= 5 || "Password must be 5 characters or more",
- ]
-    }),
+    const { t } = useI18n()
+
+    let form = ref(false)
+
+    const logIn: any = ref(null)
+
+    const passWord: any = ref(null)
+
+    let loading = false
 
 
+    const nameRules = ref([
+   (v: string) => !!v || t('rlogin'),
+   (v: string) => (v && v.length <= 15) || t('vlogin'),
+    ])
 
-    methods: {
-      onSubmit () {
-        if (!this.form) return
+    const passRules = ref([
+   (v: string) => !!v || t('rpass'),
+   (v: string) => v.length >= 5 || t('vpass'),
+    ])
 
-        this.loading = true
+    const onSubmit = () => {
+      if (!form) return
 
-        setTimeout(() => (this.loading = false), 2000);
+      loading = true
 
-        if (this.login == "admin" && this.password == "12345") {
-      userCtx.isAuth = true;
-      navigateTo('/dashboard');
-      }
+      setTimeout(() => (loading = false), 2000)
+
+      if (logIn.value == "admin" && passWord.value == "12345") {
+    userCtx.isAuth = true;
+    console.log(i18n)
+    navigateTo('/dashboard');
+    }
   }
-     
-    },
-  }
+
+  defineExpose ({
+      form,
+      logIn,
+      passWord,
+      nameRules,
+      passRules,
+      loading
+})
+
 </script>

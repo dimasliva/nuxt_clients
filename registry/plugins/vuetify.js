@@ -11,7 +11,6 @@ const lightTheme = {
     primary: '#42A5F5',
     info: '#EF9A9A',
     radio: '#448AFF',
-    background: '#FFFFFF'
   }
 }
 
@@ -21,7 +20,6 @@ const darkTheme = {
     primary: '#0D47A1',
     info: '#C62828',
     radio: '#304FFE',
-    background: '#424242'
   }
 }
 
@@ -34,7 +32,7 @@ export default defineNuxtPlugin(nuxtApp => {
       defaultSet: 'mdi',
     },
     theme: {
-        defaultTheme: 'lightTheme',
+      defaultTheme: 'darkTheme',
         themes: {
           lightTheme,
           darkTheme

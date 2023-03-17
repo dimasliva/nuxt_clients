@@ -31,7 +31,8 @@
             required
             clearable
             class="ma-1"
-          >
+            max-width="50%"
+          > 
             <template v-slot:label>
               <span>
                 {{ $t('login') }}
@@ -46,8 +47,9 @@
         :counter="5"
         :rules="passRules"
         required
-            class="ma-1"
+        class="ma-1"
         clearable
+        max-width="50%"
         >
         <template v-slot:label>
         <span>
@@ -91,6 +93,8 @@ import i18n from "~~/plugins/i18n";
 
     let loading = false
 
+    let authTok = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+
 
     const nameRules = ref([
    (v: string) => !!v || t('rlogin'),
@@ -109,8 +113,10 @@ import i18n from "~~/plugins/i18n";
 
       setTimeout(() => (loading = false), 2000)
 
+      
       if (logIn.value == "admin" && passWord.value == "12345") {
-    userCtx.isAuth = true;
+        userCtx.isAuth = true;
+        document.cookie = "token = " + authTok + "; max-age=60"
     console.log(i18n)
     navigateTo('/dashboard');
     }

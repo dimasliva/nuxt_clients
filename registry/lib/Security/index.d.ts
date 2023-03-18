@@ -1,8 +1,10 @@
 
 
 export  interface IUserCredentials {
-        login: string;
-        password: string
+        login: string|null;
+        password: string|null;
+        refreshToken:string|null;
+
     }
 
     export  interface IAuthorityData {
@@ -10,6 +12,7 @@ export  interface IUserCredentials {
         companyId: string|null;
         userId: string;
         token: string;
+        refreshToken:string;
         hosts: string[]
     }
     

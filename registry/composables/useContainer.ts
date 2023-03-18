@@ -7,8 +7,9 @@ export const useContainer = () => {
   const app = useNuxtApp();
   if (!app.$iocContainer) {
     console.info("create container");
-    app.provide('iocContainer',  new Container())
-    ioccSetup();
+    const cont=new Container();
+    app.provide('iocContainer',cont)
+    ioccSetup(cont);
   }
   return <Container>app.$iocContainer;
 }

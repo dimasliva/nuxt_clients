@@ -1,10 +1,10 @@
 import { MoApiClient } from "@/lib/MoApi/MoApiClient";
 import { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
 import { UserContext } from "@/lib/UserContext";
+import { Container } from "inversify";
 
 
-export default () => {
-    const container = useContainer();
+export default (container:Container) => {
     if (!container.isBound("UserContext")) {
         let moApiClientSettings = new MoApiClientSettings();
         moApiClientSettings.ip = "172.16.121.60";

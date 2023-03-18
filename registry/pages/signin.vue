@@ -46,12 +46,8 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { UserContext } from "~~/lib/UserContext";
-import type userCtx from "@/models/context"
+import { UserContext } from "@/lib/UserContext";
 import i18n from "~~/plugins/i18n";
-import { MoApiClientSettings } from "~~/lib/MoApi/MoApiClientSettings";
-import { IUserCredentials } from "~~/lib/Security";
-
 
 const { t } = useI18n()
 
@@ -76,16 +72,13 @@ const passRules = ref([
 
 const onSubmit = async () => {
   if (!form) return
+
   const iocc = useContainer();
   const userCtx = iocc.get<UserContext>("UserContext");
-  const apiSettinngs = iocc.get<MoApiClientSettings>("MoApiClientSettings");
 
-  apiSettinngs.Credentials = { login: logIn.value, password: passWord.value };
   loading.value = true;
 
-  if (await userCtx.tryAuthorize()) {
-    let credCookie = useCookie<IUserCredentials | null>("user_credentials");
-    credCookie.value=apiSettinngs.Credentials;
+  if (await userCtx.tryAuthorize(logIn.value,passWord.value)) {
     navigateTo('/dashboard');
   }
 

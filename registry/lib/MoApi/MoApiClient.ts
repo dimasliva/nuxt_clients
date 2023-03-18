@@ -12,6 +12,11 @@ export  class MoApiClient {
 
     @inject("MoApiClientSettings")
     protected _MoApiClientSettings: MoApiClientSettings = null!;
+
+    public  get MoApiClientSettings(): MoApiClientSettings {
+        return this._MoApiClientSettings;
+    }
+    
     protected _AuthToken: string = "";
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -117,7 +122,8 @@ export  class MoApiClient {
 
                 body: JSON.stringify({
                     login: cred.login,
-                    password: cred.password
+                    password: cred.password,
+                    refreshToken:cred.refreshToken
                 }),
                 mode:"cors"
             };

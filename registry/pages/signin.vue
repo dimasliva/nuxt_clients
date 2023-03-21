@@ -1,6 +1,6 @@
 <template>
-  <v-sheet class="d-flex bg-black align-center h-screen" min-width="1100px">
-    <v-card class=" mx-auto" width="600" border="md">
+  <v-sheet class="d-flex bg-background align-center h-screen" min-width="1100px">
+    <v-card class=" mx-auto rounded-lg" elevation="10" width="600" border="md">
       <v-row class="bg-primary ma-0 pa-1" justify="center">
         <div class="text-h3">{{ $t('signin') }}</div>
       </v-row>
@@ -18,7 +18,7 @@
           sm="6"
           >
           <v-text-field
-            variant="underlined" v-model= "login" :counter= 15 :readonly="loading" :rules="nameRules" required clearable class="ma-1" > 
+            variant="underlined" v-model= "login" :counter= validLog :readonly="loading" :rules="nameRules" required clearable class="ma-1" > 
             <template v-slot:label>
               <span>
                 {{ $t('login') }}
@@ -32,7 +32,7 @@
           sm="6"
           >
           <v-text-field
-            variant="underlined" v-model="password" :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" :readonly="loading" :counter="4" :rules="passRules" :type="show ? 'text' : 'password'" required class="ma-1" clearable  @click:append="show = !show" >
+            variant="underlined" v-model="password" :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" :readonly="loading" :counter= validPass :rules="passRules" :type="show ? 'text' : 'password'" required class="ma-1" clearable  @click:append="show = !show" >
             <template v-slot:label>
               <span>
                 {{ $t('password') }}
@@ -74,9 +74,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { UserContext } from "~~/lib/UserContext";
-import { MoApiClientSettings } from "~~/lib/MoApi/MoApiClientSettings";
-import { IUserCredentials } from "~~/lib/Security";
-import { MoApiClient } from "~~/lib/MoApi/MoApiClient";
 
 const { t } = useI18n()
 
@@ -92,29 +89,29 @@ let snackbar = ref(false)
 
 let show = ref(false)
 
+const validLog = 5
+
+const validPass = 4
+
 let nameRules = ref([
-  (v: string) => !!v || t('rlogin'),
-  (v: string) => (v && v.length <= 15) || t('vlogin'),
+  (v: string) => !!v || t('required'),
+  (v: string) => (v && v.length <= validLog) ||  t('vlogin', [validLog])
 ])
 
 let passRules = ref([
-  (v: string) => !!v || t('rpass'),
-  (v: string) => v.length >= 4 || t('vpass'),
+  (v: string) => !!v || t('required'),
+  (v: string) => v.length >= validPass || t('vpass', [validPass]),
 ])
+
 
 const onSubmit = async () => {
   if (!form) return
+
   const iocc = useContainer();
   const userCtx = iocc.get<UserContext>("UserContext");
-  const apiSettinngs = iocc.get<MoApiClientSettings>("MoApiClientSettings");
-  const apiData = iocc.get<MoApiClient>("MoApiClient");
 
-  apiSettinngs.Credentials = { login: login.value, password: password.value };
-  loading.value = true;
-  
-  if (await userCtx.tryAuthorize()) {
-    let credCookie = useCookie<IUserCredentials | null>("user_credentials");
-    credCookie.value=apiSettinngs.Credentials;
+
+  if (await userCtx.tryAuthorize(login.value,password.value)) {
     navigateTo('/dashboard');
   } else {
     snackbar.value = true

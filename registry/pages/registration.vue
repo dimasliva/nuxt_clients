@@ -1,6 +1,6 @@
 <template>
-  <v-sheet class="d-flex align-center bg-black" height="100vh">
-    <v-card class="mx-auto " width="600" border="md">
+  <v-sheet class="d-flex align-center bg-background" height="100vh">
+    <v-card class="mx-auto rounded-lg" elevation="10" width="600" border="md">
       <v-row class="bg-primary ma-0 pa-1" justify="center">
         <div class="text-h3">{{ $t('registry') }}</div>
       </v-row>
@@ -19,10 +19,10 @@
           sm="6"
           >
           <v-text-field
-            variant="underlined" v-model=items.field :counter= items.count :readonly="loading" required clearable class="ma-1" > 
+            variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules :counter=items.counter  required clearable class="ma-1" > 
             <template v-slot:label>
               <span>
-                {{ $t(items.placeholder) }}
+                {{ $t(items.title) }}
               </span>
             </template>
           </v-text-field>
@@ -61,7 +61,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
-
 const { t } = useI18n()
 
 let form = ref(false)
@@ -71,6 +70,7 @@ let snackbar = ref(false)
 let loading = ref(false)
 
 const onSubmit =async () => {
+  
   if (!form) return
 
   loading.value = true
@@ -80,20 +80,17 @@ const onSubmit =async () => {
 
   console.log(fields.value)
 
-
 }
-
-
-
+debugger
 let fields = ref([
-  { count: 4 , field: "", placeholder: "login" },
-  { count: 4 , field: "", placeholder: "password" },
-  { count: 3 , field: "", placeholder: "companyTitle" },
-  { count: 5 , field: "", placeholder: "companyFullTitle" },
-  { count: 2 , field: "", placeholder: "emplName" },
-  { count: 2 , field: "", placeholder: "emplSurname" },
-  { count: 6 , field: "", placeholder: "emplBirthdate" },
-  { count: 4 , field: "", placeholder: "email" },
+  { counter: 4, field: "", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 5 || t('vlogin', [4]) ] },
+  { counter: 5, field: "", title: "password", rules: [ (v: string) => !!v || t('required'), ] },
+  { counter: 5, field: "", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { counter: 5, field: "", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", title: "emplName", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", title: "emplSurname", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", title: "emplBirthdate", rules: [ (v: string) => !!v || t('required'),  (v: string) => (/^\s*(3[01]|[12][0-9]|0?[1-9])\.(1[012]|0?[1-9])\.((?:19|20)\d{2})\s*$/i.test(v)) || t('vbirthday') ] },
+  { field: "", title: "email", rules: [ (v: string) => !!v || t('required'), (v: string) => (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(v))?  true : t('vemail') ]  },
 ])
 
 defineExpose({

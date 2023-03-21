@@ -4,10 +4,9 @@
     "password": "Password",
     "registry": "Registration",
     "signin": "Sign In",
-    "rlogin": "Login is required",
-    "vlogin": "Login must be less than 15 characters",
-    "rpass": "Password is required",
-    "vpass": "Password must be 5 characters or more",
+    "required": "This field is required",
+    "vlogin": "Login must be less than {0} characters",
+    "vpass": "Password must be {0} characters or more",
     "autherr": "Authorization error",
     "errtext": "Invalid login or password.",
     "email": "Email",
@@ -16,6 +15,8 @@
     "emplName": "Your name",
     "emplSurname": "Your surname",
     "emplBirthdate":"Your date of birth",
-    "close": "Close"
+    "close": "Close",
+    "vemail": "Must be a valid e-mail",
+    "vbirthday": "DD.MM.YYYY"
   }
   

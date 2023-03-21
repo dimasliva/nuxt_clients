@@ -8,6 +8,7 @@ import colors from 'vuetify/lib/util/colors';
 const lightTheme = {
   dark: false,
   colors: {
+    background: "#FFFFFF",
     primary: '#42A5F5',
     info: '#EF9A9A',
     radio: '#448AFF',
@@ -17,6 +18,7 @@ const lightTheme = {
 const darkTheme = {
   dark: true,
   colors: {
+    background: "#000000",
     primary: '#0D47A1',
     info: '#C62828',
     radio: '#304FFE',
@@ -32,7 +34,7 @@ export default defineNuxtPlugin(nuxtApp => {
       defaultSet: 'mdi',
     },
     theme: {
-      defaultTheme: 'darkTheme',
+      defaultTheme: 'lightTheme',
         themes: {
           lightTheme,
           darkTheme

@@ -123,7 +123,8 @@ export  class MoApiClient {
                 body: JSON.stringify({
                     login: cred.login,
                     password: cred.password,
-                    refreshToken:cred.refreshToken
+                    refreshToken:cred.refreshToken,
+                    appId:this._MoApiClientSettings.appId
                 }),
                 mode:"cors"
             };

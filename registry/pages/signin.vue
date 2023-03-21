@@ -67,7 +67,7 @@ const nameRules = ref([
 
 const passRules = ref([
   (v: string) => !!v || t('rpass'),
-  (v: string) => v.length >= 5 || t('vpass'),
+  (v: string) => v.length >= 4 || t('vpass'),
 ])
 
 const onSubmit = async () => {

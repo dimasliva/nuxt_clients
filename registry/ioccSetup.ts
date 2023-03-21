@@ -6,10 +6,14 @@ import { Container } from "inversify";
 
 export default (container:Container) => {
     if (!container.isBound("UserContext")) {
+        const appConfig=useAppConfig();
         let moApiClientSettings = new MoApiClientSettings();
-        moApiClientSettings.ip = "172.16.121.60";
+        moApiClientSettings.ip = appConfig.apiAddress;
+        moApiClientSettings.port = appConfig.apiPort;
+        moApiClientSettings.appId=appConfig.appId;
 
         container.bind('NuxtApp').toConstantValue(useNuxtApp());
+        container.bind('NuxtAppConfig').toConstantValue(appConfig);
         container.bind('MoApiClient').to(MoApiClient).inSingletonScope();
         container.bind('MoApiClientSettings').toConstantValue(moApiClientSettings);
         container.bind('UserContext').to(UserContext).inSingletonScope();

@@ -1,6 +1,6 @@
 import { Container } from "inversify";
 import "reflect-metadata";
-import ioccSetup from "@/ioccSetup";
+import ioccSetup from "~~/ioccConfig";
 
 
 export const useContainer = () => {

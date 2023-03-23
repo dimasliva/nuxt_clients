@@ -8,3 +8,8 @@ export async function sleep(ms:number) {
         return args[number] || '';
     });
   }
+
+  /**Полное копирование данных объекта*/
+  export function CloneData<T>(obj:T):T{
+    return JSON.parse(JSON.stringify(obj));
+  }

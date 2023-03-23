@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type {MoApiClientSettings} from "@/lib/MoApi/MoApiClientSettings";
+import type { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
 import { HTTPMethod } from 'h3';
 import { IAuthorityData } from '@/lib/Security';
 import { sleep } from "@/lib/Helpers";
@@ -8,30 +8,63 @@ import { sleep } from "@/lib/Helpers";
 
 
 @injectable()
-export  class MoApiClient {
+export class MoApiClient {
 
     @inject("MoApiClientSettings")
     protected _MoApiClientSettings: MoApiClientSettings = null!;
 
-    public  get MoApiClientSettings(): MoApiClientSettings {
+    protected readonly _APIPATH = "/api/v1";
+
+    public get MoApiClientSettings(): MoApiClientSettings {
         return this._MoApiClientSettings;
     }
-    
+
     protected _AuthToken: string = "";
+
 
     init(_MoApiClientSettings: MoApiClientSettings) {
         this._MoApiClientSettings = _MoApiClientSettings;
         return this;
     }
 
+
+    async send<inT, outT>(path: string, data?: inT) {
+        let res = await this.sendRequest("POST", `${this._APIPATH}${path}`, data);
+
+        if (res.bodyData && typeof res.bodyData == "object") {
+            const answ = <any>res.bodyData;
+            if (answ.resultCode == "OK")
+                return <outT>answ.result;
+            else
+                if (answ.resultCode)
+                    throw { code: answ.resultCode, statusCode: 200, message: answ.resultDescription }
+                else
+                    throw { code: "ResponseErr", statusCode: 200, message: "Unknown response format", body: res.bodyData }
+        }
+        else
+            throw { code: "ResponseErr", statusCode: 200, message: "Unknown response format", body: res.bodyData }
+    }
+
+
+    async trySend<inT, OutT>(path: string, data?: inT) {
+        try {
+            return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}`, data);
+        }
+        catch (exc) {
+            return null;
+        }
+    }
+
+
     async checkConnection() {
         return false;
     }
 
+
     async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string = "application/json") {
         const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
         const fulluri = `${baseurl}${path}`;
-        const ATTEMPS=4;
+        const ATTEMPS = 4;
         let attemp = ATTEMPS;
         let bodyData: string | object | null = null;
         let response: Response | null = null;
@@ -49,14 +82,11 @@ export  class MoApiClient {
                 let option: RequestInit = {
                     method: method,
                     headers: headers,
-                    mode:"cors"
+                    mode: "cors"
                 };
 
                 if (content != null) {
-                    if (typeof (content) == "object")
-                        option.body = JSON.stringify(content);
-                    else
-                        option.body = content;
+                    option.body = JSON.stringify(content);
                 }
                 response = await fetch(fulluri, option);
 
@@ -76,16 +106,16 @@ export  class MoApiClient {
                     return { response, bodyData };
                 }
                 else
-                if (response.status >= 500 && response.status < 600) {
-                    if (ATTEMPS - attemp == 1)
-                        sleep(1000);
-                    else
-                        if (ATTEMPS - attemp == 2)
-                            sleep(5000);
+                    if (response.status >= 500 && response.status < 600) {
+                        if (ATTEMPS - attemp == 1)
+                            sleep(1000);
                         else
-                            sleep(10000);
-                    continue;
-                }
+                            if (ATTEMPS - attemp == 2)
+                                sleep(5000);
+                            else
+                                sleep(10000);
+                        continue;
+                    }
             }
             catch {
                 continue;
@@ -97,8 +127,9 @@ export  class MoApiClient {
             }
         }
 
-        throw { code: "RequestErr", statusCode: response?.status || 0, message: "Request Error", response }
+        throw { code: "RequestErr", statusCode: response?.status || 0, message: "Request Error", response, bodyData}
     }
+
 
     async Authorize() {
 
@@ -123,10 +154,10 @@ export  class MoApiClient {
                 body: JSON.stringify({
                     login: cred.login,
                     password: cred.password,
-                    refreshToken:cred.refreshToken,
-                    appId:this._MoApiClientSettings.appId
+                    refreshToken: cred.refreshToken,
+                    appId: this._MoApiClientSettings.appId
                 }),
-                mode:"cors"
+                mode: "cors"
             };
             try {
                 response = await fetch(`${baseurl}/api/v1/users/Auth`, option);
@@ -161,7 +192,7 @@ export  class MoApiClient {
 
             }
             catch (exc) {
-                console.error("Exception in function Authorize:"+JSON.stringify(exc));
+                console.error("Exception in function Authorize:" + JSON.stringify(exc));
                 if (attemp == 1)
                     throw exc;
                 continue;
@@ -170,6 +201,8 @@ export  class MoApiClient {
 
         throw { code: "AuthErr", statusCode: response?.status || 0, message: "Authorization Error", response }
     }
+
+
 
 }
 

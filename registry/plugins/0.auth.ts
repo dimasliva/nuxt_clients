@@ -1,5 +1,7 @@
 
 import type { UserContext } from "@/lib/UserContext";
+import { EmployeeRecord } from "@/lib/MoApi/Records/EmployeeRecord";
+import type { RecordsStore } from "@/lib/MoApi/Records/RecordsStore";
 
 
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -8,19 +10,28 @@ export default defineNuxtPlugin(async (nuxtApp) => {
                 return;
         }
         const iocc = useContainer();
-        const defCtx = iocc.get<UserContext>("UserContext");
-        await defCtx.tryAuthorize();
+        const userCtx = iocc.get<UserContext>("UserContext");
+        await userCtx.tryAuthorize();
+
+        if (userCtx.isAuth) {
+                const sessionContainer = useSessionContainer();
+
+                const recStore = sessionContainer.get<RecordsStore>("RecordsStore");
+                let empl=await recStore.fetch(EmployeeRecord,userCtx.AuthorityData!.userId)
+
+                sessionContainer.unbindAllAsync();
+        }
 
         addRouteMiddleware('auth.global', (to, from) => {
                 console.debug("middleware auth")
-                const defCtx = useContainer().get<UserContext>("UserContext");
+                const userCtx = useContainer().get<UserContext>("UserContext");
 
                 if (to.path.endsWith("/signout")) {
-                        defCtx.signout();
+                        userCtx.signout();
                         return navigateTo('/signin')
                 }
 
-                if (!defCtx.isAuth) {
+                if (!userCtx.isAuth) {
                         if (!to.path.endsWith("/signin"))
                                 return navigateTo('/signin')
                 }

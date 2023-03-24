@@ -22,7 +22,7 @@ export abstract class ApiRecord<T = any>{
     protected _isNewData: boolean = true;
 
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, RecType: typeof ApiRecord<any>, Key: string) {
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, RecType: Class<ApiRecord>, Key: string) {
         this._RecordType = RecType;
         this._Key = Key;
     }

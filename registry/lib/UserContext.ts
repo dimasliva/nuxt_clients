@@ -2,26 +2,46 @@ import { IAuthorityData, IUserCredentials } from "@/lib/Security";
 import { injectable, inject } from "inversify";
 import { NuxtApp } from "nuxt/dist/app";
 import type { MoApiClient } from "./MoApi/MoApiClient";
+import type { EmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
 
 
 @injectable()
 export class UserContext {
 
   protected _isAuth: boolean = false;
+
   protected _AuthorityData: IAuthorityData | null = null;
   public get AuthorityData(): IAuthorityData | null { return this._AuthorityData; }
+
+  //private _CompanyProfile: any | null = null;
+  public get CompanyProfile(): any | null { return this._CompanyData?.profile; }
+
+  private _EmployeeAppProfile: any | null = null;
+  public get EmployeeAppProfile(): any | null { return this._EmployeeAppProfile; }
+
+  private _CompanyLicense: any | null = null;
+  public get CompanyLicense(): any | null { return this._CompanyLicense; }
+
+  private _EmployeeData: EmployeeRecordData | null = null;
+  public get EmployeeData(): any | null { return this._EmployeeData; }
+
+  private _CompanyData: EmployeeRecordData | null = null;
+  public get CompanyData(): any | null { return this._CompanyData; }
+
 
   constructor(@inject("MoApiClient") protected _moApiClient: MoApiClient, @inject("NuxtApp") protected _nuxtApp: NuxtApp) {
     this.restoreFromState()
   }
 
+
   get isAuth() {
     return this._AuthorityData != null;
   }
 
+
   async authorize(login?: string, password?: string) {
     if (this.isAuth) return;
- 
+
     if (login && password) {
       this._moApiClient.MoApiClientSettings.Credentials = { login, password, refreshToken: null }
     }
@@ -30,6 +50,12 @@ export class UserContext {
 
     try {
       this._AuthorityData = await this._moApiClient.Authorize();
+      
+      //получение профилей
+      this._EmployeeData=(<EmployeeRecordData[]>await this._moApiClient.send("/Employees/GetEmployees",[this._AuthorityData .userId]))[0];
+      this._EmployeeAppProfile=await this._moApiClient.send("/Employees/GetAppProfile",this._AuthorityData .userId);
+      this._CompanyData=await this._moApiClient.send("/Company/GetCompany");
+      this._CompanyLicense=await this._moApiClient.send("/Company/GetLicense");
     }
     finally {
       this.saveUserCredentials();
@@ -43,6 +69,7 @@ export class UserContext {
     }
   }
 
+
   signout() {
     this._AuthorityData = null;
     this.saveUserCredentials();
@@ -50,20 +77,6 @@ export class UserContext {
   }
 
   async tryAuthorize(login?: string, password?: string) {
-    /*
-          let cred=this._moApiClient.MoApiClientSettings.Credentials||null;
-          let option: RequestInit = {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: cred? JSON.stringify(cred):""
-          };
-      debugger;
-          var res = await fetch("/api/auth/login", option)
-          this._AuthorityData =  await res.json();
-        return true;
-    */
 
     if (this.isAuth) return true;
 
@@ -76,15 +89,18 @@ export class UserContext {
     return true;
   }
 
+
   saveUserCredentials() {
     let credCookie = useCookie<string | null>("user_session");
     credCookie.value = this._AuthorityData?.refreshToken || null;
   }
 
+
   restoreUserCredentials() {
     let credCookie = useCookie<string | null>("user_session");
     this._moApiClient.MoApiClientSettings.Credentials = { login: null, password: null, refreshToken: credCookie.value }
   }
+
 
   saveToState() {
     const state = {
@@ -93,6 +109,7 @@ export class UserContext {
     this._nuxtApp.payload.state["user_context_class@data"] = state;
     console.debug("auth save " + state)
   }
+
 
   protected restoreFromState() {
     const state = this._nuxtApp.payload?.state["user_context_class@data"];

@@ -18,14 +18,30 @@
           cols="12"
           sm="6"
           >
-          <v-text-field
-            variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules :counter=items.counter  required clearable class="ma-1" > 
-            <template v-slot:label>
-              <span>
-                {{ $t(items.title) }}
-              </span>
-            </template>
-          </v-text-field>
+            <v-text-field
+              variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules required clearable class="ma-1" > 
+              <template v-slot:label>
+                <span>
+                  {{ $t(items.title) }}
+                </span>
+              </template>
+            </v-text-field>
+          </v-col>
+          <v-col
+          cols="12"
+          sm="6"
+          >
+          <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy">
+                <template #trigger>
+                  <v-text-field v-model="date" variant="underlined" :readonly="loading"  required clearable >
+                    <template v-slot:label>
+                  <span>
+                    {{ $t('emplBirthdate') }}
+                  </span>
+                </template>
+                  </v-text-field>
+                </template>
+              </VueDatePicker>
           </v-col>
         </v-row>
 
@@ -60,6 +76,8 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const { t } = useI18n()
 
@@ -68,6 +86,8 @@ let form = ref(false)
 let snackbar = ref(false)
 
 let loading = ref(false)
+
+let date = ref()
 
 const onSubmit =async () => {
   
@@ -81,23 +101,25 @@ const onSubmit =async () => {
   console.log(fields.value)
 
 }
-debugger
+
 let fields = ref([
-  { counter: 4, field: "", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 5 || t('vlogin', [4]) ] },
-  { counter: 5, field: "", title: "password", rules: [ (v: string) => !!v || t('required'), ] },
-  { counter: 5, field: "", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
-  { counter: 5, field: "", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", title: "emplName", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", title: "emplSurname", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", title: "emplBirthdate", rules: [ (v: string) => !!v || t('required'),  (v: string) => (/^\s*(3[01]|[12][0-9]|0?[1-9])\.(1[012]|0?[1-9])\.((?:19|20)\d{2})\s*$/i.test(v)) || t('vbirthday') ] },
-  { field: "", title: "email", rules: [ (v: string) => !!v || t('required'), (v: string) => (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(v))?  true : t('vemail') ]  },
+  { field: "", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 4 || t('vlogin', [4]) ] },
+  { field: "", title: "password", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 6 || t('vpass', [6]) ] },
+  { field: "", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", title: "emplName", rules: [ (v: string) => !!v || t('required')]  },
+  { field: "", title: "emplSurname", rules: [ (v: string) => !!v || t('required') ]  },
+  { field: "", title: "emplPatronymic", rules: [ (v: string) => !!v || t('required') ]  },
+  // { field: "", title: "emplBirthdate", rules: [ (v: string) => !!v || t('required') ] },
+  { field: "", title: "email", rules: [ (v: string) => !!v || t('required') ]  },
 ])
 
 defineExpose({
   form,
   snackbar,
   loading,
-  fields
+  fields,
+  date
 })
 </script>
 

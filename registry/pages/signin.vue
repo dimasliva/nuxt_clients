@@ -18,7 +18,7 @@
           sm="6"
           >
           <v-text-field
-            variant="underlined" v-model= "login" :counter= validLog :readonly="loading" :rules="nameRules" required clearable class="ma-1" > 
+            variant="underlined" v-model= "login"  :readonly="loading" :rules="nameRules" required clearable class="ma-1" > 
             <template v-slot:label>
               <span>
                 {{ $t('login') }}
@@ -32,7 +32,7 @@
           sm="6"
           >
           <v-text-field
-            variant="underlined" v-model="password" :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" :readonly="loading" :counter= validPass :rules="passRules" :type="show ? 'text' : 'password'" required class="ma-1" clearable  @click:append="show = !show" >
+            variant="underlined" v-model="password" :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" :readonly="loading"  :rules="passRules" :type="show ? 'text' : 'password'" required class="ma-1" clearable  @click:append="show = !show" >
             <template v-slot:label>
               <span>
                 {{ $t('password') }}
@@ -42,6 +42,17 @@
           </v-col>
         </v-row>
 
+        <v-dialog v-model="signerr" width="20%">
+          <v-card>
+            <v-card-text class="text-center">
+              {{ $t('errtext') }}
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="info" block @click="signerr = false">{{ $t('close') }}</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <v-row justify="end">
           <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6"
             type="submit">
@@ -50,24 +61,6 @@
         </v-row>
       </v-form>
     </v-card>
-    <v-snackbar
-      v-model="snackbar"
-      vertical
-    >
-      <div class="text-subtitle-1 pb-2 text-info">{{ $t('autherr') }}</div>
-
-      <p>{{ $t('errtext') }}</p>
-
-      <template v-slot:actions>
-        <v-btn
-          color="info"
-          variant="text"
-          @click="snackbar = false"
-        >
-          {{ $t('close') }}
-        </v-btn>
-      </template>
-    </v-snackbar>
   </v-sheet>
 </template>
 
@@ -85,22 +78,16 @@ const password = ref("")
 
 let loading = ref(false)  
 
-let snackbar = ref(false)
+let signerr = ref(false)
 
 let show = ref(false)
 
-const validLog = 5
-
-const validPass = 4
-
 let nameRules = ref([
-  (v: string) => !!v || t('required'),
-  (v: string) => (v && v.length <= validLog) ||  t('vlogin', [validLog])
+  (v: string) => !!v || t('required')
 ])
 
 let passRules = ref([
   (v: string) => !!v || t('required'),
-  (v: string) => v.length >= validPass || t('vpass', [validPass]),
 ])
 
 
@@ -114,7 +101,7 @@ const onSubmit = async () => {
   if (await userCtx.tryAuthorize(login.value,password.value)) {
     navigateTo('/dashboard');
   } else {
-    snackbar.value = true
+    signerr.value = true
   }
 
   loading.value = false;

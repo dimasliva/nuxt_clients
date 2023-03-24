@@ -5,7 +5,7 @@
     "registry": "Registration",
     "signin": "Sign In",
     "required": "This field is required",
-    "vlogin": "Login must be less than {0} characters",
+    "vlogin": "Login must be {0} characters or more",
     "vpass": "Password must be {0} characters or more",
     "autherr": "Authorization error",
     "errtext": "Invalid login or password.",
@@ -14,9 +14,12 @@
     "companyFullTitle": "Full company title",
     "emplName": "Your name",
     "emplSurname": "Your surname",
+    "emplPatronymic": "Your lastname",
     "emplBirthdate":"Your date of birth",
     "close": "Close",
     "vemail": "Must be a valid e-mail",
-    "vbirthday": "DD.MM.YYYY"
+    "vbirthday": "DD.MM.YYYY",
+    "vname": "Please enter name with capital letter",
+    "vsurname": "Please enter surname with capital letter"
   }
   

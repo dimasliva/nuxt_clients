@@ -31,20 +31,17 @@
           cols="12"
           sm="6"
           >
-          <!-- <VueDatePicker v-model="date"  :enable-time-picker="false">
-          <template #trigger >
-         <v-text-field
-           variant="underlined" :readonly="loading"  required clearable>
-           <p>{{ date }}</p>
-         </v-text-field>
-       </template>
-       </VueDatePicker> -->
-            <VueDatePicker v-model="date" :enable-time-picker="false">
-              <template>
-                <v-text-field  variant="underlined" :readonly="loading"  required clearable :placeholder= "t('emplBirthdate')">
-                </v-text-field>
-              </template>
-            </VueDatePicker>
+          <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy">
+                <template #trigger>
+                  <v-text-field v-model="date" variant="underlined" :readonly="loading"  required clearable >
+                    <template v-slot:label>
+                  <span>
+                    {{ $t('emplBirthdate') }}
+                  </span>
+                </template>
+                  </v-text-field>
+                </template>
+              </VueDatePicker>
           </v-col>
         </v-row>
 

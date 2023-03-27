@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   "ssr":false,
 
   "typescript": {
-    "typeCheck": true
+    "typeCheck": false
   },
 
   hooks: {

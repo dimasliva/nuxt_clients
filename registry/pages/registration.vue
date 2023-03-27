@@ -5,72 +5,55 @@
         <div class="text-h3">{{ $t('registry') }}</div>
       </v-row>
       <div class="d-flex flex-row-reverse ma-0 pa-0">
-        <v-select v-model="$i18n.locale" :items="['ru', 'en']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
-          density="compact" class="ma-4 " variant="solo">
-        </v-select>
-      </div>
+        <v-select v-model="$i18n.locale" :items="['ru']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
+        density="compact" class="ma-4 " variant="solo">
+      </v-select>
+    </div>
       <v-form v-model="form" @submit.prevent="onSubmit">
-
+        
         <v-row class="pa-6">
-
+          
           <v-col
           v-for="items in fields"
           cols="12"
           sm="6"
           >
-            <v-text-field
-              variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules required clearable class="ma-1" > 
-              <template v-slot:label>
-                <span>
-                  {{ $t(items.title) }}
-                </span>
-              </template>
-            </v-text-field>
-          </v-col>
-          <v-col
-          cols="12"
-          sm="6"
-          >
-          <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy">
-                <template #trigger>
-                  <v-text-field v-model="date" variant="underlined" :readonly="loading"  required clearable >
-                    <template v-slot:label>
-                  <span>
-                    {{ $t('emplBirthdate') }}
-                  </span>
-                </template>
-                  </v-text-field>
-                </template>
-              </VueDatePicker>
-          </v-col>
-        </v-row>
-
+          <v-text-field
+          variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules required clearable class="ma-1"  v-on:keyup.enter="$event.target.blur()" @click="err = false" > 
+          <template v-slot:label>
+            <span>
+              {{ $t(items.title) }} <span class="text-info">{{ items.star }}</span>
+            </span>
+          </template>
+        </v-text-field>
+      </v-col>
+      <v-col
+      cols="12"
+      sm="6"
+      >
+      <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy" locale="ru" auto-apply>
+        <template #trigger>
+          <v-text-field v-model="date" variant="underlined" :readonly="loading" :rules="rules" required clearable>
+            <template v-slot:label>
+              <span>
+                {{ $t('emplBirthdate') }} <span class="text-info">*</span>
+              </span>
+            </template>
+          </v-text-field>
+        </template>
+      </VueDatePicker>
+    </v-col>
+  </v-row>
+        <p v-if="err" class="text-red-darken-4 text-center">{{ $t('regerr') }}</p>
+        
         <v-row justify="end">
           <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6"
-            type="submit">
-            {{ $t('signin') }}
-          </v-btn>
-        </v-row>
-      </v-form>
-    </v-card>
-    <v-snackbar
-      v-model="snackbar"
-      vertical
-    >
-      <div class="text-subtitle-1 pb-2 text-info">{{ $t('autherr') }}</div>
-
-      <p>{{ $t('errtext') }}</p>
-
-      <template v-slot:actions>
-        <v-btn
-          color="info"
-          variant="text"
-          @click="snackbar = false"
-        >
-          {{ $t('close') }}
+          type="submit" >
+          {{ $t('signin') }}
         </v-btn>
-      </template>
-    </v-snackbar>
+      </v-row>
+  </v-form>
+    </v-card>
   </v-sheet>
 </template>
 
@@ -83,18 +66,20 @@ const { t } = useI18n()
 
 let form = ref(false)
 
-let snackbar = ref(false)
+let err = ref(false)
 
 let loading = ref(false)
 
 let date = ref()
+
+let dialog = ref(false)
 
 const onSubmit =async () => {
   
   if (!form) return
 
   loading.value = true
-  snackbar.value = true
+  err.value = true
 
   setTimeout(() => (loading.value = false), 2000)
 
@@ -102,27 +87,27 @@ const onSubmit =async () => {
 
 }
 
+let rules = ref([
+  (v: string) => !!v || t('required')
+])
+
 let fields = ref([
-  { field: "", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 4 || t('vlogin', [4]) ] },
-  { field: "", title: "password", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 6 || t('vpass', [6]) ] },
-  { field: "", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", title: "emplName", rules: [ (v: string) => !!v || t('required')]  },
-  { field: "", title: "emplSurname", rules: [ (v: string) => !!v || t('required') ]  },
-  { field: "", title: "emplPatronymic", rules: [ (v: string) => !!v || t('required') ]  },
-  // { field: "", title: "emplBirthdate", rules: [ (v: string) => !!v || t('required') ] },
-  { field: "", title: "email", rules: [ (v: string) => !!v || t('required') ]  },
+  { field: "", star: "*", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 4 || t('vlogin', [4]) ] },
+  { field: "", star: "*", title: "password", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 6 || t('vpass', [6]) ] },
+  { field: "", star: "*", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", star: "*", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: "", star: "*", title: "emplName", rules: [ (v: string) => !!v || t('required')]  },
+  { field: "", star: "*", title: "emplSurname", rules: [ (v: string) => !!v || t('required') ]  },
+  { field: "", title: "emplPatronymic" },
+  { field: "", star: "*", title: "email", rules: [ (v: string) => !!v || t('required') ]  },
 ])
 
 defineExpose({
   form,
-  snackbar,
+  err,
   loading,
   fields,
   date
 })
 </script>
 
-<style scoped>
-
-</style>

@@ -45,16 +45,45 @@
     </v-col>
   </v-row>
         <p v-if="err" class="text-red-darken-4 text-center">{{ $t('regerr') }}</p>
-        
         <v-row justify="end">
-          <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6"
-          type="submit" >
-          {{ $t('signin') }}
-        </v-btn>
-      </v-row>
-  </v-form>
-    </v-card>
-  </v-sheet>
+            <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6" 
+            type="submit" >
+            {{ $t('signin') }}
+          </v-btn>
+        </v-row>
+        <v-row justify="center">
+
+          <v-dialog
+            v-model="dialog"
+            width="600px"
+            persistent
+          >
+                <v-card>
+                  <v-card-text class="text-center">
+                    {{ $t('codeinfo') }}
+                    <v-row class="pa-2 ma-2">
+                      <v-text-field variant="underlined" required clearable>
+                        <template v-slot:label>
+                          <span>
+                            {{ $t('codeinput') }}
+                          </span>
+                        </template>
+                      </v-text-field>
+                    </v-row>
+                  </v-card-text>
+                  <v-card-actions>
+                    <p class="ma-4 bg-primary pa-1 rounded">
+                      {{ minutes }}:{{ seconds }}
+                    </p>
+                    <v-spacer></v-spacer>
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="dialog = false">{{ $t('close') }}</v-btn>
+                  </v-card-actions>
+                </v-card>
+          </v-dialog>
+        </v-row>
+    </v-form>
+  </v-card>
+</v-sheet>
 </template>
 
 <script setup lang="ts">
@@ -74,12 +103,34 @@ let date = ref()
 
 let dialog = ref(false)
 
+let minutes = ref(1)
+let seconds = ref(60)
+
+
+
 const onSubmit =async () => {
   
   if (!form) return
-
-  loading.value = true
-  err.value = true
+  
+  dialog.value = true
+  
+  minutes.value = 1;
+  seconds.value = 60;
+  dialog.value == true? loading.value = true : err.value = true
+  const timer = setInterval(() => {
+    if (seconds.value > 0) {
+          seconds.value--
+        }
+        if (seconds.value === 0) {
+          if (minutes.value === 0) {
+            dialog.value = false;
+            clearInterval
+          } else {
+            minutes.value--;
+            seconds.value = 59;
+          }
+        }
+      }, 1000);
 
   setTimeout(() => (loading.value = false), 2000)
 
@@ -88,7 +139,8 @@ const onSubmit =async () => {
 }
 
 let rules = ref([
-  (v: string) => !!v || t('required')
+  (v: string) => !!v || t('required'),
+  (v:string) => (/^\s*(3[01]|[12][0-9]|0?[1-9])\.(1[012]|0?[1-9])\.((?:19|20)\d{2})\s*$/.test(v)) || t('vbirthday')
 ])
 
 let fields = ref([

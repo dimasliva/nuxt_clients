@@ -54,7 +54,7 @@ export class UserContext {
       this._EmployeeData = (<IEmployeeRecordData[]>await this._moApiClient.send("/Employees/GetEmployees", [authorityData.userId]))[0];
       this._EmployeeAppProfile = await this._moApiClient.send("/Employees/GetAppProfile", authorityData.userId);
       //this._CompanyData = await this._moApiClient.send("/Company/GetCompany");
-      this._CompanyProfile = await this._moApiClient.send("/Company/GetCompany");
+      this._CompanyProfile = await this._moApiClient.send("/Company/GetProfile");
       this._CompanyLicense = await this._moApiClient.send("/Company/GetLicense");
       this._AuthorityData = authorityData;
     }

@@ -12,6 +12,11 @@ export default defineNuxtConfig({
       name: "nuxt-session",
       password: process.env.NUXT_AUTH_PASSWORD || "",
     },
+
+    mainApiServer: "172.16.121.60",
+    mainApiServerPort: 7132,
+
+    appId:  "78064056-8C89-4057-9AC9-2836AE605E1D"
   },
 
   css: ['vuetify/lib/styles/main.sass'],
@@ -33,6 +38,7 @@ export default defineNuxtConfig({
     'nitro:build:before': (nitro: Nitro) => {
       nitro.options.moduleSideEffects.push('reflect-metadata')
     }
-  }
+  },
+
 
 });

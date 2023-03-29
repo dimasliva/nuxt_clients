@@ -88,7 +88,7 @@ const onSubmit = async () => {
   const iocc = useContainer();
   const userCtx = iocc.get<UserContext>("UserContext");
 
-
+  loading.value = true;
   if (await userCtx.tryAuthorize(login.value,password.value)) {
     navigateTo('/dashboard');
   } else {

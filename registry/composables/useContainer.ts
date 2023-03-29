@@ -1,6 +1,6 @@
 import { Container } from "inversify";
 import "reflect-metadata";
-import ioccSetup from "~~/ioccConfig";
+import ioccSetup from "~~/ioccInitConfig";
 import { RecordsStore } from "@/lib/MoApi/Records/RecordsStore";
 
 export const useContainer = () => {

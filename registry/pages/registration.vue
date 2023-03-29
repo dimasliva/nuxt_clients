@@ -91,6 +91,7 @@
 import { useI18n } from 'vue-i18n';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
+import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 
 const { t } = useI18n()
 
@@ -129,19 +130,13 @@ let fields = ref([
 ])
 
 
-const confirm = () => {
 
-  if (confCode.value == "1234"){
-    navigateTo('/signout');
-  } else {
-    err.value = true
-  }
-}
+let regUrl = "https://172.16.121.60:7132/api/v1/RegisterCompany/RegisterPending"
 
-let currUrl = "https://172.16.121.60:7132/api/v1/RegisterCompany/RegisterPending"
+let confUrl = "https://172.16.121.60:7132/api/v1/RegisterCompany/RegisterConfirmation"
 
 const postData = async (url = '', data = {}) => {
-
+  
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -154,48 +149,67 @@ const postData = async (url = '', data = {}) => {
 
 const timer = 
 setInterval(() => {
-    if (seconds.value > 0) {
-      seconds.value--
-    } else {
-      dialog.value = false
-    }
+  if (seconds.value > 0) {
+    seconds.value--
+  } else {
+    dialog.value = false
+  }
 }, 1000);
 
 // onUnmounted(() => {clearInterval(timer);  console.log('onUnmounted')})
+const iocc = useContainer();
+const apiClient = iocc.get<MoApiClient>("MoApiClient");
 
-const onSubmit = () => {
+const onSubmit = async() => {
   
   if (!form) return
   
-  dialog.value = true
   
-  seconds.value = 120
-
+  let darr = date.value.split(".");
+  let corrDate = new Date(parseInt(darr[2]),parseInt(darr[1])-1,parseInt(darr[0]));
+  
   let regData = {
-  "email": email.value,
-  "login": login.value,
-  "password": password.value,
-  "companyTitle": companyTitle.value,
-  "companyFullTitle": companyFullTitle.value,
-  "emplName": emplName.value,
-  "emplSurname": emplSurname.value,
-  "emplPatronymic": emplPatronymic.value,
-  "emplBirthdate": (date.value + "T00:00:00.000"),
-  "companyRegistrationData": "OK"
-}
-
-  postData(currUrl, regData)
+    "email": email.value,
+    "login": login.value,
+    "password": password.value,
+    "companyTitle": companyTitle.value,
+    "companyFullTitle": companyFullTitle.value,
+    "emplName": emplName.value,
+    "emplSurname": emplSurname.value,
+    "emplPatronymic": emplPatronymic.value,
+    "emplBirthdate": (corrDate.toISOString())
+  }
+  
+  await postData(regUrl, regData)
   .then((data) => {
     console.log(data); 
+    seconds.value = data.result.lifeTime / 10000
   });
+  
+  dialog.value = true
 
-  console.log(regData)
-
-  dialog.value == true? loading.value = true  : err.value = true
-
-  setTimeout(() => (loading.value = false), 2000)
+dialog.value == true? loading.value = true  : err.value = true
 
 }
+
+const confirm = async () => {
+
+  let confData = {
+    "login": login.value,
+    "code": confCode.value
+  }
+
+  console.log(confData)
+
+ if (await apiClient.registerConfirmation(confData))
+ {navigateTo('/signin')}else{err.value = true}
+    // .then((data) => {
+    //   console.log(data);
+    //   if (data.result == true) {
+    //     navigateTo('/signin');
+    //     }
+    //   });
+    }
 
 let codeRule = ref([
   (v: string) => !!v || t('required')

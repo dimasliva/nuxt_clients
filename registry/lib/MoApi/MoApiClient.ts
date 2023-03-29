@@ -28,6 +28,10 @@ export class MoApiClient {
         return this;
     }
 
+    async registerConfirmation(data: {login: string, code: string}){
+        let res: boolean = await this.send("/RegisterCompany/RegisterConfirmation", data);
+        return res; 
+    }
 
     async send<inT, outT>(path: string, data?: inT) {
         let res = await this.sendRequest("POST", `${this._APIPATH}${path}`, data);

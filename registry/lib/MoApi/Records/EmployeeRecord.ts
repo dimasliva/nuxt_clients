@@ -1,12 +1,8 @@
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord } from "./ApiRecord";
+import { ApiRecord, IApiRecordCompanyData } from "./ApiRecord";
 
-export type EmployeeRecordData = {
-    "id": string,
-    "createdAt": string,
-    "changedAt": string,
-    "company": string,
+export interface IEmployeeRecordData extends IApiRecordCompanyData{
     "name": string,
     "surname": string,
     "patronymic": string | null,
@@ -21,8 +17,7 @@ export type EmployeeRecordData = {
 }
 
 
-export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
-
+export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, EmployeeRecord, Key);
@@ -30,7 +25,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
 
     protected _createNewAllData(): void {
-        this._Data = {
+        this._Data = new Proxy({
             "id": this.Key,
             "createdAt": '',
             "changedAt": '',
@@ -46,9 +41,10 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
             "linkedRecs": null,
             "profile": null,
             "advData": null
-        }
+        }, this._getProxyHanlders());
     }
 
+   
     protected _getApiRecordPathGet = () => "/Employees/GetEmployees";
 
 

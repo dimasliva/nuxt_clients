@@ -10,7 +10,6 @@ export default (container:Container) => {
         let moApiClientSettings = new MoApiClientSettings();
         moApiClientSettings.ip = appConfig.apiAddress;
         moApiClientSettings.port = appConfig.apiPort;
-        moApiClientSettings.appId=appConfig.appId;
 
         container.bind('NuxtApp').toConstantValue(useNuxtApp());
         container.bind('NuxtAppConfig').toConstantValue(appConfig);

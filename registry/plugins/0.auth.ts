@@ -2,6 +2,7 @@
 import type { UserContext } from "@/lib/UserContext";
 import { EmployeeRecord } from "@/lib/MoApi/Records/EmployeeRecord";
 import type { RecordsStore } from "@/lib/MoApi/Records/RecordsStore";
+import   ioccAfterAuthConfig  from "@/ioccAuthConfig";
 
 
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -12,6 +13,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         const iocc = useContainer();
         const userCtx = iocc.get<UserContext>("UserContext");
         await userCtx.tryAuthorize();
+        ioccAfterAuthConfig(userCtx,iocc);
 
         /*
         if (userCtx.isAuth) {
@@ -40,11 +42,11 @@ export default defineNuxtPlugin(async (nuxtApp) => {
                 }
 
                 if (!userCtx.isAuth) {
-                        if (!to.path.endsWith("/signin"))
+                        if (!to.path.endsWith("/signin") && !to.path.endsWith("/registration"))
                                 return navigateTo('/signin')
                 }
                 else
-                        if (to.path.endsWith("/signin"))
+                        if (to.path.endsWith("/signin") || to.path.endsWith("/registration"))
                                 return navigateTo('/dashboard')
         },
                 { global: true }

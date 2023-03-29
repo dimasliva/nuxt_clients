@@ -1,8 +1,9 @@
 import { IAuthorityData, IUserCredentials } from "@/lib/Security";
 import { injectable, inject } from "inversify";
 import { NuxtApp } from "nuxt/dist/app";
+import { Container } from "inversify";
 import type { MoApiClient } from "./MoApi/MoApiClient";
-import type { EmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
+import type { IEmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
 
 
 @injectable()
@@ -13,8 +14,8 @@ export class UserContext {
   protected _AuthorityData: IAuthorityData | null = null;
   public get AuthorityData(): IAuthorityData | null { return this._AuthorityData; }
 
-  //private _CompanyProfile: any | null = null;
-  public get CompanyProfile(): any | null { return this._CompanyData?.profile; }
+  private _CompanyProfile: any | null = null;
+  public get CompanyProfile(): any | null { return this._CompanyProfile; }
 
   private _EmployeeAppProfile: any | null = null;
   public get EmployeeAppProfile(): any | null { return this._EmployeeAppProfile; }
@@ -22,12 +23,11 @@ export class UserContext {
   private _CompanyLicense: any | null = null;
   public get CompanyLicense(): any | null { return this._CompanyLicense; }
 
-  private _EmployeeData: EmployeeRecordData | null = null;
+  private _EmployeeData: IEmployeeRecordData | null = null;
   public get EmployeeData(): any | null { return this._EmployeeData; }
 
-  private _CompanyData: EmployeeRecordData | null = null;
-  public get CompanyData(): any | null { return this._CompanyData; }
-
+  //private _CompanyData: IEmployeeRecordData | null = null;
+  //public get CompanyData(): any | null { return this._CompanyData; }
 
   constructor(@inject("MoApiClient") protected _moApiClient: MoApiClient, @inject("NuxtApp") protected _nuxtApp: NuxtApp) {
     this.restoreFromState()
@@ -49,13 +49,18 @@ export class UserContext {
       this.restoreUserCredentials();
 
     try {
-      this._AuthorityData = await this._moApiClient.Authorize();
-      
+      let authorityData = await this._moApiClient.AuthorizeClient();
       //получение профилей
-      this._EmployeeData=(<EmployeeRecordData[]>await this._moApiClient.send("/Employees/GetEmployees",[this._AuthorityData .userId]))[0];
-      this._EmployeeAppProfile=await this._moApiClient.send("/Employees/GetAppProfile",this._AuthorityData .userId);
-      this._CompanyData=await this._moApiClient.send("/Company/GetCompany");
-      this._CompanyLicense=await this._moApiClient.send("/Company/GetLicense");
+      this._EmployeeData = (<IEmployeeRecordData[]>await this._moApiClient.send("/Employees/GetEmployees", [authorityData.userId]))[0];
+      this._EmployeeAppProfile = await this._moApiClient.send("/Employees/GetAppProfile", authorityData.userId);
+      //this._CompanyData = await this._moApiClient.send("/Company/GetCompany");
+      this._CompanyProfile = await this._moApiClient.send("/Company/GetCompany");
+      this._CompanyLicense = await this._moApiClient.send("/Company/GetLicense");
+      this._AuthorityData = authorityData;
+    }
+    catch (exc) {
+      this._AuthorityData = null;
+      throw exc;
     }
     finally {
       this.saveUserCredentials();

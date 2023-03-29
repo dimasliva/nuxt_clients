@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import type { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
 import { HTTPMethod } from 'h3';
-import { IAuthorityData } from '@/lib/Security';
+import { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '@/lib/Security';
 import { sleep } from "@/lib/Helpers";
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
@@ -20,6 +20,7 @@ export class MoApiClient {
     }
 
     protected _AuthToken: string = "";
+    protected _currentApiHost: string = "";
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -62,7 +63,14 @@ export class MoApiClient {
 
 
     async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string = "application/json") {
-        const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
+        //const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
+        let baseurl = "";
+  
+        if (this._currentApiHost)
+            baseurl = `https://${this._currentApiHost}`;
+        else
+            baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
+
         const fulluri = `${baseurl}${path}`;
         const ATTEMPS = 4;
         let attemp = ATTEMPS;
@@ -88,6 +96,7 @@ export class MoApiClient {
                 if (content != null) {
                     option.body = JSON.stringify(content);
                 }
+       
                 response = await fetch(fulluri, option);
 
 
@@ -122,18 +131,18 @@ export class MoApiClient {
             }
 
             if (response.status == 401 || response.status == 403) {
-                await this.Authorize();
+                await this.AuthorizeClient();
                 continue;
             }
         }
 
-        throw { code: "RequestErr", statusCode: response?.status || 0, message: "Request Error", response, bodyData}
+        throw { code: "RequestErr", statusCode: response?.status || 0, message: "Request Error", response, bodyData }
     }
 
 
-    async Authorize() {
+    async AuthorizeServer(userCredentials: IUserCredentialsServer) {
 
-        if (this._MoApiClientSettings.Credentials == null)
+        if (userCredentials == null)
             throw { code: "AuthErr", statusCode: 0, message: "No credentials", response: null }
 
         const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
@@ -143,7 +152,6 @@ export class MoApiClient {
         let bodyData: string | object | null = null;
         let response: Response | null = null;
         while (attemp--) {
-            let cred = this._MoApiClientSettings.Credentials;
 
             let option: RequestInit = {
                 method: "POST",
@@ -152,21 +160,23 @@ export class MoApiClient {
                 },
 
                 body: JSON.stringify({
-                    login: cred.login,
-                    password: cred.password,
-                    refreshToken: cred.refreshToken,
+                    login: userCredentials.login,
+                    password: userCredentials.password,
+                    refreshToken: userCredentials.refreshToken,
+                    clientIp: userCredentials.clientIp,
                     appId: this._MoApiClientSettings.appId
                 }),
-                mode: "cors"
+                mode: "no-cors"
             };
             try {
+                console.debug(`${baseurl}/api/v1/users/Auth`);
                 response = await fetch(`${baseurl}/api/v1/users/Auth`, option);
 
                 if (response.status == 200) {
                     if (response.headers.get("content-type")?.startsWith("application/json")) {
                         let data = await response.json();
                         if (data.resultCode == "OK") {
-                            this._AuthToken = data.result.token;
+                            //this._AuthToken = data.result.token;
                             return <IAuthorityData>data.result;
                         }
                         throw { code: "AuthErr", statusCode: response.status, message: await response.text(), response, bodyData: data }
@@ -203,6 +213,91 @@ export class MoApiClient {
     }
 
 
+    async AuthorizeClient() {
+
+        if (this._MoApiClientSettings.Credentials == null)
+            throw { code: "AuthErr", statusCode: 0, message: "No credentials", response: null }
+
+
+        const fulluri = `/api/auth/auth`;
+        const ATTEMPS = 3;
+        let attemp = ATTEMPS;
+        let bodyData: string | object | null = null;
+        let response: Response | null = null;
+        while (attemp--) {
+            let cred = this._MoApiClientSettings.Credentials;
+
+            let option: RequestInit = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    login: cred.login,
+                    password: cred.password,
+                    refreshToken: cred.refreshToken
+                }),
+                mode: "same-origin"
+            };
+            try {
+                response = await fetch(fulluri, option);
+
+                if (response.status == 200) {
+                    if (response.headers.get("content-type")?.startsWith("application/json")) {
+                        let data = await response.json();
+                        this._AuthToken = data.token;
+                        this._currentApiHost = data.hosts[0];
+                        return <IAuthorityData>data;
+                    }
+                    else
+                        throw { code: "AuthErr", statusCode: response.status, message: await response.text(), response, bodyData: await response.text() }
+
+                }
+                else
+                    if (response.status >= 500 && response.status < 600) {
+                        if (ATTEMPS - attemp == 1)
+                            sleep(1000);
+                        else
+                            if (ATTEMPS - attemp == 2)
+                                sleep(5000);
+                            else
+                                sleep(10000);
+                        continue;
+                    }
+
+                    else
+                        throw { code: "AuthErr", statusCode: response.status, message: "Authorization Error", response }
+
+            }
+            catch (exc) {
+                console.error("Exception in function Authorize:" + JSON.stringify(exc));
+                if (attemp == 1)
+                    throw exc;
+                continue;
+            }
+        }
+
+        throw { code: "AuthErr", statusCode: response?.status || 0, message: "Authorization Error", response }
+    }
 
 }
 
+
+export type TCompanyRegistrationData = {
+    "email": "string",
+    "login": "string",
+    "password": "string",
+    "companyTitle": "string",
+    "companyFullTitle": "string",
+    "emplName": "string",
+    "emplSurname": "string",
+    "emplPatronymic": "string",
+    "emplBirthdate": "string"
+}
+
+
+export type TRegConfirmationCode = {
+    "login": "string",
+    "code": "string"
+}

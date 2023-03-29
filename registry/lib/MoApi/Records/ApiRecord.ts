@@ -4,7 +4,21 @@ import { CloneData } from "../../Helpers";
 import { UserContext } from "~~/lib/UserContext";
 
 
-export abstract class ApiRecord<T = any>{
+export interface IApiRecordData{
+    id:string;
+}
+
+export interface IApiRecordChData extends IApiRecordData{
+    "createdAt": string,
+    "changedAt": string
+}
+
+export interface IApiRecordCompanyData extends IApiRecordChData{
+    "company":string;
+}
+
+
+export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
     protected _RecordType: Function;
     public get RecordType(): Function { return this._RecordType; }
@@ -34,6 +48,11 @@ export abstract class ApiRecord<T = any>{
     protected abstract _createNewAllData(): void;
 
 
+    protected _getProxyHanlders(): ProxyHandler<T> {
+        return {};
+    }
+
+
     protected _setPrev(): void {
         this._prevData = CloneData(this._Data);
     }
@@ -41,7 +60,7 @@ export abstract class ApiRecord<T = any>{
 
     protected async _loadAData() {
         const arr = await this._MoApiClient.send<string[], T[]>(this._getApiRecordPathGet(), [this._Key]);
-        this._Data = arr[0];
+        this._Data = new Proxy(arr[0],this._getProxyHanlders());
         return this._Data;
     }
 

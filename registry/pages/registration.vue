@@ -62,7 +62,7 @@
                   <v-card-text class="text-center">
                     {{ $t('codeinfo') }}
                     <v-row class="pa-2 ma-2">
-                      <v-text-field variant="underlined" required clearable>
+                      <v-text-field variant="underlined" v-model="confCode" required :rules="codeRule" clearable >
                         <template v-slot:label>
                           <span>
                             {{ $t('codeinput') }}
@@ -73,10 +73,11 @@
                   </v-card-text>
                   <v-card-actions>
                     <p class="ma-4 bg-primary pa-1 rounded">
-                      {{ minutes }}:{{ seconds }}
+                      {{ seconds >= 60 ? Math.floor(seconds / 60) : 0 }}:{{ seconds < 10 ? "0" + seconds : (seconds % 60 < 10 ? "0" + seconds % 60 : seconds %60 )}}
                     </p>
                     <v-spacer></v-spacer>
-                    <v-btn class="ma-2" color="primary" variant="elevated" @click="dialog = false">{{ $t('close') }}</v-btn>
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="dialog = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="confirm" :disabled="!confCode">{{ $t('ok') }}</v-btn>
                   </v-card-actions>
                 </v-card>
           </v-dialog>
@@ -103,55 +104,106 @@ let date = ref()
 
 let dialog = ref(false)
 
-let minutes = ref(1)
-let seconds = ref(60)
+let seconds = ref(0)
+
+let confCode = ref("")
+
+let login = ref('')
+let password = ref('')
+let companyTitle = ref('')
+let companyFullTitle = ref('')
+let emplName = ref('')
+let emplSurname = ref('')
+let emplPatronymic = ref('')
+let email = ref('')
+
+let fields = ref([
+  { field: login, star: "*", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 4 || t('vlogin', [4]) ] },
+  { field: password, star: "*", title: "password", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 6 || t('vpass', [6]) ] },
+  { field: companyTitle, star: "*", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: companyFullTitle, star: "*", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
+  { field: emplName, star: "*", title: "emplName", rules: [ (v: string) => !!v || t('required')]  },
+  { field: emplSurname, star: "*", title: "emplSurname", rules: [ (v: string) => !!v || t('required') ]  },
+  { field: emplPatronymic, title: "emplPatronymic" },
+  { field: email, star: "*", title: "email", rules: [ (v: string) => !!v || t('required') ]  },
+])
 
 
+const confirm = () => {
 
-const onSubmit =async () => {
+  if (confCode.value == "1234"){
+    navigateTo('/signout');
+  } else {
+    err.value = true
+  }
+}
+
+let currUrl = "https://172.16.121.60:7132/api/v1/RegisterCompany/RegisterPending"
+
+const postData = async (url = '', data = {}) => {
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.json(); 
+}
+
+const timer = 
+setInterval(() => {
+    if (seconds.value > 0) {
+      seconds.value--
+    } else {
+      dialog.value = false
+    }
+}, 1000);
+
+// onUnmounted(() => {clearInterval(timer);  console.log('onUnmounted')})
+
+const onSubmit = () => {
   
   if (!form) return
   
   dialog.value = true
   
-  minutes.value = 1;
-  seconds.value = 60;
-  dialog.value == true? loading.value = true : err.value = true
-  const timer = setInterval(() => {
-    if (seconds.value > 0) {
-          seconds.value--
-        }
-        if (seconds.value === 0) {
-          if (minutes.value === 0) {
-            dialog.value = false;
-            clearInterval
-          } else {
-            minutes.value--;
-            seconds.value = 59;
-          }
-        }
-      }, 1000);
+  seconds.value = 120
+
+  let regData = {
+  "email": email.value,
+  "login": login.value,
+  "password": password.value,
+  "companyTitle": companyTitle.value,
+  "companyFullTitle": companyFullTitle.value,
+  "emplName": emplName.value,
+  "emplSurname": emplSurname.value,
+  "emplPatronymic": emplPatronymic.value,
+  "emplBirthdate": (date.value + "T00:00:00.000"),
+  "companyRegistrationData": "OK"
+}
+
+  postData(currUrl, regData)
+  .then((data) => {
+    console.log(data); 
+  });
+
+  console.log(regData)
+
+  dialog.value == true? loading.value = true  : err.value = true
 
   setTimeout(() => (loading.value = false), 2000)
 
-  console.log(fields.value)
-
 }
+
+let codeRule = ref([
+  (v: string) => !!v || t('required')
+])
 
 let rules = ref([
   (v: string) => !!v || t('required'),
   (v:string) => (/^\s*(3[01]|[12][0-9]|0?[1-9])\.(1[012]|0?[1-9])\.((?:19|20)\d{2})\s*$/.test(v)) || t('vbirthday')
-])
-
-let fields = ref([
-  { field: "", star: "*", title: "login", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 4 || t('vlogin', [4]) ] },
-  { field: "", star: "*", title: "password", rules: [ (v: string) => !!v || t('required'), (v: string) => v.length >= 6 || t('vpass', [6]) ] },
-  { field: "", star: "*", title: "companyTitle", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", star: "*", title: "companyFullTitle", rules: [ (v: string) => !!v || t('required'), ]  },
-  { field: "", star: "*", title: "emplName", rules: [ (v: string) => !!v || t('required')]  },
-  { field: "", star: "*", title: "emplSurname", rules: [ (v: string) => !!v || t('required') ]  },
-  { field: "", title: "emplPatronymic" },
-  { field: "", star: "*", title: "email", rules: [ (v: string) => !!v || t('required') ]  },
 ])
 
 defineExpose({

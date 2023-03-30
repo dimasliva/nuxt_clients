@@ -15,7 +15,7 @@
 
           <v-col v-for="items in fields" cols="12" sm="6">
             <v-text-field variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules required
-              clearable class="ma-1" v-on:keyup.enter="$event.target.blur()" @click="err = false">
+              clearable class="ma-1" v-on:keyup.enter="$event.target.blur()" @click="errR = false">
               <template v-slot:label>
                 <span>
                   {{ $t(items.title) }} <span class="text-info">{{ items.star }}</span>
@@ -37,7 +37,7 @@
             </VueDatePicker>
           </v-col>
         </v-row>
-        <p v-if="err" class="text-red-darken-4 text-center">{{ $t('regerr') }}</p>
+        <p v-if="errR" class="text-red-darken-4 text-center">{{ errRegText }}</p>
         <v-row justify="end">
           <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6"
             type="submit">
@@ -46,12 +46,12 @@
         </v-row>
         <v-row justify="center">
 
-          <v-dialog v-model="dialog" width="600px" persistent>
+          <v-dialog v-model="codeField" width="600px" persistent>
             <v-card>
               <v-card-text class="text-center">
                 {{ $t('codeinfo') }}
                 <v-row class="pa-2 ma-2">
-                  <v-text-field variant="underlined" v-model="confCode" required :rules="codeRule" clearable>
+                  <v-text-field variant="underlined" v-model="confCode" required :rules="codeRule" clearable @click="errC = false">
                     <template v-slot:label>
                       <span>
                         {{ $t('codeinput') }}
@@ -60,14 +60,27 @@
                   </v-text-field>
                 </v-row>
               </v-card-text>
+              <p v-if="errC" class="text-red-darken-4 text-center ma-0 pa-0">{{ errConfText }}</p>  
               <v-card-actions>
                 <p class="ma-4 bg-primary pa-1 rounded">
                   {{ seconds >= 60 ? Math.floor(seconds / 60) : 0 }}:{{ seconds < 10 ? "0" + seconds : (seconds % 60 < 10
                     ? "0" + seconds % 60 : seconds % 60) }} </p>
                     <v-spacer></v-spacer>
-                    <v-btn class="ma-2" color="primary" variant="elevated" @click="dialog = false">{{ $t('cancel')
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="codeField = false, loading = false">{{ $t('cancel')
                     }}</v-btn>
                     <v-btn class="ma-2" color="primary" variant="elevated" @click="confirm" :disabled="!confCode">{{
+                      $t('ok') }}</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="confField" width="600px" persistent>
+            <v-card>
+              <v-card-text class="text-center">
+                Вы успешно зарегестрировали компанию!<br>Нажмите на кнопку для перехода на страницу авторизации.
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="navigateTo('/signin')">{{
                       $t('ok') }}</v-btn>
               </v-card-actions>
             </v-card>
@@ -83,22 +96,31 @@ import { useI18n } from 'vue-i18n';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
+import { vMaska } from "maska";
 
 const { t } = useI18n()
 
 let form = ref(false)
 
-let err = ref(false)
+let errR = ref(false)
+
+let errC = ref(false)
 
 let loading = ref(false)
 
 let date = ref()
 
-let dialog = ref(false)
+let codeField = ref(false)
+
+let confField = ref(false)
 
 let seconds = ref(0)
 
 let confCode = ref("")
+
+let errRegText = ref("")
+
+let errConfText = ref("")
 
 let login = ref('')
 let password = ref('')
@@ -121,35 +143,19 @@ let fields = ref([
 ])
 
 
-
-let regUrl = "https://172.16.121.39:7132/api/v1/RegisterCompany/RegisterPending"
-
-let confUrl = "https://172.16.121.60:7132/api/v1/RegisterCompany/RegisterConfirmation"
-
-const postData = async (url = '', data = {}) => {
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
 const timer =
   setInterval(() => {
     if (seconds.value > 0) {
       seconds.value--
     } else {
-      dialog.value = false
+      codeField.value = false
+      loading.value = false
     }
   }, 1000);
 
-// onUnmounted(() => {clearInterval(timer);  console.log('onUnmounted')})
 const iocc = useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
+
 
 const onSubmit = async () => {
 
@@ -170,15 +176,17 @@ const onSubmit = async () => {
     "emplPatronymic": emplPatronymic.value,
     "emplBirthdate": (corrDate.toISOString())
   }
+  try {
+    let data = await apiClient.registerPending(regData)
+      seconds.value = data.lifeTime
+      codeField.value = true
+  } catch (error: any) {
+    errRegText = error.message
+    errR.value = true
+  }
 
-  let data = await postData(regUrl, regData)
-  console.log(data);
-  seconds.value = data.result.lifeTime / 10000
 
-
-  dialog.value = true
-
-  dialog.value == true ? loading.value = true : err.value = true
+  codeField.value == true ? loading.value = true : errR.value = true 
 
 }
 
@@ -189,18 +197,20 @@ const confirm = async () => {
     "code": confCode.value
   }
 
-  console.log(confData)
-  if (await apiClient.registerConfirmation(confData)) {
-    navigateTo('/signin')
-  } else {
-    err.value = true
+  try {
+    let data = await apiClient.registerConfirmation(confData)
+    if (data){
+      codeField.value = false
+      confField.value = true
+    } else {
+      errConfText.value = "Код введен не верно"
+      errC.value = true
+    }
+  } catch (error: any) {
+    errConfText.value = error.message
+      errC.value = true
   }
-  // .then((data) => {
-  //   console.log(data);
-  //   if (data.result == true) {
-  //     navigateTo('/signin');
-  //     }
-  //   });
+   
 }
 
 let codeRule = ref([
@@ -214,7 +224,7 @@ let rules = ref([
 
 defineExpose({
   form,
-  err,
+  errR,
   loading,
   fields,
   date

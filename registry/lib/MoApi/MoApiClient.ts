@@ -29,6 +29,11 @@ export class MoApiClient {
         return this;
     }
 
+    async registerPending(data: TCompanyRegistrationData) {
+        let res:  {lifeTime: number, login: string} = await this.send("/RegisterCompany/RegisterPending", data);
+        return res;
+    }
+
     async registerConfirmation(data: TRegConfirmationCode) {
         let res: boolean = await this.send("/RegisterCompany/RegisterConfirmation", data);
         return res;

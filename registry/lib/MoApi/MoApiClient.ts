@@ -28,9 +28,14 @@ export class MoApiClient {
         return this;
     }
 
-    async registerConfirmation(data: {login: string, code: string}){
+    async registerPending(data: TCompanyRegistrationData) {
+        let res:  {lifeTime: number, login: string} = await this.send("/RegisterCompany/RegisterPending", data);
+        return res;
+    }
+
+    async registerConfirmation(data: TRegConfirmationCode) {
         let res: boolean = await this.send("/RegisterCompany/RegisterConfirmation", data);
-        return res; 
+        return res;
     }
 
     async send<inT, outT>(path: string, data?: inT) {
@@ -69,7 +74,7 @@ export class MoApiClient {
     async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string = "application/json") {
         //const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
         let baseurl = "";
-  
+
         if (this._currentApiHost)
             baseurl = `https://${this._currentApiHost}`;
         else
@@ -100,7 +105,7 @@ export class MoApiClient {
                 if (content != null) {
                     option.body = JSON.stringify(content);
                 }
-       
+
                 response = await fetch(fulluri, option);
 
 
@@ -289,19 +294,19 @@ export class MoApiClient {
 
 
 export type TCompanyRegistrationData = {
-    "email": "string",
-    "login": "string",
-    "password": "string",
-    "companyTitle": "string",
-    "companyFullTitle": "string",
-    "emplName": "string",
-    "emplSurname": "string",
-    "emplPatronymic": "string",
-    "emplBirthdate": "string"
+    email: string;
+    login: string;
+    password: string;
+    companyTitle: string;
+    companyFullTitle: string;
+    emplName: string;
+    emplSurname: string;
+    emplPatronymic?: string | null;
+    emplBirthdate: string;
 }
 
 
 export type TRegConfirmationCode = {
-    "login": "string",
-    "code": "string"
+    login: string,
+    code: string
 }

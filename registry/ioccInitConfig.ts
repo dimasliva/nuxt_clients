@@ -8,15 +8,12 @@ export default (container:Container) => {
     if (!container.isBound("UserContext")) {
         const appConfig=useAppConfig();
         let moApiClientSettings = new MoApiClientSettings();
-        moApiClientSettings.ip = appConfig.apiAddress;
-        moApiClientSettings.port = appConfig.apiPort;
 
         container.bind('NuxtApp').toConstantValue(useNuxtApp());
         container.bind('NuxtAppConfig').toConstantValue(appConfig);
         container.bind('MoApiClient').to(MoApiClient).inSingletonScope();
         container.bind('MoApiClientSettings').toConstantValue(moApiClientSettings);
         container.bind('UserContext').to(UserContext).inSingletonScope();
-        console.info("startup init");
-
+        console.debug("iocc init");
     }
 }

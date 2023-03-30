@@ -6,5 +6,5 @@ import { Container } from "inversify";
 
 export default (userCtx:UserContext, container:Container) => {
 //todo конфигурацию на основе профилей
-        console.info("iocc after auth");
+        console.debug("iocc after auth init");
 }

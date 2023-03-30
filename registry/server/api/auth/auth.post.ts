@@ -9,7 +9,7 @@ export default eventHandler(async (event) => {
     console.debug("Server auth invoke");
 
     const rtmConfig=useRuntimeConfig();
-    let key="F1945A446668430A888955BCDBDD8394F1945A446668430A888955BCDBDD8395";
+    //let key="F1945A446668430A888955BCDBDD8394F1945A446668430A888955BCDBDD8395";
   
     let userCred: IUserCredentialsServer|undefined = await readBody(event);
 
@@ -18,7 +18,6 @@ export default eventHandler(async (event) => {
             message: "User credentials not found",
             statusCode: 401
         });
-
 
     const apiClient = new MoApiClient().init(new MoApiClientSettings()) //iocc.get<MoApiClient>("MoApiClientSettings");
     apiClient.MoApiClientSettings.ip = rtmConfig.mainApiServer;

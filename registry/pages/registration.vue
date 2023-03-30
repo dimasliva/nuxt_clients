@@ -183,7 +183,7 @@ const onSubmit = async() => {
   await postData(regUrl, regData)
   .then((data) => {
     console.log(data); 
-    seconds.value = data.result.lifeTime / 10000
+    seconds.value = data.result.lifeTime
   });
   
   dialog.value = true

@@ -2,7 +2,8 @@ import { inject, injectable } from 'inversify';
 import type { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
 import { HTTPMethod } from 'h3';
 import { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '@/lib/Security';
-import { sleep } from "@/lib/Helpers";
+import { sleep, excToLog } from "@/lib/Helpers";
+import { Exception, NetException } from '../Exceptions';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -47,12 +48,12 @@ export class MoApiClient {
                 return <outT>answ.result;
             else
                 if (answ.resultCode)
-                    throw { code: answ.resultCode, statusCode: 200, message: answ.resultDescription }
+                    throw new NetException(answ.resultCode, answ.resultDescription, 200);
                 else
-                    throw { code: "ResponseErr", statusCode: 200, message: "Unknown response format", body: res.bodyData }
+                    throw new NetException("ResponseErr", "Unknown response format", 200, res.response, res.bodyData);
         }
         else
-            throw { code: "ResponseErr", statusCode: 200, message: "Unknown response format", body: res.bodyData }
+            throw new NetException("ResponseErr", "Unknown response format", 200, res.response, res.bodyData);
     }
 
 
@@ -61,6 +62,7 @@ export class MoApiClient {
             return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}`, data);
         }
         catch (exc) {
+            excToLog("MoApiClient.trySend", exc);
             return null;
         }
     }
@@ -72,87 +74,91 @@ export class MoApiClient {
 
 
     async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string = "application/json") {
-        //const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
         let baseurl = "";
+        try {
+            if (this._currentApiHost)
+                baseurl = `https://${this._currentApiHost}`;
+            else
+                baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
 
-        if (this._currentApiHost)
-            baseurl = `https://${this._currentApiHost}`;
-        else
-            baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
+            const fulluri = `${baseurl}${path}`;
+            const ATTEMPS = 4;
+            let attemp = ATTEMPS;
+            let bodyData: string | object | null = null;
+            let response: Response | null = null;
 
-        const fulluri = `${baseurl}${path}`;
-        const ATTEMPS = 4;
-        let attemp = ATTEMPS;
-        let bodyData: string | object | null = null;
-        let response: Response | null = null;
+            while (attemp--) {
 
-        while (attemp--) {
+                const headers: { [key: string]: string } = {};
+                if (this._AuthToken)
+                    headers["Authorization"] = `Bearer ${this._AuthToken}`;
 
-            const headers: { [key: string]: string } = {};
-            if (this._AuthToken)
-                headers["Authorization"] = `Bearer ${this._AuthToken}`;
+                if (contenttype)
+                    headers["Content-Type"] = contenttype;
 
-            if (contenttype)
-                headers["Content-Type"] = contenttype;
+                try {
+                    let option: RequestInit = {
+                        method: method,
+                        headers: headers,
+                        mode: "cors"
+                    };
 
-            try {
-                let option: RequestInit = {
-                    method: method,
-                    headers: headers,
-                    mode: "cors"
-                };
-
-                if (content != null) {
-                    option.body = JSON.stringify(content);
-                }
-
-                response = await fetch(fulluri, option);
-
-
-                if (response.status == 200) {
-
-                    const contType = response.headers.get("content-type")?.split(";") || [];
-                    switch (contType[0]) {
-                        case "application/json":
-                            bodyData = await response.json();
-                            break;
-
-                        default:
-                            bodyData = await response.text();
-                            break;
+                    if (content != null) {
+                        option.body = JSON.stringify(content);
                     }
-                    return { response, bodyData };
-                }
-                else
-                    if (response.status >= 500 && response.status < 600) {
-                        if (ATTEMPS - attemp == 1)
-                            sleep(1000);
-                        else
-                            if (ATTEMPS - attemp == 2)
-                                sleep(5000);
+
+                    response = await fetch(fulluri, option);
+
+
+                    if (response.status == 200) {
+
+                        const contType = response.headers.get("content-type")?.split(";") || [];
+                        switch (contType[0]) {
+                            case "application/json":
+                                bodyData = await response.json();
+                                break;
+
+                            default:
+                                bodyData = await response.text();
+                                break;
+                        }
+                        return { response, bodyData };
+                    }
+                    else
+                        if (response.status >= 500 && response.status < 600) {
+                            if (ATTEMPS - attemp == 1)
+                                sleep(1000);
                             else
-                                sleep(10000);
-                        continue;
-                    }
-            }
-            catch {
-                continue;
+                                if (ATTEMPS - attemp == 2)
+                                    sleep(5000);
+                                else
+                                    sleep(10000);
+                            continue;
+                        }
+                }
+                catch {
+                    continue;
+                }
+
+                if (response.status == 401 || response.status == 403) {
+                    await this.AuthorizeClient();
+                    continue;
+                }
             }
 
-            if (response.status == 401 || response.status == 403) {
-                await this.AuthorizeClient();
-                continue;
-            }
+            throw new NetException("RequestErr", "Request Error", response?.status || 0, response, bodyData);
         }
-
-        throw { code: "RequestErr", statusCode: response?.status || 0, message: "Request Error", response, bodyData }
+        catch (exc) {
+            excToLog("sendRequest", exc);
+            throw exc;
+        }
     }
 
 
     async AuthorizeServer(userCredentials: IUserCredentialsServer) {
 
         if (userCredentials == null)
-            throw { code: "AuthErr", statusCode: 0, message: "No credentials", response: null }
+            throw new Exception("AuthErr", "No credentials");
 
         const baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
         const fulluri = `${baseurl}/api/v1/users/Auth`;
@@ -178,21 +184,18 @@ export class MoApiClient {
                 mode: "no-cors"
             };
             try {
-                console.debug(`${baseurl}/api/v1/users/Auth`);
                 response = await fetch(`${baseurl}/api/v1/users/Auth`, option);
 
                 if (response.status == 200) {
                     if (response.headers.get("content-type")?.startsWith("application/json")) {
                         let data = await response.json();
                         if (data.resultCode == "OK") {
-                            //this._AuthToken = data.result.token;
                             return <IAuthorityData>data.result;
                         }
-                        throw { code: "AuthErr", statusCode: response.status, message: await response.text(), response, bodyData: data }
+                        throw new NetException(data.resultCode, data.resultDescription, response.status, response, data);
                     }
                     else
-                        throw { code: "AuthErr", statusCode: response.status, message: await response.text(), response, bodyData: await response.text() }
-
+                        throw new NetException("AuthErr", "Ошибка авторизации", response.status, response, await response.text());
                 }
                 else
                     if (response.status >= 500 && response.status < 600) {
@@ -207,26 +210,26 @@ export class MoApiClient {
                     }
 
                     else
-                        throw { code: "AuthErr", statusCode: response.status, message: "Authorization Error", response }
+                        throw new NetException("AuthErr", "Ошибка авторизации", response.status, response, await response.text());
 
             }
             catch (exc) {
-                console.error("Exception in function Authorize:" + JSON.stringify(exc));
+                excToLog("AuthorizeServer", exc);
+
                 if (attemp == 1)
                     throw exc;
                 continue;
             }
         }
 
-        throw { code: "AuthErr", statusCode: response?.status || 0, message: "Authorization Error", response }
+        throw new NetException("AuthErr", "Ошибка авторизации", response?.status || 0, response, await response?.text());
     }
 
 
     async AuthorizeClient() {
 
         if (this._MoApiClientSettings.Credentials == null)
-            throw { code: "AuthErr", statusCode: 0, message: "No credentials", response: null }
-
+            throw new Exception("AuthErr", "No credentials");
 
         const fulluri = `/api/auth/auth`;
         const ATTEMPS = 3;
@@ -260,8 +263,7 @@ export class MoApiClient {
                         return <IAuthorityData>data;
                     }
                     else
-                        throw { code: "AuthErr", statusCode: response.status, message: await response.text(), response, bodyData: await response.text() }
-
+                        throw new NetException("AuthErr", "Ошибка авторизации", response.status, response, await response.text());
                 }
                 else
                     if (response.status >= 500 && response.status < 600) {
@@ -274,20 +276,20 @@ export class MoApiClient {
                                 sleep(10000);
                         continue;
                     }
-
                     else
-                        throw { code: "AuthErr", statusCode: response.status, message: "Authorization Error", response }
+                        throw new NetException("AuthErr", "Ошибка авторизации", response.status, response);
 
             }
             catch (exc) {
-                console.error("Exception in function Authorize:" + JSON.stringify(exc));
+                excToLog("AuthorizeClient", exc);
+
                 if (attemp == 1)
                     throw exc;
                 continue;
             }
         }
 
-        throw { code: "AuthErr", statusCode: response?.status || 0, message: "Authorization Error", response }
+        throw new NetException("AuthErr", "Ошибка авторизации", response?.status || 0, response);
     }
 
 }

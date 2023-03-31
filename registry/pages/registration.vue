@@ -26,7 +26,7 @@
           <v-col cols="12" sm="6">
             <VueDatePicker v-model="date" :enable-time-picker="false" model-type="yyyy-MM-dd" locale="ru" auto-apply>
               <template #trigger>
-                <v-text-field v-model="date"  type="date" variant="underlined" :readonly="loading"  required >
+                <v-text-field v-model="date" type="date" variant="underlined" :readonly="loading" required :rules="rules">
                   <template v-slot:label>
                     <span>
                       {{ $t('emplBirthdate') }} <span class="text-info">*</span>
@@ -51,7 +51,8 @@
               <v-card-text class="text-center">
                 {{ $t('codeinfo') }}
                 <v-row class="pa-2 ma-2">
-                  <v-text-field variant="underlined" v-model="confCode" required :rules="codeRule" clearable @click="errC = false">
+                  <v-text-field variant="underlined" v-model="confCode" required :rules="codeRule" clearable
+                    @click="errC = false">
                     <template v-slot:label>
                       <span>
                         {{ $t('codeinput') }}
@@ -60,13 +61,14 @@
                   </v-text-field>
                 </v-row>
               </v-card-text>
-              <p v-if="errC" class="text-red-darken-4 text-center ma-0 pa-0">{{ errConfText }}</p>  
+              <p v-if="errC" class="text-red-darken-4 text-center ma-0 pa-0">{{ errConfText }}</p>
               <v-card-actions>
                 <p class="ma-4 bg-primary pa-1 rounded">
                   {{ seconds >= 60 ? Math.floor(seconds / 60) : 0 }}:{{ seconds < 10 ? "0" + seconds : (seconds % 60 < 10
                     ? "0" + seconds % 60 : seconds % 60) }} </p>
                     <v-spacer></v-spacer>
-                    <v-btn class="ma-2" color="primary" variant="elevated" @click="codeField = false, loading = false">{{ $t('cancel')
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="codeField = false, loading = false">{{
+                      $t('cancel')
                     }}</v-btn>
                     <v-btn class="ma-2" color="primary" variant="elevated" @click="confirm" :disabled="!confCode">{{
                       $t('ok') }}</v-btn>
@@ -80,8 +82,8 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                    <v-btn class="ma-2" color="primary" variant="elevated" @click="navigateTo('/signin')">{{
-                      $t('ok') }}</v-btn>
+                <v-btn class="ma-2" color="primary" variant="elevated" @click="navigateTo('/signin')">{{
+                  $t('ok') }}</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -152,7 +154,7 @@ const timer =
     }
   }, 1000);
 
-  
+
 const iocc = useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 
@@ -161,8 +163,6 @@ const onSubmit = async () => {
 
   if (!form) return
 
-
-debugger;
   let regData = {
     "email": email.value,
     "login": login.value,
@@ -176,15 +176,15 @@ debugger;
   }
   try {
     let data = await apiClient.registerPending(regData)
-      seconds.value = data.lifeTime
-      codeField.value = true
+    seconds.value = data.lifeTime
+    codeField.value = true
   } catch (error: any) {
     errRegText = error.message
     errR.value = true
   }
 
 
-  codeField.value == true ? loading.value = true : errR.value = true 
+  codeField.value == true ? loading.value = true : errR.value = true
 
 }
 
@@ -197,18 +197,18 @@ const confirm = async () => {
 
   try {
     let data = await apiClient.registerConfirmation(confData)
-    if (data){
+    if (data) {
       codeField.value = false
       confField.value = true
     } else {
-      errConfText.value = "Код введен не верно"
+      errConfText.value = "Код введен неверно"
       errC.value = true
     }
   } catch (error: any) {
     errConfText.value = error.message
-      errC.value = true
+    errC.value = true
   }
-   
+
 }
 
 let codeRule = ref([
@@ -217,7 +217,7 @@ let codeRule = ref([
 
 let rules = ref([
   (v: string) => !!v || t('required'),
-  (v: string) => (/^\s*(3[01]|[12][0-9]|0?[1-9])\.(1[012]|0?[1-9])\.((?:19|20)\d{2})\s*$/.test(v)) || t('vbirthday')
+  (v: string) => (/^(?:19|20)\d{2}-\d\d-\d\d$/.test(v)) || t('vbirthday')
 ])
 
 defineExpose({

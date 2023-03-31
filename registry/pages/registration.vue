@@ -14,7 +14,7 @@
         <v-row class="pa-6">
 
           <v-col v-for="items in fields" cols="12" sm="6">
-            <v-text-field variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules required
+            <v-text-field variant="underlined" v-model=items.field  :readonly="loading" :rules=items.rules required
               clearable class="ma-1" v-on:keyup.enter="$event.target.blur()" @click="errR = false">
               <template v-slot:label>
                 <span>
@@ -24,9 +24,10 @@
             </v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <VueDatePicker v-model="date" :enable-time-picker="false" model-type="yyyy-MM-dd" locale="ru" auto-apply>
+            <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy" locale="ru" auto-apply >
               <template #trigger>
-                <v-text-field v-model="date" type="date"  variant="underlined" :readonly="loading" required :rules="rules">
+                <v-text-field v-model="date" v-maska:[maskaOptions] variant="underlined" :readonly="loading" :rules="rules" required clearable>
+
                   <template v-slot:label>
                     <span>
                       {{ $t('emplBirthdate') }} <span class="text-info">*</span>
@@ -98,6 +99,12 @@ import { useI18n } from 'vue-i18n';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
+import { vMaska } from "maska"
+
+const maskaOptions = {
+  mask: '##.##.####'
+}
+
 
 const { t } = useI18n()
 
@@ -228,14 +235,4 @@ defineExpose({
   date
 })
 </script>
-
-
-<style>
-/*
-//убирает картинку календаря в inpute date. Работает не во всех браузерах
-input[type=date]::-webkit-calendar-picker-indicator {
-  opacity: 0;
-}
-*/
-</style>
 

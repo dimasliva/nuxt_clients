@@ -5,7 +5,7 @@ import { Nitro } from "nitropack";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"//разрешение для nodejs принимать самоподписанные сертификаты https
 
-const mainApiServer = "172.16.121.39";
+const mainApiServer = "172.16.121.60";
 const mainApiServerPort = 7132;
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config

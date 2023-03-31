@@ -24,9 +24,9 @@
             </v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy" locale="ru" auto-apply>
+            <VueDatePicker v-model="date" :enable-time-picker="false" model-type="yyyy-MM-dd" locale="ru" auto-apply>
               <template #trigger>
-                <v-text-field v-model="date" variant="underlined" :readonly="loading" :rules="rules" required clearable>
+                <v-text-field v-model="date"  type="date" variant="underlined" :readonly="loading"  required >
                   <template v-slot:label>
                     <span>
                       {{ $t('emplBirthdate') }} <span class="text-info">*</span>
@@ -96,7 +96,6 @@ import { useI18n } from 'vue-i18n';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
-import { vMaska } from "maska";
 
 const { t } = useI18n()
 
@@ -153,6 +152,7 @@ const timer =
     }
   }, 1000);
 
+  
 const iocc = useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 
@@ -162,9 +162,7 @@ const onSubmit = async () => {
   if (!form) return
 
 
-  let darr = date.value.split(".");
-  let corrDate = new Date(parseInt(darr[2]), parseInt(darr[1]) - 1, parseInt(darr[0]));
-
+debugger;
   let regData = {
     "email": email.value,
     "login": login.value,
@@ -174,7 +172,7 @@ const onSubmit = async () => {
     "emplName": emplName.value,
     "emplSurname": emplSurname.value,
     "emplPatronymic": emplPatronymic.value,
-    "emplBirthdate": (corrDate.toISOString())
+    "emplBirthdate": (date.value)
   }
   try {
     let data = await apiClient.registerPending(regData)

@@ -6,14 +6,17 @@ import { Container } from "inversify";
 
 export default (container:Container) => {
     if (!container.isBound("UserContext")) {
-        const appConfig=useAppConfig();
+        const AppConfig=useAppConfig();
         let moApiClientSettings = new MoApiClientSettings();
+        moApiClientSettings.ip = AppConfig.apiAddress;
+        moApiClientSettings.port = AppConfig.apiPort;
 
         container.bind('NuxtApp').toConstantValue(useNuxtApp());
-        container.bind('NuxtAppConfig').toConstantValue(appConfig);
+        container.bind('NuxtAppConfig').toConstantValue(AppConfig);
         container.bind('MoApiClient').to(MoApiClient).inSingletonScope();
         container.bind('MoApiClientSettings').toConstantValue(moApiClientSettings);
         container.bind('UserContext').to(UserContext).inSingletonScope();
         console.debug("iocc init");
+
     }
 }

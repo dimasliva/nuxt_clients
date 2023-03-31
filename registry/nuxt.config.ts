@@ -1,9 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 // nuxt.config.ts
 import { defineNuxtConfig } from "nuxt/config"
-import {Nitro} from "nitropack";
+import { Nitro } from "nitropack";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"//разрешение для nodejs принимать самоподписанные сертификаты https
+
+const mainApiServer = "172.16.121.39";
+const mainApiServerPort = 7132;
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -13,10 +16,10 @@ export default defineNuxtConfig({
       password: process.env.NUXT_AUTH_PASSWORD || "",
     },
 
-    mainApiServer: "172.16.121.60",
-    mainApiServerPort: 7132,
+    mainApiServer: mainApiServer,
+    mainApiServerPort: mainApiServerPort,
+    appId: "78064056-8C89-4057-9AC9-2836AE605E1D",
 
-    appId:  "78064056-8C89-4057-9AC9-2836AE605E1D"
   },
 
   css: ['vuetify/lib/styles/main.sass'],
@@ -28,7 +31,7 @@ export default defineNuxtConfig({
       'process.env.DEBUG': false,
     },
   },
-  "ssr":false,
+  "ssr": false,
 
   "typescript": {
     "typeCheck": false
@@ -40,5 +43,25 @@ export default defineNuxtConfig({
     }
   },
 
+  proxy: {
+    enableProxy:true,
+    proxies: {
+      '^/swagger/.*': {
+        target: `https://${mainApiServer}:${mainApiServerPort}`,
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      },
+
+      '^/api/v1/RegisterCompany/.*': {
+        target: `https://${mainApiServer}:${mainApiServerPort}`,
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      },
+      
+    }
+  },
+  modules: ['@nuxt-alt/proxy']
 
 });

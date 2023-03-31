@@ -26,7 +26,7 @@
           <v-col cols="12" sm="6">
             <VueDatePicker v-model="date" :enable-time-picker="false" model-type="yyyy-MM-dd" locale="ru" auto-apply>
               <template #trigger>
-                <v-text-field v-model="date" type="date" variant="underlined" :readonly="loading" required :rules="rules">
+                <v-text-field v-model="date" type="date"  variant="underlined" :readonly="loading" required :rules="rules">
                   <template v-slot:label>
                     <span>
                       {{ $t('emplBirthdate') }} <span class="text-info">*</span>
@@ -228,4 +228,14 @@ defineExpose({
   date
 })
 </script>
+
+
+<style>
+/*
+//убирает картинку календаря в inpute date. Работает не во всех браузерах
+input[type=date]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+}
+*/
+</style>
 

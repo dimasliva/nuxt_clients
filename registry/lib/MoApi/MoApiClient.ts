@@ -30,7 +30,7 @@ export class MoApiClient {
     }
 
     async registerPending(data: TCompanyRegistrationData) {
-        let res:  {lifeTime: number, login: string} = await this.send("/RegisterCompany/RegisterPending", data);
+        let res: { lifeTime: number, login: string } = await this.send("/RegisterCompany/RegisterPending", data);
         return res;
     }
 
@@ -79,7 +79,8 @@ export class MoApiClient {
             if (this._currentApiHost)
                 baseurl = `https://${this._currentApiHost}`;
             else
-                baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
+                if (this._MoApiClientSettings.ip)
+                    baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
 
             const fulluri = `${baseurl}${path}`;
             const ATTEMPS = 4;

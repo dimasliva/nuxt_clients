@@ -5,7 +5,7 @@
         <div class="text-h3">{{ $t('signin') }}</div>
       </v-row>
       <div class="d-flex flex-row-reverse ma-0 pa-0">
-        <v-select v-model="$i18n.locale" :items="['ru']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
+        <v-select v-model="$i18n.locale" :items="['ru', 'en']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
           density="compact" class="ma-4 " variant="solo">
         </v-select>
       </div>
@@ -60,17 +60,11 @@ import { useI18n } from "vue-i18n";
 import { UserContext } from "~~/lib/UserContext";
 
 const { t } = useI18n()
-
 let form = ref(false)
-
 const login = ref("")
-
 const password = ref("")
-
 let loading = ref(false)  
-
 let show = ref(false)
-
 let err = ref(false)
 
 let nameRules = ref([
@@ -97,6 +91,10 @@ const onSubmit = async () => {
 
   loading.value = false;
 }
+
+definePageMeta({
+  layout: false,
+});
 
 defineExpose({
   form,

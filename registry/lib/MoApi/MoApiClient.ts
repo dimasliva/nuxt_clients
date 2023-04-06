@@ -110,7 +110,6 @@ export class MoApiClient {
 
                     response = await fetch(fulluri, option);
 
-
                     if (response.status == 200) {
 
                         const contType = response.headers.get("content-type")?.split(";") || [];
@@ -128,12 +127,12 @@ export class MoApiClient {
                     else
                         if (response.status >= 500 && response.status < 600) {
                             if (ATTEMPS - attemp == 1)
-                                sleep(1000);
+                                await sleep(1000);
                             else
                                 if (ATTEMPS - attemp == 2)
-                                    sleep(5000);
+                                    await sleep(5000);
                                 else
-                                    sleep(10000);
+                                    await sleep(10000);
                             continue;
                         }
                 }
@@ -200,13 +199,14 @@ export class MoApiClient {
                 }
                 else
                     if (response.status >= 500 && response.status < 600) {
+                        console.debug("AuthorizeServer: auth attemp:" + (ATTEMPS - attemp))
                         if (ATTEMPS - attemp == 1)
-                            sleep(1000);
+                            await sleep(1000);
                         else
                             if (ATTEMPS - attemp == 2)
-                                sleep(5000);
+                                await sleep(5000);
                             else
-                                sleep(10000);
+                                await sleep(10000);
                         continue;
                     }
 

@@ -1,12 +1,6 @@
 <template>
-    <div>
-    <v-app>
-      <v-main>
-        <SideBar />
-        <Table></Table>
-        <InfoTab></InfoTab>
-      </v-main>
-    </v-app>
+  <div>
+        <h1>some content here</h1>
   </div>
 </template>
 

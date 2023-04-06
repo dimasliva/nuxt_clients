@@ -5,16 +5,14 @@
         <div class="text-h3">{{ $t('registry') }}</div>
       </v-row>
       <div class="d-flex flex-row-reverse ma-0 pa-0">
-        <v-select v-model="$i18n.locale" :items="['ru']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
+        <v-select v-model="$i18n.locale" :items="['ru', 'en']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
           density="compact" class="ma-4 " variant="solo">
         </v-select>
       </div>
       <v-form v-model="form" @submit.prevent="onSubmit">
-
         <v-row class="pa-6">
-
           <v-col v-for="items in fields" cols="12" sm="6">
-            <v-text-field variant="underlined" v-model=items.field  :readonly="loading" :rules=items.rules required
+            <v-text-field variant="underlined" v-model=items.field :readonly="loading" :rules=items.rules required
               clearable class="ma-1" v-on:keyup.enter="$event.target.blur()" @click="errR = false">
               <template v-slot:label>
                 <span>
@@ -24,10 +22,9 @@
             </v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <VueDatePicker v-model="date" :enable-time-picker="false" model-type="dd.MM.yyyy" locale="ru" auto-apply >
+            <VueDatePicker v-model="date" :enable-time-picker="false" model-type="yyyy-MM-dd" locale="ru" auto-apply >
               <template #trigger>
-                <v-text-field v-model="date" v-maska:[maskaOptions] variant="underlined" :readonly="loading" :rules="rules" required clearable>
-
+                <v-text-field v-model="date" type="date" variant="underlined" :readonly="loading" :rules="rules" required clearable>
                   <template v-slot:label>
                     <span>
                       {{ $t('emplBirthdate') }} <span class="text-info">*</span>
@@ -64,7 +61,7 @@
               </v-card-text>
               <p v-if="errC" class="text-red-darken-4 text-center ma-0 pa-0">{{ errConfText }}</p>
               <v-card-actions>
-                <p class="ma-4 bg-primary pa-1 rounded">
+                <p class="ma-4 pa-1">
                   {{ seconds >= 60 ? Math.floor(seconds / 60) : 0 }}:{{ seconds < 10 ? "0" + seconds : (seconds % 60 < 10
                     ? "0" + seconds % 60 : seconds % 60) }} </p>
                     <v-spacer></v-spacer>
@@ -99,35 +96,18 @@ import { useI18n } from 'vue-i18n';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
-import { vMaska } from "maska"
-
-const maskaOptions = {
-  mask: '##.##.####'
-}
-
 
 const { t } = useI18n()
-
 let form = ref(false)
-
 let errR = ref(false)
-
 let errC = ref(false)
-
 let loading = ref(false)
-
 let date = ref()
-
 let codeField = ref(false)
-
 let confField = ref(false)
-
 let seconds = ref(0)
-
 let confCode = ref("")
-
 let errRegText = ref("")
-
 let errConfText = ref("")
 
 let login = ref('')
@@ -150,7 +130,6 @@ let fields = ref([
   { field: email, star: "*", title: "email", rules: [(v: string) => !!v || t('required')] },
 ])
 
-
 const timer =
   setInterval(() => {
     if (seconds.value > 0) {
@@ -161,10 +140,8 @@ const timer =
     }
   }, 1000);
 
-
 const iocc = useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
-
 
 const onSubmit = async () => {
 
@@ -186,10 +163,10 @@ const onSubmit = async () => {
     seconds.value = data.lifeTime
     codeField.value = true
   } catch (error: any) {
-    errRegText = error.message
+    console.log(error)
+    errRegText.value = t(error.code)
     errR.value = true
   }
-
 
   codeField.value == true ? loading.value = true : errR.value = true
 
@@ -212,7 +189,7 @@ const confirm = async () => {
       errC.value = true
     }
   } catch (error: any) {
-    errConfText.value = error.message
+    errConfText.value = t(error.code)
     errC.value = true
   }
 
@@ -226,6 +203,10 @@ let rules = ref([
   (v: string) => !!v || t('required'),
   (v: string) => (/^(?:19|20)\d{2}-\d\d-\d\d$/.test(v)) || t('vbirthday')
 ])
+
+definePageMeta({
+  layout: false,
+});
 
 defineExpose({
   form,

@@ -65,7 +65,7 @@
                   {{ seconds >= 60 ? Math.floor(seconds / 60) : 0 }}:{{ seconds < 10 ? "0" + seconds : (seconds % 60 < 10
                     ? "0" + seconds % 60 : seconds % 60) }} </p>
                     <v-spacer></v-spacer>
-                    <v-btn class="ma-2" color="primary" variant="elevated" @click="codeField = false, loading = false">{{
+                    <v-btn class="ma-2" color="primary" variant="elevated" @click="codeField = false, loading = false, confCode =('') ">{{
                       $t('cancel')
                     }}</v-btn>
                     <v-btn class="ma-2" color="primary" variant="elevated" @click="confirm" :disabled="!confCode">{{
@@ -127,7 +127,7 @@ let fields = ref([
   { field: emplName, star: "*", title: "emplName", rules: [(v: string) => !!v || t('required')] },
   { field: emplSurname, star: "*", title: "emplSurname", rules: [(v: string) => !!v || t('required')] },
   { field: emplPatronymic, title: "emplPatronymic" },
-  { field: email, star: "*", title: "email", rules: [(v: string) => !!v || t('required')] },
+  { field: email, star: "*", title: "email", rules: [(v: string) => !!v || t('required'), (v: string) => (/.+@.+\..+/.test(v)) || t('vemail')] },
 ])
 
 const timer =

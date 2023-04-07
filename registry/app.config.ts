@@ -8,6 +8,4 @@
 */
 
 export default defineAppConfig({
-  apiAddress: "172.16.121.60",
-  apiPort: 7132
 } )

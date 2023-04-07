@@ -8,9 +8,7 @@ export default (container:Container) => {
     if (!container.isBound("UserContext")) {
         const AppConfig=useAppConfig();
         let moApiClientSettings = new MoApiClientSettings();
-        moApiClientSettings.ip = AppConfig.apiAddress;
-        moApiClientSettings.port = AppConfig.apiPort;
-
+        
         container.bind('NuxtApp').toConstantValue(useNuxtApp());
         container.bind('NuxtAppConfig').toConstantValue(AppConfig);
         container.bind('MoApiClient').to(MoApiClient).inSingletonScope();

@@ -30,7 +30,7 @@ export class MoApiClient {
     }
 
     async registerPending(data: TCompanyRegistrationData) {
-        let res:  {lifeTime: number, login: string} = await this.send("/RegisterCompany/RegisterPending", data);
+        let res: { lifeTime: number, login: string } = await this.send("/RegisterCompany/RegisterPending", data);
         return res;
     }
 
@@ -79,7 +79,8 @@ export class MoApiClient {
             if (this._currentApiHost)
                 baseurl = `https://${this._currentApiHost}`;
             else
-                baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
+                if (this._MoApiClientSettings.ip)
+                    baseurl = `${this._MoApiClientSettings.tls ? 'https' : 'http'}://${this._MoApiClientSettings.ip}:${this._MoApiClientSettings.port}`;
 
             const fulluri = `${baseurl}${path}`;
             const ATTEMPS = 4;
@@ -109,7 +110,6 @@ export class MoApiClient {
 
                     response = await fetch(fulluri, option);
 
-
                     if (response.status == 200) {
 
                         const contType = response.headers.get("content-type")?.split(";") || [];
@@ -127,12 +127,12 @@ export class MoApiClient {
                     else
                         if (response.status >= 500 && response.status < 600) {
                             if (ATTEMPS - attemp == 1)
-                                sleep(1000);
+                                await sleep(1000);
                             else
                                 if (ATTEMPS - attemp == 2)
-                                    sleep(5000);
+                                    await sleep(5000);
                                 else
-                                    sleep(10000);
+                                    await sleep(10000);
                             continue;
                         }
                 }
@@ -199,13 +199,14 @@ export class MoApiClient {
                 }
                 else
                     if (response.status >= 500 && response.status < 600) {
+                        console.debug("AuthorizeServer: auth attemp:" + (ATTEMPS - attemp))
                         if (ATTEMPS - attemp == 1)
-                            sleep(1000);
+                            await sleep(1000);
                         else
                             if (ATTEMPS - attemp == 2)
-                                sleep(5000);
+                                await sleep(5000);
                             else
-                                sleep(10000);
+                                await sleep(10000);
                         continue;
                     }
 

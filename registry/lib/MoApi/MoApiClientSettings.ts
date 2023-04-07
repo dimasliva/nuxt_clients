@@ -4,8 +4,8 @@ import { IUserCredentials } from '@/lib/Security';
 @injectable()
 export  class MoApiClientSettings {
 
-    protected _ip: string = "localhost";
-    protected _port: number = 7132;
+    protected _ip: string = "";
+    protected _port: number = 0;
     protected _tls: boolean = true;
 
     @inject("IUserCredentials")

@@ -1,8 +1,8 @@
 <template>
-    <v-row class="ml-2 mr-1 pa-0">
+    <v-row>
       <v-col>
-        <v-card>
-          <v-table class="rounded-t-lg">
+        <v-card class="ma-1">
+          <v-table height="300px" class="rounded-t-lg">
             <thead class="bg-primary">
               <tr>
                 <th v-for="item in headers" :key="item">{{ item }}</th>
@@ -22,9 +22,10 @@
   </template>
   
   <script setup>
-  props = {
-    info: array,
-    headers: array
-  }
+  const props = defineProps ({
+    info: Array, 
+    headers: Array
+  })
+  
   </script>
   

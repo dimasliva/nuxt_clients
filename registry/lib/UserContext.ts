@@ -24,7 +24,7 @@ export class UserContext {
   public get CompanyLicense(): any | null { return this._CompanyLicense; }
 
   private _EmployeeData: IEmployeeRecordData | null = null;
-  public get EmployeeData(): any | null { return this._EmployeeData; }
+  public get EmployeeData(): IEmployeeRecordData | null { return this._EmployeeData; }
 
   //private _CompanyData: IEmployeeRecordData | null = null;
   //public get CompanyData(): any | null { return this._CompanyData; }

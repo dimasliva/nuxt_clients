@@ -31,28 +31,28 @@
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-background">
       <v-list >
-        <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, $refs.myinput.focus()">
-        <v-text-field single-line hide-details ref="myinput" density="compact" v-model="input"></v-text-field>
+        <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
+        <v-text-field single-line hide-details ref="pInput" density="compact" v-model="input"></v-text-field>
       </v-list-item>
-        <v-list-item v-for="item in filteredChapters()" :prepend-icon="item.icon" :title="item.title" :value="item.title" @click="navigateTo(item.nav)" >
+        <v-list-item v-for="item in filteredChapters()" :prepend-icon="item.icon" :title="item.title" :value="item.title" @click="navigateTo(item.getPagePath())" >
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
   </template>
 
-<script setup>
+<script setup lang="ts">
+import { ModuleManager } from '~~/lib/ModuleManager';
+
+let pInput=ref();
 let input = ref('')
 let drawer = ref(true)
 let group = ref(null)
 let rail = ref(true)
 let dark = ref(true)
+const iocc=useContainer();
+const modManager=iocc.get<ModuleManager>("ModuleManager");
 
-const chapters = [
-  {title:"Панель управления", nav: "/dashboard", icon:"mdi-view-dashboard"}, 
-  {title:"Администрирование", nav: "/administration", icon:"mdi-account-tie"}, 
-  {title:"Пациенты", nav: "/administration", icon:"mdi-account-heart"}, 
-  {title:"База данных", nav: "/administration", icon:"mdi-server"}, 
-]
+const chapters =modManager.getModulesMenu();
 
 let translit = (word) => {
   const converter = {

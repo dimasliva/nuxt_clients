@@ -26,6 +26,5 @@
     info: Array, 
     headers: Array
   })
-  
   </script>
   

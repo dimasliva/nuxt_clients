@@ -24,13 +24,21 @@ let data2 = [
   {name: "сиамс", role: "Внесение изменений", price: "1000"},
 ]
 
+let th1 = ["Пациент","услуга","стоимость"]
+
+let data1 = [
+  {name: "Олег", role: "прием первичный", price: "1000" },
+  {name: "Олег", role: "вакцинация", price: "1000"},
+  {name: "Олег", role: "осмотр", price: "1000"},
+]
+
 // let compName = "Table"
 
 // let comp = (await import(`@/components/forms/${compName}.vue`)).default
 // comp.props={info : data, headers : th};
 let comps = [ 
   {header : "Сотрудники", val : Table, prop : {info : data, headers : th}},
-  {header : "Пациенты", val: ["Записаны","Прошлая неделя","Стационар"]},
+  {header : "Пациенты", val: [{hed:"Записаны", comp: Table, prop : {info : data1, headers : th1}},{hed:"Прошлая неделя", comp: Table, prop : {info : data, headers : th}},{hed:"Стационар", comp: Table, prop : {info : data2, headers : th2}}]},
   {header : "Отчеты", val: Table, prop : {info : data2, headers : th2}},
 ]
 </script>

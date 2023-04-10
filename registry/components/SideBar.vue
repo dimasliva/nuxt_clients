@@ -50,7 +50,7 @@ let dark = ref(true)
 const chapters = [
   {title:"Панель управления", nav: "/dashboard", icon:"mdi-view-dashboard"}, 
   {title:"Администрирование", nav: "/administration", icon:"mdi-account-tie"}, 
-  {title:"Пациенты", nav: "/administration", icon:"mdi-account-heart"}, 
+  {title:"ЖПЗ", nav: "/administration", icon:"mdi-account-heart"}, 
   {title:"База данных", nav: "/administration", icon:"mdi-server"}, 
 ]
 

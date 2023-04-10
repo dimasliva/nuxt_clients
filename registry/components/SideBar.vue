@@ -30,9 +30,9 @@
       </v-menu>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-background">
-      <v-list density="compact" nav>
-        <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false">
-        <v-text-field single-line hide-details density="compact" v-model="input"></v-text-field>
+      <v-list >
+        <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, $refs.myinput.focus()">
+        <v-text-field single-line hide-details ref="myinput" density="compact" v-model="input"></v-text-field>
       </v-list-item>
         <v-list-item v-for="item in filteredChapters()" :prepend-icon="item.icon" :title="item.title" :value="item.title" @click="navigateTo(item.nav)" >
         </v-list-item>
@@ -48,10 +48,10 @@ let rail = ref(true)
 let dark = ref(true)
 
 const chapters = [
-  {title:"панель управления", nav: "/dashboard", icon:"mdi-view-dashboard"}, 
-  {title:"администрирование", nav: "/administration", icon:"mdi-account-tie"}, 
-  {title:"пациенты", nav: "/administration", icon:"mdi-account-heart"}, 
-  {title:"база данных", nav: "/administration", icon:"mdi-server"}, 
+  {title:"Панель управления", nav: "/dashboard", icon:"mdi-view-dashboard"}, 
+  {title:"Администрирование", nav: "/administration", icon:"mdi-account-tie"}, 
+  {title:"Пациенты", nav: "/administration", icon:"mdi-account-heart"}, 
+  {title:"База данных", nav: "/administration", icon:"mdi-server"}, 
 ]
 
 let translit = (word) => {

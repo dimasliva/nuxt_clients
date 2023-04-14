@@ -1,10 +1,6 @@
 <template>
-
     <v-app-bar color="primary" prominent >
-      <v-app-bar-nav-icon
-        variant="text"
-        @click="rail = !rail"
-      ></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon variant="text" @click="rail = !rail"></v-app-bar-nav-icon>
   
       <v-toolbar-title  @click="navigateTo('/dashboard')" style="cursor: pointer;">
         <v-img src="logo_9PqMg0J9.png" :height="50" :width="200"></v-img>
@@ -30,29 +26,37 @@
       </v-menu>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-background">
-      <v-list >
-        <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, $refs.myinput.focus()">
-        <v-text-field single-line hide-details ref="myinput" density="compact" v-model="input"></v-text-field>
-      </v-list-item>
-        <v-list-item v-for="item in filteredChapters()" :prepend-icon="item.icon" :title="item.title" :value="item.title" @click="navigateTo(item.nav)" >
+      <v-list>
+        <v-list-item prepend-icon="mdi-magnify"  value="search" @click="rail = false, pInput.focus()">
+          <v-text-field single-line hide-details ref="pInput" density="compact" v-model="input"></v-text-field>
         </v-list-item>
+        <template  v-for="item in filteredChapters()">
+          <v-list-group v-if="item.getPagePath().forEach" @click="rail = false">
+            <template v-slot:activator="{ props, isOpen }" >
+              <v-list-item  v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title"></v-list-item>
+            </template>
+            <template v-if="rail == false">
+              <v-list-item v-for="el in item.getPagePath()" density="compact"  :prepend-icon="el.icon" :to="el.path" :title="el.title"></v-list-item>
+            </template>
+          </v-list-group>
+          <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title" :to="(item.getPagePath())"></v-list-item>
+        </template>
       </v-list>
     </v-navigation-drawer>
+    <NuxtPage/>
   </template>
 
-<script setup>
+<script setup lang="ts">
+import { ModuleManager } from '~~/lib/ModuleManager';
+
+let pInput=ref();
 let input = ref('')
 let drawer = ref(true)
-let group = ref(null)
 let rail = ref(true)
-let dark = ref(true)
+const iocc=useContainer();
+const modManager=iocc.get<ModuleManager>("ModuleManager");
 
-const chapters = [
-  {title:"Панель управления", nav: "/dashboard", icon:"mdi-view-dashboard"}, 
-  {title:"Администрирование", nav: "/administration", icon:"mdi-account-tie"}, 
-  {title:"ЖПЗ", nav: "/administration", icon:"mdi-account-heart"}, 
-  {title:"База данных", nav: "/administration", icon:"mdi-server"}, 
-]
+const chapters =modManager.getModulesMenu();
 
 let translit = (word) => {
   const converter = {
@@ -60,7 +64,8 @@ let translit = (word) => {
     'e': 'у', 'z': 'я', 'i': 'ш', 'y': 'н', 'k': 'л',
     'l': 'д', 'm': 'ь', 'n': 'т', 'o': 'щ', 'p': 'з',
     'r': 'к', 's': 'ы', 't': 'е', 'u': 'г', 'f': 'а',
-    'h': 'р', 'c': 'с', 'j': 'о', 'w': 'ц' 
+    'h': 'р', 'c': 'с', 'j': 'о', 'w': 'ц', ';': 'ж',
+    "'": 'э', ',': 'б' 
   };
 
   for (const [key, value] of Object.entries(converter)) {
@@ -70,6 +75,7 @@ let translit = (word) => {
   return word;
 }
 
+// @click="navigateTo(item.getPagePath())"
 let filteredChapters = () => {
   return chapters.filter(chapter =>
    chapter.title.toLowerCase().includes(translit(input.value.toLowerCase()))

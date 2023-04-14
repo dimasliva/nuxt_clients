@@ -1,7 +1,7 @@
 <template>
     <v-row>
       <v-col>
-        <v-card class="ma-1">
+        <v-card class="ma-3">
           <v-table height="300px" class="rounded-t-lg">
             <thead class="bg-primary">
               <tr>
@@ -26,5 +26,8 @@
     info: Array, 
     headers: Array
   })
+  definePageMeta({
+  keepalive: true
+});
   </script>
   

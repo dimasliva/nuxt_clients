@@ -5,6 +5,8 @@
 </template>
 
 <script setup>
-
+definePageMeta({
+  keepalive: true
+});
 </script>
 

@@ -1,4 +1,4 @@
-export class EnumArray<T> extends Array implements IIndexableEnumerator<T>
+export class EnumArray<T> extends Array<T> implements IIndexableEnumerator<T>
 {
     private _EnumInx = -1;
 
@@ -20,7 +20,7 @@ export class EnumArray<T> extends Array implements IIndexableEnumerator<T>
         return res;
     }
 
-    static factoryFromEnum<T>(src: IEnumerator<any>, transfunc?): EnumArray<T>|null {
+    static factoryFromEnum<T>(src: IEnumerator<any>, transfunc?): EnumArray<T> | null {
         var res = new EnumArray<T>();
         src.reset();
         var item;
@@ -41,20 +41,20 @@ export class EnumArray<T> extends Array implements IIndexableEnumerator<T>
         return true;
     }
 
-    getNext = (): T|undefined => {
+    getNext = (): T | undefined => {
         if (++this._EnumInx >= this.length) {
             this._EnumInx = this.length;
             return void 0;
         }
         return this[this._EnumInx];
     }
-    getCurrent = (): T|undefined => {
+    getCurrent = (): T | undefined => {
         if (this._EnumInx >= this.length) return void 0;
         if (this._EnumInx < 0) this._EnumInx = 0;
         return this[this._EnumInx];
     }
 
-    foreach = (func:(item:T,stop:object|undefined|null)=>void) => {
+    foreach = (func: (item: T, stop: object | undefined | null) => void) => {
         var stop = { stop: false };
         for (var i = 0; i < this.length; i++) {
             func(this[i], stop);

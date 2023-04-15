@@ -26,9 +26,9 @@
     </v-menu>
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-background" :width="350">
-    <v-list :opened="opened" open-strategy="multiple">
-      <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
-        <v-text-field single-line hide-details ref="pInput" density="compact" v-model="input"></v-text-field>
+    <v-list class="main_menu" :opened="opened" open-strategy="multiple" :selected="selected" select-strategy="classic" @update:selected="">
+      <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()" >
+        <v-text-field single-line hide-details ref="pInput" density="compact" v-model="input" ></v-text-field>
       </v-list-item>
       <template v-for="item in filteredChaptersGr()">
         <v-list-group v-if="item.childs?.length! > 0" @click="rail = false" :value="item.id">
@@ -36,10 +36,10 @@
             <v-list-item v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title"></v-list-item>
           </template>
           <template v-if="rail == false">
-            <v-list-item v-for="el in item.childs" :prepend-icon="el.icon" :to="el.getPagePath()" :title="el.title" />
+            <v-list-item v-for="el in item.childs" :prepend-icon="el.icon" :to="el.getPagePath()" :title="el.title"  />
           </template>
         </v-list-group>
-        <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title"
+        <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title" @click="debugger"
           :to="(item.getPagePath())"></v-list-item>
       </template>
     </v-list>
@@ -60,6 +60,7 @@ let rail = ref(true)
 let expandGr = ref(true)
 const iocc = useContainer();
 let opened = ref();
+let selected=ref();
 const modManager = iocc.get<ModuleManager>("ModuleManager");
 
 
@@ -124,20 +125,20 @@ let filteredChaptersGr = () => {
 </script>
   
 
-<style>
-.v-list-item__prepend>.v-icon {
+<style scoped>
+.main_menu :deep(.v-list-item__prepend>.v-icon) {
   margin-inline-end: 12px;
 }
 
-.v-list-group--prepend {
+.main_menu :deep(.v-list-group--prepend) {
   --parent-padding: calc(var(--indent-padding));
 }
 
-.v-list-group__items .v-list-item-title {
+.main_menu :deep(.v-list-group__items .v-list-item-title) {
   font-size: 0.85rem;
 }
 
-.v-list-group__items .v-list-item__prepend>.v-icon {
+.main_menu :deep(.v-list-group__items .v-list-item__prepend>.v-icon) {
   font-size: calc(var(--v-icon-size-multiplier) * 1.25em);
 }
 </style>

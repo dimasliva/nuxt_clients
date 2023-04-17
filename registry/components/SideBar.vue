@@ -36,7 +36,11 @@
               <v-list-item  v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title"></v-list-item>
             </template>
             <template v-if="rail == false">
-              <v-list-item v-for="el in item.getPagePath()" density="compact"  :prepend-icon="el.icon" :to="el.path" :title="el.title"></v-list-item>
+              <v-list-item v-for="el in item.getPagePath()" density="compact"  :prepend-icon="el.icon" :to="el.path">
+                <v-list-item-title class="text-body-2">
+                  {{ el.title }}
+                </v-list-item-title>
+              </v-list-item>
             </template>
           </v-list-group>
           <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title" :to="(item.getPagePath())"></v-list-item>

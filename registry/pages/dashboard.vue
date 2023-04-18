@@ -4,7 +4,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { PageMap } from '~~/lib/PageMap';
+
+const iocc=useContainer();
+const pageMap = iocc.get<PageMap>("PageMap");
+
+pageMap.setPageData("/dashboard", {title: "Панель управления", icon: "mdi-view-dashboard"});
+
 definePageMeta({
   keepalive: true
 });

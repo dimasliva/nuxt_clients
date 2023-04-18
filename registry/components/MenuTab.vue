@@ -48,7 +48,5 @@ let components = [
   {header : "Отчеты", val: "administration/reports", },
 ]
 
-definePageMeta({
-  keepalive: true
-});
+
 </script>

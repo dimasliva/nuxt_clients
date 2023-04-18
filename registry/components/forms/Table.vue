@@ -26,8 +26,6 @@
     info: Array, 
     headers: Array
   })
-  definePageMeta({
-  keepalive: true
-});
+
   </script>
   

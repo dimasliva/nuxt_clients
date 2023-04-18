@@ -3,6 +3,7 @@ import { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
 import { UserContext } from "@/lib/UserContext";
 import { Container } from "inversify";
 import { ModuleManager } from "./lib/ModuleManager";
+import { PageMap } from "./lib/PageMap";
 
 
 export default (container:Container) => {
@@ -17,6 +18,7 @@ export default (container:Container) => {
         container.bind('MoApiClientSettings').toConstantValue(moApiClientSettings);
         container.bind('UserContext').to(UserContext).inSingletonScope();
         container.bind('ModuleManager').to(ModuleManager).inSingletonScope();
+        container.bind('PageMap').to(PageMap).inSingletonScope();
         console.debug("iocc init");
 
     }

@@ -3,17 +3,18 @@ import { injectable } from "inversify";
 export interface IPageData {
     title: string;
     icon: string;
+    mainMenu?: IMenu
 }
 
 @injectable()
 export class PageMap {
-    protected _map: {[path:string]:IPageData | null}={};
+    protected _map: { [path: string]: IPageData | null } = {};
 
-    getPageData (path: string) {
+    getPageData(path: string) {
         return this._map[path];
     }
 
-    setPageData (path: string, pageData: IPageData){
+    setPageData(path: string, pageData: IPageData) {
         this._map[path] = pageData;
     }
 }

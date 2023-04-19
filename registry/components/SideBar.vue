@@ -50,7 +50,7 @@
       </template>
     </v-list>
   </v-navigation-drawer>
-    <v-row align="center" justify="start" class="ma-2" style="height: 40px !important;">
+    <v-row align="center" justify="start" class="ma-1" style="height: 40px !important;">
       <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
         <v-chip closable elevation="2"  @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1)">
           {{ selection.title }}
@@ -58,8 +58,8 @@
       </v-col>
     </v-row>
     <!-- <v-divider :thickness="2" class="mx-4" color="primary"></v-divider> -->
-    <v-card class="ma-4 px-4 overflow-auto" elevation="2" height="85vh">
-    <v-row class="ma-0 pa-4 bg-white" style="position: sticky !important; top:1" height="10vh">
+    <v-card class="mx-4 overflow-auto" elevation="2" height="85vh">
+    <v-row class="ma-0 pa-4 bg-white" style="position: sticky !important; top:0" >
       <p  class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
       <v-btn color="secondary" size="x-small" @click="onPinPageBtnClick" icon="mdi-pin"/>
         <v-spacer></v-spacer>
@@ -74,7 +74,7 @@
         </v-list>
     </v-menu>
     </v-row>
-      <NuxtPage :keepalive="true" @vnode-updated="debugger" />
+      <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4"/>
     </v-card>
 </template>
 

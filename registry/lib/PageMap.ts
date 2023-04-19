@@ -4,6 +4,7 @@ export interface IPageData {
     title: string;
     icon: string;
     mainMenu?: IMenu
+    mainBtnBar?:IMenu[]
 }
 
 @injectable()

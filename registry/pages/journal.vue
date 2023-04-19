@@ -1,10 +1,14 @@
 <template>
     <div>
-        pop
     </div>
   </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { PageMap } from '~~/lib/PageMap';
 
+const iocc=useContainer();
+const pageMap = iocc.get<PageMap>("PageMap");
+
+pageMap.setPageData("/journal", {title: "Журнал предварительной записи", icon: ""});
 
 </script>

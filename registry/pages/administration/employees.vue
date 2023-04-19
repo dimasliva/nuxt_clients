@@ -1,13 +1,17 @@
 <template>
-    <Table :info="data" :headers="th"></Table>
+  <Table :info="data" :headers="th"></Table>
 </template>
   
 <script setup lang="ts">
 import Table from '~~/components/forms/Table.vue';
 import { ModuleManager } from '~~/lib/ModuleManager';
+import { PageMap } from '~~/lib/PageMap';
 
 const iocc=useContainer();
 const modManager=iocc.get<ModuleManager>("ModuleManager");
+const pageMap = iocc.get<PageMap>("PageMap");
+
+pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: ""});
 
 let th = ["имя","статус","должность","телефон","подразделение"]
 
@@ -25,7 +29,6 @@ let data = [
 //   let form=item.getForm();
 //   comps.push({header:item.title, val:form?.form,prop:form?.prop});
 // })
-
 
 definePageMeta({
   keepalive: true,

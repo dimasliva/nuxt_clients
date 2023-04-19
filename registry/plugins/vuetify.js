@@ -8,20 +8,18 @@ import colors from 'vuetify/lib/util/colors';
 const lightTheme = {
   dark: false,
   colors: {
-    background: "#FFFFFF",
     primary: '#42A5F5',
+    secondary: '#BBDEFB',
     info: '#EF9A9A',
-    radio: '#448AFF',
   }
 }
 
 const darkTheme = {
   dark: true,
   colors: {
-    background: "#000000",
-    primary: '#0D47A1',
+    primary: '#1976D2',
+    secondary: '#2196F3',
     info: '#C62828',
-    radio: '#304FFE',
   }
 }
 

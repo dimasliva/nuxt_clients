@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar color="primary" prominent>
+  <v-app-bar color="primary" prominent elevation="0">
     <v-app-bar-nav-icon variant="text" @click="rail = !rail"></v-app-bar-nav-icon>
 
     <v-toolbar-title @click="navigateTo('/dashboard')" style="cursor: pointer;">
@@ -11,12 +11,24 @@
       <template v-slot:activator="{ props }">
         <p>Максим</p> <v-btn variant="text" v-bind="props" icon="mdi-account-circle"></v-btn>
       </template>
+      <v-list>
+          <v-list-item>
+            <v-list-item-title>Сиамсов М.М.</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="navigateTo('/settings')">
+            <v-list-item-title>Настройки<v-icon end icon="mdi-cog" size="x-small"/></v-list-item-title>
+          </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item @click="navigateTo('/signout')">
+            <v-list-item-title>Выйти<v-icon end icon="mdi-close" size="x-small"/></v-list-item-title>
+          </v-list-item>
+        </v-list>
     </v-menu>
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-background" :width="350">
     <v-list class="main_menu" :opened="opened" open-strategy="multiple" :selected="selected" select-strategy="classic" @update:selected=debugger>
       <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()" >
-        <v-text-field single-line hide-details ref="pInput" density="compact" v-model="input" ></v-text-field>
+        <v-text-field single-line clearable hide-details ref="pInput" density="compact" v-model="input" @click:clear="input = ''"></v-text-field>
       </v-list-item>
       <template v-for="item in filteredChaptersGr()">
         <v-list-group v-if="item.childs?.length! > 0" @click="rail = false" :value="item.id" >
@@ -38,18 +50,21 @@
       </template>
     </v-list>
   </v-navigation-drawer>
-    <v-row align="center" justify="start" class="ma-4">
-      <v-btn color="primary" variant="outlined" @click="onPinPageBtnClick">
-        {{ $t('add') }}
-      </v-btn>
-        <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
-          <v-chip closable  @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1)">
-            <v-icon :icon="selection.icon" start></v-icon>
-            {{ selection.title }}
-          </v-chip>
-        </v-col>
+    <v-row align="center" justify="start" class="ma-2" style="height: 40px !important;">
+      <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
+        <v-chip closable elevation="2"  @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1)">
+          {{ selection.title }}
+        </v-chip>
+      </v-col>
     </v-row>
-  <NuxtPage />
+    <!-- <v-divider :thickness="2" class="mx-4" color="primary"></v-divider> -->
+    <v-card class="ma-4 overflow-auto" elevation="2" height="85vh">
+    <v-banner :sticky="true">
+      <p class="text-h6 font-weight-bold ma-1">{{ currPageTitle }}</p>
+      <v-btn color="secondary" size="x-small" @click="onPinPageBtnClick" icon="mdi-pin"/>
+    </v-banner>
+      <NuxtPage :keepalive="true" @vnode-updated="debugger" />
+    </v-card>
 </template>
 
 <script setup lang="ts">
@@ -59,6 +74,7 @@ import { CloneData } from "@/lib/Helpers";
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
 
+
 let pInput = ref();
 let input = ref('')
 let drawer = ref(true)
@@ -66,6 +82,7 @@ let rail = ref(true)
 const iocc = useContainer();
 let opened = ref();
 let selected=ref();
+let currPageTitle = ref('')
 
 
 let pages = ref<any[]>([])
@@ -76,21 +93,18 @@ const pageMap = iocc.get<PageMap>("PageMap");
 const chapters = modManager.getModuleItemsMenu();
 
 
+const route = useRoute()
+watch(() => route.query, () => {
+  const pageData = pageMap.getPageData(route.path)
+  currPageTitle.value = pageData?.title||"";
+})
 
 const onPinPageBtnClick = (e) => {
-  const route = useRoute()
   const pageData = pageMap.getPageData(route.path)
   if(!pageData) return;
   if(pages.value.find((v,i,o)=>v.link==route.path)) return;
   pages.value.push({icon: pageData.icon, title: pageData.title, link: route.path})
-  
 }
-
-// const setCurrPage = (i: string, t: string, l:string) => {
-//   currPage.icon = i;
-//   currPage.title = t;
-//   currPage.link = l;
-// }
 
 let translit = (word) => {
   const converter = {
@@ -109,7 +123,6 @@ let translit = (word) => {
   return word;
 }
 
-// @click="navigateTo(item.getPagePath())"
 let filteredChaptersGr = () => {
 
   const _filter = (_chapters: IModuleItemsMenu[]) => {

@@ -1,8 +1,8 @@
 <template>
     <v-row>
       <v-col>
-        <v-card class="ma-3">
-          <v-table height="300px" class="rounded-t-lg">
+        <v-card class="mx-4 my-0">
+          <v-table  height="300px" class="rounded-t-lg">
             <thead class="bg-primary">
               <tr>
                 <th v-for="item in headers" :key="item">{{ item }}</th>
@@ -26,6 +26,7 @@
     info: Array, 
     headers: Array
   })
+
 
   </script>
   

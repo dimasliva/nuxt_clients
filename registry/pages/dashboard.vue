@@ -12,8 +12,5 @@ const pageMap = iocc.get<PageMap>("PageMap");
 
 pageMap.setPageData("/dashboard", {title: "Панель управления", icon: "mdi-view-dashboard"});
 
-definePageMeta({
-  keepalive: true
-});
 </script>
 

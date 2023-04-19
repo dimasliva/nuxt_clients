@@ -50,8 +50,19 @@ declare global {
         id: string;
         title: string;
         icon: string;
+        disabled:boolean;
         action: () => string | object | void;
         childs?: IMenu[] | null
+    }
+
+    interface IBtnMenu {
+        id: string;
+        title: string;
+        icon: string;
+        disabled:boolean;
+        color:string;
+        bkgColor:string;
+        action: () => string | object | void;
     }
 }
 

@@ -8,8 +8,8 @@ import colors from 'vuetify/lib/util/colors';
 const lightTheme = {
   dark: false,
   colors: {
-    primary: '#42A5F5',
-    secondary: '#BBDEFB',
+    primary: '#2b5bb5',
+    secondary: '#575e71',
     info: '#EF9A9A',
   }
 }
@@ -17,8 +17,8 @@ const lightTheme = {
 const darkTheme = {
   dark: true,
   colors: {
-    primary: '#1976D2',
-    secondary: '#2196F3',
+    primary: '#b0c6ff',
+    secondary: '#c0c6dc',
     info: '#C62828',
   }
 }

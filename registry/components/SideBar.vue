@@ -58,11 +58,22 @@
       </v-col>
     </v-row>
     <!-- <v-divider :thickness="2" class="mx-4" color="primary"></v-divider> -->
-    <v-card class="ma-4 overflow-auto" elevation="2" height="85vh">
-    <v-banner :sticky="true">
-      <p class="text-h6 font-weight-bold ma-1">{{ currPageTitle }}</p>
+    <v-card class="ma-4 px-4 overflow-auto" elevation="2" height="85vh">
+    <v-row class="ma-0 pa-4 bg-white" style="position: sticky !important; top:1" height="10vh">
+      <p  class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
       <v-btn color="secondary" size="x-small" @click="onPinPageBtnClick" icon="mdi-pin"/>
-    </v-banner>
+        <v-spacer></v-spacer>
+        <v-menu>
+      <template v-slot:activator="{ props }">
+        <v-btn v-bind="props" color="secondary" size="x-small" icon="mdi-dots-vertical"/>
+      </template>
+      <v-list>
+          <v-list-item>
+            <v-list-item-title>Content here<v-icon end icon="mdi-close" size="x-small"/></v-list-item-title>
+          </v-list-item>
+        </v-list>
+    </v-menu>
+    </v-row>
       <NuxtPage :keepalive="true" @vnode-updated="debugger" />
     </v-card>
 </template>

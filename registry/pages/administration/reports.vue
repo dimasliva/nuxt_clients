@@ -18,9 +18,4 @@ let comps = [
   {header : "Отчеты", val: "administration/reports", },
 ]
 
-definePageMeta({
-  keepalive: true,
-});
-
-
 </script>

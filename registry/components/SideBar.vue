@@ -25,7 +25,7 @@
         </v-list>
     </v-menu>
   </v-app-bar>
-  <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-background" :width="350">
+  <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" :width="350">
     <v-list class="main_menu" :opened="opened" open-strategy="multiple" :selected="selected" select-strategy="classic" @update:selected=debugger>
       <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()" >
         <v-text-field single-line clearable hide-details ref="pInput" density="compact" v-model="input" @click:clear="input = ''"></v-text-field>
@@ -50,31 +50,34 @@
       </template>
     </v-list>
   </v-navigation-drawer>
-    <v-row align="center" justify="start" class="ma-1" style="height: 40px !important;">
+    <v-row align="center" justify="start" class="ma-0 bg-tertiary" style="height: 40px !important;">
       <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
-        <v-chip closable elevation="2"  @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1)">
+        <v-chip closable class="bg-secondary ma-0"   @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1), pages.find(e => e.title == currPageTitle)? currPin = true : currPin = false ">
           {{ selection.title }}
         </v-chip>
       </v-col>
     </v-row>
-    <!-- <v-divider :thickness="2" class="mx-4" color="primary"></v-divider> -->
-    <v-card class="mx-4 overflow-auto" elevation="2" height="85vh">
-    <v-row class="ma-0 pa-4 bg-white" style="position: sticky !important; top:0" >
-      <p  class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
-      <v-btn color="secondary" size="x-small" @click="onPinPageBtnClick" icon="mdi-pin"/>
+    <v-card class="overflow-auto " elevation="0" height="87vh">
+      <v-row class="ma-0 pt-3 px-4 bg-white" style="position: sticky !important; top:0">
+        <p  class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
+        <v-btn variant="text" :disabled="currPin"  size="small" @click="onPinPageBtnClick" icon="mdi-pin"/>
         <v-spacer></v-spacer>
+        <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl"  :append-icon="buttons.icon" variant="outlined"
+        :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" @click="buttons.action">
+        {{ buttons.title }}
+        </v-btn>
         <v-menu>
-      <template v-slot:activator="{ props }">
-        <v-btn v-bind="props" color="secondary" size="x-small" icon="mdi-dots-vertical"/>
-      </template>
-      <v-list>
-          <v-list-item>
-            <v-list-item-title>Content here<v-icon end icon="mdi-close" size="x-small"/></v-list-item-title>
-          </v-list-item>
-        </v-list>
-    </v-menu>
-    </v-row>
-      <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4"/>
+        <template v-slot:activator="{ props }">
+          <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"  :icon="currPageMenu?.icon"/>
+        </template>
+        <v-list>
+            <v-list-item v-for="child in currPageMenu.childs" :key="child.id" :disabled="child.disabled" @click="child.action">
+              <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small"/></v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-row>
+        <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4"/>
     </v-card>
 </template>
 
@@ -94,7 +97,9 @@ const iocc = useContainer();
 let opened = ref();
 let selected=ref();
 let currPageTitle = ref('')
-
+let currPageButtons = ref()
+let currPageMenu = ref()
+let currPin = ref(false)
 
 let pages = ref<any[]>([])
 
@@ -103,11 +108,13 @@ const pageMap = iocc.get<PageMap>("PageMap");
 
 const chapters = modManager.getModuleItemsMenu();
 
-
 const route = useRoute()
 watch(() => route.query, () => {
   const pageData = pageMap.getPageData(route.path)
   currPageTitle.value = pageData?.title||"";
+  currPageButtons.value =  pageData?.mainBtnBar||"";
+  currPageMenu.value =  pageData?.mainMenu||"";
+  pages.value.find(e => e.title == currPageTitle.value)? currPin.value = true : currPin.value = false ;
 })
 
 const onPinPageBtnClick = (e) => {
@@ -115,6 +122,7 @@ const onPinPageBtnClick = (e) => {
   if(!pageData) return;
   if(pages.value.find((v,i,o)=>v.link==route.path)) return;
   pages.value.push({icon: pageData.icon, title: pageData.title, link: route.path})
+  pages.value.find(e => e.title == currPageTitle.value)? currPin.value = true : currPin.value = false ;
 }
 
 let translit = (word) => {

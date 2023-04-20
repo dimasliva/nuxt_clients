@@ -10,7 +10,9 @@ const lightTheme = {
   colors: {
     primary: '#2b5bb5',
     secondary: '#575e71',
+    tertiary: '#e1e2ec',
     info: '#EF9A9A',
+    background: '#FFFFFF'
   }
 }
 
@@ -18,8 +20,10 @@ const darkTheme = {
   dark: true,
   colors: {
     primary: '#b0c6ff',
-    secondary: '#c0c6dc',
+    secondary: '##d9e2ff',
+    tertiary: '#404659',
     info: '#C62828',
+    background: '#000000'
   }
 }
 

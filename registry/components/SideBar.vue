@@ -52,15 +52,22 @@
   </v-navigation-drawer>
     <v-row align="center" justify="start" class="ma-0 bg-tertiary" style="height: 40px !important;">
       <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
-        <v-chip closable class="bg-secondary ma-0"   @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1), pages.find(e => e.title == currPageTitle)? currPin = true : currPin = false ">
+        <v-chip closable class="bg-secondary ma-0"   @click="navigateTo(selection.link)" @click:close="pages.splice(i, 1), pages.find(e => e.title == currPageTitle)? currPin = false : currPin = true ">
           {{ selection.title }}
         </v-chip>
       </v-col>
     </v-row>
     <v-card class="overflow-auto " elevation="0" height="87vh">
-      <v-row class="ma-0 pt-3 px-4 bg-white" style="position: sticky !important; top:0">
+      <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
         <p  class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
-        <v-btn variant="text" :disabled="currPin"  size="small" @click="onPinPageBtnClick" icon="mdi-pin"/>
+        <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick" >
+          <v-icon>mdi-pin</v-icon>
+          <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
+        </v-btn>
+        <v-btn v-else variant="text"  size="small" @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle)? currPin = false : currPin = true " icon>
+          <v-icon>mdi-pin-off</v-icon>
+          <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
+        </v-btn>
         <v-spacer></v-spacer>
         <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl"  :append-icon="buttons.icon" variant="outlined"
         :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" @click="buttons.action">
@@ -99,7 +106,7 @@ let selected=ref();
 let currPageTitle = ref('')
 let currPageButtons = ref()
 let currPageMenu = ref()
-let currPin = ref(false)
+let currPin = ref(true)
 
 let pages = ref<any[]>([])
 
@@ -114,7 +121,7 @@ watch(() => route.query, () => {
   currPageTitle.value = pageData?.title||"";
   currPageButtons.value =  pageData?.mainBtnBar||"";
   currPageMenu.value =  pageData?.mainMenu||"";
-  pages.value.find(e => e.title == currPageTitle.value)? currPin.value = true : currPin.value = false ;
+  pages.value.find(e => e.title == currPageTitle.value)? currPin.value = false : currPin.value = true ;
 })
 
 const onPinPageBtnClick = (e) => {
@@ -122,7 +129,7 @@ const onPinPageBtnClick = (e) => {
   if(!pageData) return;
   if(pages.value.find((v,i,o)=>v.link==route.path)) return;
   pages.value.push({icon: pageData.icon, title: pageData.title, link: route.path})
-  pages.value.find(e => e.title == currPageTitle.value)? currPin.value = true : currPin.value = false ;
+  pages.value.find(e => e.title == currPageTitle.value)? currPin.value = false : currPin.value = true ;
 }
 
 let translit = (word) => {
@@ -181,4 +188,7 @@ let filteredChaptersGr = () => {
 }
 
 </script>
-  
+
+<style lang="scss">
+@use '~/settings';
+</style>

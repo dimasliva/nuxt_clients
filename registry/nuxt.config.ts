@@ -2,11 +2,14 @@
 // nuxt.config.ts
 import { defineNuxtConfig } from "nuxt/config"
 import { Nitro } from "nitropack";
+import { createResolver } from '@nuxt/kit'
+import vuetify from 'vite-plugin-vuetify'
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"//разрешение для nodejs принимать самоподписанные сертификаты https
 
 const mainApiServer = "172.16.121.60";
 const mainApiServerPort = 7132;
+const { resolve } = createResolver(import.meta.url)
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -21,7 +24,7 @@ export default defineNuxtConfig({
     appId: "78064056-8C89-4057-9AC9-2836AE605E1D",
 
   },
-
+  
   css: ['vuetify/lib/styles/main.sass'],
   build: {
     transpile: ['vuetify', '@vuepic/vue-datepicker'],
@@ -40,6 +43,13 @@ export default defineNuxtConfig({
   hooks: {
     'nitro:build:before': (nitro: Nitro) => {
       nitro.options.moduleSideEffects.push('reflect-metadata')
+    },
+    'vite:extendConfig': (config) => {
+      config.plugins?.push(
+        vuetify({
+          styles: {configFile: resolve('./settings.scss')},
+        })
+      )
     }
   },
 

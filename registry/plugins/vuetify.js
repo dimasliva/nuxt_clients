@@ -3,7 +3,6 @@ import { createVuetify } from 'vuetify'
 import '@mdi/font/css/materialdesignicons.css'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import colors from 'vuetify/lib/util/colors';
 
 const lightTheme = {
   dark: false,
@@ -20,7 +19,7 @@ const darkTheme = {
   dark: true,
   colors: {
     primary: '#b0c6ff',
-    secondary: '##d9e2ff',
+    secondary: '#d9e2ff',
     tertiary: '#404659',
     info: '#C62828',
     background: '#000000'

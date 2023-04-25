@@ -1,0 +1,6 @@
+@forward 'vuetify/settings' with (
+$tooltip-background-color: rgb(212, 209, 209),
+$tooltip-text-color: rgb(var(--v-theme-secondary)),
+$tooltip-border-radius: 50px,
+$tooltip-padding: 3px 6px,
+);

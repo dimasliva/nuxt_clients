@@ -1,0 +1,36 @@
+<template>
+      <v-dialog fullscreen :scrim="false" transition="dialog-bottom-transition">
+        <v-card>
+          <v-toolbar color="primary">
+            <v-btn icon @click="$emit('modal-off')">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-toolbar-title>Профиль</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+              <v-btn variant="text" @click="$emit('modal-off')">
+                {{ buttonName }}
+              </v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <template v-if="buttonId == `addEmployee`">
+            <PersonForm/>
+          </template>
+          <template v-if="buttonId == `change`">
+            <v-card v-for="el in tab" class="w-50 ma-2 pa-2 bg-tertiary overflow-y-auto">
+              <v-text-field v-for="(param, i) in el" v-model="el[i]" :value="param" clearable ></v-text-field>
+            </v-card>
+          </template>
+        </v-card>
+    </v-dialog>
+</template>
+
+<script setup>
+
+const props = defineProps ({
+    dialog: Boolean, 
+    tab: Array,
+    buttonName: String,
+    buttonId: String
+  })
+</script>

@@ -57,7 +57,7 @@
         </v-chip>
       </v-col>
     </v-row>
-    <v-card class="overflow-auto " elevation="0" height="87vh">
+    <v-card class="overflow-y-auto " elevation="0" height="87vh">
       <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
         <p  class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
         <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick" >
@@ -70,10 +70,10 @@
         </v-btn>
         <v-spacer></v-spacer>
         <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl"  :append-icon="buttons.icon" variant="outlined"
-        :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" @click="buttons.action">
+        :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" @click="modal = true, btnName = buttons.title, btnId = buttons.id ">
         {{ buttons.title }}
         </v-btn>
-        <v-menu>
+        <v-menu :open-on-hover="true">
         <template v-slot:activator="{ props }">
           <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"  :icon="currPageMenu?.icon"/>
         </template>
@@ -84,7 +84,8 @@
           </v-list>
         </v-menu>
       </v-row>
-        <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4"/>
+      <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4" v-on:add-item="checkFields = $event"/>
+      <FormsDialogForm v-model="modal" :tab="checkFields" :button-name="btnName" :button-id="btnId" v-on:modal-off="modal = false"/>
     </v-card>
 </template>
 
@@ -107,6 +108,10 @@ let currPageTitle = ref('')
 let currPageButtons = ref()
 let currPageMenu = ref()
 let currPin = ref(true)
+let modal = ref(false)
+let btnName= ref('')
+let btnId = ref('')
+let checkFields = ref([])
 
 let pages = ref<any[]>([])
 
@@ -122,6 +127,7 @@ watch(() => route.query, () => {
   currPageButtons.value =  pageData?.mainBtnBar||"";
   currPageMenu.value =  pageData?.mainMenu||"";
   pages.value.find(e => e.title == currPageTitle.value)? currPin.value = false : currPin.value = true ;
+  checkFields.value = [];
 })
 
 const onPinPageBtnClick = (e) => {

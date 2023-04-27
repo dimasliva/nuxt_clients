@@ -24,7 +24,7 @@ pageMap.setPageData("/data",
 {title: "База данных", 
 icon: "", 
 mainBtnBar:[
-    { id: "save", title: "Сохранить", icon: "mdi-download", disabled:false, color:"secondary", bkgColor:"red", action: () => "hi"},
+    { id: "save", title: "Сохранить", icon: "mdi-download", disabled:false, color:"secondary", bkgColor:"red", action: () => true},
     { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", action: ()=>{}},
     { id: "print", title: "Печать", icon: "mdi-printer", disabled:false, color:"secondary", bkgColor:"red", action: ()=>{}},
 ],

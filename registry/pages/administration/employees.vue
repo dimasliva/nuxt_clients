@@ -1,5 +1,5 @@
 <template>
-  <Table :info="data" :headers="th"></Table>
+  <Table :cheked="checkEmpl" :info="data" :headers="th"></Table>
 </template>
   
 <script setup lang="ts">
@@ -11,24 +11,27 @@ const iocc=useContainer();
 const modManager=iocc.get<ModuleManager>("ModuleManager");
 const pageMap = iocc.get<PageMap>("PageMap");
 
-pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: ""});
+pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
+mainBtnBar:[
+    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", action: () => "true" },
+    { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => "true" },
+]
 
-let th = ["имя","статус","должность","телефон","подразделение"]
+});
+
+let checkEmpl = ref([])
+
+let th = ["id","имя","статус","должность","телефон","подразделение"]
 
 let data = [
-  {name: "Олег", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
-  {name: "Борис", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
-  {name: "Роман", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
-  {name: "Олег", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
-  {name: "Борис", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
-  {name: "Роман", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
+  {id: "1",name: "Олег", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
+  {id: "2",name: "Борис", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
+  {id: "3",name: "Роман", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
+  {id: "4",name: "Олег", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
+  {id: "5",name: "Борис", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
+  {id: "6",name: "Роман", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT"},
 ]
-// let comps:any[] = [];
-// let menu=modManager.getModuleItemsMenu();
-// menu.foreach((item)=>{
-//   let form=item.getForm();
-//   comps.push({header:item.title, val:form?.form,prop:form?.prop});
-// })
+
 
 definePageMeta({
   keepalive: true,

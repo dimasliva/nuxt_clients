@@ -1,5 +1,5 @@
 <template>
-      <v-dialog  :scrim="false" transition="dialog-bottom-transition">
+      <v-dialog fullscreen :scrim="false" transition="dialog-bottom-transition">
         <v-card>
           <v-toolbar color="primary">
             <v-btn icon @click="$emit('modal-off')">
@@ -14,18 +14,19 @@
             </v-toolbar-items>
           </v-toolbar>
           <template>
-            <v-card v-for="el in tab" class="w-50 ma-2 pa-2 bg-tertiary overflow-y-auto">
-              <v-text-field v-for="(param, i) in el" v-model="el[i]" :value="param" clearable ></v-text-field>
+            <v-card v-for="el in dialogFormProps" class="w-50 ma-2 pa-2 bg-tertiary overflow-y-auto">
+              <v-text-field v-for="(param, i) in el" v-model="el[i]" :value="param" clearable :is="param"></v-text-field>
             </v-card>
           </template>
+          some text
         </v-card>
     </v-dialog>
 </template>
 
 <script setup>
 
-const props = defineProps ({
-    dialog: Boolean, 
-    tab: Array
-  })
+const props = defineProps({
+  dialogFormProps: Array
+})
+
 </script>

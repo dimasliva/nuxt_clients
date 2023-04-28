@@ -14,17 +14,13 @@ const pageMap = iocc.get<PageMap>("PageMap");
 
 pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
-    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", action: () => onOpenDiag() },
+    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", action: () => useDialogOpen("FormsDialogForm", checkEmpl) },
     { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => "true" },
 ]
 
 });
 
 let checkEmpl = ref([])
-
-const onOpenDiag = () =>  useDialogOpen("FormsDialogForm", checkEmpl)
-
-
 
 let th = ["id","имя","статус","должность","телефон","подразделение"]
 

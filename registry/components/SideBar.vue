@@ -118,8 +118,8 @@ let btnName= ref('')
 let btnId = ref('')
 let checkFields = ref([])
 
-let dialogForm = ref(null)
-let dialogFormProps = ref(null)
+let dialogForm = ref()
+let dialogFormProps = ref()
 
 let pages = ref<any[]>([])
 
@@ -142,8 +142,8 @@ watch(() => route.query, () => {
 const dialogComp = getDialogComponent();
 
 watch(() => dialogComp.value, () =>{
-  dialogForm.value = resolveComponent(dialogComp.value.Component);
-  dialogFormProps.value = null;
+  dialogForm.value = resolveComponent('DialogForm');
+  dialogFormProps.value = dialogComp.value.Props;
 })
 
 const onPinPageBtnClick = (e) => {

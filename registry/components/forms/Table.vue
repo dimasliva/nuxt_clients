@@ -12,7 +12,7 @@
             <tbody>
               <tr v-for="item in info" :key="item.name">
                 <td>
-                  <v-checkbox v-model="cheked" v-on="$emit('add-item', cheked, headers)" :value="item"></v-checkbox>
+                  <v-checkbox v-model="cheked" v-on:update:focused="$emit('add-item', cheked, headers)" :value="item"></v-checkbox>
                 </td>
                 <td v-for="index in item">
                   {{ index }}
@@ -31,6 +31,7 @@ let cheked = ref([])
 const props = defineProps ({
 info: Array, 
 headers: Array,
+cheked: Array
 })
 </script>
   

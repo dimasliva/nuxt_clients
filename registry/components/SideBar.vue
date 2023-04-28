@@ -113,14 +113,9 @@
 <script setup lang="ts">
 import { IModuleItemsMenu } from '~~/lib/ModuleManager';
 import { ModuleManager } from '~~/lib/ModuleManager';
-import { CloneData } from "@/lib/Helpers";
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
-import MenuTab from '~~/components/MenuTab.vue';
 import { debug } from 'console';
-
-
-
 
 let pInput = ref();
 let input = ref('')
@@ -133,11 +128,7 @@ let currPageTitle = ref('')
 let currPageButtons = ref()
 let currPageMenu = ref()
 let currPin = ref(true)
-let modal = ref(false)
-let btnName = ref('')
-let btnId = ref('')
 let checkFields = ref([])
-
 
 let showDialog = ref(false)
 let dialogForm = {
@@ -163,7 +154,6 @@ const modManager = iocc.get<ModuleManager>("ModuleManager");
 const pageMap = iocc.get<PageMap>("PageMap");
 
 const chapters = modManager.getModuleItemsMenu();
-
 const route = useRoute()
 
 watch(() => route.query, () => {
@@ -203,8 +193,8 @@ let closeDiag = (result) => {
       dialogForm2.onBeforeClose = null;
       dialogForm2.modal = true;
       showDialog2.value = false;
-    }
   }
+}
   else
     if (showDialog.value) {
       if (!dialogForm.onBeforeClose || (<(any)=>boolean> dialogForm.onBeforeClose)(result)) {
@@ -220,6 +210,14 @@ let closeDiag = (result) => {
 regDialogHandler(addDiag, closeDiag);
 
 
+onMounted(()=>{
+  const pageData = pageMap.getPageData(route.path)
+  currPageTitle.value = pageData?.title || "";
+  currPageButtons.value = pageData?.mainBtnBar || "";
+  currPageMenu.value = pageData?.mainMenu || "";
+  pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
+  checkFields.value = [];
+})
 
 const onPinPageBtnClick = (e) => {
   const pageData = pageMap.getPageData(route.path)

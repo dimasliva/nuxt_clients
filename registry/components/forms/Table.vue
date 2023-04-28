@@ -31,6 +31,7 @@ let cheked = ref([])
 const props = defineProps ({
 info: Array, 
 headers: Array,
+cheked: Array
 })
 </script>
   

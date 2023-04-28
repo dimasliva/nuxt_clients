@@ -99,9 +99,14 @@
 
     </v-card>
 
-    <v-dialog v-model="dialog" persistent width="auto">
-      <component :is="dialogForm" v-bind="dialogFormProps" />
+    <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
+      <component :is="dialogForm.comp" v-bind="dialogForm.props" />
     </v-dialog>
+
+    <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
+      <component :is="dialogForm2.comp" v-bind="dialogForm2.props" />
+    </v-dialog>
+
   </div>
 </template>
 
@@ -112,6 +117,7 @@ import { CloneData } from "@/lib/Helpers";
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
 import MenuTab from '~~/components/MenuTab.vue';
+import { debug } from 'console';
 
 
 
@@ -132,9 +138,24 @@ let btnName = ref('')
 let btnId = ref('')
 let checkFields = ref([])
 
-let dialogForm = shallowRef<any>(null);
-let dialogFormProps = ref(null)
-let dialog = ref(false);
+
+let showDialog = ref(false)
+let dialogForm = {
+  comp: null,
+  props: null,
+  modal: true,
+  onBeforeClose: null
+};
+
+let showDialog2 = ref(false)
+let dialogForm2= {
+  comp: null,
+  props: null,
+  modal: true,
+  onBeforeClose: null
+};
+
+
 
 let pages = ref<any[]>([])
 
@@ -154,18 +175,51 @@ watch(() => route.query, () => {
   checkFields.value = [];
 })
 
-const dialogComp = getDialogComponent();
+let addDiag = (val) => {
+  if (!showDialog.value) {
+    dialogForm.comp = val.component;
+    dialogForm.props = val.props;
+    dialogForm.modal = val.modal;
+    dialogForm.onBeforeClose=val.onBeforeClose;
+    showDialog.value = true;
+  }
+  else {
+    if (!showDialog2.value) {
+      dialogForm2.comp = val.component;
+      dialogForm2.props = val.props;
+      dialogForm2.modal = val.modal;
+      dialogForm2.onBeforeClose=val.onBeforeClose;
+      showDialog2.value = true;
+    }
+  }
+}
 
-watch(() => dialogComp.value, () => {
-  if (dialogComp.value != null) {
-    dialogForm.value = dialogComp.value.Component;
-    dialogFormProps.value = dialogComp.value.Props;
-    dialog.value = true;
+
+let closeDiag = (result) => {
+  if (showDialog2.value) {
+    if (!dialogForm2.onBeforeClose || (<(any)=>boolean> dialogForm2.onBeforeClose)(result)) {
+      dialogForm2.comp = null;
+      dialogForm2.props = null;
+      dialogForm2.onBeforeClose = null;
+      dialogForm2.modal = true;
+      showDialog2.value = false;
+    }
   }
-  else{
-    dialog.value = false;
-  }
-})
+  else
+    if (showDialog.value) {
+      if (!dialogForm.onBeforeClose || (<(any)=>boolean> dialogForm.onBeforeClose)(result)) {
+        dialogForm.comp = null;
+        dialogForm.props = null;
+        dialogForm.onBeforeClose = null;
+        dialogForm.modal = true;
+        showDialog.value = false;
+      }
+    }
+}
+
+regDialogHandler(addDiag, closeDiag);
+
+
 
 const onPinPageBtnClick = (e) => {
   const pageData = pageMap.getPageData(route.path)
@@ -232,4 +286,6 @@ let filteredChaptersGr = () => {
 
 </script>
 
-<style lang="scss">@use '~/settings';</style>
+<style lang="scss">
+@use '~/settings';
+</style>

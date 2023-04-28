@@ -81,14 +81,14 @@
           <v-btn
             color="blue-darken-1"
             variant="text"
-            @click="{onClose(); closeDialog()}"
+            @click="closeDialog()"
           >
             Close
           </v-btn>
           <v-btn
             color="blue-darken-1"
             variant="text"
-            @click="dialog = false"
+            @click=" openDialog(FormDialogFormTest, {name:'Вася'})"
           >
             Save
           </v-btn>
@@ -98,11 +98,13 @@
 </template>
 
 <script setup>
+import  MenuTab  from '~~/components/MenuTab.vue';
+import FormDialogFormTest  from '~~/components/forms/DialogFormTest.vue';
+
 const props = defineProps ({
     name: String,
     dialog: Boolean, 
-    tab: Array,
-    onClose: Function
+    tab: Array
   })
 
 

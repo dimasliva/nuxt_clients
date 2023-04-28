@@ -17,9 +17,9 @@ const pageMap = iocc.get<PageMap>("PageMap");
 pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
     { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", 
-      action: () =>  useDialogOpen(FormDialogFormTest, {name:"petya", onClose:()=>{console.debug("onClose invoked")} }) },
+      action: () =>  openDialog(FormDialogFormTest, {name:"petya"},true,()=>{console.debug("onClose invoked");return true;}  ) },
       
-    { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => useDialogOpen(MenuTab, checkEmpl)},
+    { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => openDialog(MenuTab, checkEmpl)},
 ]
 
 });

@@ -1,5 +1,5 @@
 <template>
-      <v-dialog fullscreen :scrim="false" transition="dialog-bottom-transition">
+      <v-dialog  :scrim="false" transition="dialog-bottom-transition">
         <v-card>
           <v-toolbar color="primary">
             <v-btn icon @click="$emit('modal-off')">
@@ -13,10 +13,7 @@
               </v-btn>
             </v-toolbar-items>
           </v-toolbar>
-          <template v-if="buttonId == `addEmployee`">
-            <PersonForm/>
-          </template>
-          <template v-if="buttonId == `change`">
+          <template>
             <v-card v-for="el in tab" class="w-50 ma-2 pa-2 bg-tertiary overflow-y-auto">
               <v-text-field v-for="(param, i) in el" v-model="el[i]" :value="param" clearable ></v-text-field>
             </v-card>
@@ -29,8 +26,6 @@
 
 const props = defineProps ({
     dialog: Boolean, 
-    tab: Array,
-    buttonName: String,
-    buttonId: String
+    tab: Array
   })
 </script>

@@ -4,6 +4,7 @@
   
 <script setup lang="ts">
 import Table from '~~/components/forms/Table.vue';
+import FormsDialogForm from '~~/components/forms/DialogForm.vue';
 import { ModuleManager } from '~~/lib/ModuleManager';
 import { PageMap } from '~~/lib/PageMap';
 
@@ -13,13 +14,17 @@ const pageMap = iocc.get<PageMap>("PageMap");
 
 pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
-    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", action: () => "true" },
+    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", action: () => onOpenDiag() },
     { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => "true" },
 ]
 
 });
 
 let checkEmpl = ref([])
+
+const onOpenDiag = () =>  useDialogOpen("FormsDialogForm", checkEmpl)
+
+
 
 let th = ["id","имя","статус","должность","телефон","подразделение"]
 

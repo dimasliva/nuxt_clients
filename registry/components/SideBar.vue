@@ -70,7 +70,7 @@
         </v-btn>
         <v-spacer></v-spacer>
         <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl"  :append-icon="buttons.icon" variant="outlined"
-        :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" @click="modal = true, btnName = buttons.title, btnId = buttons.id ">
+        :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" @click="buttons.action()">
         {{ buttons.title }}
         </v-btn>
         <v-menu :open-on-hover="true">
@@ -85,8 +85,11 @@
         </v-menu>
       </v-row>
       <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4" v-on:add-item="checkFields = $event"/>
-      <FormsDialogForm v-model="modal" :tab="checkFields" :button-name="btnName" :button-id="btnId" v-on:modal-off="modal = false"/>
+      <!-- <FormsDialogForm v-model="modal" :tab="checkFields" v-on:modal-off="modal = false"/> -->
+      <component :is="dialogForm" v-bind="dialogFormProps" />
     </v-card>
+
+
 </template>
 
 <script setup lang="ts">
@@ -95,6 +98,8 @@ import { ModuleManager } from '~~/lib/ModuleManager';
 import { CloneData } from "@/lib/Helpers";
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
+
+
 
 
 let pInput = ref();
@@ -113,6 +118,9 @@ let btnName= ref('')
 let btnId = ref('')
 let checkFields = ref([])
 
+let dialogForm = ref(null)
+let dialogFormProps = ref(null)
+
 let pages = ref<any[]>([])
 
 const modManager = iocc.get<ModuleManager>("ModuleManager");
@@ -121,6 +129,7 @@ const pageMap = iocc.get<PageMap>("PageMap");
 const chapters = modManager.getModuleItemsMenu();
 
 const route = useRoute()
+
 watch(() => route.query, () => {
   const pageData = pageMap.getPageData(route.path)
   currPageTitle.value = pageData?.title||"";
@@ -128,6 +137,13 @@ watch(() => route.query, () => {
   currPageMenu.value =  pageData?.mainMenu||"";
   pages.value.find(e => e.title == currPageTitle.value)? currPin.value = false : currPin.value = true ;
   checkFields.value = [];
+})
+
+const dialogComp = getDialogComponent();
+
+watch(() => dialogComp.value, () =>{
+  dialogForm.value = resolveComponent(dialogComp.value.Component);
+  dialogFormProps.value = null;
 })
 
 const onPinPageBtnClick = (e) => {

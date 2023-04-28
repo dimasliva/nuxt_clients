@@ -1,4 +1,4 @@
-let _component = shallowRef(
+let _component = shallowRef<any|null>(
     {
         Component: null,
         Props: null
@@ -11,5 +11,9 @@ export const useDialogOpen = (component: any, props: any) => {
 
 export const getDialogComponent = () => {
     return _component
+}
+
+export const closeDialog = () => {
+    _component.value = null;
 }
   

@@ -4,9 +4,11 @@
   
 <script setup lang="ts">
 import Table from '~~/components/forms/Table.vue';
-import FormsDialogForm from '~~/components/forms/DialogForm.vue';
 import { ModuleManager } from '~~/lib/ModuleManager';
 import { PageMap } from '~~/lib/PageMap';
+import FormDialogForm  from '~~/components/forms/DialogForm.vue';
+import  MenuTab  from '~~/components/MenuTab.vue';
+
 
 const iocc=useContainer();
 const modManager=iocc.get<ModuleManager>("ModuleManager");
@@ -14,8 +16,9 @@ const pageMap = iocc.get<PageMap>("PageMap");
 
 pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
-    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", action: () => useDialogOpen("FormsDialogForm", checkEmpl) },
-    { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => "true" },
+    { id: "change", title: "Редактировать", icon: "mdi-pencil", disabled:false, color:"secondary", bkgColor:"red", 
+      action: () =>  useDialogOpen(FormDialogForm, {name:"petya", onClose:()=>{console.debug("onClose invoked")} }) },
+    { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", action: () => useDialogOpen(FormDialogForm,  {checkEmpl, onClose:()=>{console.debug("onClose invoked")} })},
 ]
 
 });

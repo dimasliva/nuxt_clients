@@ -1,19 +1,16 @@
-let _component = shallowRef<any|null>(
-    {
-        Component: null,
-        Props: null
-    }
-) 
 
-export const useDialogOpen = (component: any, props: any) => {
-    _component.value = {Component : component, Props : props}
+let _addDiag, _closeDiag;
+
+export const openDialog = (component: any, props: any, modal:boolean=true,onBeforeClose:((res:any)=>boolean)|null=null) => {
+    _addDiag({component, props,  modal, onBeforeClose: onBeforeClose})
 }
 
-export const getDialogComponent = () => {
-    return _component
+export const regDialogHandler = (addDiagCb, closeDialogCb) => {
+    _addDiag=addDiagCb;
+    _closeDiag=closeDialogCb;
 }
 
-export const closeDialog = () => {
-    _component.value = null;
+export const closeDialog = (result:any) => {
+    _closeDiag(result);
 }
   

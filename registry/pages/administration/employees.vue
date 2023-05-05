@@ -18,18 +18,28 @@
 import Table from '~~/components/forms/Table.vue';
 import { ModuleManager } from '~~/lib/ModuleManager';
 import { PageMap } from '~~/lib/PageMap';
+<<<<<<< HEAD
 import FormDialogFormTest  from '~~/components/forms/DialogFormTest.vue';
 import FormDialogForm  from '~~/components/forms/DialogForm.vue';
+=======
+import FormDialogFormTest from '~~/components/forms/DialogFormTest.vue';
+import MenuTab from '~~/components/MenuTab.vue';
+>>>>>>> a33ceb1e8200a1ccae7668f4b3f3c2cb0b68488b
 
 let drawer = ref(false)
 let sorted = ref(false)
 let show = ref(false)
 
+<<<<<<< HEAD
 const iocc=useContainer();
+=======
+const iocc = useContainer();
+>>>>>>> a33ceb1e8200a1ccae7668f4b3f3c2cb0b68488b
 const modManager = iocc.get<ModuleManager>("ModuleManager");
 const pageMap = iocc.get<PageMap>("PageMap");
 let checkEmpl = ref([])
 
+<<<<<<< HEAD
 pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
     { id: "select", title: "Выбрать", icon: "mdi-checkbox-marked", disabled:false, color:"secondary", bkgColor:"red", 
@@ -45,9 +55,23 @@ mainBtnBar:[
     { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red", 
      action: () =>  (drawer.value = !drawer.value, console.log(drawer.value)) },
   ]
+=======
+pageMap.setPageData("/administration/employees", {
+  title: "Сотрудники", icon: "",
+  mainBtnBar: [
+    {
+      id: "change", title: "Редактировать", icon: "mdi-pencil", disabled: false, color: "secondary", bkgColor: "red",
+      action: () => openDialog(FormDialogFormTest, { name: "petya" }, true, () => { console.debug("onClose invoked"); return true; })
+    },
+
+    { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red", action: () => openDialog(MenuTab, checkEmpl) },
+  ]
+
+>>>>>>> a33ceb1e8200a1ccae7668f4b3f3c2cb0b68488b
 });
 
 
+<<<<<<< HEAD
 let th = [{title: "ID", key: "id"},{title: "ФИО", key: "name"},{title: "Должность", key: "job_title"},{title: "Телефон", key: "phone"}, {title: "E-mail", key: "email"}]
 
 let data = ref([
@@ -58,6 +82,18 @@ let data = ref([
   {id: "5",name: "Вера", job_title: "Врач окулист", phone: "3114-567-89-01", email: "Esmth@mail.com"},
   {id: "6",name: "Дарья", job_title: "Администратор", phone: "4000-000-89-01", email: "Fsmth@mail.com"},
 ])
+=======
+let th = ["id", "имя", "статус", "должность", "телефон", "подразделение"]
+
+let data = [
+  { id: "1", name: "Олег", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT" },
+  { id: "2", name: "Борис", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT" },
+  { id: "3", name: "Роман", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT" },
+  { id: "4", name: "Олег", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT" },
+  { id: "5", name: "Борис", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT" },
+  { id: "6", name: "Роман", status: "Онлайн", role: "Администратор", phone: "XXXX-XXX-XX-XX", cluster: "IT" },
+]
+>>>>>>> a33ceb1e8200a1ccae7668f4b3f3c2cb0b68488b
 
 const sortList = (sortBy: any) => {
   if(sorted.value == true){

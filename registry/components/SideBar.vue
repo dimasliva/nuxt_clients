@@ -4,11 +4,11 @@
       <v-app-bar-nav-icon variant="text" @click="rail = !rail"></v-app-bar-nav-icon>
 
       <v-toolbar-title @click="navigateTo('/dashboard')" style="cursor: pointer;">
-        <v-img src="logo_9PqMg0J9.png" :height="50" :width="200"></v-img>
+        <img src="@/logo_9PqMg0J9.png" :height="30" :width="200"/>
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-      <v-menu>
+      <v-menu :open-on-hover="true">
         <template v-slot:activator="{ props }">
           <p>Максим</p> <v-btn variant="text" v-bind="props" icon="mdi-account-circle"></v-btn>
         </template>
@@ -27,21 +27,21 @@
       </v-menu>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" :width="350">
-      <v-list class="main_menu" :opened="opened" open-strategy="multiple" :selected="selected" select-strategy="classic"
+      <v-list class="main_menu" :opened="opened" open-strategy="single" :selected="selected" select-strategy="single-leaf"
         @update:selected=debugger>
         <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
           <v-text-field single-line clearable hide-details ref="pInput" density="compact" v-model="input"
             @click:clear="input = ''"></v-text-field>
         </v-list-item>
         <template v-for="item in filteredChaptersGr()">
-          <v-list-group v-if="item.childs?.length! > 0" @click="rail = false" :value="item.id">
+          <v-list-group v-if="item.childs?.length! > 0" :value="item.id" >
             <template v-slot:activator="{ props }">
-              <v-list-item v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title"></v-list-item>
+              <v-list-item @click="rail = false" :active="false" v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title" ></v-list-item>
             </template>
             <template v-if="rail == false">
-              <v-list-item v-for="el in item.childs" @click="navigateTo(el.getPagePath())"
+              <v-list-item v-for="el in item.childs" @click="rail = true, navigateTo(el.getPagePath())"
                 style="padding-inline-start: 50px !important;">
-                <v-icon :icon="el.icon" size="x-small" start>
+                <v-icon :icon="el.icon" size="x-small" start color="secondary">
                 </v-icon>
                 <v-list-item-title class="text-body-2 d-inline">
                   {{ el.title }}
@@ -64,23 +64,21 @@
     </v-row>
     <v-card class="overflow-y-auto " elevation="0" height="87vh">
       <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
-        <p class="text-h6 font-weight-bold mx-2">{{ currPageTitle }}</p>
+        <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
         <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
-          <v-icon>mdi-pin</v-icon>
+          <v-icon color="secondary">mdi-pin</v-icon>
           <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
         </v-btn>
         <v-btn v-else variant="text" size="small"
           @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
           icon>
-          <v-icon>mdi-pin-off</v-icon>
+          <v-icon color="secondary">mdi-pin-off</v-icon>
           <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl" :append-icon="buttons.icon"
-          variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled"
-          @click="buttons.action()">
-          {{ buttons.title }}
-        </v-btn>
+        <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
+          variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" :text="(buttons.title.length)? buttons.title : undefined" :density="(buttons.title.length)? `default` : `comfortable`"
+          @click="buttons.action()"/>
         <v-menu :open-on-hover="true">
           <template v-slot:activator="{ props }">
             <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
@@ -95,11 +93,8 @@
         </v-menu>
       </v-row>
       <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4" />
-      <!-- <FormsDialogForm v-model="modal" :tab="checkFields" v-on:modal-off="modal = false"/> -->
-
     </v-card>
-
-    <v-dialog v-model="dialog" persistent width="auto">
+    <v-dialog v-model="dialog" persistent>
       <component :is="dialogForm" v-bind="dialogFormProps" />
     </v-dialog>
   </div>
@@ -127,7 +122,6 @@ let dialogForm = shallowRef<any>(null);
 let dialogFormProps = ref(null)
 let dialog = ref(false);
 
-
 let pages = ref<any[]>([])
 
 const modManager = iocc.get<ModuleManager>("ModuleManager");
@@ -136,23 +130,18 @@ const pageMap = iocc.get<PageMap>("PageMap");
 const chapters = modManager.getModuleItemsMenu();
 const route = useRoute()
 
-watch(() => route.query, () => {
+const pageGetData = () => {
   const pageData = pageMap.getPageData(route.path)
   currPageTitle.value = pageData?.title || "";
   currPageButtons.value = pageData?.mainBtnBar || "";
   currPageMenu.value = pageData?.mainMenu || "";
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
   checkFields.value = [];
-})
+}
 
-onMounted(()=>{
-  const pageData = pageMap.getPageData(route.path)
-  currPageTitle.value = pageData?.title || "";
-  currPageButtons.value = pageData?.mainBtnBar || "";
-  currPageMenu.value = pageData?.mainMenu || "";
-  pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
-  checkFields.value = [];
-})
+watch(() => route.query, pageGetData);
+
+onMounted(pageGetData);
 
 
 const dialogComp = getDialogComponent();

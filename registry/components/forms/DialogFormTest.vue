@@ -12,9 +12,8 @@
                 md="4"
               >
                 <v-text-field
-                  label="Legal first name*"
+                  label="Имя"
                   required
-                  v-model="fName"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -23,8 +22,7 @@
                 md="4"
               >
                 <v-text-field
-                  label="Legal middle name"
-                  hint="example of helper text only on focus"
+                  label="Статус"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -33,8 +31,7 @@
                 md="4"
               >
                 <v-text-field
-                  label="Legal last name*"
-                  hint="example of persistent helper text"
+                  label="ID"
                   persistent-hint
                   required
                 ></v-text-field>
@@ -99,14 +96,9 @@
 
 <script setup>
 const props = defineProps ({
-    name: String,
     dialog: Boolean, 
     tab: Array,
     onClose: Function
   })
-
-
-let fName=props.name;
-
 
 </script>

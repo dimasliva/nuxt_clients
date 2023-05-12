@@ -76,9 +76,9 @@
           <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn v-for="buttons in currPageButtons" elevation="0" class="mx-2" rounded="xl" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
+        <v-btn v-for="(buttons, index) in currPageButtons" elevation="0" class="mx-2" rounded="xl" :key="index" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
           variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" :text="(buttons.title.length)? buttons.title : undefined" :density="(buttons.title.length)? `default` : `comfortable`"
-          @click="buttons.action()"/>
+          @click="buttons.action()" />
         <v-menu :open-on-hover="true">
           <template v-slot:activator="{ props }">
             <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
@@ -92,7 +92,7 @@
           </v-list>
         </v-menu>
       </v-row>
-      <NuxtPage :keepalive="true" @vnode-updated="debugger" class="px-4" />
+      <NuxtPage :keepalive="true" @clicked="pageGetData()" class="px-4" />
     </v-card>
     <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
       <component :is="dialogForm.comp" v-bind="dialogForm.props" />
@@ -100,7 +100,6 @@
     <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
       <component :is="dialogForm2.comp" v-bind="dialogForm2.props" />
     </v-dialog>
-
   </div>
 </template>
 
@@ -109,7 +108,6 @@ import { IModuleItemsMenu } from '~~/lib/ModuleManager';
 import { ModuleManager } from '~~/lib/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
-import { debug } from 'console';
 
 let pInput = ref();
 let input = ref('')
@@ -156,6 +154,7 @@ const pageGetData = () => {
   currPageMenu.value = pageData?.mainMenu || "";
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
   checkFields.value = [];
+  console.log('I update data')
 }
 
 watch(() => route.query, pageGetData);
@@ -205,17 +204,6 @@ let closeDiag = (result) => {
 }
 
 regDialogHandler(addDiag, closeDiag);
-
-
-onMounted(()=>{
-  const pageData = pageMap.getPageData(route.path)
-  currPageTitle.value = pageData?.title || "";
-  currPageButtons.value = pageData?.mainBtnBar || "";
-  currPageMenu.value = pageData?.mainMenu || "";
-  pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
-  checkFields.value = [];
-})
-
 
 const onPinPageBtnClick = (e) => {
   const pageData = pageMap.getPageData(route.path)

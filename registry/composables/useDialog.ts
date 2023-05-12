@@ -1,7 +1,7 @@
 
 let _addDiag, _closeDiag;
 
-export const openDialog = (component: any, props: any, modal:boolean=true,onBeforeClose:((res:any)=>boolean)|null=null) => {
+export const openDialog = (component: any, props: any, modal:boolean=true, onBeforeClose:((res:any)=>boolean)|null=null) => {
     _addDiag({component, props,  modal, onBeforeClose: onBeforeClose})
 }
 

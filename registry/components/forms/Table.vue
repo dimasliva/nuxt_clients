@@ -21,7 +21,16 @@
                   {{ index }}
                 </td>
                 <td class="text-right ma-0">
-                  <v-btn icon="mdi-dots-vertical" variant="text" ></v-btn>
+                  <v-menu :open-on-hover="true">
+                    <template v-slot:activator="{ props }">
+                      <v-btn  v-bind="props" icon="mdi-dots-vertical" variant="text" :value="item" ></v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item v-for="action in actions" @click="action.action">
+                        <v-list-item-title>{{ action.title }}<v-icon end :icon="action.icon" size="x-small" /></v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                 </td>
               </tr>
             </tbody>
@@ -37,7 +46,8 @@ let cheked = ref([])
 const props = defineProps ({
   checkboxShow: Boolean,
   info: Array, 
-  headers: Array
+  headers: Array,
+  actions: Array
 })
 </script>
   

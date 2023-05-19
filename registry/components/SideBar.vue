@@ -109,109 +109,116 @@ import { ModuleManager } from '~~/lib/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
 
-let pInput = ref();
-let input = ref('')
-let drawer = ref(true)
-let rail = ref(true)
+interface DialogForm {
+  comp: any;
+  props: any;
+  modal: boolean;
+  onBeforeClose: ((result: any) => boolean) | null;
+}
+
+let pInput = ref<any>(null);
+let input = ref<string>('');
+let drawer = ref<boolean>(true);
+let rail = ref<boolean>(true);
 const iocc = useContainer();
-let opened = ref();
-let selected = ref();
-let currPageTitle = ref('')
-let currPageButtons = ref()
-let currPageMenu = ref()
-let currPin = ref(true)
-let checkFields = ref([])
+let opened = ref<any>(null);
+let selected = ref<any>(null);
+let currPageTitle = ref<IMenu | string>('');
+let currPageButtons = ref<IBtnMenu[] | string>('');
+let currPageMenu = ref<IMenu | string>('');
+let currPin = ref<boolean>(true);
+let checkFields = ref<any[]>([]);
 
-let showDialog = ref(false)
-let dialogForm = {
+let showDialog = ref<boolean>(false);
+let dialogForm: DialogForm = {
   comp: null,
   props: null,
   modal: true,
   onBeforeClose: null
 };
 
-let showDialog2 = ref(false)
-let dialogForm2= {
+let showDialog2 = ref<boolean>(false);
+let dialogForm2: DialogForm = {
   comp: null,
   props: null,
   modal: true,
   onBeforeClose: null
 };
 
+interface Page {
+  icon: string;
+  title: string;
+  link: string;
+}
 
-let pages = ref<any[]>([])
+let pages = ref<Page[]>([]);
 
-const modManager = iocc.get<ModuleManager>("ModuleManager");
-const pageMap = iocc.get<PageMap>("PageMap");
+const modManager = iocc.get<ModuleManager>('ModuleManager');
+const pageMap = iocc.get<PageMap>('PageMap');
 
 const chapters = modManager.getModuleItemsMenu();
-const route = useRoute()
+const route = useRoute();
 
 const pageGetData = () => {
-  const pageData = pageMap.getPageData(route.path)
-  currPageTitle.value = pageData?.title || "";
-  currPageButtons.value = pageData?.mainBtnBar || "";
-  currPageMenu.value = pageData?.mainMenu || "";
+  const pageData = pageMap.getPageData(route.path);
+  currPageTitle.value = pageData?.title || '';
+  currPageButtons.value = pageData?.mainBtnBar || '';
+  currPageMenu.value = pageData?.mainMenu || '';
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
   checkFields.value = [];
-  console.log('I update data')
-}
+};
 
 watch(() => route.query, pageGetData);
 
 onMounted(pageGetData);
 
-let addDiag = (val) => {
+let addDiag = (val: { component: any; props: any; modal: boolean; onBeforeClose: ((result: any) => boolean) | null }) => {
   if (!showDialog.value) {
     dialogForm.comp = val.component;
     dialogForm.props = val.props;
     dialogForm.modal = val.modal;
-    dialogForm.onBeforeClose=val.onBeforeClose;
+    dialogForm.onBeforeClose = val.onBeforeClose;
     showDialog.value = true;
-  }
-  else {
+  } else {
     if (!showDialog2.value) {
       dialogForm2.comp = val.component;
       dialogForm2.props = val.props;
       dialogForm2.modal = val.modal;
-      dialogForm2.onBeforeClose=val.onBeforeClose;
+      dialogForm2.onBeforeClose = val.onBeforeClose;
       showDialog2.value = true;
     }
   }
-}
+};
 
-
-let closeDiag = (result) => {
+let closeDiag = (result: any) => {
   if (showDialog2.value) {
-    if (!dialogForm2.onBeforeClose || (<(any)=>boolean> dialogForm2.onBeforeClose)(result)) {
+    if (!dialogForm2.onBeforeClose || dialogForm2.onBeforeClose(result)) {
       dialogForm2.comp = null;
       dialogForm2.props = null;
       dialogForm2.onBeforeClose = null;
       dialogForm2.modal = true;
       showDialog2.value = false;
-  }
-}
-  else
-    if (showDialog.value) {
-      if (!dialogForm.onBeforeClose || (<(any)=>boolean> dialogForm.onBeforeClose)(result)) {
-        dialogForm.comp = null;
-        dialogForm.props = null;
-        dialogForm.onBeforeClose = null;
-        dialogForm.modal = true;
-        showDialog.value = false;
-      }
     }
-}
+  } else if (showDialog.value) {
+    if (!dialogForm.onBeforeClose || dialogForm.onBeforeClose(result)) {
+      dialogForm.comp = null;
+      dialogForm.props = null;
+      dialogForm.onBeforeClose = null;
+      dialogForm.modal = true;
+      showDialog.value = false;
+    }
+  }
+};
 
 regDialogHandler(addDiag, closeDiag);
 
-const onPinPageBtnClick = (e) => {
-  const pageData = pageMap.getPageData(route.path)
+const onPinPageBtnClick = (e: any) => {
+  const pageData = pageMap.getPageData(route.path);
   if (!pageData) return;
   if (pages.value.find((v, i, o) => v.link == route.path)) return;
-  pages.value.push({ icon: pageData.icon, title: pageData.title, link: route.path })
+  pages.value.push({ icon: pageData.icon, title: pageData.title, link: route.path });
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
-}
+};
 
 let translit = (word) => {
   const converter = {

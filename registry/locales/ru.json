@@ -15,7 +15,7 @@
     "emplName": "Имя",
     "emplSurname": "Фамилия",
     "emplPatronymic": "Отчество",
-    "emplBirthdate":"День рождения",
+    "emplBirthdate":"Дата рождения",
     "close": "Закрыть",
     "vemail": "Не корректный адрес электронной почты",
     "vbirthday": "ДД.ММ.ГГГГ",

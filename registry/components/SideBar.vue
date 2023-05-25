@@ -85,7 +85,7 @@
               :icon="currPageMenu?.icon" />
           </template>
           <v-list>
-            <v-list-item v-for="child in currPageMenu.childs" :key="child.id" :disabled="child.disabled"
+            <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
               @click="child.action">
               <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
             </v-list-item>
@@ -124,8 +124,8 @@ const iocc = useContainer();
 let opened = ref<any>(null);
 let selected = ref<any>(null);
 let currPageTitle = ref<IMenu | string>('');
-let currPageButtons = ref<IBtnMenu[] | string>('');
-let currPageMenu = ref<IMenu | string>('');
+let currPageButtons = ref<IBtnMenu[] | null>();
+let currPageMenu = ref<IMenu | null>();
 let currPin = ref<boolean>(true);
 let checkFields = ref<any[]>([]);
 
@@ -162,8 +162,8 @@ const route = useRoute();
 const pageGetData = () => {
   const pageData = pageMap.getPageData(route.path);
   currPageTitle.value = pageData?.title || '';
-  currPageButtons.value = pageData?.mainBtnBar || '';
-  currPageMenu.value = pageData?.mainMenu || '';
+  currPageButtons.value = pageData?.mainBtnBar || null;
+  currPageMenu.value = pageData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
   checkFields.value = [];
 };

@@ -295,7 +295,6 @@ export class MoApiClient {
 
 }
 
-
 export type TCompanyRegistrationData = {
     email: string;
     login: string;

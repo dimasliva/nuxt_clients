@@ -15,7 +15,7 @@
             <tbody>
               <tr v-for="item in info" :key="item.name" @click="$emit('empl', item)" @dblclick="props.actions[0].action">
                 <td class="pr-0" style="width: 50px;">
-                    <v-checkbox density="compact" :hide-details="true" v-model="cheked" :value="item" color="secondary" @update:model-value="$emit('cheked', cheked)" @click="removeChek"/>
+                    <v-checkbox density="compact" :hide-details="true" v-model="cheked" :value="item" color="secondary" @update:model-value="$emit('cheked', cheked), removeChekAll()"/>
                 </td>
                 <td class="ma-0" style="width: 50px;">
                   <v-menu :open-on-hover="true">
@@ -30,7 +30,7 @@
                   </v-menu>
                 </td>
                 <td class="text-center pa-0">
-                  {{ item.name }}
+                  {{ item.surname +" "+ item.name +" "+ item.patronymic  }}
                 </td>
                 <td class="text-center pa-0">
                   {{ item.phone }}
@@ -49,7 +49,7 @@
 <script setup lang="ts">
 
 interface Header {
-  key: string;
+  key: string | any;
   title: string;
 }
 
@@ -61,12 +61,19 @@ interface Action {
 
 interface Info {
   name: string;
-  [key: string]: any;
+  surname: string;
+  patronymic: string;
+  gender: string;
+  birthdate: string;
+  phone: string;
+  email: string;
+  id: string;
 }
 
 let cheked: any = ref([])
 let sorted = ref(false)
 let chekedAll = ref(false)
+let FIO = ref()
 
 const sortList = (sortBy: any, data: any) => {
   if(sorted.value == true){
@@ -79,19 +86,19 @@ const sortList = (sortBy: any, data: any) => {
 }
 
 const chekAll = () => {
-  if(cheked.value == props.info){
+  if(cheked.value.length == props.info.length){
     cheked.value = [];
     chekedAll.value = true;
-    console.log(cheked.value)
   } else {
-    cheked.value = props.info;
+    cheked.value = props.info.slice();
     chekedAll.value = false;
-    console.log(cheked.value)
   }
 };
 
-const removeChek = () => {
-  if(chekedAll.value == true){
+const removeChekAll = () => {
+  if(cheked.value.length == props.info.length){
+    chekedAll.value = true
+  } else {
     chekedAll.value = false
   }
 }

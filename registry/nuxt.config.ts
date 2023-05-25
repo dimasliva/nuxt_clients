@@ -52,7 +52,6 @@ export default defineNuxtConfig({
       )
     }
   },
-
   proxy: {
     enableProxy:true,
     proxies: {

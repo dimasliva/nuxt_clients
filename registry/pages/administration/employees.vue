@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { VSkeletonLoader } from 'vuetify/labs/components';
 import Table from '~~/components/forms/Table.vue';
-import { ModuleManager } from '~~/lib/ModuleManager';
+import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { PageMap } from '~~/lib/PageMap';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
@@ -27,9 +27,9 @@ let show = ref(false)
 let loading = ref(false)
 
 const iocc=useContainer();
-const modManager = iocc.get<ModuleManager>("ModuleManager");
+const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
-let checkEmpl = ref([])
+let checkEmpl = ref([]);
 let deleteBtn = ref(true);
 
 const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
@@ -52,10 +52,21 @@ const getEmplData = () => {
   setTimeout(() => loading.value = false, 2000);
 }
 
-const addEmployee = (name: string, phone: string, email: string, password: string) => {
-  let newEmpl = {name: name, phone: phone, email: email, id: phone};
-  getEmplData();
-  data.value.push(newEmpl);
+const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string) => {
+  let empData = {
+    "name": name,
+    "surname": surname,
+    "patronymic": patronymic,
+    "gender": gender,
+    "birthdate": "2023-05-25T05:12:08.774Z",
+    "rank": null,
+    "photo": "",
+    "roles": "admin",
+    "notActive": false,
+    "linkedRecs": null,
+    "profile": null,
+    "advData": null,
+  }
 }
 
 const editEmployee = (name: string, phone: string, email: string, id: string) => {
@@ -84,24 +95,22 @@ disabledFunc();
 getEmplData();
 }
 
-
-const filterItems = (arr, value, param) => {
-  filteredData.value = arr.filter(empl => empl[param].toLowerCase().indexOf(value.toLowerCase()) !== -1);
+const filterItems = (arr, value, params) => {
+  filteredData.value = arr.filter(empl => {
+      if (Array.isArray(params)) {
+        return params.some(p => empl[p].toLowerCase().indexOf(value.toLowerCase()) !== -1);
+      } else {
+        return empl[params].toLowerCase().indexOf(value.toLowerCase()) !== -1;
+      };
+  });
 }
 
 let filteredData = ref([])
 
 
-let th = [{title: "ФИО", key: "name", model: ""},{title: "Телефон", key: "phone", model: ""}, {title: "E-mail", key: "email", model: ""}]
+let th = [{title: "ФИО", key: ["surname", "name", "patronymic"], model: ""},{title: "Телефон", key: "phone", model: ""}, {title: "E-mail", key: "email", model: ""}]
 
-let data = ref([
-  {name: "Спирин Олег Вадимович", phone: "1233-567-89-01", email: "Asmth@mail.com", id: "1233-567-89-01"},
-  {name: "Анашкин Дмитрий Янович", phone: "9234-557-89-01", email: "Bsmth@mail.com", id: "9234-557-89-01"},
-  {name: "Ямин Владимир Андреевич", phone: "5234-800-89-01", email: "Csmth@mail.com", id: "5234-800-89-01"},
-  {name: "Конькова Вера Евгеньевна", phone: "2341-567-89-01", email: "Dsmth@mail.com", id: "2341-567-89-01"},
-  {name: "Бермудова Ольга Николаевна", phone: "3114-567-89-01", email: "Esmth@mail.com", id: "3114-567-89-01"},
-  {name: "Зонтова Дарья Сергеевна", phone: "4000-000-89-01", email: "Fsmth@mail.com", id: "4000-000-89-01"},
-])
+let data = ref<any>([])
 
 let tableActions = ref([
       { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", 

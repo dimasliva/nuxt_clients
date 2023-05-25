@@ -9,12 +9,12 @@ export interface IApiRecordData{
 }
 
 export interface IApiRecordChData extends IApiRecordData{
-    "createdAt": string,
-    "changedAt": string
+    "createdAt"?: string|undefined,
+    "changedAt"?: string|undefined
 }
 
 export interface IApiRecordCompanyData extends IApiRecordChData{
-    "company":string;
+    "company"?:string|undefined;
 }
 
 

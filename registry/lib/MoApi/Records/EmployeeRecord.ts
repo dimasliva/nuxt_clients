@@ -41,9 +41,6 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
     protected _createNewAllData(): void {
         this._Data = new Proxy({
             "id": this.Key,
-            "createdAt": '',
-            "changedAt": '',
-            "company": '',
             "name": '',
             "surname": '',
             "patronymic": null,

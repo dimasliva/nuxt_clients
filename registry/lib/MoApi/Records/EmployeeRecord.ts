@@ -46,12 +46,12 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
     protected _getApiRecordPathGet = () => "/Employees/GetEmployees";
 
 
-    protected _getApiRecordPathAdd = () => "/Employees/AddEmployees";
+    protected _getApiRecordPathAdd = () => "/Employees/AddEmployee";
 
 
-    protected _getApiRecordPathUpdate = () => "/Employees/UpdateEmployees";
+    protected _getApiRecordPathUpdate = () => "/Employees/UpdateEmployee";
 
 
-    protected _getApiRecordPathDelete = () => "/Employees/DeleteEmployees";
+    protected _getApiRecordPathDelete = () => "/Employees/DeleteEmployee";
 
 }

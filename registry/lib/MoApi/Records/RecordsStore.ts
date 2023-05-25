@@ -43,6 +43,7 @@ export class RecordsStore {
 
 
     async getNew<T,Tdata>(type: Class<ApiRecord>, fillFunc:(data:Tdata)=>void ) {
+        debugger
         try {
             const rec=new type(this._MoApiClient, this._UserContext);
             rec.createAllData();

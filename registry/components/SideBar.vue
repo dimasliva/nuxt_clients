@@ -34,12 +34,11 @@
             @click:clear="input = ''"></v-text-field>
         </v-list-item>
         <template v-for="item in filteredChaptersGr()">
-          <v-list-group v-if="item.childs?.length! > 0" :value="item.id" >
+          <v-list-group v-if="item.childs?.length! > 0" :value="opened" :fluid="true">
             <template v-slot:activator="{ props }">
-              <v-list-item @click="rail = false" :active="false" v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title" ></v-list-item>
+              <v-list-item @click="rail = false" :active="false"  v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title" ></v-list-item>
             </template>
-            <template v-if="rail == false">
-              <v-list-item v-for="el in item.childs" @click="rail = true, navigateTo(el.getPagePath())"
+              <v-list-item v-for="el in item.childs" @click="navigateTo(el.getPagePath())"
                 style="padding-inline-start: 50px !important;">
                 <v-icon :icon="el.icon" size="x-small" start color="secondary">
                 </v-icon>
@@ -47,7 +46,6 @@
                   {{ el.title }}
                 </v-list-item-title>
               </v-list-item>
-            </template>
           </v-list-group>
           <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title"
             @click="navigateTo(item.getPagePath())"></v-list-item>

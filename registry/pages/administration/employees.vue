@@ -15,12 +15,14 @@
 </template>
   
 <script setup lang="ts">
+import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
 import { VSkeletonLoader } from 'vuetify/labs/components';
 import Table from '~~/components/forms/Table.vue';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { PageMap } from '~~/lib/PageMap';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
+import type { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore'
 
 let drawer = ref(false)
 let show = ref(false)
@@ -29,6 +31,7 @@ let loading = ref(false)
 const iocc=useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
+const recStore = iocc.get<RecordsStore>("RecordsStore");
 let checkEmpl = ref([]);
 let deleteBtn = ref(true);
 
@@ -53,20 +56,14 @@ const getEmplData = () => {
 }
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string) => {
-  let empData = {
-    "name": name,
-    "surname": surname,
-    "patronymic": patronymic,
-    "gender": gender,
-    "birthdate": "2023-05-25T05:12:08.774Z",
-    "rank": null,
-    "photo": "",
-    "roles": "admin",
-    "notActive": false,
-    "linkedRecs": null,
-    "profile": null,
-    "advData": null,
-  }
+  recStore.getNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
+    data.name = name;
+    data.surname = surname;
+    data.patronymic = patronymic;
+    data.gender = gender;
+    data.birthdate = "2023-05-25T05:12:08.774Z";
+    data.roles = "admin";
+  })
 }
 
 const editEmployee = (name: string, phone: string, email: string, id: string) => {

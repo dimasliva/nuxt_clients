@@ -58,7 +58,7 @@
           </VueDatePicker>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-select v-model="empGender" label="Пол" :items="['м','ж']" variant="underlined"></v-select>
+          <v-select v-model="empGender" label="Пол" :items="['m','f']" variant="underlined"></v-select>
         </v-col>
       </v-row>
     </v-container>

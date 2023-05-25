@@ -66,7 +66,10 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected async _addAllData() {
-        return this._MoApiClient.send<any, boolean>(this._getApiRecordPathAdd(), this._Data);
+        let guid= await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._Data);
+        this._Data!.id=guid;
+        this.Key=guid;
+        return guid;
     }
 
 

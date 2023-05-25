@@ -27,7 +27,7 @@ declare global {
     }
 
     interface IIndexableEnumerator<T> extends IEnumerator<T> {
-        getAt(inx: number | string): T;
+        getAt(inx: number | string): T | null | undefined;
         setAt(inx: number | string, val: T): boolean;
     }
 

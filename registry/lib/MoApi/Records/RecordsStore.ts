@@ -42,13 +42,22 @@ export class RecordsStore {
     }
 
 
-    async getNew<T,Tdata>(type: Class<ApiRecord>, fillFunc:(data:Tdata)=>void ) {
+    async createNew<T, Tdata>(type: Class<ApiRecord>, fillFunc: (data: Tdata) => void) {
+        const rec = new type(this._MoApiClient, this._UserContext);
+        rec.createAllData();
+        fillFunc(<Tdata>rec.Data);
+        rec.save();
+
+        if (!this._store[type.name])
+            this._store[type.name] = {};
+        this._store[type.name][rec.Key] = rec;
+        return <T>rec;
+    }
+
+
+    async tryCreateNew<T, Tdata>(type: Class<ApiRecord>, fillFunc: (data: Tdata) => void) {
         try {
-            const rec=new type(this._MoApiClient, this._UserContext);
-            rec.createAllData();
-            fillFunc(<Tdata>rec.Data);
-            rec.save();
-            return <T>rec;
+            this.createNew(type, fillFunc);
         }
         catch { };
         return null;

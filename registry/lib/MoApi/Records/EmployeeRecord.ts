@@ -1,8 +1,12 @@
+import { DataList } from "~/lib/DataList";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordCompanyData } from "./ApiRecord";
+import { QueryParams } from "~/lib/MoApi/RequestArgs";
+import { IApiDataListResult } from "../RequestResults";
 
-export interface IEmployeeRecordData extends IApiRecordCompanyData{
+
+export interface IEmployeeRecordData extends IApiRecordCompanyData {
     "name": string,
     "surname": string,
     "patronymic": string | null,
@@ -13,6 +17,17 @@ export interface IEmployeeRecordData extends IApiRecordCompanyData{
     "linkedRecs": any,
     "profile": any,
     "advData": any
+}
+
+
+export interface IEmployeeListView {
+    "id": string | undefined,
+    "name": string | undefined | null,
+    "surname": string | undefined,
+    "patronymic": string | undefined | null,
+    "mainPhone": string | undefined | null,
+    "mainEmail": string | undefined | null,
+    "mainDocument": string | undefined | null
 }
 
 
@@ -42,16 +57,16 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
         }, this._getProxyHanlders());
     }
 
-   
+
     protected _getApiRecordPathGet = () => "/Employees/GetEmployees";
 
 
-    protected _getApiRecordPathAdd = () => "/Employees/AddEmployees";
+    protected _getApiRecordPathAdd = () => "/Employees/AddEmployee";
 
 
-    protected _getApiRecordPathUpdate = () => "/Employees/UpdateEmployees";
+    protected _getApiRecordPathUpdate = () => "/Employees/UpdateEmployee";
 
 
-    protected _getApiRecordPathDelete = () => "/Employees/DeleteEmployees";
+    protected _getApiRecordPathDelete = () => "/Employees/DeleteEmployee";
 
 }

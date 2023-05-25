@@ -56,7 +56,7 @@ const getEmplData = () => {
 }
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string) => {
-  recStore.getNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
+  recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
     data.name = name;
     data.surname = surname;
     data.patronymic = patronymic;

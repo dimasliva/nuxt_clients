@@ -34,7 +34,7 @@
             @click:clear="input = ''"></v-text-field>
         </v-list-item>
         <template v-for="item in filteredChaptersGr()">
-          <v-list-group v-if="item.childs?.length! > 0" :value="opened" :fluid="true">
+          <v-list-group v-if="item.childs?.length! > 0" :value="() => {(rail === false)? true : false}" :fluid="true">
             <template v-slot:activator="{ props }">
               <v-list-item @click="rail = false" :active="false"  v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title" ></v-list-item>
             </template>

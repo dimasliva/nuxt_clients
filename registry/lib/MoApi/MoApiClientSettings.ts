@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { inject, injectable } from 'inversify';
 import { IUserCredentials } from '@/lib/Security';
 

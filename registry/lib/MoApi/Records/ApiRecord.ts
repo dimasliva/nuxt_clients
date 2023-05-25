@@ -1,4 +1,3 @@
-
 import { MoApiClient } from "../MoApiClient";
 import { CloneData } from "../../Helpers";
 import { UserContext } from "~~/lib/UserContext";
@@ -9,12 +8,12 @@ export interface IApiRecordData{
 }
 
 export interface IApiRecordChData extends IApiRecordData{
-    "createdAt": string,
-    "changedAt": string
+    "createdAt"?: string|undefined,
+    "changedAt"?: string|undefined
 }
 
 export interface IApiRecordCompanyData extends IApiRecordChData{
-    "company":string;
+    "company"?:string|undefined;
 }
 
 
@@ -66,7 +65,10 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected async _addAllData() {
-        return this._MoApiClient.send<any, boolean>(this._getApiRecordPathAdd(), this._Data);
+        let guid= await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._Data);
+        this._Data!.id=guid;
+        this.Key=guid;
+        return guid;
     }
 
 
@@ -135,5 +137,3 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     }
 
 }
-
-

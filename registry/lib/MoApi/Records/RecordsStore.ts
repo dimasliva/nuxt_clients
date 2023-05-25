@@ -23,16 +23,31 @@ export class RecordsStore {
         return <T>this._store[type.name][Key];
     }
 
+
     async fetch<T>(type: Class<ApiRecord>, Key: string) {
         const rec = this.get<ApiRecord>(type, Key);
         await rec.loadAllData();
         return <T>rec;
     }
 
+
     async tryFetch<T>(type: Class<ApiRecord>, Key: string) {
         try {
             const rec = this.get<ApiRecord>(type, Key);
             await rec.loadAllData();
+            return <T>rec;
+        }
+        catch { };
+        return null;
+    }
+
+
+    async getNew<T,Tdata>(type: Class<ApiRecord>, fillFunc:(data:Tdata)=>void ) {
+        try {
+            const rec=new type(this._MoApiClient, this._UserContext);
+            rec.createAllData();
+            fillFunc(<Tdata>rec.Data);
+            rec.save();
             return <T>rec;
         }
         catch { };

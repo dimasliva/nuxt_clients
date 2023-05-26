@@ -20,17 +20,6 @@ export interface IEmployeeRecordData extends IApiRecordCompanyData {
 }
 
 
-export interface IEmployeeListView {
-    "id": string | undefined,
-    "name": string | undefined | null,
-    "surname": string | undefined,
-    "patronymic": string | undefined | null,
-    "mainPhone": string | undefined | null,
-    "mainEmail": string | undefined | null,
-    "mainDocument": string | undefined | null
-}
-
-
 export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {

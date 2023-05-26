@@ -6,6 +6,17 @@ import { IApiDataListResult } from "../RequestResults";
 import { DataList } from "~/lib/DataList";
 
 
+export interface IEmployeeListView {
+    "id": string | undefined,
+    "name": string | undefined | null,
+    "surname": string | undefined,
+    "patronymic": string | undefined | null,
+    "mainPhone": string | undefined | null,
+    "mainEmail": string | undefined | null,
+    "mainDocument": string | undefined | null
+}
+
+
 @injectable()
 export class EmployeesViews {
 
@@ -15,7 +26,6 @@ export class EmployeesViews {
 
     async getEmployeeListView<T = any>(args: QueryParams) {
         const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Employees/EmployeesListView", args);
-        debugger
         let res = DataList.createFromApiDl<T>(apires);
         return res;
     }

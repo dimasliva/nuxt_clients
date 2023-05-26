@@ -42,7 +42,6 @@ export class RecordsStore {
     }
 
 
-
     async createNew<T, Tdata>(type: Class<ApiRecord>, fillFunc: (data: Tdata) => void) {
         const rec = new type(this._MoApiClient, this._UserContext);
         rec.createAllData();

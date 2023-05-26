@@ -4,6 +4,7 @@ import { HTTPMethod } from 'h3';
 import { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '@/lib/Security';
 import { sleep, excToLog } from "@/lib/Helpers";
 import { Exception, NetException } from '../Exceptions';
+import { IApiResult } from './RequestResults';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -43,7 +44,7 @@ export class MoApiClient {
         let res = await this.sendRequest("POST", `${this._APIPATH}${path}`, data);
 
         if (res.bodyData && typeof res.bodyData == "object") {
-            const answ = <any>res.bodyData;
+            const answ = <IApiResult>res.bodyData;
             if (answ.resultCode == "OK")
                 return <outT>answ.result;
             else

@@ -22,7 +22,9 @@ import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { PageMap } from '~~/lib/PageMap';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
-import type { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore'
+import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
+import { EmployeesViews } from '~~/lib/MoApi/Views/EmployeesViews';
+import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 
 let drawer = ref(false)
 let show = ref(false)
@@ -31,7 +33,8 @@ let loading = ref(false)
 const iocc=useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
-const recStore = iocc.get<RecordsStore>("RecordsStore");
+const recStore = iocc.get(RecordsStore)
+const employeesViews = iocc.get(EmployeesViews);
 let checkEmpl = ref([]);
 let deleteBtn = ref(true);
 
@@ -52,11 +55,13 @@ pageDataLoad();
 
 const getEmplData = () => {
   loading.value = true;
-  setTimeout(() => loading.value = false, 2000);
+  setTimeout(() => loading.value = false, 500);
 }
 
+
+
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string) => {
-  recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
+ let res = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
     data.name = name;
     data.surname = surname;
     data.patronymic = patronymic;
@@ -107,7 +112,14 @@ let filteredData = ref([])
 
 let th = [{title: "ФИО", key: ["surname", "name", "patronymic"], model: ""},{title: "Телефон", key: "phone", model: ""}, {title: "E-mail", key: "email", model: ""}]
 
-let data = ref<any>([])
+let data = ref<any>([
+  {surname: "Спирин ", name: "Олег", patronymic: "Вадимович", phone: "1233-567-89-01", email: "Asmth@mail.com", id: "1233-567-89-01"},
+  {surname: "Анашкин ", name: "Дмитрий", patronymic: "Янович", phone: "9234-557-89-01", email: "Bsmth@mail.com", id: "9234-557-89-01"},
+  {surname: "Ямин ", name: "Владимир", patronymic: "Андреевич", phone: "5234-800-89-01", email: "Csmth@mail.com", id: "5234-800-89-01"},
+  {surname: "Конькова ", name: "Вера", patronymic: "Евгеньевна", phone: "2341-567-89-01", email: "Dsmth@mail.com", id: "2341-567-89-01"},
+  {surname: "Бермудова ", name: "Ольга", patronymic: "Николаевна", phone: "3114-567-89-01", email: "Esmth@mail.com", id: "3114-567-89-01"},
+  {surname: "Зонтова ", name: "Дарья", patronymic: "Сергеевна", phone: "4000-000-89-01", email: "Fsmth@mail.com", id: "4000-000-89-01"},
+])
 
 let tableActions = ref([
       { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", 

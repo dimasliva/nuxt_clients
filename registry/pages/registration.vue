@@ -37,8 +37,7 @@
         </v-row>
         <p v-if="errR" class="text-red-darken-4 text-center">{{ errRegText }}</p>
         <v-row justify="end">
-          <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6"
-            type="submit">
+          <v-btn :disabled="!form" :loading="loading" inline color="primary" variant="elevated" class="ma-6" type="submit">
             {{ $t('signin') }}
           </v-btn>
         </v-row>

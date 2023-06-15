@@ -12,7 +12,7 @@
       <v-container>
         <v-row class="pa-6">
           <v-col cols="12" sm="6">
-            <v-text-field label="Логин" clearable v-model="empLogin" required maxlength="128" variant="underlined" placeholder="Ivan001" density="compact" :rules="[(v: string) => !!v || $t('required')]">
+            <v-text-field label="Логин" clearable v-model="empLogin" autofocus required maxlength="128" variant="underlined" placeholder="Ivan001" density="compact" :rules="[(v: string) => !!v || $t('required')]">
               <template v-slot:append-inner>
                 <input v-model="empLogin" @input="empLogin = empLogin.slice(0).toLowerCase()" v-maska data-maska="a1" data-maska-tokens="a:[a-z0-9]:multiple" class="w-100"/>
               </template>

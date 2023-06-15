@@ -33,10 +33,10 @@
                   {{ item.surname +" "+ item.name +" "+ item.patronymic  }}
                 </td>
                 <td class="text-center pa-0">
-                  {{ item.phone }}
+                  {{ item.mainPhone }}
                 </td>
                 <td class="text-center pa-0">
-                  {{ item.email }}
+                  {{ item.mainEmail }}
                 </td>
               </tr>
             </tbody>
@@ -65,15 +65,15 @@ interface Info {
   patronymic: string;
   gender: string;
   birthdate: string;
-  phone: string;
-  email: string;
+  mainPhone: string;
+  mainEmail: string;
   id: string;
 }
 
 let cheked: any = ref([])
 let sorted = ref(false)
 let chekedAll = ref(false)
-let FIO = ref()
+let selected = ref(false)
 
 const sortList = (sortBy: any, data: any) => {
   if(sorted.value == true){

@@ -27,7 +27,7 @@
       </v-menu>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" :width="350">
-      <v-list class="main_menu" :opened="opened" open-strategy="single" :selected="selected" select-strategy="single-leaf"
+      <v-list class="main_menu" :opened="opened" open-strategy="multiple" :selected="selected" select-strategy="leaf"
         @update:selected=debugger>
         <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
           <v-text-field single-line clearable hide-details ref="pInput" density="compact" v-model="input"
@@ -90,7 +90,7 @@
           </v-list>
         </v-menu>
       </v-row>
-      <NuxtPage :keepalive="true" @clicked="pageGetData()" class="px-4" />
+      <NuxtPage :keepalive="true" @clicked="pageGetData()" class="px-4" :field="rail"/>
     </v-card>
     <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
       <component :is="dialogForm.comp" v-bind="dialogForm.props" />
@@ -114,6 +114,7 @@ interface DialogForm {
   onBeforeClose: ((result: any) => boolean) | null;
 }
 
+let focused = ref(false)
 let pInput = ref<any>(null);
 let input = ref<string>('');
 let drawer = ref<boolean>(true);
@@ -272,7 +273,6 @@ let filteredChaptersGr = () => {
 
   return res;
 }
-
 </script>
 
 <style lang="scss">

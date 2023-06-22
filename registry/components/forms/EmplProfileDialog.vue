@@ -2,9 +2,10 @@
   <v-card width="700">
    <v-card-title>
      <v-row class="pa-4">
-       <div class="text-h5 ma-2">Карточка сотрудника</div>
+       <div class="text-h5 ma-2">{{ props.header }}</div>
        <v-spacer></v-spacer>
        <img class="mr-4 mt-2 bg-secondary rounded-circle" height="50" width="50" src="@/doctor-test.jpg"/>
+       <v-icon @click="closeDialog(console.log('closed'))">mdi-close</v-icon>
      </v-row>
    </v-card-title>
    <v-card-text>
@@ -74,11 +75,11 @@
    </v-card-text>
    <v-card-actions class="mr-4 mb-1">
      <v-spacer></v-spacer>
-     <v-btn color="blue-darken-1" variant="text" @click="closeDialog(console.log('closed'))">
+     <v-btn color="primary" variant="text" @click="closeDialog(console.log('closed'))">
        {{ $t('close') }}
      </v-btn>
-     <v-btn :disabled="!form" color="blue-darken-1" @click="actionEmpl" variant="text" type="submit">
-       {{ $t('ok') }}
+     <v-btn :disabled="!form" color="primary" @click="actionEmpl" variant="text" type="submit">
+       {{ props.button }}
      </v-btn>
    </v-card-actions>
  </v-card>
@@ -103,6 +104,8 @@
    dialog: boolean;
    empl: Employee;
    action: (name: string, surname: string, patronymic: string, gender: string) => void;
+   header: string
+   button: string
  }
  const props = defineProps<Props> ()
  

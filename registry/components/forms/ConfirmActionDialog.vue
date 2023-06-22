@@ -1,19 +1,19 @@
 <template>
-  <v-card  class="mx-auto" max-width="344">
-    <v-btn icon variant="text" @click="closeDialog()">
-      <v-icon>mdi-close</v-icon>
-    </v-btn>
+  <v-card  class="mx-auto" >
+    <v-card-title>
+      Подтвердите свое действие
+      <v-btn icon variant="text" @click="closeDialog()">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-card-title>
     <v-card-item>
       <div class="mb-3">
-        <div class="text-h6">
-          Подтвердите свое дейсвие
-        </div>
         <div class="text-caption">Вы дейсвительно хотите удалить сотрудника?</div>
       </div>
     </v-card-item>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn variant="outlined" rounded="xl" @click="confAct(props.empl)">
+      <v-btn color="primary" variant="text" @click="confAct(props.empl)">
         Удалить
       </v-btn>
     </v-card-actions>

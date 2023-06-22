@@ -27,28 +27,24 @@
       </v-menu>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" :width="350">
-      <v-list class="main_menu" :opened="opened" open-strategy="multiple" :selected="selected" select-strategy="leaf"
-        @update:selected=debugger>
+      <v-list :opened="rail? [] : opened" open-strategy="single" :selected="selected" select-strategy="classic">
         <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
-          <v-text-field single-line clearable hide-details ref="pInput" density="compact" v-model="input"
+          <v-text-field v-model="input" single-line clearable hide-details ref="pInput" density="compact" 
             @click:clear="input = ''"></v-text-field>
         </v-list-item>
         <template v-for="item in filteredChaptersGr()">
-          <v-list-group v-if="item.childs?.length! > 0" :value="() => {(rail === false)? false : true}" :fluid="true">
+          <v-list-group v-if="item.childs?.length! > 0" :value="item.title" >
             <template v-slot:activator="{ props }">
-              <v-list-item @click="rail = false" :active="false"  v-bind="props" :prepend-icon="item.icon" :title="item.title" :value="item.title" ></v-list-item>
+              <v-list-item @click="rail = false" :active="false" v-bind="props" :prepend-icon="item.icon" :title="item.title"></v-list-item>
             </template>
-              <v-list-item v-for="el in item.childs" @click="navigateTo(el.getPagePath())"
-                style="padding-inline-start: 50px !important;">
-                <v-icon :icon="el.icon" size="x-small" start color="secondary">
-                </v-icon>
-                <v-list-item-title class="text-body-2 d-inline">
-                  {{ el.title }}
-                </v-list-item-title>
-              </v-list-item>
+            <v-list-item v-for="el in item.childs" @click="navigateTo(el.getPagePath())" style="padding-inline-start: 50px !important;">
+              <v-icon :icon="el.icon" size="x-small" start color="secondary"></v-icon>
+              <v-list-item-title class="text-body-2 d-inline">
+                {{ el.title }}
+              </v-list-item-title>
+            </v-list-item>
           </v-list-group>
-          <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title"
-            @click="navigateTo(item.getPagePath())"></v-list-item>
+          <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title" :active="false" @click="navigateTo(item.getPagePath())"></v-list-item>
         </template>
       </v-list>
     </v-navigation-drawer>
@@ -114,28 +110,26 @@ interface DialogForm {
   onBeforeClose: ((result: any) => boolean) | null;
 }
 
-let focused = ref(false)
+const iocc = useContainer();
 let pInput = ref<any>(null);
 let input = ref<string>('');
 let drawer = ref<boolean>(true);
 let rail = ref<boolean>(true);
-const iocc = useContainer();
-let opened = ref<any>(null);
-let selected = ref<any>(null);
+let opened = ref<any>([]);
+let selected = ref<any>([]);
 let currPageTitle = ref<IMenu | string>('');
 let currPageButtons = ref<IBtnMenu[] | null>();
 let currPageMenu = ref<IMenu | null>();
 let currPin = ref<boolean>(true);
 let checkFields = ref<any[]>([]);
-
 let showDialog = ref<boolean>(false);
+let pages = ref<Page[]>([]);
 let dialogForm: DialogForm = {
   comp: null,
   props: null,
   modal: true,
   onBeforeClose: null
 };
-
 let showDialog2 = ref<boolean>(false);
 let dialogForm2: DialogForm = {
   comp: null,
@@ -150,11 +144,8 @@ interface Page {
   link: string;
 }
 
-let pages = ref<Page[]>([]);
-
 const modManager = iocc.get<ModuleManager>('ModuleManager');
 const pageMap = iocc.get<PageMap>('PageMap');
-
 const chapters = modManager.getModuleItemsMenu();
 const route = useRoute();
 
@@ -265,12 +256,14 @@ let filteredChaptersGr = () => {
   let res = _filter(chapters)
 
   if (input.value) {
-    let newopened: string[] = [];
-    res.forEach((val) => { if (val.childs?.length! > 0) newopened.push(val.id) })
-    opened.value = newopened;
-  }
-  else opened.value = null;
-
+  let newopened: string[] = [];
+  res.forEach((val) => { 
+    if (val.childs?.length! > 0 && val.title.toLowerCase().includes(translit(input.value.toLowerCase()))) {
+      newopened.push(val.title);
+      opened.value = newopened;
+    } 
+  });
+  } else opened.value = null;
   return res;
 }
 </script>

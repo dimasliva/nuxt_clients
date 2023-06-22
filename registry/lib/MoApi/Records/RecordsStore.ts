@@ -12,7 +12,7 @@ export class RecordsStore {
     constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("UserContext") protected _UserContext: UserContext) {
     }
 
-    get<T>(type: Class<ApiRecord>, Key: string) {
+    get<T extends ApiRecord>(type: Class<T>, Key: string) {
         if (!this._store[type.name])
             this._store[type.name] = {};
 
@@ -24,14 +24,14 @@ export class RecordsStore {
     }
 
 
-    async fetch<T>(type: Class<ApiRecord>, Key: string) {
+    async fetch<T extends ApiRecord>(type: Class<T>, Key: string) {
         const rec = this.get<ApiRecord>(type, Key);
         await rec.loadAllData();
         return <T>rec;
     }
 
 
-    async tryFetch<T>(type: Class<ApiRecord>, Key: string) {
+    async tryFetch<T extends ApiRecord>(type: Class<T>, Key: string) {
         try {
             const rec = this.get<ApiRecord>(type, Key);
             await rec.loadAllData();
@@ -42,7 +42,7 @@ export class RecordsStore {
     }
 
 
-    async createNew<T, Tdata>(type: Class<ApiRecord>, fillFunc: (data: Tdata) => void) {
+    async createNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         const rec = new type(this._MoApiClient, this._UserContext);
         rec.createAllData();
         fillFunc(<Tdata>rec.Data);
@@ -55,7 +55,7 @@ export class RecordsStore {
     }
 
 
-    async tryCreateNew<T, Tdata>(type: Class<ApiRecord>, fillFunc: (data: Tdata) => void) {
+    async tryCreateNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         try {
             this.createNew(type, fillFunc);
         }

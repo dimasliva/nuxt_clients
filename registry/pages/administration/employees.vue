@@ -6,12 +6,12 @@
           <VForm v-model="form" @keydown.enter="form ? filteredData() : btnDis()">
             <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
-              <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="filterItems('', th[0].key)" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="outlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
-              <VTextField v-model="phone" clearable hint="Введите минимум 6 символов" ref="phoneF" @click:clear="filterItems('', th[1].key)" @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="outlined" color="secondary" @update:model-value="filterItems(phone, th[1].key)"/>
-              <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="filterItems('', th[2].key)" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="outlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
+              <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio=''}" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
+              <VTextField v-model="phone" clearable hint="Введите минимум 6 символов" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone=''}" @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(phone, th[1].key)"/>
+              <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
               <v-row class="ma-1" style="min-width: 200pt;">
-                <VBtn :disabled="btnDis()" variant="outlined" @click="filteredData()">Поиск</VBtn>
-                <VBtn class="ml-2"  variant="outlined" @click="() => {fio='', phone='', email='', params = [], value = []}">Сбросить</VBtn>
+                <VBtn :disabled="btnDis()" variant="text" @click="filteredData()">Поиск</VBtn>
+                <VBtn  variant="text" @click="() => {getEmplData('changedAt', '2023-06-23', 100), fio='', phone='', email='', params = [], value = []}">Сбросить</VBtn>
               </v-row>
             </VCol>
           </VForm>
@@ -20,7 +20,8 @@
     </VRow>
     <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
       <img src="@/cat.gif" alt="cat">
-    </VCard>  
+    </VCard>
+    <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">Сотрудник успешно добавлен!</v-snackbar>  
 </template>
   
 <script setup lang="ts">
@@ -54,6 +55,7 @@ const fioF = ref<any>(null)
 const phoneF = ref<any>(null)
 const emailF = ref<any>(null)
 const lastField = ref<HTMLElement>()
+let resultAnswer = ref(false);
 
 const props = defineProps({
   field : {
@@ -74,7 +76,7 @@ const autoFocus = (e: any) => {
   }
 
 const btnDis = () => {
-  if((fio.value.length < 2) && (phone.value.length < 6) && (email.value.length < 3)){
+  if((fio.value.length < 2 ) && (phone.value.length < 6) && (email.value.length < 3)){
     return true
   } else {
     return false
@@ -86,7 +88,7 @@ mainBtnBar:[
   { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", 
   action: () => createPersons(1) },
   { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () =>{ openDialog(EmplProfileDialog,  {empl: '', action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить'}, true, () => foc.value = true); foc.value = false} },
+  action: () =>{ openDialog(EmplProfileDialog,  {empl: '', action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color:"secondary", bkgColor:"red", 
   action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
   { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red", 
@@ -133,6 +135,14 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
     data.birthdate = "2023-05-25T05:12:08.774Z";
     data.roles = "admin";
   })
+  if(rec){
+    let empl = {name, surname, patronymic};
+    data.value.push(empl);
+    resultAnswer.value = true;
+    console.log('employee added')
+  } else {
+    resultAnswer.value = false
+  }
 }
 
 const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, id: string) => {
@@ -211,7 +221,7 @@ let data = ref<any>([])
 
 let tableActions = ref([
   { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", 
-  action: () =>  openDialog(EmplProfileDialog, {empl: checkEmpl.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить'}) },
+  action: () =>  {openDialog(EmplProfileDialog, {empl: checkEmpl.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary", bkgColor:"red", 
   action: () =>  openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
 ])
@@ -228,9 +238,9 @@ const createPersons = (q: number) => {
   const namesM = ["Иван", "Петр", "Сергей", "Андрей", "Дмитрий", "Александр", "Михаил", "Николай", "Владимир", "Олег", "Артем", "Алексей", "Константин", "Виктор", "Геннадий", "Григорий", "Евгений", "Егор", "Захар", "Игорь", "Кирилл", "Леонид", "Максим", "Роман", "Руслан", "Семен", "Станислав", "Тимофей", "Федор", "Юрий", "Ярослав"];
   const namesF = [ "Анастасия", "Александра", "Алина", "Анна", "Валерия", "Виктория", "Галина", "Дарья", "Екатерина", "Елена", "Ирина", "Карина", "Кристина", "Лариса", "Любовь", "Маргарита", "Марина", "Надежда", "Наталья", "Оксана", "Ольга", "Полина", "Светлана", "Татьяна", "Ульяна", "Юлия"];
   const surnamesM = ["Иванов", "Петров", "Сидоров", "Кузнецов", "Смирнов", "Михайлов", "Федоров", "Соколов", "Новиков", "Морозов", "Волков", "Алексеев", "Лебедев", "Семенов", "Егоров", "Павлов", "Козлов", "Степанов", "Николаев", "Орлов", "Андреев", "Макаров", "Никитин", "Захаров", "Зайцев", "Соловьев", "Борисов", "Яковлев", "Григорьев", "Романов", "Воробьев"];
-  const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "Морозова", "Волкова", "Алексеева", "Лебедева", "Семенова", "Егорова", "Павлова", "Козлова", "Степанова", "Николаева", "Орлова", "Андреева", "Макарова", "Никитина", "Захарова", "Зайцева", "Соловьева", "Борисова", "Яковлева", "Григорьева", "Романова", "Воробьева"]
+  const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "Морозова", "Волкова", "Алексеева", "Лебедева", "Семенова", "Егорова", "Павлова", "Козлова", "Степанова", "Николаева", "Орлова", "Андреева", "Макарова", "Никитина", "Захарова", "Зайцева", "Соловьева", "Борисова", "Яковлева", "Григорьева", "Романова", "Воробьева"];
   const patronymicsM = ["Иванович", "Петрович", "Сергеевич", "Андреевич", "Дмитриевич", "Александрович", "Михайлович", "Николаевич", "Владимирович", "Олегович", "Артемович", "Алексеевич", "Константинович", "Викторович", "Геннадьевич", "Григорьевич", "Евгеньевич", "Егорович", "Захарович", "Игоревич", "Кириллович", "Леонидович", "Максимович", "Романович", "Русланович", "Семенович", "Станиславович", "Тимофеевич", "Федорович", "Юрьевич", "Ярославович"];
-  const patronymicsF = [ "Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"]
+  const patronymicsF = [ "Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"];
   
   for (let i = 0; i < q; i++) {
     let gender = genders[Math.floor(Math.random() * genders.length)];

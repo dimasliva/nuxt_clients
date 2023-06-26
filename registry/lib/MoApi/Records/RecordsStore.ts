@@ -46,7 +46,7 @@ export class RecordsStore {
         const rec = new type(this._MoApiClient, this._UserContext);
         rec.createAllData();
         fillFunc(<Tdata>rec.Data);
-        rec.save();
+        await rec.save();
 
         if (!this._store[type.name])
             this._store[type.name] = {};
@@ -57,10 +57,25 @@ export class RecordsStore {
 
     async tryCreateNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         try {
-            this.createNew(type, fillFunc);
+            await this.createNew(type, fillFunc);
         }
         catch { };
         return null;
+    }
+
+
+    async getOrCreate<T extends ApiRecord, Tdata>(type: Class<T>, Key:string, fillFunc?: (data: Tdata) => void) {
+        if (this._store[type.name])
+          this._store[type.name] = {};
+
+        let rec=this.get<T>(type,Key);
+        var loaded=await rec.tryLoadAllData();
+        if(!loaded){
+            rec.createAllData();
+            if(fillFunc)
+               fillFunc(<Tdata>rec.Data);
+        }
+        return rec;
     }
 
 }

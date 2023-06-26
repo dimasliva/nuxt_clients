@@ -86,7 +86,7 @@
           </v-list>
         </v-menu>
       </v-row>
-      <NuxtPage :keepalive="true" @clicked="pageGetData()" class="px-4" :field="rail"/>
+      <NuxtPage :keepalive="true" @cheked="pageGetData" :field="rail"/>
     </v-card>
     <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
       <component :is="dialogForm.comp" v-bind="dialogForm.props" />

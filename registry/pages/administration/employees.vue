@@ -1,9 +1,9 @@
 <template>
     <VRow class="ma-1">
-      <Table @cheked="checkEmpl = $event, disabledFunc(), $emit('clicked')" @empl="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :headers="th" :actions="tableActions"></Table>
+      <Table @cheked="checkEmpl = $event, disabledFunc()" @empl="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :headers="th" :actions="tableActions"></Table>
       <v-expand-x-transition>
         <VCard v-show="drawer" class="ma-auto" width="300">
-          <VForm v-model="form" @keydown.enter="form ? filteredData() : btnDis()">
+          <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): filteredData() " @keydown.delete="() => { fio='', phone='', email='', params = [], value = []}">
             <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
               <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio=''}" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
@@ -34,6 +34,7 @@ import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
+import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 
 let form = ref(false)
 let drawer = ref(true)
@@ -43,6 +44,7 @@ let fio = ref('')
 let phone = ref('')
 let email = ref('')
 
+const emits = defineEmits(['cheked']);
 const iocc=useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
@@ -126,7 +128,9 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
   loading.value = false;
 }
 
-const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string) => {
+const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone: string, email: string) => {
+  loading.value = true;
+  // основная функция добавления сотрудника
   let rec = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
     data.name = name;
     data.surname = surname;
@@ -135,26 +139,37 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
     data.birthdate = "2023-05-25T05:12:08.774Z";
     data.roles = "admin";
   })
-  if(rec){
-    let empl = {name, surname, patronymic};
-    data.value.push(empl);
-    resultAnswer.value = true;
-    console.log('employee added')
-  } else {
-    resultAnswer.value = false
-  }
+  if(loading){
+    let recContacts = await recStore.createNew<EmployeeContactsRecord, IEmployeeContactsRecordData>(EmployeeContactsRecord, (data) => {
+        setTimeout(() => {
+        data.id = rec.Key;
+        data.MainEmail = email;
+        data.MainPhone = phone;
+      }, 1000); 
+      })
+      if(recContacts){
+        let empl = {name, surname, patronymic, phone, email};
+        data.value.push(empl);
+        resultAnswer.value = true;
+      } else {
+        resultAnswer.value = false
+      }
+    } else console.log(rec.Key)
+  loading.value = false;
 }
 
 const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, id: string) => {
-
+  //1
 }
   
 const disabledFunc = () => {
   (checkEmpl.value.length >= 1 && checkEmpl.value.length <= 5000)? deleteBtn.value = false : deleteBtn.value = true;
   pageDataLoad();
+  emits('cheked', checkEmpl.value);
 }
   
 const deleteEmpl = async(id: any) => {
+  //2
   console.log(id);
   disabledFunc();
 }

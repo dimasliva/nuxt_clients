@@ -1,19 +1,21 @@
 <template>
     <v-row>
       <v-col>
-        <v-card class="mx-4 my-0">
-          <v-table  density="compact" class="rounded-t-lg">
-            <thead class="bg-primary">
+        <tr v-if="info.length == 0">
+          <h1 class="text-center">Ничего не найдено, попробуйте изменить условия поиска</h1>
+        </tr>
+          <v-table v-else density="compact" class="rounded-t-lg mx-2 elevation-1" height="74vh" fixed-header hover>
+            <thead>
               <tr>
-                <th class="pr-0">
+                <th class="pr-0 bg-primary">
                   <v-checkbox density="compact" :hide-details="true" v-model="chekedAll" color="tertiary" @click="chekAll" @update:model-value="$emit('cheked', cheked)"/>
                 </th>
-                <th class="ma-0 pa-0"></th>
-                <th class="text-tertiary text-center" v-for="item in headers" :key="item.key" @click="sortList(item.key, info)">{{ item.title }}</th>
+                <th class="ma-0 pa-0 bg-primary" >{{ cheked.length }}</th>
+                <th class="text-tertiary text-center bg-primary" v-for="item in headers" :key="item.key" @click="sortList(item.key, info[page! - 1])">{{ item.title }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in info" :key="item.name" @click="$emit('empl', item)" @dblclick="props.actions[0].action">
+              <tr v-for="item in info[page! - 1]" :key="item.id" @click="$emit('empl', item)" @dblclick="props.actions[0].action">
                 <td class="pr-0" style="width: 50px;">
                     <v-checkbox density="compact" :hide-details="true" v-model="cheked" :value="item" color="secondary" @update:model-value="$emit('cheked', cheked), removeChekAll()"/>
                 </td>
@@ -41,7 +43,6 @@
               </tr>
             </tbody>
           </v-table>
-        </v-card>
       </v-col>
     </v-row>
   </template>
@@ -59,7 +60,7 @@ interface Action {
   action: () => void;
 }
 
-interface Info {
+interface Data {
   name: string;
   surname: string;
   patronymic: string;
@@ -70,33 +71,50 @@ interface Info {
   id: string;
 }
 
+interface Info {
+  el: Data,
+}
+
 let cheked: any = ref([])
 let sorted = ref(false)
 let chekedAll = ref(false)
 let selected = ref(false)
 
 const sortList = (sortBy: any, data: any) => {
-  if(sorted.value == true){
-    data.sort((x, y) => ((x[sortBy] < y[sortBy]) ? -1 : 1));
-    sorted.value = false;
+  const sorting = () => {
+    if(sorted.value == true){
+      data.sort((a, b) => ((a[sortBy] < b[sortBy]) ? -1 : 1));
+      sorted.value = false;
+    } else {
+      data.sort((a, b) => ((a[sortBy] > b[sortBy])? -1 : 1));
+      sorted.value = true;
+    };
+  }
+  if(Array.isArray(sortBy)){
+    if(sorted.value == true){
+      data.sort((a, b) => ((a.surname === b.surname) ?( (a.name < b.name)? -1 : 1) : ( (a.surname < b.surname)? -1 : 1) ));
+      sorted.value = false;
+    } else {
+      data.sort((a, b) => ((a.surname === b.surname) ?( (a.name > b.name)? -1 : 1) : ( (a.surname > b.surname)? -1 : 1) ));
+      sorted.value = true;
+    };
   } else {
-    data.sort((x, y) => ((x[sortBy] > y[sortBy])? -1 : 1));
-    sorted.value = true;
-  };
+    sorting();
+  }
 }
 
 const chekAll = () => {
-  if(cheked.value.length == props.info.length){
+  if(cheked.value.length == props.info.flat().length){
     cheked.value = [];
     chekedAll.value = true;
   } else {
-    cheked.value = props.info.slice();
+    cheked.value = props.info.flat().slice();
     chekedAll.value = false;
   }
 };
 
 const removeChekAll = () => {
-  if(cheked.value.length == props.info.length){
+  if(cheked.value.length == props.info.flat().length){
     chekedAll.value = true
   } else {
     chekedAll.value = false
@@ -116,6 +134,7 @@ const props = defineProps ({
     type: Array as () => Action[],
     required: true,
   },
+  page: Number,
 })
 </script>
   

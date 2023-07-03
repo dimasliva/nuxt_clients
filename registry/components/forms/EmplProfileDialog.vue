@@ -73,7 +73,7 @@
      <v-btn color="primary" variant="text" @click="closeDialog(console.log('closed'))">
        {{ $t('close') }}
      </v-btn>
-     <v-btn :disabled="!form" color="primary" @click="() => {console.log( empPhone.replace(/[+() --]/g, '').trim())}" variant="text" type="submit">
+     <v-btn :disabled="!form" color="primary" @click="() => {actionEmpl()}" variant="text" type="submit">
        {{ props.button }}
      </v-btn>
    </v-card-actions>
@@ -90,15 +90,14 @@
    patronymic: string;
    gender: string;
    birthdate: string;
-   phone: string;
-   email: string;
+   mainPhone: string;
+   mainEmail: string;
    id: number;
  }
  
  interface Props {
-   dialog: boolean;
    empl: Employee;
-   action: (name: string, surname: string, patronymic: string, gender: string, phone: string, email: string) => void;
+   action: (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string) => void;
    header: string;
    button: string;
    adding: boolean;
@@ -111,10 +110,10 @@ let show = ref(false)
 let empName = ref(props.empl.name)
 let empSurname = ref(props.empl.surname)
 let empPatronymic = ref(props.empl.patronymic)
-let empPhone = ref(props.empl.phone)
+let empPhone = ref(props.empl.mainPhone)
 let empBirthdate = ref(props.empl.birthdate)
 let empGender = ref(props.empl.gender)
-let empEmail = ref(props.empl.email)
+let empEmail = ref(props.empl.mainEmail)
 let empId = ref(props.empl.id)
 let empLogin = ref('')
 let m = ref('м')
@@ -141,5 +140,4 @@ const actionEmpl = () =>{
 props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value);
 closeDialog(console.log('done'));
 }
- 
  </script>

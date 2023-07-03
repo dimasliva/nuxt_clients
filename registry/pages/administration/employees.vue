@@ -1,27 +1,29 @@
 <template>
-    <VRow class="ma-1">
-      <Table @cheked="checkEmpl = $event, disabledFunc()" @empl="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :headers="th" :actions="tableActions"></Table>
-      <v-expand-x-transition>
-        <VCard v-show="drawer" class="ma-auto" width="300">
-          <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): filteredData() " @keydown.delete="() => { fio='', phone='', email='', params = [], value = []}">
-            <VCol>
+  <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
+    <img src="@/cat.gif" alt="cat">
+  </VCard>
+  <VRow class="ma-1">
+    <Table @cheked="checkEmpl = $event, disabledFunc()" @empl="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
+    <v-expand-x-transition>
+      <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
+        <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): filteredData()" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = []}}">
+          <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
-              <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio=''}" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
-              <VTextField v-model="phone" clearable hint="Введите минимум 6 символов" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone=''}" @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(phone, th[1].key)"/>
-              <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
-              <v-row class="ma-1" style="min-width: 200pt;">
-                <VBtn :disabled="btnDis()" variant="text" @click="filteredData()">Поиск</VBtn>
-                <VBtn  variant="text" @click="() => {getEmplData('changedAt', '2023-06-23', 100), fio='', phone='', email='', params = [], value = []}">Сбросить</VBtn>
-              </v-row>
-            </VCol>
-          </VForm>
-        </VCard>
-      </v-expand-x-transition>
-    </VRow>
-    <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
-      <img src="@/cat.gif" alt="cat">
-    </VCard>
-    <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">Сотрудник успешно добавлен!</v-snackbar>  
+            <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio=''}" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
+            <VTextField v-model="phone" clearable hint="Введите минимум 6 символов" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone=''}" @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(phone, th[1].key)"/>
+            <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
+            <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" variant="underlined" color="secondary" type="number"></VTextField>
+            <v-row class="ma-1" style="min-width: 200pt;">
+              <VBtn :disabled="btnDis()" variant="text" @click="filteredData()">Поиск</VBtn>
+              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = []}">Сбросить</VBtn>
+            </v-row>
+          </VCol>
+        </VForm>
+      </VCard>
+    </v-expand-x-transition>
+  </VRow>
+  <v-pagination v-if="data.length" :length="data.length" v-model="page" :total-visible="10"></v-pagination>
+  <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">Сотрудник успешно добавлен!</v-snackbar>  
 </template>
   
 <script setup lang="ts">
@@ -36,6 +38,8 @@ import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesV
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 
+let page = ref(1)
+let itemPerPage = ref<number>(10)
 let form = ref(false)
 let drawer = ref(true)
 let show = ref(false)
@@ -88,9 +92,9 @@ const btnDis = () => {
 const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
   { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () => createPersons(1) },
+  action: () => {getEmplData('changedAt', '2023-06-26', 100)} },
   { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () =>{ openDialog(EmplProfileDialog,  {empl: '', action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
+  action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color:"secondary", bkgColor:"red", 
   action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
   { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red", 
@@ -105,8 +109,7 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
   loading.value = true;
   let recStr = ref('');
   if(typeof select == "string" && typeof where == "string"){
-    recStr.value = `${select} like '${where}%'`;
-    console.log(recStr.value)
+    recStr.value = `${select}='${where}%'`;
   } else {
     let temp = '';
     let rwhere = '';
@@ -115,7 +118,6 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
       temp += `${select[i]} like '${rwhere}' and `
     }
     recStr.value = temp.slice(0, -4)
-    console.log(recStr.value)
   }
   let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams("id, surname, name, patronymic, mainPhone, mainEmail", recStr.value, quantity));
 
@@ -124,13 +126,14 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
   while (row = recArr.getNext()) {
     empl.push(row);
   }
-  data.value = empl;
+  let tempData = empl;
+  for(let i=0; i < tempData.length;i+= +itemPerPage.value){
+    data.value.push(tempData.slice(i,i+ +itemPerPage.value));
+  }
   loading.value = false;
 }
 
-const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone: string, email: string) => {
-  loading.value = true;
-  // основная функция добавления сотрудника
+const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
   let rec = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
     data.name = name;
     data.surname = surname;
@@ -139,26 +142,15 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
     data.birthdate = "2023-05-25T05:12:08.774Z";
     data.roles = "admin";
   })
-  if(loading){
-    let recContacts = await recStore.createNew<EmployeeContactsRecord, IEmployeeContactsRecordData>(EmployeeContactsRecord, (data) => {
-        setTimeout(() => {
-        data.id = rec.Key;
-        data.MainEmail = email;
-        data.MainPhone = phone;
-      }, 1000); 
-      })
-      if(recContacts){
-        let empl = {name, surname, patronymic, phone, email};
-        data.value.push(empl);
-        resultAnswer.value = true;
-      } else {
-        resultAnswer.value = false
-      }
-    } else console.log(rec.Key)
-  loading.value = false;
+
+  let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
+  emplcont.Data!.MainPhone = phone || null;
+  emplcont.Data!.MainEmail = mail || null;
+  emplcont.save();
+  rec&&emplcont? resultAnswer.value = true : resultAnswer.value = false;
 }
 
-const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, id: string) => {
+const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, id: string, mainPhone: string, mainEmail: string) => {
   //1
 }
   
@@ -227,6 +219,7 @@ const filterItems = (where: string, select: string|string[]) => {
 }
 
 const filteredData = () => {
+  data.value = [];
   getEmplData(params.value, value.value, 500);
 }
 

@@ -1,12 +1,9 @@
 <template>
-  <div>
     <v-app-bar color="primary" prominent elevation="0">
       <v-app-bar-nav-icon variant="text" @click="rail = !rail"></v-app-bar-nav-icon>
-
       <v-toolbar-title @click="navigateTo('/dashboard')" style="cursor: pointer;">
         <img src="@/logo_9PqMg0J9.png" :height="30" :width="200"/>
       </v-toolbar-title>
-
       <v-spacer></v-spacer>
       <v-menu :open-on-hover="true">
         <template v-slot:activator="{ props }">
@@ -94,7 +91,6 @@
     <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
       <component :is="dialogForm2.comp" v-bind="dialogForm2.props" />
     </v-dialog>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -270,4 +266,5 @@ let filteredChaptersGr = () => {
 
 <style lang="scss">
 @use '~/settings';
+html { overflow-y: auto };
 </style>

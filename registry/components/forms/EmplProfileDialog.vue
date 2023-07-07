@@ -92,12 +92,12 @@
    birthdate: string;
    mainPhone: string;
    mainEmail: string;
-   id: number;
+   id: string;
  }
  
  interface Props {
    empl: Employee;
-   action: (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string) => void;
+   action: (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => void;
    header: string;
    button: string;
    adding: boolean;
@@ -137,7 +137,7 @@ let translit = (word) => {
 }
  
 const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value);
+props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value);
 closeDialog(console.log('done'));
 }
  </script>

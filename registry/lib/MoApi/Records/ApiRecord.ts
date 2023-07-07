@@ -90,7 +90,6 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
         this._setPrev();
     }
 
-
     async tryLoadAllData() {
         try {
             await this.loadAllData();

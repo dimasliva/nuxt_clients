@@ -1,9 +1,10 @@
 <template>
     <v-row>
       <v-col>
-        <tr v-if="info.length == 0">
-          <h1 class="text-center">Ничего не найдено, попробуйте изменить условия поиска</h1>
-        </tr>
+        <div v-if="info.length == 0" class=" d-inline" >
+          <h1 class="text-center w-50 d-inline">Ничего не найдено, попробуйте изменить условия поиска</h1>
+          <img src="@/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline">
+        </div>
           <v-table v-else density="compact" class="rounded-t-lg mx-2 elevation-1" height="74vh" fixed-header hover>
             <thead>
               <tr>

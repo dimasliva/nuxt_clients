@@ -1,12 +1,12 @@
 <template>
   <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
-    <img src="@/cat.gif" alt="cat">
+    <img src="@/cat-laptop.jpg" alt="cat">
   </VCard>
   <VRow class="ma-1">
     <Table @cheked="checkEmpl = $event, disabledFunc()" @empl="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
-        <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): filteredData()" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = []}}">
+        <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): (filteredData(), page = 1)" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = []}}">
           <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
             <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio=''}" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
@@ -14,16 +14,16 @@
             <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
             <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" variant="underlined" color="secondary" type="number"></VTextField>
             <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnDis()" variant="text" @click="filteredData()">Поиск</VBtn>
-              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = []}">Сбросить</VBtn>
+              <VBtn :disabled="btnDis()" variant="text" @click="() => {filteredData(), page = 1}">Поиск</VBtn>
+              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = [], data = [], page = 1, getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100)}">Сбросить</VBtn>
             </v-row>
           </VCol>
         </VForm>
       </VCard>
     </v-expand-x-transition>
   </VRow>
-  <v-pagination v-if="data.length" :length="data.length" v-model="page" :total-visible="10"></v-pagination>
-  <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">Сотрудник успешно добавлен!</v-snackbar>  
+  <v-pagination v-if="data.length" :length="data.length" v-model="page" :total-visible="7"></v-pagination>
+  <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">{{ message }}</v-snackbar>  
 </template>
   
 <script setup lang="ts">
@@ -47,6 +47,7 @@ let loading = ref(false)
 let fio = ref('')
 let phone = ref('')
 let email = ref('')
+let message = ref('')
 
 const emits = defineEmits(['cheked']);
 const iocc=useContainer();
@@ -71,15 +72,21 @@ const props = defineProps({
 
 let searchField = ref(props.field)
 
-const autoFocus = (e: any) => {
+const autoFocus = (e: KeyboardEvent) => {
   const key = e.key;
     if(foc.value == true && loading.value == false && props.field == true){
-      if (/[а-яА-Яa-zA-Z0-9]/.test(key)) {
+      if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
+        console.log(key)
         drawer.value = true;
-        lastField.value? lastField.value.focus() : fioF.value.focus();
+        lastField.value ? lastField.value.focus() : fioF.value.focus();
       }
     }
-  }
+    if (key === 'ArrowLeft'  && page.value > 1) {
+      page.value--
+    } else if (key === 'ArrowRight' && page.value < data.value.length) {
+      page.value++
+    }
+}
 
 const btnDis = () => {
   if((fio.value.length < 2 ) && (phone.value.length < 6) && (email.value.length < 3)){
@@ -92,7 +99,7 @@ const btnDis = () => {
 const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
   { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () => {getEmplData('changedAt', '2023-06-26', 100)} },
+  action: () => updateData() },
   { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
   action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color:"secondary", bkgColor:"red", 
@@ -109,7 +116,7 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
   loading.value = true;
   let recStr = ref('');
   if(typeof select == "string" && typeof where == "string"){
-    recStr.value = `${select}='${where}%'`;
+    recStr.value = `${select}>='${where}'`;
   } else {
     let temp = '';
     let rwhere = '';
@@ -119,6 +126,7 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
     }
     recStr.value = temp.slice(0, -4)
   }
+
   let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams("id, surname, name, patronymic, mainPhone, mainEmail", recStr.value, quantity));
 
   const empl:IEmployeeListView[] = [];
@@ -131,6 +139,14 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
     data.value.push(tempData.slice(i,i+ +itemPerPage.value));
   }
   loading.value = false;
+}
+
+let currentDate = new Date();
+currentDate.setDate(currentDate.getDate() - 7);
+
+const updateData = () => {
+  data.value = [];
+  params.value.length? filteredData(): getEmplData('changedAt', currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 }
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
@@ -147,23 +163,52 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
   emplcont.Data!.MainPhone = phone || null;
   emplcont.Data!.MainEmail = mail || null;
   emplcont.save();
+  message.value = 'Сотрудник успешно добавлен!';
+  updateData();
   rec&&emplcont? resultAnswer.value = true : resultAnswer.value = false;
 }
 
-const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, id: string, mainPhone: string, mainEmail: string) => {
-  //1
+const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => {
+const rec = await recStore.fetch(EmployeeRecord, id);
+if (rec.Key == id) {
+  // Обновить данные сотрудника
+  console.log(rec)
+  rec.Data!.name = name;
+  rec.Data!.surname = surname;
+  rec.Data!.patronymic = patronymic;
+  rec.Data!.gender = gender;
+  // Сохранить изменения
+  await rec.save();
+  // Обновить данные контактов сотрудника
+  const emplcont = await recStore.getOrCreate(EmployeeContactsRecord, id);
+  emplcont.Data!.MainPhone = mainPhone || null;
+  emplcont.Data!.MainEmail = mainEmail || null;
+  await emplcont.save();
+  // Вернуть результат обновления
+  message.value = 'Данные сотрудника изменены!'
+  rec&&emplcont? resultAnswer.value = true : resultAnswer.value = false;
+  updateData();
+  return true;
+}
+
+return false;
+}
+  
+const deleteEmpl = async(id: any) => {
+  const rec = await recStore.fetch(EmployeeRecord, id);
+if (rec.Key == id) {
+  await rec.delete();
+  message.value = 'Запись сотрудника удалена.'
+  rec? resultAnswer.value = true : resultAnswer.value = false;
+}
+  updateData();
+  disabledFunc();
 }
   
 const disabledFunc = () => {
   (checkEmpl.value.length >= 1 && checkEmpl.value.length <= 5000)? deleteBtn.value = false : deleteBtn.value = true;
   pageDataLoad();
   emits('cheked', checkEmpl.value);
-}
-  
-const deleteEmpl = async(id: any) => {
-  //2
-  console.log(id);
-  disabledFunc();
 }
   
 let params = ref<string[]>([]);
@@ -240,6 +285,9 @@ addEventListener('keydown', autoFocus);
 onBeforeUnmount(() => {
 removeEventListener('keydown', autoFocus);
 })
+
+
+getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 
 const createPersons = (q: number) => {
   const genders = ["m", "f"];

@@ -54,7 +54,6 @@ export class RecordsStore {
         return <T>rec;
     }
 
-
     async tryCreateNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         try {
             await this.createNew(type, fillFunc);

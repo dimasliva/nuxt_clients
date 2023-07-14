@@ -1,11 +1,7 @@
 <template>
     <v-row>
       <v-col>
-        <div v-if="info.length == 0" class=" d-inline" >
-          <h1 class="text-center w-50 d-inline">Ничего не найдено, попробуйте изменить условия поиска</h1>
-          <img src="@/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline">
-        </div>
-          <v-table v-else density="compact" class="rounded-t-lg mx-2 elevation-1" height="74vh" fixed-header hover>
+          <v-table density="compact" class="rounded-t-lg mx-2 elevation-1" :height="theight" fixed-header hover>
             <thead>
               <tr>
                 <th class="pr-0 bg-primary">
@@ -16,7 +12,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in info[page! - 1]" :key="item.id" @click="$emit('empl', item)" @dblclick="props.actions[0].action">
+              <tr v-for="item in info[page! - 1]" :key="item.id" @click="$emit('person', item)" @dblclick="props.actions[0].action">
                 <td class="pr-0" style="width: 50px;">
                     <v-checkbox density="compact" :hide-details="true" v-model="cheked" :value="item" color="secondary" @update:model-value="$emit('cheked', cheked), removeChekAll()"/>
                 </td>
@@ -26,7 +22,7 @@
                       <v-btn  v-bind="props" icon="mdi-dots-vertical" variant="text" ></v-btn>
                     </template>
                     <v-list>
-                      <v-list-item v-for="action in actions" @click="$emit('empl', item)" @click-once="action.action" >
+                      <v-list-item v-for="action in actions" @click="$emit('person', item)" @click-once="action.action" >
                         <v-list-item-title>{{ action.title }}<v-icon end :icon="action.icon" size="x-small" /></v-list-item-title>
                       </v-list-item>
                     </v-list>
@@ -49,6 +45,7 @@
   </template>
   
 <script setup lang="ts">
+import { useDisplay } from 'vuetify/lib/framework.mjs';
 
 interface Header {
   key: string | any;
@@ -76,6 +73,19 @@ interface Info {
   el: Data,
 }
 
+let { name } = useDisplay();
+let theight = computed(() => {
+  switch (name.value) {
+    case 'xs': return 100
+    case 'sm': return 250
+    case 'md': return 350
+    case 'lg': return 500
+    case 'xl': return 700
+    case 'xxl': return 1000
+  }
+
+    return undefined
+});
 let cheked: any = ref([])
 let sorted = ref(false)
 let chekedAll = ref(false)
@@ -103,6 +113,7 @@ const sortList = (sortBy: any, data: any) => {
     sorting();
   }
 }
+
 
 const chekAll = () => {
   if(cheked.value.length == props.info.flat().length){
@@ -136,6 +147,10 @@ const props = defineProps ({
     required: true,
   },
   page: Number,
+})
+onBeforeUpdate(()=> {
+  cheked.value = [];
+  chekedAll.value = false;
 })
 </script>
   

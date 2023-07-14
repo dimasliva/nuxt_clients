@@ -1,9 +1,13 @@
 <template>
   <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
-    <img src="@/cat-laptop.jpg" alt="cat">
+    <img src="@/cat-laptop.jpg" alt="cat" class="w-50 d-inline mx-auto">
   </VCard>
+  <v-card v-if="data.length == 0 && loading == false"  max-width="400" class="mx-auto" elevation="0" >
+    <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
+    <img src="@/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline mx-auto">
+  </v-card>
   <VRow class="ma-1">
-    <Table @cheked="checkEmpl = $event, disabledFunc()" @empl="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
+    <Table @cheked="checkEmpl = $event, disabledFunc()" @person="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
         <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): (filteredData(), page = 1)" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = []}}">
@@ -14,8 +18,8 @@
             <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
             <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" variant="underlined" color="secondary" type="number"></VTextField>
             <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnDis()" variant="text" @click="() => {filteredData(), page = 1}">Поиск</VBtn>
-              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = [], data = [], page = 1, getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100)}">Сбросить</VBtn>
+              <VBtn :disabled="btnDis()" variant="text" @click="() => {filteredData(), page = 1, checkEmpl = []}">Поиск</VBtn>
+              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = [], data = [], page = 1, checkEmpl = [], getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100)}">Сбросить</VBtn>
             </v-row>
           </VCol>
         </VForm>
@@ -76,7 +80,6 @@ const autoFocus = (e: KeyboardEvent) => {
   const key = e.key;
     if(foc.value == true && loading.value == false && props.field == true){
       if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
-        console.log(key)
         drawer.value = true;
         lastField.value ? lastField.value.focus() : fioF.value.focus();
       }
@@ -284,6 +287,9 @@ addEventListener('keydown', autoFocus);
 })
 onBeforeUnmount(() => {
 removeEventListener('keydown', autoFocus);
+})
+onBeforeUpdate(() => {
+  disabledFunc();
 })
 
 

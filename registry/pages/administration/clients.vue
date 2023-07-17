@@ -1,11 +1,7 @@
 <template>
   <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
-    <img src="@/cat-laptop.jpg" alt="cat" class="w-50 d-inline mx-auto">
+    <img src="@/cat-laptop.jpg" alt="cat">
   </VCard>
-  <v-card v-if="data.length == 0 && loading == false"  max-width="400" class="mx-auto" elevation="0" >
-    <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-    <img src="@/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline mx-auto">
-  </v-card>
   <VRow class="ma-1">
     <Table @cheked="checkEmpl = $event, disabledFunc()" @person="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
     <v-expand-x-transition>
@@ -18,8 +14,8 @@
             <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
             <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" variant="underlined" color="secondary" type="number"></VTextField>
             <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnDis()" variant="text" @click="() => {filteredData(), page = 1, checkEmpl = []}">Поиск</VBtn>
-              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = [], data = [], page = 1, checkEmpl = [], getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100)}">Сбросить</VBtn>
+              <VBtn :disabled="btnDis()" variant="text" @click="() => {filteredData(), page = 1}">Поиск</VBtn>
+              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = [], data = [], page = 1, getClientData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100)}">Сбросить</VBtn>
             </v-row>
           </VCol>
         </VForm>
@@ -29,7 +25,7 @@
   <v-pagination v-if="data.length" :length="data.length" v-model="page" :total-visible="7"></v-pagination>
   <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">{{ message }}</v-snackbar>  
 </template>
-  
+
 <script setup lang="ts">
 import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
 import Table from '~~/components/forms/Table.vue';
@@ -80,6 +76,7 @@ const autoFocus = (e: KeyboardEvent) => {
   const key = e.key;
     if(foc.value == true && loading.value == false && props.field == true){
       if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
+        console.log(key)
         drawer.value = true;
         lastField.value ? lastField.value.focus() : fioF.value.focus();
       }
@@ -99,12 +96,12 @@ const btnDis = () => {
   }
 }
 
-const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
+const pageDataLoad = () =>{ pageMap.setPageData("/administration/clients", {title: "Клиенты", icon: "",
 mainBtnBar:[
   { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", 
   action: () => updateData() },
-  { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
+  { id: "addClient", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
+  action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color:"secondary", bkgColor:"red", 
   action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
   { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red", 
@@ -115,33 +112,8 @@ mainBtnBar:[
 pageDataLoad();
 
 
-const getEmplData = async(select: string|string[], where: string|string[], quantity: number ) => {
-  loading.value = true;
-  let recStr = ref('');
-  if(typeof select == "string" && typeof where == "string"){
-    recStr.value = `${select}>='${where}'`;
-  } else {
-    let temp = '';
-    let rwhere = '';
-    for(let i = 0; i < select.length; i++){
-      rwhere = ((select[i+1] ==='name')||(select[i+1] ==='patronymic'))? where[i] : where[i]+'%';
-      temp += `${select[i]} like '${rwhere}' and `
-    }
-    recStr.value = temp.slice(0, -4)
-  }
+const getClientData = async(select: string|string[], where: string|string[], quantity: number ) => {
 
-  let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams("id, surname, name, patronymic, mainPhone, mainEmail", recStr.value, quantity));
-
-  const empl:IEmployeeListView[] = [];
-  let row: IEmployeeListView | undefined;
-  while (row = recArr.getNext()) {
-    empl.push(row);
-  }
-  let tempData = empl;
-  for(let i=0; i < tempData.length;i+= +itemPerPage.value){
-    data.value.push(tempData.slice(i,i+ +itemPerPage.value));
-  }
-  loading.value = false;
 }
 
 let currentDate = new Date();
@@ -149,63 +121,19 @@ currentDate.setDate(currentDate.getDate() - 7);
 
 const updateData = () => {
   data.value = [];
-  params.value.length? filteredData(): getEmplData('changedAt', currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
+  params.value.length? filteredData(): getClientData('changedAt', currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 }
 
-const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
-  let rec = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
-    data.name = name;
-    data.surname = surname;
-    data.patronymic = patronymic;
-    data.gender = gender;
-    data.birthdate = "2023-05-25T05:12:08.774Z";
-    data.roles = "admin";
-  })
+const addClient = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
 
-  let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
-  emplcont.Data!.MainPhone = phone || null;
-  emplcont.Data!.MainEmail = mail || null;
-  emplcont.save();
-  message.value = 'Сотрудник успешно добавлен!';
-  updateData();
-  rec&&emplcont? resultAnswer.value = true : resultAnswer.value = false;
 }
 
-const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => {
-const rec = await recStore.fetch(EmployeeRecord, id);
-if (rec.Key == id) {
-  // Обновить данные сотрудника
-  console.log(rec)
-  rec.Data!.name = name;
-  rec.Data!.surname = surname;
-  rec.Data!.patronymic = patronymic;
-  rec.Data!.gender = gender;
-  // Сохранить изменения
-  await rec.save();
-  // Обновить данные контактов сотрудника
-  const emplcont = await recStore.getOrCreate(EmployeeContactsRecord, id);
-  emplcont.Data!.MainPhone = mainPhone || null;
-  emplcont.Data!.MainEmail = mainEmail || null;
-  await emplcont.save();
-  // Вернуть результат обновления
-  message.value = 'Данные сотрудника изменены!'
-  rec&&emplcont? resultAnswer.value = true : resultAnswer.value = false;
-  updateData();
-  return true;
-}
+const editClient = async (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => {
 
-return false;
 }
   
 const deleteEmpl = async(id: any) => {
-  const rec = await recStore.fetch(EmployeeRecord, id);
-if (rec.Key == id) {
-  await rec.delete();
-  message.value = 'Запись сотрудника удалена.'
-  rec? resultAnswer.value = true : resultAnswer.value = false;
-}
-  updateData();
-  disabledFunc();
+
 }
   
 const disabledFunc = () => {
@@ -268,7 +196,7 @@ const filterItems = (where: string, select: string|string[]) => {
 
 const filteredData = () => {
   data.value = [];
-  getEmplData(params.value, value.value, 500);
+  getClientData(params.value, value.value, 500);
 }
 
 let th = [{title: "ФИО", key: ["surname", "name", "patronymic"]},{title: "Телефон", key: "mainPhone"}, {title: "E-mail", key: "mainEmail"}]
@@ -277,7 +205,7 @@ let data = ref<any>([])
 
 let tableActions = ref([
   { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", 
-  action: () =>  {openDialog(EmplProfileDialog, {empl: checkEmpl.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false} },
+  action: () =>  {openDialog(EmplProfileDialog, {empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary", bkgColor:"red", 
   action: () =>  openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
 ])
@@ -288,12 +216,9 @@ addEventListener('keydown', autoFocus);
 onBeforeUnmount(() => {
 removeEventListener('keydown', autoFocus);
 })
-onBeforeUpdate(() => {
-  disabledFunc();
-})
 
 
-getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
+getClientData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 
 const createPersons = (q: number) => {
   const genders = ["m", "f"];
@@ -323,9 +248,8 @@ const createPersons = (q: number) => {
     const day = Math.floor(Math.random() * 28) + 1;
     const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
     console.log(name, surname, patronymic, gender, birthdate);
-    // addEmployee( name, surname, patronymic, gender, birthdate);
+    // addClient( name, surname, patronymic, gender, birthdate);
   }
 }
 
 </script>
-

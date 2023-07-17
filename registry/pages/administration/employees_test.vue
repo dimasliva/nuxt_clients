@@ -18,7 +18,7 @@
               @update:focused="lastField = emailF, searchField = false" :label="th[2].title" class="ma-1"
               variant="outlined" color="secondary" />
             <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnDis()" variant="outlined" @click="getEmplData()">Поиск</VBtn>
+              <VBtn :disabled="btnDis()" variant="outlined" @click="console.log(generatePhoneNumber())">Поиск</VBtn>
               <VBtn class="ml-2" variant="outlined"
                 @click="() => { filters.fio = '', filters.phone = '', filters.email = '' }">
                 Сбросить</VBtn>

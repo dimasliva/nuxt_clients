@@ -1,12 +1,6 @@
 <template>
-  <div>
-    <v-app-bar color="primary" prominent elevation="0">
-      <v-app-bar-nav-icon variant="text" @click="rail = !rail"></v-app-bar-nav-icon>
-
-      <v-toolbar-title @click="navigateTo('/dashboard')" style="cursor: pointer;">
-        <img src="@/logo_9PqMg0J9.png" :height="30" :width="200"/>
-      </v-toolbar-title>
-
+    <v-app-bar color="primary" :density="appBarSize" elevation="0">
+      <v-app-bar-nav-icon @click="rail = !rail" :size="iconSize"></v-app-bar-nav-icon>
       <v-spacer></v-spacer>
       <v-menu :open-on-hover="true">
         <template v-slot:activator="{ props }">
@@ -26,7 +20,7 @@
         </v-list>
       </v-menu>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" :width="350">
+    <v-navigation-drawer v-model="drawer" :rail="rail" :rail-width="railWidth" permanent class="bg-tertiary" :width="drawerWidth">
       <v-list :opened="rail? [] : opened" open-strategy="single" :selected="selected" select-strategy="classic">
         <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
           <v-text-field v-model="input" single-line clearable hide-details ref="pInput" density="compact" 
@@ -86,7 +80,7 @@
           </v-list>
         </v-menu>
       </v-row>
-      <NuxtPage :keepalive="true" @clicked="pageGetData()" class="px-4" :field="rail"/>
+      <NuxtPage :keepalive="true" @cheked="pageGetData" :field="rail"/>
     </v-card>
     <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
       <component :is="dialogForm.comp" v-bind="dialogForm.props" />
@@ -94,7 +88,6 @@
     <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
       <component :is="dialogForm2.comp" v-bind="dialogForm2.props" />
     </v-dialog>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -102,6 +95,7 @@ import { IModuleItemsMenu } from '~~/lib/ModuleManager';
 import { ModuleManager } from '~~/lib/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
 import { PageMap } from '~~/lib/PageMap';
+import { useDisplay } from 'vuetify/lib/framework.mjs';
 
 interface DialogForm {
   comp: any;
@@ -109,6 +103,52 @@ interface DialogForm {
   modal: boolean;
   onBeforeClose: ((result: any) => boolean) | null;
 }
+
+const { name } = useDisplay();
+let drawerWidth = computed(() => {
+  switch (name.value) {
+    case 'xs': return 100
+    case 'sm': return 250
+    case 'md': return 250
+    case 'lg': return 350
+    case 'xl': return 350
+    case 'xxl': return 600
+  }
+    return undefined
+});
+let appBarSize = computed(() => {
+  switch (name.value) {
+    case 'xs': return 'compact'
+    case 'sm': return 'compact'
+    case 'md': return 'comfortable'
+    case 'lg': return 'default'
+    case 'xl': return 'default'
+    case 'xxl': return 'prominent'
+  }
+    return undefined
+});
+let iconSize = computed(() => {
+  switch (name.value) {
+    case 'xs': return 'small'
+    case 'sm': return 'small'
+    case 'md': return 'default'
+    case 'lg': return 'default'
+    case 'xl': return 'large'
+    case 'xxl': return 'x-large'
+  }
+    return undefined
+});
+let railWidth = computed(() => {
+  switch (name.value) {
+    case 'xs': return 1
+    case 'sm': return 1
+    case 'md': return 46
+    case 'lg': return 56
+    case 'xl': return 56
+    case 'xxl': return 120
+  }
+    return undefined
+});
 
 const iocc = useContainer();
 let pInput = ref<any>(null);
@@ -270,4 +310,5 @@ let filteredChaptersGr = () => {
 
 <style lang="scss">
 @use '~/settings';
+html { overflow-y: auto };
 </style>

@@ -28,7 +28,9 @@ export class ModuleManager {
             icon: "mdi-account-tie",
             childs: [
                 { id: "employees", title: "Сотрудники", getPagePath: () => "/administration/employees", icon: "mdi-account-circle" },
-                { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" }]
+                { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" },
+                { id: "clients", title: "Клиенты", getPagePath: () => "/administration/clients", icon: "mdi-account-circle" },
+            ]
         });
         res.push({ id: "patients", title: "ЖПЗ", getPagePath: () => "/journal", icon: "mdi-account-heart" });
         res.push({ id: "data_bases", title: "База данных", getPagePath: () => "/data", icon: "mdi-server" });

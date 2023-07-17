@@ -15,21 +15,21 @@
           <v-col cols="12" sm="6">
             <v-text-field label="Имя" clearable v-model="empName" autofocus required maxlength="128" variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]">
               <template v-slot:append-inner>
-                <input v-model="empName" @input="empName = translit(empName).charAt(0).toUpperCase() + translit(empName).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я]|a:[a-я]:multiple" class="w-100"/>
+                <input v-model="empName" @input="empName = translit(empName).charAt(0).toUpperCase() + translit(empName).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я;,.']|a:[a-я;.,']:multiple" class="w-100"/>
               </template>
             </v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
             <v-text-field label="Фамилия" clearable v-model="empSurname" required maxlength="128" variant="underlined" placeholder="Иванов" density="compact" :rules="[(v: string) => !!v || $t('required')]">
               <template v-slot:append-inner>
-                <input v-model="empSurname"  @input="empSurname = translit(empSurname).charAt(0).toUpperCase() + translit(empSurname).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я]|a:[a-я]:multiple" class="w-100"/>
+                <input v-model="empSurname"  @input="empSurname = translit(empSurname).charAt(0).toUpperCase() + translit(empSurname).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я;,.']|a:[a-я;,.']:multiple" class="w-100"/>
               </template>
             </v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
             <v-text-field label="Отчество" clearable v-model="empPatronymic" maxlength="128" variant="underlined" placeholder="Иванович" density="compact">
               <template v-slot:append-inner>
-                <input v-model="empPatronymic"  @input="empPatronymic = translit(empPatronymic).charAt(0).toUpperCase() + translit(empPatronymic).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я]|a:[a-я]:multiple" class="w-100"/>
+                <input v-model="empPatronymic"  @input="empPatronymic = translit(empPatronymic).charAt(0).toUpperCase() + translit(empPatronymic).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я;,.']|a:[a-я;,.']:multiple" class="w-100"/>
               </template>
             </v-text-field>
           </v-col>
@@ -73,7 +73,7 @@
      <v-btn color="primary" variant="text" @click="closeDialog(console.log('closed'))">
        {{ $t('close') }}
      </v-btn>
-     <v-btn :disabled="!form" color="primary" @click="actionEmpl" variant="text" type="submit">
+     <v-btn :disabled="!form" color="primary" @click="() => {actionEmpl()}" variant="text" type="submit">
        {{ props.button }}
      </v-btn>
    </v-card-actions>
@@ -90,15 +90,14 @@
    patronymic: string;
    gender: string;
    birthdate: string;
-   phone: string;
-   email: string;
-   id: number;
+   mainPhone: string;
+   mainEmail: string;
+   id: string;
  }
  
  interface Props {
-   dialog: boolean;
    empl: Employee;
-   action: (name: string, surname: string, patronymic: string, gender: string) => void;
+   action: (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => void;
    header: string;
    button: string;
    adding: boolean;
@@ -111,10 +110,10 @@ let show = ref(false)
 let empName = ref(props.empl.name)
 let empSurname = ref(props.empl.surname)
 let empPatronymic = ref(props.empl.patronymic)
-let empPhone = ref(props.empl.phone)
+let empPhone = ref(props.empl.mainPhone)
 let empBirthdate = ref(props.empl.birthdate)
 let empGender = ref(props.empl.gender)
-let empEmail = ref(props.empl.email)
+let empEmail = ref(props.empl.mainEmail)
 let empId = ref(props.empl.id)
 let empLogin = ref('')
 let m = ref('м')
@@ -127,7 +126,7 @@ let translit = (word) => {
      'l': 'д', 'm': 'ь', 'n': 'т', 'o': 'щ', 'p': 'з',
      'r': 'к', 's': 'ы', 't': 'е', 'u': 'г', 'f': 'а',
      'h': 'р', 'c': 'с', 'j': 'о', 'w': 'ц', ';': 'ж',
-     "'": 'э', ',': 'б', "x": "ч", 'q': 'й'
+     "'": 'э', ',': 'б', "x": "ч", 'q': 'й', '.': 'ю'
    };
  
    for (const [key, value] of Object.entries(converter)) {
@@ -138,8 +137,7 @@ let translit = (word) => {
 }
  
 const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value);
+props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value);
 closeDialog(console.log('done'));
 }
- 
  </script>

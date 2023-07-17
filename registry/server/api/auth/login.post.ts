@@ -36,7 +36,7 @@ export default eventHandler(async (event) => {
 
     apiClient.MoApiClientSettings.Credentials = userCred;
     try {
-        let authData = await apiClient.Authorize();
+        let authData = await apiClient.AuthorizeServer();
         console.debug("Auth OK");
 
         setCookie(event, "user_session", EncryptAes256(key,JSON.stringify(userCred)))

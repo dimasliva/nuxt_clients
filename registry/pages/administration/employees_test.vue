@@ -29,7 +29,6 @@
     </v-expand-x-transition>
   </VRow>
   <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
-    <img src="@/cat.gif" alt="cat">
   </VCard>
 </template>
   
@@ -105,12 +104,12 @@ const btnDis = () => {
 }
 
 const pageDataLoad = () => {
-  pageMap.setPageData("/administration/employees", {
+  pageMap.setPageData("/administration/employees_test", {
     title: "Сотрудники", icon: "",
     mainBtnBar: [
       {
         id: "update", title: "Обновить", icon: "mdi-autorenew", disabled: false, color: "secondary", bkgColor: "red",
-        action: () => createPersons(10000)
+        action: async () => await createPersons(10000)
       },
       {
         id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
@@ -149,13 +148,17 @@ const getData = async (select: string, where: TEmployeeFilter, quantity: number)
 
   if (whereArr.length == 0) return [];
   let wherestr = whereArr.join(" and ");
+  const startTime = performance.now();
   let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams(select, wherestr, quantity));
-
   const empl: IEmployeeListView[] = [];
   let row: IEmployeeListView | undefined;
+
   while (row = recArr.getNext()) {
+    
     empl.push(row);
   }
+  const endTime = performance.now();
+  console.debug(`employees count=${recArr.getLength()} for ${endTime-startTime} ms`);
   return empl;
 }
 
@@ -215,7 +218,7 @@ const filteredData = () => {
   getEmplData();
 }
 
-let th = [{ key: 'fio', title: "ФИО" }, { key: 'phone', title: "Телефон" }, { key: 'email', title: "E-mail" }]
+let th = [{ key: 'fio', title: "ФИО" }, { key: 'mainPhone', title: "Телефон" }, { key: 'mainEmail', title: "E-mail" }]
 
 let data = ref<any>([])
 
@@ -280,6 +283,7 @@ const patronymicsF = ["Ивановна", "Петровна", "Сергеевн�
 
 const createPersons = async (q: number) => {
 
+console.info("employees create started");
   loading.value = true;
   var itemsPertasks=Math.floor(q/8);
   var promises:Promise<void>[]=[];
@@ -297,6 +301,7 @@ const createPersons = async (q: number) => {
   if(cnt) 
     await emplCreateTask(cnt);
 
+console.info("employees created");
   loading.value = false;
 }
 

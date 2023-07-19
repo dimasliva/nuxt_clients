@@ -5,7 +5,7 @@
        <div class="text-h5 ma-2">{{ props.header }}</div>
        <v-spacer></v-spacer>
        <img class="mr-4 mt-2 bg-secondary rounded-circle" height="50" width="50" src="@/doctor-test.jpg"/>
-       <v-icon @click="closeDialog(console.log('closed'))">mdi-close</v-icon>
+       <v-icon @click="closeDialog(console.log())">mdi-close</v-icon>
      </v-row>
     </v-card-title>
     <v-card-text>
@@ -61,7 +61,7 @@
             </VueDatePicker>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-select v-model="empGender" density="compact" label="Пол" :items="[m, f]" variant="underlined"></v-select>
+            <v-select v-model="empGender" density="compact" label="Пол" :items="[{gender: 'м', val: 'm'}, {gender: 'ж', val: 'f'}]" item-title="gender" item-value="val" variant="underlined"></v-select>
           </v-col>
         </v-row>
         <v-checkbox class="ml-4" v-if="adding" label="создать аккаунт" v-model="addAccount" color="primary"></v-checkbox>
@@ -70,7 +70,7 @@
   </v-card-text>
    <v-card-actions class="mr-4 mb-1">
      <v-spacer></v-spacer>
-     <v-btn color="primary" variant="text" @click="closeDialog(console.log('closed'))">
+     <v-btn color="primary" variant="text" @click="closeDialog(console.log())">
        {{ $t('close') }}
      </v-btn>
      <v-btn :disabled="!form" color="primary" @click="() => {actionEmpl()}" variant="text" type="submit">
@@ -88,16 +88,20 @@
    name: string;
    surname: string;
    patronymic: string;
-   gender: string;
-   birthdate: string;
    mainPhone: string;
    mainEmail: string;
    id: string;
  }
+
+ interface ExtraInfo {
+   gender: string;
+   birthdate: any;
+ }
  
  interface Props {
    empl: Employee;
-   action: (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => void;
+   extr: ExtraInfo;
+   action: (name: string, surname: string, patronymic: string, gender: string, birthdate: string, mainPhone: string, mainEmail: string, id: string) => void;
    header: string;
    button: string;
    adding: boolean;
@@ -111,13 +115,11 @@ let empName = ref(props.empl.name)
 let empSurname = ref(props.empl.surname)
 let empPatronymic = ref(props.empl.patronymic)
 let empPhone = ref(props.empl.mainPhone)
-let empBirthdate = ref(props.empl.birthdate)
-let empGender = ref(props.empl.gender)
+let empBirthdate = ref(props.extr.birthdate? props.extr.birthdate.slice(0, 10) : props.extr.birthdate)
 let empEmail = ref(props.empl.mainEmail)
 let empId = ref(props.empl.id)
-let empLogin = ref('')
-let m = ref('м')
-let f = ref('ж')
+let empLogin = ref(props.adding?'':null)
+let empGender = ref(props.extr.gender)
 
 let translit = (word) => {
    const converter = {
@@ -137,7 +139,7 @@ let translit = (word) => {
 }
  
 const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value);
-closeDialog(console.log('done'));
+props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString() ,empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value);
+closeDialog(console.log());
 }
  </script>

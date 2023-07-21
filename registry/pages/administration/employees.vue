@@ -7,19 +7,22 @@
     <img src="@/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline mx-auto">
   </v-card>
   <VRow class="ma-1">
-    <Table @cheked="checkEmpl = $event, disabledFunc()" @person="checkEmpl = $event" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
+    <Table @cheked="checkEmpl = $event, disabledFunc(), loadEmplData()" @person="checkEmpl = $event, loadEmplData()" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
-        <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): (filteredData(), page = 1)" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = []}}">
+        <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): (search(), page = 1)" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = [], stopAutoReq()}}">
           <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
-            <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio=''}" @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(fio, th[0].key)"/>
-            <VTextField v-model="phone" clearable hint="Введите минимум 6 символов" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone=''}" @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(phone, th[1].key)"/>
-            <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email=''}" @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="filterItems(email, th[2].key)"/>
-            <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" variant="underlined" color="secondary" type="number"></VTextField>
+            <VTextField v-model="fio" clearable hint="Введите минимум 2 символа"  ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio='', stopAutoReq()}"
+               @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="() => {filterItems(fio, th[0].key), autoReq(fio)}"/>
+            <VTextField v-model="phone" type="number"  clearable hint="Введите минимум 6 цифр" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone='', stopAutoReq()}"
+               @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="underlined" color="secondary" @input="autoReq(phone)" @update:model-value="() => {filterItems(phone, th[1].key)}"/>
+            <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email='', stopAutoReq()}"
+               @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @input="autoReq(email)" @update:model-value="() => {filterItems(email, th[2].key)}"/>
+            <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" min="5" max="100" step="5" variant="underlined" color="secondary" type="number" @input="itemPerPage > 5? true : itemPerPage = 5 "></VTextField>
             <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnDis()" variant="text" @click="() => {filteredData(), page = 1, checkEmpl = []}">Поиск</VBtn>
-              <VBtn  variant="text" @click="() => { fio='', phone='', email='', params = [], value = [], data = [], page = 1, checkEmpl = [], getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100)}">Сбросить</VBtn>
+              <VBtn :disabled="btnDis()" variant="text" @click="search()">Поиск</VBtn>
+              <VBtn  variant="text" @click="() => {clearFilters()}">Сбросить</VBtn>
             </v-row>
           </VCol>
         </VForm>
@@ -48,9 +51,9 @@ let form = ref(false)
 let drawer = ref(true)
 let show = ref(false)
 let loading = ref(false)
-let fio = ref('')
-let phone = ref('')
-let email = ref('')
+let fio = ref<string>('')
+let phone = ref<string>('')
+let email = ref<string>('')
 let message = ref('')
 
 const emits = defineEmits(['cheked']);
@@ -59,7 +62,8 @@ const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
 const employeesViews = iocc.get(EmployeesViews);
-let checkEmpl = ref([]);
+let checkEmpl = ref<any>([]);
+let extraEmplInfo = ref<any>();
 let deleteBtn = ref(true);
 let foc = ref(true)
 const fioF = ref<any>(null)
@@ -92,19 +96,27 @@ const autoFocus = (e: KeyboardEvent) => {
 }
 
 const btnDis = () => {
-  if((fio.value.length < 2 ) && (phone.value.length < 6) && (email.value.length < 3)){
-    return true
+  let f = fio.value.length;
+  let p = phone.value.length;
+  let e = email.value.length;
+  if(f < 2 && p < 6 && e < 3){
+    return true;
+  } else if (f > 0 && f < 2) {
+    return true;
+  } else if (p > 0 && p < 6) {
+    return true;
+  } else if (e > 0 && e < 3) {
+    return true;
   } else {
-    return false
+    return false;
   }
 }
-
 const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
 mainBtnBar:[
   { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", 
   action: () => updateData() },
   { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
+  action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, extr: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color:"secondary", bkgColor:"red", 
   action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
   { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red", 
@@ -152,13 +164,13 @@ const updateData = () => {
   params.value.length? filteredData(): getEmplData('changedAt', currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 }
 
-const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
+const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
   let rec = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
     data.name = name;
     data.surname = surname;
     data.patronymic = patronymic;
     data.gender = gender;
-    data.birthdate = "2023-05-25T05:12:08.774Z";
+    data.birthdate = birthdate;
     data.roles = "admin";
   })
 
@@ -171,15 +183,20 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
   rec&&emplcont? resultAnswer.value = true : resultAnswer.value = false;
 }
 
-const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => {
+const loadEmplData = async () => {
+  let rec = await recStore.getOrCreate(EmployeeRecord, checkEmpl.value.id);
+  extraEmplInfo.value = rec.Data;
+}
+
+const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, mainPhone: string, mainEmail: string, id: string) => {
 const rec = await recStore.fetch(EmployeeRecord, id);
 if (rec.Key == id) {
   // Обновить данные сотрудника
-  console.log(rec)
   rec.Data!.name = name;
   rec.Data!.surname = surname;
   rec.Data!.patronymic = patronymic;
   rec.Data!.gender = gender;
+  rec.Data!.birthdate = birthdate;
   // Сохранить изменения
   await rec.save();
   // Обновить данные контактов сотрудника
@@ -249,7 +266,7 @@ const filterItems = (where: string, select: string|string[]) => {
       value.value = value.value.filter((el)=>{
         return el !== undefined;
       })
-      params.value.splice(currWhere.length)
+      params.value.splice(value.value.length)
     } else if(!params.value.includes(select)){
       params.value.push(select);
       value.value.push(where);
@@ -257,7 +274,8 @@ const filterItems = (where: string, select: string|string[]) => {
       let ind = params.value.indexOf(select) //С помощью ind делаем динамическое редактирование отдельных элементов, без необходимости обновлять форму целиком.
       value.value.splice(ind, 1, where)
     }
-  } else {
+  } 
+  else {
     let emptIndex = value.value.findIndex((el) => {
       return el === '';
     })
@@ -268,7 +286,7 @@ const filterItems = (where: string, select: string|string[]) => {
 
 const filteredData = () => {
   data.value = [];
-  getEmplData(params.value, value.value, 500);
+  getEmplData(params.value, value.value, 100);
 }
 
 let th = [{title: "ФИО", key: ["surname", "name", "patronymic"]},{title: "Телефон", key: "mainPhone"}, {title: "E-mail", key: "mainEmail"}]
@@ -277,10 +295,56 @@ let data = ref<any>([])
 
 let tableActions = ref([
   { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", 
-  action: () =>  {openDialog(EmplProfileDialog, {empl: checkEmpl.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false} },
+  action: () =>  {openDialog(EmplProfileDialog, {empl: checkEmpl.value, extr: extraEmplInfo.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false; loadEmplData()} },
   { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary", bkgColor:"red", 
   action: () =>  openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
 ])
+
+let req: any = ref(null);
+
+const stopAutoReq = () => {
+  if (req !== null) {
+    clearTimeout(req);
+    req = null;
+  }
+}
+
+const search = () => {
+  stopAutoReq();
+  filteredData(); 
+  page.value = 1; 
+  checkEmpl.value = []; 
+}
+
+const autoReq = (model) => {
+  if(model !== ''){
+    stopAutoReq();
+    req = setTimeout(() => {
+      if(!btnDis()){
+        search();
+        page.value = 1; 
+        checkEmpl.value = [];
+        req = null;
+      } else {
+        stopAutoReq();
+      }
+    }, 3000);
+  }
+}
+
+const clearFilters = () => {
+  stopAutoReq();
+  fio.value='';
+  phone.value='';
+  email.value=''; 
+  params.value = [];
+  value.value = []; 
+  data.value = []; 
+  page.value = 1; 
+  checkEmpl.value = []; 
+  getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
+
+}
 
 onMounted(() => {
 addEventListener('keydown', autoFocus);
@@ -292,40 +356,15 @@ onBeforeUpdate(() => {
   disabledFunc();
 })
 
-
 getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 
-const createPersons = (q: number) => {
-  const genders = ["m", "f"];
-  const namesM = ["Иван", "Петр", "Сергей", "Андрей", "Дмитрий", "Александр", "Михаил", "Николай", "Владимир", "Олег", "Артем", "Алексей", "Константин", "Виктор", "Геннадий", "Григорий", "Евгений", "Егор", "Захар", "Игорь", "Кирилл", "Леонид", "Максим", "Роман", "Руслан", "Семен", "Станислав", "Тимофей", "Федор", "Юрий", "Ярослав"];
-  const namesF = [ "Анастасия", "Александра", "Алина", "Анна", "Валерия", "Виктория", "Галина", "Дарья", "Екатерина", "Елена", "Ирина", "Карина", "Кристина", "Лариса", "Любовь", "Маргарита", "Марина", "Надежда", "Наталья", "Оксана", "Ольга", "Полина", "Светлана", "Татьяна", "Ульяна", "Юлия"];
-  const surnamesM = ["Иванов", "Петров", "Сидоров", "Кузнецов", "Смирнов", "Михайлов", "Федоров", "Соколов", "Новиков", "Морозов", "Волков", "Алексеев", "Лебедев", "Семенов", "Егоров", "Павлов", "Козлов", "Степанов", "Николаев", "Орлов", "Андреев", "Макаров", "Никитин", "Захаров", "Зайцев", "Соловьев", "Борисов", "Яковлев", "Григорьев", "Романов", "Воробьев"];
-  const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "Морозова", "Волкова", "Алексеева", "Лебедева", "Семенова", "Егорова", "Павлова", "Козлова", "Степанова", "Николаева", "Орлова", "Андреева", "Макарова", "Никитина", "Захарова", "Зайцева", "Соловьева", "Борисова", "Яковлева", "Григорьева", "Романова", "Воробьева"];
-  const patronymicsM = ["Иванович", "Петрович", "Сергеевич", "Андреевич", "Дмитриевич", "Александрович", "Михайлович", "Николаевич", "Владимирович", "Олегович", "Артемович", "Алексеевич", "Константинович", "Викторович", "Геннадьевич", "Григорьевич", "Евгеньевич", "Егорович", "Захарович", "Игоревич", "Кириллович", "Леонидович", "Максимович", "Романович", "Русланович", "Семенович", "Станиславович", "Тимофеевич", "Федорович", "Юрьевич", "Ярославович"];
-  const patronymicsF = [ "Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"];
-  
-  for (let i = 0; i < q; i++) {
-    let gender = genders[Math.floor(Math.random() * genders.length)];
-    let name = '';
-    let surname = ''; 
-    let patronymic = '';
-    if(gender == 'm'){
-      name = namesM[Math.floor(Math.random() * namesM.length)];
-      surname = surnamesM[Math.floor(Math.random() * surnamesM.length)];
-      patronymic = patronymicsM[Math.floor(Math.random() * patronymicsM.length)];
-    } else {
-      name = namesF[Math.floor(Math.random() * namesF.length)];
-      surname = surnamesF[Math.floor(Math.random() * surnamesF.length)];
-      patronymic = patronymicsF[Math.floor(Math.random() * patronymicsF.length)];
-    }
-    const year = Math.floor(Math.random() * (2003 - 1950 + 1)) + 1950;
-    const month = Math.floor(Math.random() * 12) + 1;
-    const day = Math.floor(Math.random() * 28) + 1;
-    const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
-    console.log(name, surname, patronymic, gender, birthdate);
-    // addEmployee( name, surname, patronymic, gender, birthdate);
-  }
-}
-
 </script>
+
+<style>
+#input-24.v-field__input::-webkit-outer-spin-button,
+#input-24.v-field__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+</style>
 

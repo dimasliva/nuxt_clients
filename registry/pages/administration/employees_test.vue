@@ -109,7 +109,7 @@ const pageDataLoad = () => {
     mainBtnBar: [
       {
         id: "update", title: "Обновить", icon: "mdi-autorenew", disabled: false, color: "secondary", bkgColor: "red",
-        action: async () => await createPersons(10000)
+        action: async () => await createPersons(100000)
       },
       {
         id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
@@ -149,7 +149,7 @@ const getData = async (select: string, where: TEmployeeFilter, quantity: number)
   if (whereArr.length == 0) return [];
   let wherestr = whereArr.join(" and ");
   const startTime = performance.now();
-  let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams(select, wherestr, quantity));
+  let recArr = await employeesViews.getEmployeeListView(new QueryParams(select, wherestr, null, quantity));
   const empl: IEmployeeListView[] = [];
   let row: IEmployeeListView | undefined;
 

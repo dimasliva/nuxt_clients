@@ -1,13 +1,14 @@
+import { Exception } from "../../Exceptions";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordCompanyData } from "./ApiRecord";
+import { ApiRecord, IApiRecordChData } from "./ApiRecord";
 
 
 
-export interface IEmployeeContactsRecordData extends IApiRecordCompanyData {
-    MainPhone?: string |null;
-    MainEmail?: string |null;
-    AdvData?: any |null;
+export interface IEmployeeContactsRecordData extends IApiRecordChData {
+    MainPhone?: string | null;
+    MainEmail?: string | null;
+    AdvData?: any | null;
 }
 
 
@@ -16,6 +17,7 @@ export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordDat
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, EmployeeContactsRecord, Key);
     }
+
 
 
     protected _createNewAllData(): void {
@@ -37,6 +39,6 @@ export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordDat
     protected _getApiRecordPathUpdate = () => "/Employees/SetEmployeeContacts";
 
 
-    protected _getApiRecordPathDelete () { throw  "Функция не реализована"; return ""}
+    protected _getApiRecordPathDelete() { Exception.throw("MethodNotImplemented","Функция не реализована"); return "" }
 
 }

@@ -7,7 +7,7 @@ import { EncryptAes256, DecryptAes256 } from "@/lib/Security/Crypto";
 
 export default eventHandler(async (event) => {
     console.debug("Server auth invoke");
-
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"//разрешение для nodejs принимать самоподписанные сертификаты https
     const rtmConfig=useRuntimeConfig();
     //let key="F1945A446668430A888955BCDBDD8394F1945A446668430A888955BCDBDD8395";
   

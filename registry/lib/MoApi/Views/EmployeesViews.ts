@@ -8,12 +8,13 @@ import { DataList } from "~/lib/DataList";
 
 export interface IEmployeeListView {
     "id": string | undefined,
+    "changedAt": string | undefined | null,
     "name": string | undefined | null,
     "surname": string | undefined,
     "patronymic": string | undefined | null,
     "mainPhone": string | undefined | null,
     "mainEmail": string | undefined | null,
-    "mainDocument": string | undefined | null
+    "snils": string | undefined | null
 }
 
 
@@ -24,9 +25,9 @@ export class EmployeesViews {
     }
 
 
-    async getEmployeeListView<T = any>(args: QueryParams) {
+    async getEmployeeListView(args: QueryParams) {
         const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Employees/EmployeesListView", args);
-        let res = DataList.createFromApiDl<T>(apires);
+        let res = DataList.createFromApiDl<IEmployeeListView>(apires);
         return res;
     }
 

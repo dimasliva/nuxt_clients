@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 // nuxt.config.ts
 import { defineNuxtConfig } from "nuxt/config"
-import { Nitro } from "nitropack";
+import { Nitro } from "nitropack/types";
 import { createResolver } from '@nuxt/kit'
 import vuetify from 'vite-plugin-vuetify'
 
@@ -71,6 +71,18 @@ export default defineNuxtConfig({
       
     }
   },
-  modules: ['@nuxt-alt/proxy']
+  modules: ['@nuxt-alt/proxy'],
+
+  nitro: {
+    esbuild: {
+      options: {
+        tsconfigRaw: {
+          compilerOptions: {
+            experimentalDecorators: true
+          }
+        }
+      }
+    }
+  }
 
 });

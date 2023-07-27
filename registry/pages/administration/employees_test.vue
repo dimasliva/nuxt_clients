@@ -180,8 +180,8 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
   })
 
   let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
-  emplcont.Data!.MainEmail = mail || null;
-  emplcont.Data!.MainPhone = phone || null;
+  emplcont.Data!.mainEmail = mail || null;
+  emplcont.Data!.mainPhone = phone || null;
   emplcont.save();
 }
 

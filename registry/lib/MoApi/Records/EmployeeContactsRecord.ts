@@ -6,9 +6,9 @@ import { ApiRecord, IApiRecordChData } from "./ApiRecord";
 
 
 export interface IEmployeeContactsRecordData extends IApiRecordChData {
-    MainPhone?: string | null;
-    MainEmail?: string | null;
-    AdvData?: any | null;
+    mainPhone?: string | null;
+    mainEmail?: string | null;
+    advData?: any | null;
 }
 
 
@@ -23,9 +23,9 @@ export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordDat
     protected _createNewAllData(): void {
         this._Data = new Proxy({
             id: this.Key,
-            MainPhone: null,
-            MainEmail: null,
-            AdvData: null
+            mainPhone: null,
+            mainEmail: null,
+            advData: null
         }, this._getProxyHanlders());
     }
 

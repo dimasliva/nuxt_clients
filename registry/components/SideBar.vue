@@ -64,17 +64,17 @@
           <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn v-for="(buttons, index) in currPageButtons" elevation="0" class="mx-2" rounded="xl" :key="index" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
-          variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :disabled="buttons.disabled" :text="(buttons.title.length)? buttons.title : undefined" :density="(buttons.title.length)? `default` : `comfortable`"
-          @click="buttons.action()" />
+        <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
+          <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl" :id="buttons.id" :index="index" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
+            variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :text="(buttons.title.length)? buttons.title : undefined" :density="(buttons.title.length)? `default` : `comfortable`"
+            @click="buttons.action()" />
+        </template>
         <v-menu :open-on-hover="true">
           <template v-slot:activator="{ props }">
-            <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
-              :icon="currPageMenu?.icon" />
+            <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4" :icon="currPageMenu?.icon" />
           </template>
           <v-list>
-            <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
-              @click="child.action">
+            <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled" @click="child.action">
               <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
             </v-list-item>
           </v-list>
@@ -161,7 +161,6 @@ let currPageTitle = ref<IMenu | string>('');
 let currPageButtons = ref<IBtnMenu[] | null>();
 let currPageMenu = ref<IMenu | null>();
 let currPin = ref<boolean>(true);
-let checkFields = ref<any[]>([]);
 let showDialog = ref<boolean>(false);
 let pages = ref<Page[]>([]);
 let dialogForm: DialogForm = {
@@ -190,15 +189,15 @@ const chapters = modManager.getModuleItemsMenu();
 const route = useRoute();
 
 const pageGetData = () => {
-  const pageData = pageMap.getPageData(route.path);
+  currPageButtons.value = [];
+  let pageData = pageMap.getPageData(route.path);
+  currPageButtons.value = pageData?.mainBtnBar;
   currPageTitle.value = pageData?.title || '';
-  currPageButtons.value = pageData?.mainBtnBar || null;
   currPageMenu.value = pageData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
-  checkFields.value = [];
 };
 
-watch(() => route.query, pageGetData);
+watch(() => route.query, pageGetData, { deep: true });
 
 onMounted(pageGetData);
 

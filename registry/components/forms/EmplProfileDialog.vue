@@ -63,6 +63,9 @@
           <v-col cols="12" sm="6">
             <v-select v-model="empGender" density="compact" label="Пол" :disabled="!updProf" :items="[{gender: 'м', val: 'm'}, {gender: 'ж', val: 'f'}]" item-title="gender" item-value="val" variant="underlined"></v-select>
           </v-col>
+          <v-col v-if="specEmpl" cols="12" sm="6">
+            <v-select v-model="empRole" multiple density="compact" label="Роль" :disabled="!updProf" :items="roles" item-title="role" item-value="val" variant="underlined"></v-select>
+          </v-col>
         </v-row>
         <v-checkbox class="ml-4" v-if="adding" label="создать аккаунт" v-model="addAccount" color="primary"></v-checkbox>
       </v-container>
@@ -126,9 +129,15 @@ let empEmail = ref(props.empl.mainEmail)
 let empId = ref(props.empl.id)
 let empLogin = ref(props.adding?'':null)
 let empGender = ref(props.extr.gender)
+let empRole = ref()
 let updProf = ref(props.rights.empProfRights.includes('u'))
 let updCont = ref(props.rights.empContRights.includes('u'))
 let crtEmpl = ref(props.rights.empContRights.includes('c') && props.rights.empProfRights.includes('c'))
+let specEmpl = ref(props.rights.empContRights.includes('s') && props.rights.empProfRights.includes('s'))
+
+let roles = ref([
+  {role: 'Администратор', val: 'admin'}
+])
 
 let translit = (word) => {
    const converter = {

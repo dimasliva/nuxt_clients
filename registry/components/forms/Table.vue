@@ -9,7 +9,10 @@
                 </th>
                 <th class="ma-0 pa-0 bg-primary" v-if="delRights">{{ cheked.length }}</th>
                 <th class="ma-0 pa-0 bg-primary" v-else></th>
-                <th class="text-tertiary text-center bg-primary" v-for="item in headers" :key="item.key" @click="sortList(item.key, info[page! - 1])">{{ item.title }}</th>
+                <!-- <th class="text-tertiary text-center bg-primary" v-for="item in headers" :key="item.key" @click="sortList(item.key, info[page! - 1])">{{ item.title }}</th> -->
+                <th class="text-tertiary text-center bg-primary" v-if="rights.empProfRights.includes('r')" @click="sortList(headers[0].key, info[page! - 1])">{{ headers[0].title }}</th>
+                <th class="text-tertiary text-center bg-primary" v-if="rights.empContRights.includes('r')" @click="sortList(headers[1].key, info[page! - 1])">{{ headers[1].title }}</th>
+                <th class="text-tertiary text-center bg-primary" v-if="rights.empContRights.includes('r')" @click="sortList(headers[2].key, info[page! - 1])">{{ headers[2].title }}</th>
               </tr>
             </thead>
             <tbody>

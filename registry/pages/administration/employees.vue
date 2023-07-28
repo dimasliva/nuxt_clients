@@ -147,12 +147,14 @@ const redirFunc = () => {
 }
 
 const checkRole = async () => {
+  pageButtons.value = [];
+  tableActions.value = [];
   //Запрос роли сотрудника и проверка прав доступа
   let rec = await recStore.fetch(RoleRecord, '');
   role.value = Object.values(rec.Data!.roles)[0];
   // role.value = {
-  //   "dbEmployee": "",
-  //   "dbEmployeeContacts": ""
+  //   "dbEmployee": "cruds",
+  //   "dbEmployeeContacts": "cds",
   // }
   //Создание необходимого функционала, в соответствии с правами 
   if(role.value['#CompanyAdmin']){
@@ -226,7 +228,6 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
       data.value.push(tempData.slice(i,i+ +itemPerPage.value));
     }
     loading.value = false;
-    console.log('lol req work');
   }
 
 }
@@ -419,18 +420,17 @@ const clearFilters = () => {
   getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 
 }
-
 onMounted(() => {
-  addEventListener('keydown', autoFocus);
-})
-
-onActivated(() => {
-  checkRole();
   setTimeout(() => {
     pageDataLoad();
     getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
     loading.value = false;
   }, 300);
+})
+
+onActivated(() => {
+  addEventListener('keydown', autoFocus);
+  checkRole();
 })
 onBeforeUpdate(() => {
   disabledFunc();

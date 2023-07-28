@@ -77,14 +77,6 @@
           <template v-slot:activator="{ props }">
             <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4" :icon="currPageMenu?.icon" />
           </template>
-          <!-- <v-list>
-            <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled" @click="child.action">
-              <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </v-row>
-    <NuxtPage :keepalive="true" @cheked="loadPageData" :field="rail"/> -->
         <v-list>
           <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled" @click="child.action">
             <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
@@ -363,13 +355,13 @@ const getEventsHandler = () => {
 
 
 
-// const onKeydown = (e: KeyboardEvent) => {
-//   if (!showDialog.value && pInput.value.focused) return;
-//   let handled = false;
-//   const handler = getEventsHandler();
-//   if (handler)
-//     handled = handler("onKeydown", e);
-// }
+const onKeydown = (e: KeyboardEvent) => {
+  if (!showDialog.value && pInput.value.focused) return;
+  let handled = false;
+  const handler = getEventsHandler();
+  if (handler)
+    handled = handler("onKeydown", e);
+}
 
 
 </script>

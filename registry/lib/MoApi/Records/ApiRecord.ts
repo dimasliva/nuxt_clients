@@ -2,19 +2,21 @@
 import { MoApiClient } from "../MoApiClient";
 import { CloneData } from "../../Helpers";
 import { UserContext } from "~~/lib/UserContext";
+import { ICouplingData, IRelData } from "../ApiInterfaces"
+import { RecordsCodes } from "./RecordsCodes";
 
 
-export interface IApiRecordData{
-    id:string;
+export interface IApiRecordData {
+    id: string;
 }
 
-export interface IApiRecordChData extends IApiRecordData{
-    "createdAt"?: string|undefined,
-    "changedAt"?: string|undefined
+export interface IApiRecordChData extends IApiRecordData {
+    "createdAt"?: string | undefined,
+    "changedAt"?: string | undefined
 }
 
-export interface IApiRecordCompanyData extends IApiRecordChData{
-    "company"?:string|undefined;
+export interface IApiRecordCompanyData extends IApiRecordChData {
+    "company"?: string | undefined;
 }
 
 
@@ -28,6 +30,8 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     public get Key(): string { return this._Key; }
     public set Key(value: string) { this._Key = value; }
 
+     get RecCode(): number {return RecordsCodes[this._RecordType.name]}
+
     protected _Data: T | null = null;
     public get Data(): T | null { return this._Data; }
     public set Data(value: T | null) { this._Data = value; }
@@ -35,6 +39,9 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     protected _prevData: T | null = null;
     protected _isNewData: boolean = true;
 
+    protected _childsData: { [code: number]: IRelData[] } = {};
+    protected _parentsData: { [code: number]: IRelData[] } = {};
+    protected _couplingsData: { [code: number]: ICouplingData[] } = {};
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, RecType: Class<ApiRecord>, Key: string) {
         this._RecordType = RecType;
@@ -46,6 +53,8 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     protected abstract _getApiRecordPathUpdate(): string;
     protected abstract _getApiRecordPathDelete(): string;
     protected abstract _createNewAllData(): void;
+
+    
 
 
     protected _getProxyHanlders(): ProxyHandler<T> {
@@ -60,15 +69,15 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
     protected async _loadAData() {
         const arr = await this._MoApiClient.send<string[], T[]>(this._getApiRecordPathGet(), [this._Key]);
-        this._Data = new Proxy(arr[0],this._getProxyHanlders());
+        this._Data = new Proxy(arr[0], this._getProxyHanlders());
         return this._Data;
     }
 
 
     protected async _addAllData() {
-        let guid= await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._Data);
-        this._Data!.id=guid;
-        this.Key=guid;
+        let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._Data);
+        this._Data!.id = guid;
+        this.Key = guid;
         return guid;
     }
 
@@ -136,4 +145,107 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
         return this._MoApiClient.send<string, boolean>(this._getApiRecordPathDelete(), this._Key);
     }
 
+
+    protected async _loadCouplings(slaveRecCode: number = -1) {
+        this._couplingsData[slaveRecCode] = await this._MoApiClient.getRelationApiSection().getCouplings(this.Key, this.RecCode, slaveRecCode);
+    }
+
+
+    async getCouplings(slaveRecCode: number = -1) {
+        if (this._couplingsData[slaveRecCode])
+            return this._couplingsData[slaveRecCode];
+
+
+        this._loadCouplings()
+        return this._couplingsData[slaveRecCode];
+    }
+
+
+    async addCoupling(slaveKey: string, slaveRecCode: number) {
+        await this._MoApiClient.getRelationApiSection().addCoupling(this.Key, this.RecCode, slaveKey, slaveRecCode);
+        delete this._couplingsData[slaveRecCode];
+    }
+
+
+    async addCouplingByRec(slaveRec: ApiRecord) {
+        await this.addCoupling(slaveRec.Key, slaveRec.RecCode);
+    }
+
+
+    async delCoupling(slaveKey: string, slaveRecCode: number) {
+        await this._MoApiClient.getRelationApiSection().delCoupling(this.Key, this.RecCode, slaveKey, slaveRecCode);
+        delete this._couplingsData[slaveRecCode];
+    }
+
+
+    async delCouplingByRec(slaveRec: ApiRecord) {
+        await this.delCoupling(slaveRec.Key, slaveRec.RecCode);
+    }
+
+
+    protected async _loadChilds(childsRecCode: number = -1) {
+        this._childsData[childsRecCode] = await this._MoApiClient.getRelationApiSection().getChilds(this.Key, this.RecCode, childsRecCode);
+    }
+
+
+    protected async _loadParents(parentsRecCode: number = -1) {
+        this._parentsData[parentsRecCode] = await this._MoApiClient.getRelationApiSection().getParents(this.Key, this.RecCode, parentsRecCode);
+    }
+
+
+    async getChilds(childsRecCode: number = -1) {
+        if (this._childsData[childsRecCode])
+            return this._childsData[childsRecCode];
+
+        this._loadChilds()
+        return this._childsData[childsRecCode];
+    }
+
+
+    async getParents(parentsRecCode: number = -1) {
+        if (this._parentsData[parentsRecCode])
+            return this._parentsData[parentsRecCode];
+
+        this._loadParents()
+        return this._parentsData[parentsRecCode];
+    }
+
+
+
+    async addChild(childId: string, childRecCode: number, relType: number) {
+        await this._MoApiClient.getRelationApiSection().addChild(this.Key, this.RecCode, childId, childRecCode, relType);
+        delete this._childsData[childRecCode];
+    }
+
+
+
+    async addChildByRec(childRec: ApiRecord, relType: number) {
+        await this.addChild(childRec.Key, childRec.RecCode, relType);
+    }
+
+
+
+    async delChild(childId: string, childRecCode: number) {
+        await this._MoApiClient.getRelationApiSection().delChild(this.Key, this.RecCode, childId, childRecCode);
+        delete this._childsData[childRecCode];
+    }
+
+
+
+    async delChildByRec(childRec: ApiRecord) {
+        await this.delChild(childRec.Key, childRec.RecCode);
+    }
+
+
+
+    async updateRelation(childId: string, childRecCode: number, relType: number) {
+        await this._MoApiClient.getRelationApiSection().updateRelation(this.Key, this.RecCode, childId, childRecCode, relType);
+        delete this._childsData[childRecCode];
+    }
+
+
+
+    async updateRelationByRec(childRec: ApiRecord, relType: number) {
+        await this.updateRelation(childRec.Key, childRec.RecCode, relType);
+    }
 }

@@ -1,4 +1,4 @@
-import { IUserCredentials } from "@/lib/Security";
+import { IUserCredentials, IUserCredentialsServer } from "@/lib/Security";
 import { MoApiClient } from "@/lib/MoApi/MoApiClient";
 import { MoApiClientSettings } from "~~/lib/MoApi/MoApiClientSettings";
 import "reflect-metadata";
@@ -10,7 +10,7 @@ export default eventHandler(async (event) => {
 
     let key="F1945A446668430A888955BCDBDD8394F1945A446668430A888955BCDBDD8395";
   
-    let userCred: IUserCredentials|undefined = await readBody(event);
+    let userCred: IUserCredentialsServer|undefined = await readBody(event);
 
     if (!userCred || typeof userCred!="object")
     {
@@ -36,7 +36,7 @@ export default eventHandler(async (event) => {
 
     apiClient.MoApiClientSettings.Credentials = userCred;
     try {
-        let authData = await apiClient.Authorize();
+        let authData = await apiClient.AuthorizeServer(userCred);
         console.debug("Auth OK");
 
         setCookie(event, "user_session", EncryptAes256(key,JSON.stringify(userCred)))

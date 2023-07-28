@@ -4,6 +4,7 @@ export class Exception {
     code: string;
     message: string;
 
+  static throw(code: string, message){ throw new Exception(code,message)}
 
     constructor(code: string, message: string) {
         this.code = code||"--";

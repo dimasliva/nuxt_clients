@@ -64,9 +64,6 @@ export class RecordsStore {
 
 
     async getOrCreate<T extends ApiRecord, Tdata>(type: Class<T>, Key:string, fillFunc?: (data: Tdata) => void) {
-        if (this._store[type.name])
-          this._store[type.name] = {};
-
         let rec=this.get<T>(type,Key);
         var loaded=await rec.tryLoadAllData();
         if(!loaded){

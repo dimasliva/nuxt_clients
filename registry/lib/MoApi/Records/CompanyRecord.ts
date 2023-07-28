@@ -1,6 +1,6 @@
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData, IApiRecordCompanyData } from "./ApiRecord";
+import { ApiRecord, IApiRecordChData } from "./ApiRecord";
 
 export interface ICompanyRecordData extends IApiRecordChData {
     "defaultOrg": string | null,
@@ -12,9 +12,11 @@ export interface ICompanyRecordData extends IApiRecordChData {
 
 export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
 
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, CompanyRecord, Key);
     }
+
 
 
     protected _createNewAllData(): void {
@@ -33,12 +35,12 @@ export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
     protected _getApiRecordPathGet = () => "/Employees/GetCompany";
 
 
-    protected _getApiRecordPathAdd () { throw new Error("Method not implemented."); return "";};
+    protected _getApiRecordPathAdd() { throw new Error("Method not implemented."); return ""; };
 
 
     protected _getApiRecordPathUpdate = () => "/Employees/UpdateCompany";
 
 
-    protected _getApiRecordPathDelete () { throw new Error("Method not implemented."); return "";};
+    protected _getApiRecordPathDelete() { throw new Error("Method not implemented."); return ""; };
 
 }

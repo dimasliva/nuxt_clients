@@ -1,5 +1,4 @@
 import { injectable, inject } from "inversify";
-import { Component } from "nuxt/schema";
 import { EnumArray } from "./EnumArray";
 import { UserContext } from "./UserContext";
 
@@ -32,7 +31,16 @@ export class ModuleManager {
                 { id: "clients", title: "Клиенты", getPagePath: () => "/administration/clients", icon: "mdi-account-circle" },
             ]
         });
-        res.push({ id: "patients", title: "ЖПЗ", getPagePath: () => "/journal", icon: "mdi-account-heart" });
+        res.push({
+            id: "lists",
+            title: "Списки",
+            getPagePath: () => "",
+            icon: "mdi-account-tie",
+            childs: [
+                { id: "clients", title: "Клиенты", getPagePath: () => "/administration/clients", icon: "mdi-account-circle" },
+            ]
+        });
+
         res.push({ id: "data_bases", title: "База данных", getPagePath: () => "/data", icon: "mdi-server" });
         return res;
     }

@@ -6,12 +6,14 @@ import { IApiDataListResult } from "../RequestResults";
 import { DataList } from "~/lib/DataList";
 
 
-export interface IEmployeeListView {
+export interface IClientListView {
     "id": string | undefined,
     "changedAt": string | undefined | null,
     "name": string | undefined | null,
     "surname": string | undefined,
     "patronymic": string | undefined | null,
+    "gender": string;
+    "birthdate": string|null;
     "mainPhone": string | undefined | null,
     "mainEmail": string | undefined | null,
     "snils": string | undefined | null
@@ -19,15 +21,15 @@ export interface IEmployeeListView {
 
 
 @injectable()
-export class EmployeesViews {
+export class ClientsViews {
 
     constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("UserContext") protected _UserContext: UserContext) {
     }
 
 
-    async getEmployeeListView(args: QueryParams) {
-        const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Employees/EmployeesListView", args);
-        let res = DataList.createFromApiDl<IEmployeeListView>(apires);
+    async getClientListView(args: QueryParams) {
+        const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Clients/ClientsListView", args);
+        let res = DataList.createFromApiDl<IClientListView>(apires);
         return res;
     }
 

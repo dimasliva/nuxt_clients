@@ -1,22 +1,24 @@
 import { DataList } from "~/lib/DataList";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordCompanyData } from "./ApiRecord";
+import { ApiRecord, IApiRecordChData } from "./ApiRecord";
 import { QueryParams } from "~/lib/MoApi/RequestArgs";
 import { IApiDataListResult } from "../RequestResults";
 
 
-export interface IEmployeeRecordData extends IApiRecordCompanyData {
-    "name": string,
-    "surname": string,
-    "patronymic": string | null,
-    "gender": string,
-    "birthdate": string | null,
-    "roles": string,
-    "notActive": boolean,
-    "linkedRecs": any,
-    "profile": any,
-    "advData": any
+export interface IEmployeeRecordData extends IApiRecordChData {
+    name: string;
+    surname: string;
+    patronymic?: string | null;
+    gender: string;
+    birthdate?: string | null;
+    rank?: number | null;
+    photo?: string | null;
+    roles?: string | null;
+    notActive?: boolean | null;
+    linkedRecs?: any | null;
+    profile?: any | null;
+    advData?: any | null;
 }
 
 
@@ -26,6 +28,7 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
         super(_MoApiClient, __UserContext, EmployeeRecord, Key);
     }
 
+    get RecCode(){return 1004;}
 
     protected _createNewAllData(): void {
         this._Data = new Proxy({
@@ -33,8 +36,10 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
             "name": '',
             "surname": '',
             "patronymic": null,
-            "gender": '',
+            "gender": 'u',
             "birthdate": null,
+            "rank":null,
+            "photo":null,
             "roles": '',
             "notActive": false,
             "linkedRecs": null,

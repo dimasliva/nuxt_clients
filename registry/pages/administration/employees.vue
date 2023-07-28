@@ -214,7 +214,7 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
     loading.value = false;
     redirFunc();
   } else {
-    let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams(selStr.value, recStr.value, quantity));
+    let recArr = await employeesViews.getEmployeeListView(new QueryParams(selStr.value, recStr.value, null, quantity));
   
     const empl:IEmployeeListView[] = [];
     let row: IEmployeeListView | undefined;
@@ -250,8 +250,8 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
   })
 
   let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
-  emplcont.Data!.MainPhone = phone || null;
-  emplcont.Data!.MainEmail = mail || null;
+  emplcont.Data!.mainPhone = phone || null;
+  emplcont.Data!.mainEmail = mail || null;
   emplcont.save();
   message.value = 'Сотрудник успешно добавлен!';
   updateData();
@@ -280,8 +280,8 @@ if (rec.Key == id) {
   await rec.save();
   // Обновить данные контактов сотрудника
   const emplcont = await recStore.getOrCreate(EmployeeContactsRecord, id);
-  emplcont.Data!.MainPhone = mainPhone || null;
-  emplcont.Data!.MainEmail = mainEmail || null;
+  emplcont.Data!.mainPhone = mainPhone || null;
+  emplcont.Data!.mainEmail = mainEmail || null;
   await emplcont.save();
   // Вернуть результат обновления
   message.value = 'Данные сотрудника изменены!'
@@ -420,9 +420,11 @@ const clearFilters = () => {
 
 }
 
+onMounted(() => {
+  addEventListener('keydown', autoFocus);
+})
 
 onActivated(() => {
-  addEventListener('keydown', autoFocus);
   checkRole();
   setTimeout(() => {
     pageDataLoad();

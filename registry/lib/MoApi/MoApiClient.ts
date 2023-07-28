@@ -5,6 +5,7 @@ import { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '@/lib/
 import { sleep, excToLog } from "@/lib/Helpers";
 import { Exception, NetException } from '../Exceptions';
 import { IApiResult } from './RequestResults';
+import { RelationApiSection } from './ApiSectionsV1/RelationApiSection';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -23,6 +24,7 @@ export class MoApiClient {
 
     protected _AuthToken: string = "";
     protected _currentApiHost: string = "";
+    protected _RelationApiSection: RelationApiSection=new RelationApiSection(this);
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -40,8 +42,14 @@ export class MoApiClient {
         return res;
     }
 
-    async send<inT, outT>(path: string, data?: inT) {
-        let res = await this.sendRequest("POST", `${this._APIPATH}${path}`, data);
+    async send<inT, outT>(path: string, data?: inT, inParam: boolean = false) {
+
+        if (inParam)
+            var res = await this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null,null);
+        else
+            var res = await this.sendRequest("POST", `${this._APIPATH}${path}`, data);
+
+
 
         if (res.bodyData && typeof res.bodyData == "object") {
             const answ = <IApiResult>res.bodyData;
@@ -58,9 +66,12 @@ export class MoApiClient {
     }
 
 
-    async trySend<inT, OutT>(path: string, data?: inT) {
+    async trySend<inT, OutT>(path: string, data?: inT, inParam: boolean = false) {
         try {
-            return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}`, data);
+            if (inParam)
+                return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null,null);
+            else
+                return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}`, data);
         }
         catch (exc) {
             excToLog("MoApiClient.trySend", exc);
@@ -74,7 +85,7 @@ export class MoApiClient {
     }
 
 
-    async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string = "application/json") {
+    async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string | null= "application/json") {
         let baseurl = "";
         try {
             if (this._currentApiHost)
@@ -292,6 +303,29 @@ export class MoApiClient {
         }
 
         throw new NetException("AuthErr", "Ошибка авторизации", response?.status || 0, response);
+    }
+
+
+
+    getRelationApiSection=() => this._RelationApiSection;
+
+
+    _convertToURLParams(obj: any): string {
+        const params: any = [];
+
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                let value = obj[key];
+
+                if (typeof value === 'object') {
+                    value = JSON.stringify(value);
+                }
+
+                params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+            }
+        }
+
+        return params.join('&');
     }
 
 }

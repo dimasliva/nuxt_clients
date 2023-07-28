@@ -54,40 +54,37 @@
       </v-chip>
     </v-col>
   </v-row>
-  <v-card class="overflow-y-auto " elevation="0" height="87vh">
-    <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
-      <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
-      <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
-        <v-icon color="secondary">mdi-pin</v-icon>
-        <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
-      </v-btn>
-      <v-btn v-else variant="text" size="small"
-        @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
-        icon>
-        <v-icon color="secondary">mdi-pin-off</v-icon>
-        <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
-      </v-btn>
-      <v-spacer></v-spacer>
-      <v-btn v-for="(buttons, index) in currPageButtons" elevation="0" class="mx-2" rounded="xl" :key="index"
-        :icon="(buttons.title.length) ? false : buttons.icon"
-        :append-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="outlined" :color="buttons.color"
-        :background-color="buttons.bkgColor" :disabled="buttons.disabled"
-        :text="(buttons.title.length) ? buttons.title : undefined"
-        :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
-      <v-menu :open-on-hover="true">
-        <template v-slot:activator="{ props }">
-          <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
-            :icon="currPageMenu?.icon" />
+    <v-card class="overflow-y-auto " elevation="0" height="87vh">
+      <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
+        <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
+        <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
+          <v-icon color="secondary">mdi-pin</v-icon>
+          <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
+        </v-btn>
+        <v-btn v-else variant="text" size="small"
+          @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
+          icon>
+          <v-icon color="secondary">mdi-pin-off</v-icon>
+          <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
+          <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl" :id="buttons.id" :index="index" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
+            variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :text="(buttons.title.length)? buttons.title : undefined" :density="(buttons.title.length)? `default` : `comfortable`"
+            @click="buttons.action()" />
         </template>
+        <v-menu :open-on-hover="true">
+          <template v-slot:activator="{ props }">
+            <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4" :icon="currPageMenu?.icon" />
+          </template>
         <v-list>
-          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
-            @click="child.action">
+          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled" @click="child.action">
             <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
     </v-row>
-    <NuxtPage ref="pageObj" :keepalive="true" />
+    <NuxtPage ref="pageObj" :keepalive="true" @cheked="loadPageData" :field="rail"/>
   </v-card>
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
     <component ref="compObj" :is="dialogForm.comp" v-bind="dialogForm.props" />
@@ -168,7 +165,6 @@ let currPageTitle = ref<IMenu | string>('');
 let currPageButtons = ref<IBtnMenu[] | null>();
 let currPageMenu = ref<IMenu | null>();
 let currPin = ref<boolean>(true);
-let checkFields = ref<any[]>([]);
 let showDialog = ref<boolean>(false);
 let pages = ref<Page[]>([]);
 let dialogForm: DialogForm = {
@@ -201,17 +197,15 @@ const chapters = modManager.getModuleItemsMenu();
 const route = useRoute();
 let pageData: IPageData | null;
 
-
-
+    
 const loadPageData = () => {
+  currPageButtons.value = [];
   pageData = pageMap.getPageData(route.path);
+  currPageButtons.value = pageData?.mainBtnBar;
   currPageTitle.value = pageData?.title || '';
-  currPageButtons.value = pageData?.mainBtnBar || null;
   currPageMenu.value = pageData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
-  checkFields.value = [];
 };
-
 
 onErrorCaptured((h, t) => {
   closeDiag(null, true);
@@ -221,11 +215,11 @@ watch(() => route.query, loadPageData);
 
 onMounted(() => {
   loadPageData();
-  addEventListener('keydown', onKeydown);
+  // addEventListener('keydown', onKeydown);
 });
 
 onBeforeUnmount(() => {
-  removeEventListener('keydown', onKeydown);
+  // removeEventListener('keydown', onKeydown);
 })
 
 let addDiag = (val: { component: any; props: any; modal: boolean; eventsHandler: ((eventName: string, eventData: any) => boolean) | null }) => {
@@ -358,6 +352,7 @@ const getEventsHandler = () => {
       }
   return null;
 }
+
 
 
 const onKeydown = (e: KeyboardEvent) => {

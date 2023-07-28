@@ -1,23 +1,30 @@
 <template>
-  <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
+  <VCard v-if="loading == true && nright == false" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
     <img src="@/cat-laptop.jpg" alt="cat" class="w-50 d-inline mx-auto">
   </VCard>
-  <v-card v-if="data.length == 0 && loading == false"  max-width="400" class="mx-auto" elevation="0" >
+  <v-card v-if="data.length == 0 && loading == false && nright == false"  max-width="400" class="mx-auto" elevation="0" >
     <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-    <img src="@/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline mx-auto">
+    <img src="@/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
+    <v-card-actions>
+      <VBtn  variant="text" @click="() => {clearFilters()}">Сбросить</VBtn>
+    </v-card-actions>
   </v-card>
-  <VRow class="ma-1">
-    <Table @cheked="checkEmpl = $event, disabledFunc(), loadEmplData()" @person="checkEmpl = $event, loadEmplData()" :info="filteredData.length? filteredData : data" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions"></Table>
+  <v-card v-if="nright"  max-width="400" class="mx-auto" elevation="0" loading>
+    <v-card-text class="text-h6">У вас нет доступа к этой странице, сейчас вы будете перенаправленны на панель управления.</v-card-text>
+    <img src="@/cat-laptop-rights.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
+  </v-card>
+  <VRow class="ma-1" v-show="loading === false && nright == false && data.length > 0">
+    <Table @cheked="checkEmpl = $event, disabledFunc(), loadEmplData()" @person="checkEmpl = $event, loadEmplData()" :info="filteredData.length? filteredData : data" :checkbox-show="show" :rights="empRights" :page="page" :headers="th" :actions="tableActions"></Table>
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
         <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): (search(), page = 1)" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = [], stopAutoReq()}}">
           <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
-            <VTextField v-model="fio" clearable hint="Введите минимум 2 символа"  ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio='', stopAutoReq()}"
+            <VTextField v-model="fio" v-if="empRights.empProfRights.includes('r')" clearable hint="Введите минимум 2 символа"  ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio='', stopAutoReq()}"
                @update:focused="lastField=fioF, searchField = false" :label="th[0].title" class="ma-1" variant="underlined" color="secondary" @update:model-value="() => {filterItems(fio, th[0].key), autoReq(fio)}"/>
-            <VTextField v-model="phone" type="number"  clearable hint="Введите минимум 6 цифр" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone='', stopAutoReq()}"
+            <VTextField v-model="phone" v-if="empRights.empContRights.includes('r')" type="number" clearable hint="Введите минимум 6 цифр" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone='', stopAutoReq()}"
                @update:focused="lastField=phoneF, searchField = false" :label="th[1].title" class="ma-1" variant="underlined" color="secondary" @input="autoReq(phone)" @update:model-value="() => {filterItems(phone, th[1].key)}"/>
-            <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email='', stopAutoReq()}"
+            <VTextField v-model="email" v-if="empRights.empContRights.includes('r')" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email='', stopAutoReq()}"
                @update:focused="lastField=emailF, searchField = false" :label="th[2].title" class="ma-1" variant="underlined" color="secondary" @input="autoReq(email)" @update:model-value="() => {filterItems(email, th[2].key)}"/>
             <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" min="5" max="100" step="5" variant="underlined" color="secondary" type="number" @input="itemPerPage > 5? true : itemPerPage = 5 "></VTextField>
             <v-row class="ma-1" style="min-width: 200pt;">
@@ -34,15 +41,16 @@
 </template>
   
 <script setup lang="ts">
-import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
+import { PageMap } from '~~/lib/PageMap';
 import Table from '~~/components/forms/Table.vue';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
-import { PageMap } from '~~/lib/PageMap';
+import { QueryParams } from '~~/lib/MoApi/RequestArgs';
+import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
-import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
-import { QueryParams } from '~~/lib/MoApi/RequestArgs';
+import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
+import { RoleRecord, IRoleRecordData} from '~~/lib/MoApi/Records/RoleRecord';
 import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 
 let page = ref(1)
@@ -50,7 +58,7 @@ let itemPerPage = ref<number>(10)
 let form = ref(false)
 let drawer = ref(true)
 let show = ref(false)
-let loading = ref(false)
+let loading = ref(true)
 let fio = ref<string>('')
 let phone = ref<string>('')
 let email = ref<string>('')
@@ -64,13 +72,14 @@ const recStore = iocc.get(RecordsStore);
 const employeesViews = iocc.get(EmployeesViews);
 let checkEmpl = ref<any>([]);
 let extraEmplInfo = ref<any>();
-let deleteBtn = ref(true);
 let foc = ref(true)
 const fioF = ref<any>(null)
 const phoneF = ref<any>(null)
 const emailF = ref<any>(null)
 const lastField = ref<HTMLElement>()
 let resultAnswer = ref(false);
+let role = ref();
+let nright = ref(false)
 
 const props = defineProps({
   field : {
@@ -111,21 +120,73 @@ const btnDis = () => {
     return false;
   }
 }
-const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "",
-mainBtnBar:[
-  { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () => updateData() },
-  { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red", 
-  action: () =>{ openDialog(EmplProfileDialog,  {empl: {}, extr: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} },
-  { id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color:"secondary", bkgColor:"red", 
-  action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
-  { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red", 
-     action: () =>  (drawer.value = !drawer.value) },
-  ]
-});
-}
-pageDataLoad();
 
+let pageButtons = ref<any>([])
+
+const pageDataLoad = () =>{ pageMap.setPageData("/administration/employees", {title: "Сотрудники", icon: "", mainBtnBar: pageButtons.value})};
+
+let updBtn = { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", action: () => updateData() };
+let addBtn = { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red",  action: () =>{ openDialog(EmplProfileDialog,  {rights: empRights.value, empl: {}, extr: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true}, true, () => foc.value = true); foc.value = false} };
+let delBtn = { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary",disabled: false,  bkgColor:"red",  action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) };
+let filtBtn = { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red",  action: () =>  (drawer.value = !drawer.value) };
+let chnBtn = { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", action: () =>  {openDialog(EmplProfileDialog, {rights: empRights.value, empl: checkEmpl.value, extr: extraEmplInfo.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false; loadEmplData();} };
+
+let tableActions = ref<any>([])
+
+let empRights = ref({
+  empProfRights :'',
+  empContRights :''
+})
+
+const redirFunc = () => {
+  nright.value = true;
+      setTimeout(() => {
+        navigateTo('/dashboard');
+        nright.value = false;
+      }, 2000);
+}
+
+const checkRole = async () => {
+  pageButtons.value = [];
+  tableActions.value = [];
+  //Запрос роли сотрудника и проверка прав доступа
+  let rec = await recStore.fetch(RoleRecord, '');
+  role.value = Object.values(rec.Data!.roles)[0];
+  // role.value = {
+  //   "dbEmployee": "cruds",
+  //   "dbEmployeeContacts": "cds",
+  // }
+  //Создание необходимого функционала, в соответствии с правами 
+  if(role.value['#CompanyAdmin']){
+  //Если роль админ компании, то все права разрешены  
+    for(let r in empRights.value){
+      empRights.value[r] = role.value['#CompanyAdmin'];
+    }
+    pageButtons.value.push(updBtn, addBtn, delBtn, filtBtn);
+    tableActions.value.push(chnBtn, delBtn);
+  } else if(!role.value.dbEmployee&&!role.value.dbEmployeeContacts){
+    redirFunc();
+  } else {
+    // В зависимости от доступных прав отображаем действия на странице
+    empRights.value.empProfRights = role.value.dbEmployee;
+    empRights.value.empContRights = role.value.dbEmployeeContacts;
+    pageButtons.value.push(updBtn);
+    tableActions.value.push(chnBtn)
+    if(empRights.value.empProfRights.includes('c')&&empRights.value.empContRights.includes('c')){
+      pageButtons.value.push(addBtn);
+    }
+    if(empRights.value.empProfRights.includes('d')&&empRights.value.empContRights.includes('d')){
+      pageButtons.value.push(delBtn);
+      tableActions.value.push(delBtn);
+    }
+    if(empRights.value.empProfRights.includes('r')||empRights.value.empContRights.includes('r')){
+      pageButtons.value.push(filtBtn)
+    }
+    if(!empRights.value.empProfRights.includes('r')&&!empRights.value.empContRights.includes('r')){
+      redirFunc();
+    }
+  }
+}
 
 const getEmplData = async(select: string|string[], where: string|string[], quantity: number ) => {
   loading.value = true;
@@ -142,18 +203,33 @@ const getEmplData = async(select: string|string[], where: string|string[], quant
     recStr.value = temp.slice(0, -4)
   }
 
-  let recArr = await employeesViews.getEmployeeListView<IEmployeeListView>(new QueryParams("id, surname, name, patronymic, mainPhone, mainEmail", recStr.value, quantity));
+  let selStr = ref('');
 
-  const empl:IEmployeeListView[] = [];
-  let row: IEmployeeListView | undefined;
-  while (row = recArr.getNext()) {
-    empl.push(row);
+  if(role.value.dbEmployee.includes('r')){
+    selStr.value = 'id, name, surname, patronymic'
   }
-  let tempData = empl;
-  for(let i=0; i < tempData.length;i+= +itemPerPage.value){
-    data.value.push(tempData.slice(i,i+ +itemPerPage.value));
+  if(role.value.dbEmployeeContacts.includes('r')){
+    selStr.value += ', mainPhone, mainEmail'
   }
-  loading.value = false;
+
+  if(!selStr.value){
+    loading.value = false;
+    redirFunc();
+  } else {
+    let recArr = await employeesViews.getEmployeeListView(new QueryParams(selStr.value, recStr.value, null, quantity));
+  
+    const empl:IEmployeeListView[] = [];
+    let row: IEmployeeListView | undefined;
+    while (row = recArr.getNext()) {
+      empl.push(row);
+    }
+    let tempData = empl;
+    for(let i=0; i < tempData.length;i+= +itemPerPage.value){
+      data.value.push(tempData.slice(i,i+ +itemPerPage.value));
+    }
+    loading.value = false;
+  }
+
 }
 
 let currentDate = new Date();
@@ -175,8 +251,8 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
   })
 
   let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
-  emplcont.Data!.MainPhone = phone || null;
-  emplcont.Data!.MainEmail = mail || null;
+  emplcont.Data!.mainPhone = phone || null;
+  emplcont.Data!.mainEmail = mail || null;
   emplcont.save();
   message.value = 'Сотрудник успешно добавлен!';
   updateData();
@@ -184,9 +260,13 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
 }
 
 const loadEmplData = async () => {
-  let rec = await recStore.getOrCreate(EmployeeRecord, checkEmpl.value.id);
-  extraEmplInfo.value = rec.Data;
+  if(checkEmpl.value.id){
+    let rec = await recStore.getOrCreate(EmployeeRecord, checkEmpl.value.id);
+    extraEmplInfo.value = rec.Data;
+  }
 }
+
+
 
 const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, mainPhone: string, mainEmail: string, id: string) => {
 const rec = await recStore.fetch(EmployeeRecord, id);
@@ -201,8 +281,8 @@ if (rec.Key == id) {
   await rec.save();
   // Обновить данные контактов сотрудника
   const emplcont = await recStore.getOrCreate(EmployeeContactsRecord, id);
-  emplcont.Data!.MainPhone = mainPhone || null;
-  emplcont.Data!.MainEmail = mainEmail || null;
+  emplcont.Data!.mainPhone = mainPhone || null;
+  emplcont.Data!.mainEmail = mainEmail || null;
   await emplcont.save();
   // Вернуть результат обновления
   message.value = 'Данные сотрудника изменены!'
@@ -221,14 +301,14 @@ if (rec.Key == id) {
   message.value = 'Запись сотрудника удалена.'
   rec? resultAnswer.value = true : resultAnswer.value = false;
 }
-  updateData();
-  disabledFunc();
+disabledFunc();
+updateData();
 }
   
 const disabledFunc = () => {
-  (checkEmpl.value.length >= 1 && checkEmpl.value.length <= 5000)? deleteBtn.value = false : deleteBtn.value = true;
-  pageDataLoad();
+  checkEmpl.value.length >= 1 && checkEmpl.value.length <= 100? delBtn.disabled = false : delBtn.disabled = true;
   emits('cheked', checkEmpl.value);
+  pageDataLoad();
 }
   
 let params = ref<string[]>([]);
@@ -293,12 +373,7 @@ let th = [{title: "ФИО", key: ["surname", "name", "patronymic"]},{title: "Т�
 
 let data = ref<any>([])
 
-let tableActions = ref([
-  { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", 
-  action: () =>  {openDialog(EmplProfileDialog, {empl: checkEmpl.value, extr: extraEmplInfo.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false}, true, () => foc.value = true); foc.value = false; loadEmplData()} },
-  { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary", bkgColor:"red", 
-  action: () =>  openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) },
-])
+
 
 let req: any = ref(null);
 
@@ -345,18 +420,26 @@ const clearFilters = () => {
   getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
 
 }
-
 onMounted(() => {
-addEventListener('keydown', autoFocus);
+  setTimeout(() => {
+    pageDataLoad();
+    getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
+    loading.value = false;
+  }, 300);
 })
-onBeforeUnmount(() => {
-removeEventListener('keydown', autoFocus);
+
+onActivated(() => {
+  addEventListener('keydown', autoFocus);
+  checkRole();
 })
 onBeforeUpdate(() => {
   disabledFunc();
 })
+onDeactivated(() => {
+  removeEventListener('keydown', autoFocus);
+})
 
-getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 100);
+
 
 </script>
 
@@ -367,4 +450,3 @@ getEmplData('changedAt',currentDate.toISOString().slice(0, -14).replace(/-/g, ''
   margin: 0;
 }
 </style>
-

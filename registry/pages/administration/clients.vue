@@ -134,17 +134,18 @@ let pageMapData: IPageData = reactive({
       id: "filter", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red",
       action: () => (drawer.value = !drawer.value)
     },
-  ],
-  eventsHandler: (e: string, d: any) => {
-    switch (e) {
-      case "onKeydown": autoFocus(d); return true;
-    }
-    return false;
-  }
+  ]
 });
 
 pageMap.setPageData("/administration/clients", pageMapData);
 
+
+const eventsHandler= (e: string, d: any) => {
+  switch (e) {
+      case "onKeydown": autoFocus(d); return true;
+    }
+    return false;
+  };
 
 
 
@@ -251,7 +252,7 @@ let tableActions = ref([
 ])
 
 
-
+defineExpose({eventsHandler});
 
 
 </script>

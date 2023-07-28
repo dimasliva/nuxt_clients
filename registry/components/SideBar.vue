@@ -87,13 +87,13 @@
         </v-list>
       </v-menu>
     </v-row>
-    <NuxtPage :keepalive="true" />
+    <NuxtPage ref="pageObj" :keepalive="true" />
   </v-card>
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
-    <component :is="dialogForm.comp" v-bind="dialogForm.props" />
+    <component ref="compObj" :is="dialogForm.comp" v-bind="dialogForm.props" />
   </v-dialog>
   <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
-    <component :is="dialogForm2.comp" v-bind="dialogForm2.props" />
+    <component ref="compObj2" :is="dialogForm2.comp" v-bind="dialogForm2.props" />
   </v-dialog>
 </template>
 
@@ -191,6 +191,10 @@ interface Page {
   link: string;
 }
 
+let compObj = ref<any>();
+let compObj2 = ref<any>();
+let pageObj = ref<any>();
+
 const modManager = iocc.get<ModuleManager>('ModuleManager');
 const pageMap = iocc.get<PageMap>('PageMap');
 const chapters = modManager.getModuleItemsMenu();
@@ -210,7 +214,7 @@ const loadPageData = () => {
 
 
 onErrorCaptured((h, t) => {
-  closeDiag(null,true);
+  closeDiag(null, true);
 });
 
 watch(() => route.query, loadPageData);
@@ -262,7 +266,13 @@ let closeDiag = (result: any, noEmit = false) => {
   }
 };
 
-regDialogHandler(addDiag, closeDiag);
+const onDialogEvents = (e: string, eData: any) => {
+  if (dialogForm.eventsHandler)
+    return dialogForm.eventsHandler(e, eData);
+  return false;
+}
+
+regDialogHandler(addDiag, closeDiag, onDialogEvents);
 
 const onPinPageBtnClick = (e: any) => {
   const pageData = pageMap.getPageData(route.path);
@@ -338,20 +348,20 @@ let filteredChaptersGr = () => {
 
 const getEventsHandler = () => {
   if (showDialog2.value)
-    return dialogForm2.eventsHandler;
+    return compObj2.value?.eventsHandler || null;
   else
     if (showDialog.value)
-      return dialogForm.eventsHandler;
+      return compObj.value?.eventsHandler || null;
     else
-      if (pageData)
-        return pageData.eventsHandler;
-
+      if (pageData) {
+        return pageObj.value.pageRef.eventsHandler || null;
+      }
   return null;
 }
 
 
 const onKeydown = (e: KeyboardEvent) => {
-  if (pInput.value.focused) return;
+  if (!showDialog.value && pInput.value.focused) return;
   let handled = false;
   const handler = getEventsHandler();
   if (handler)
@@ -367,6 +377,4 @@ const onKeydown = (e: KeyboardEvent) => {
 html {
   overflow-y: auto
 }
-
-;
 </style>

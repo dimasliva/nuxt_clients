@@ -4,8 +4,7 @@ export interface IPageData {
     title: string;
     icon: string;
     mainMenu?: IMenu
-    mainBtnBar?:IBtnMenu[],
-    eventsHandler?:(eventName:string, eventData:any)=>boolean,
+    mainBtnBar?:IBtnMenu[]
 }
 
 @injectable()

@@ -54,39 +54,6 @@
       </v-chip>
     </v-col>
   </v-row>
-  <!-- <v-card class="overflow-y-auto " elevation="0" height="87vh">
-    <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
-      <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
-      <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
-        <v-icon color="secondary">mdi-pin</v-icon>
-        <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
-      </v-btn>
-      <v-btn v-else variant="text" size="small"
-        @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
-        icon>
-        <v-icon color="secondary">mdi-pin-off</v-icon>
-        <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
-      </v-btn>
-      <v-spacer></v-spacer>
-      <v-btn v-for="(buttons, index) in currPageButtons" elevation="0" class="mx-2" rounded="xl" :key="index"
-        :icon="(buttons.title.length) ? false : buttons.icon"
-        :append-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="outlined" :color="buttons.color"
-        :background-color="buttons.bkgColor" :disabled="buttons.disabled"
-        :text="(buttons.title.length) ? buttons.title : undefined"
-        :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
-      <v-menu :open-on-hover="true">
-        <template v-slot:activator="{ props }">
-          <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
-            :icon="currPageMenu?.icon" />
-        </template>
-        <v-list>
-          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
-            @click="child.action">
-            <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-row> -->
     <v-card class="overflow-y-auto " elevation="0" height="87vh">
       <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
         <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
@@ -117,14 +84,6 @@
           </v-list>
         </v-menu>
       </v-row>
-      <!-- <NuxtPage :keepalive="true" @cheked="pageGetData" :field="rail"/>
-    </v-card>
-    <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
-      <component :is="dialogForm.comp" v-bind="dialogForm.props" />
-    </v-dialog>
-    <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
-      <component :is="dialogForm2.comp" v-bind="dialogForm2.props" />
-    </v-dialog> -->
     <NuxtPage :keepalive="true" @cheked="loadPageData" :field="rail"/>
   </v-card>
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">

@@ -6,40 +6,45 @@
       </VCard>
       <v-card v-if="data.length == 0 && loading == false" max-width="400" class="mx-auto" elevation="0">
         <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-        <img src="/cat-laptop-notfound.jpg" alt="cat withj laptop" class="w-50 d-inline mx-auto">
+        <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
       </v-card>
       <Table v-if="loading == false && data.length > 0" @cheked="checkEmpl = $event, disabledFunc()"
-        @person="checkEmpl = $event" :info="filteredData.length ? filteredData : data" :checkbox-show="show" :page="page"
-        :headers="th" :actions="tableActions">
+        @person="checkEmpl = $event" :info="[]" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions">
       </Table>
     </VCol>
 
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
-        <VForm v-model="form" @keydown.enter="btnDis() ? btnDis() : (filteredData(), page = 1)"
-          @keyup.delete="(e) => { if (e.key == 'Delete') { fio = '', phone = '', email = '', params = [], value = [] } }">
+        <VForm v-model="form">
           <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Поиск <v-spacer></v-spacer><v-icon
                 @click="drawer = false">mdi-close</v-icon></v-row>
-            <VTextField v-model="fio" clearable hint="Введите минимум 2 символа" ref="fioF"
-              @click:clear="() => { filterItems('', th[0].key), fio = '' }" @update:focused="lastField = fioF"
-              :label="th[0].title" class="ma-1" variant="underlined" color="secondary"
-              @update:model-value="filterItems(fio, th[0].key)" />
-            <VTextField v-model="phone" clearable hint="Введите минимум 6 символов" ref="phoneF"
-              @click:clear="() => { filterItems('', th[1].key), phone = '' }" @update:focused="lastField = phoneF"
-              :label="th[1].title" class="ma-1" variant="underlined" color="secondary"
-              @update:model-value="filterItems(phone, th[1].key)" />
-            <VTextField v-model="email" clearable hint="Введите минимум 3 символа" ref="emailF"
-              @click:clear="() => { filterItems('', th[2].key), email = '' }" @update:focused="lastField = emailF"
-              :label="th[2].title" class="ma-1" variant="underlined" color="secondary"
-              @update:model-value="filterItems(email, th[2].key)" />
-            <VTextField v-model="itemPerPage" label="Количество элементов на странице" class="ma-1" variant="underlined"
-              color="secondary" type="number"></VTextField>
+
+            <!--Для корректной работы ограничения длины строки должны быть заданы rules или v-maska или что то другое, что считывает значение после ввода --->
+            <VTextField v-model="filtredData.fio" clearable hint="Введите минимум 2 символа"
+              :ref="filtredData.$.fio.cRef" @click:clear="filtredData.fio = ''"
+              @update:focused="lastField = filtredData.$.fio.cRef" label="ФИО" class="ma-1" variant="underlined"
+              color="secondary" :rules="[]" />
+
+            <VTextField v-model="filtredData.phone" clearable hint="Введите минимум 6 символов"
+              :ref="filterFieldsRefs.phone" v-maska:[filtredData.$.phone] @click:clear="filtredData.phone = ''"
+              @update:focused="lastField = filterFieldsRefs.phone" label="Телефон" class="ma-1" variant="underlined"
+              color="secondary" />
+
+            <VTextField v-model="filtredData.email" clearable hint="Введите минимум 3 символа"
+              :ref="filterFieldsRefs.email" @click:clear="filtredData.email = ''"
+              @update:focused="lastField = filterFieldsRefs.email" label="Электронная почта" class="ma-1"
+              variant="underlined" color="secondary" :rules="[]" />
+
+            <VTextField v-model="filtredData.snils" clearable hint="Введите 11 символов" :ref="filterFieldsRefs.snils"
+              v-maska:[filtredData.$.snils] @click:clear="filtredData.snils = ''"
+              @update:focused="lastField = filterFieldsRefs.snils" label="СНИЛС" class="ma-1" variant="underlined"
+              color="secondary" />
+
             <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnDis()" variant="text" @click="() => { filteredData(), page = 1 }">Поиск</VBtn>
-              <VBtn variant="text"
-                @click="() => { fio = '', phone = '', email = '', params = [], value = [], data = [], page = 1, getClientData('changedAt', currentDate.toISOString().slice(0, -14).replace(/-/g, ''), 100) }">
-                Сбросить</VBtn>
+              <VBtn :disabled="btnsStates.btnFind" color="primary" variant="text"
+                @click="() => { filteredData(), page = 1 }">Поиск</VBtn>
+              <VBtn color="primary" variant="text" @click="filtredData.clear()"> Сбросить</VBtn>
             </v-row>
           </VCol>
         </VForm>
@@ -52,16 +57,64 @@
 </template>
 
 <script setup lang="ts">
-import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
 import Table from '~~/components/forms/Table.vue';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { IPageData, PageMap } from '~~/lib/PageMap';
-import EmplProfileDialog from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog from '~~/components/forms/ConfirmActionDialog.vue';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
-import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
-import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
+import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
+import ClientProfileDialog from '~~/components/forms/ClientProfileDialog.vue';
+import * as Helpers from '~~/lib/Helpers';
+import maska from 'plugins/maska';
+
+
+class FilterDataBase {
+
+  clear() {
+    for (let item in <any>this) {
+      if (item.charAt(0) != '$')
+        this[item] = null;
+    }
+  }
+
+  static proxyHandler = {
+    set(obj, prop, value) {
+      let rules = obj["$"][prop].rules;
+      if (rules) {
+        if (rules.max && value && value.length > rules.max) return false;
+
+      }
+      return Reflect.set(obj, prop, value);
+    }
+
+  }
+}
+
+
+class FilterData extends FilterDataBase {
+
+  fio:string | null = null;
+  phone: string | null = null;
+  email: string | null = null;
+  snils: string | null = null;
+
+
+  $ = {
+    fio: { 
+      rules:{ max: 10},
+      cRef: ref()
+     },
+    email: { max: 10 },
+    phone: { mask: '#-###-###-##-##-###-###' },
+    snils: { mask: '###-###-### ##' }
+  }
+
+  static create = () => new Proxy<FilterData>(new FilterData, FilterData.proxyHandler);
+}
+
+const filtredData = reactive(FilterData.create());
+
 
 let page = ref(1)
 let itemPerPage = ref<number>(10)
@@ -69,50 +122,31 @@ let form = ref(false)
 let drawer = ref(true)
 let show = ref(false)
 let loading = ref(false)
-let fio = ref('')
-let phone = ref('')
-let email = ref('')
-let message = ref('')
+
 
 const emits = defineEmits(['cheked']);
 const iocc = useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
-const employeesViews = iocc.get(EmployeesViews);
+const clientsViews = iocc.get(ClientsViews);
 let checkEmpl = ref([]);
 let deleteBtn = ref(true);
-let foc = ref(true)
-const fioF = ref<any>(null)
-const phoneF = ref<any>(null)
-const emailF = ref<any>(null)
-const lastField = ref<HTMLElement>()
+
+let lastField: Ref<any>;
 let resultAnswer = ref(false);
 
 
-const autoFocus = (e: KeyboardEvent) => {
-  const key = e.key;
-  if (foc.value == true && loading.value == false) {
-    if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
-      console.log(key)
-      drawer.value = true;
-      lastField.value ? lastField.value.focus() : fioF.value.focus();
-    }
-  }
-  if (key === 'ArrowLeft' && page.value > 1) {
-    page.value--
-  } else if (key === 'ArrowRight' && page.value < data.value.length) {
-    page.value++
-  }
+const btnsStates = {
+  btnFind: false
 }
 
-const btnDis = () => {
-  if ((fio.value.length < 2) && (phone.value.length < 6) && (email.value.length < 3)) {
-    return true
-  } else {
-    return false
-  }
-}
+const filterFieldsRefs = {
+  fio: ref(),
+  phone: ref(),
+  email: ref(),
+  snils: ref()
+};
 
 
 let pageMapData: IPageData = reactive({
@@ -124,7 +158,7 @@ let pageMapData: IPageData = reactive({
     },
     {
       id: "addClient", title: "Добавить", icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
-      action: () => { openDialog(EmplProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true, () => foc.value = true); foc.value = false }
+      action: () => { openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
     },
     {
       id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color: "secondary", bkgColor: "red",
@@ -140,12 +174,43 @@ let pageMapData: IPageData = reactive({
 pageMap.setPageData("/administration/clients", pageMapData);
 
 
-const eventsHandler= (e: string, d: any) => {
-  switch (e) {
-      case "onKeydown": autoFocus(d); return true;
+const autoFocus = (e: KeyboardEvent) => {
+  const key = e.key;
+  if (loading.value == false) {
+    console.log(key)
+    if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
+      drawer.value = true;
+      if (!lastField)
+        lastField = filterFieldsRefs.fio;
+      lastField.value.focus();
     }
-    return false;
-  };
+  }
+  if (key === 'ArrowLeft' && page.value > 1) {
+    page.value--
+  } else if (key === 'ArrowRight' && page.value < data.value.length) {
+    page.value++
+  }
+}
+
+const updateFilterButtonsState = () => {
+  if ((filtredData.fio || "").length < 2 && (filtredData.phone || "").length < 6 && (filtredData.email || "").length < 3) {
+    return true
+  } else {
+    return false
+  }
+}
+
+
+
+
+
+const eventsHandler = (e: string, d: any) => {
+
+  switch (e) {
+    case "onKeydown": autoFocus(d); return true;
+  }
+  return false;
+};
 
 
 
@@ -182,25 +247,13 @@ const disabledFunc = () => {
 let params = ref<string[]>([]);
 let value = ref<string[]>([]);
 
-const removeSpaces = (str: string | null | undefined): string => {
-  if (!str) return "";
-  str = str.trim();
-  str = str.replace(/ +/g, ' ');
-  return str;
-}
-
-const toTitleCase = (str: string): string => {
-  return str.replace(/\S+\s*/g, function (txt: string): string {
-    return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
-  });
-}
 
 
 const filterItems = (where: string, select: string | string[]) => {
   if (where !== '') {
-    where = removeSpaces(where);
+    where = Helpers.removeSpaces(where);
     if (Array.isArray(select)) { // Обрабатываем случай, когда в строке может быть больше одного параметра, например ФИО.
-      where = toTitleCase(where);
+      where = Helpers.toTitleCase(where);
       let currWhere = where.split(" ");
       select.map((str, i) => {
         if (!params.value.includes(str)) {
@@ -243,7 +296,7 @@ let data = ref<any>([])
 let tableActions = ref([
   {
     id: "change", title: "Редактировать", icon: "mdi-pencil", color: "secondary", bkgColor: "red",
-    action: () => { openDialog(EmplProfileDialog, { empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false }, true, () => foc.value = true); foc.value = false }
+    action: () => { openDialog(ClientProfileDialog, { empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false }, true, () => foc.value = true); foc.value = false }
   },
   {
     id: "delete", title: "Удалить", icon: "mdi-delete", color: "secondary", bkgColor: "red",
@@ -252,7 +305,7 @@ let tableActions = ref([
 ])
 
 
-defineExpose({eventsHandler});
+defineExpose({ eventsHandler });
 
 
 </script>

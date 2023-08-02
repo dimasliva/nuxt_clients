@@ -84,7 +84,7 @@
         </v-list>
       </v-menu>
     </v-row>
-    <NuxtPage ref="pageObj" :keepalive="true" @cheked="loadPageData" :field="rail"/>
+    <NuxtPage ref="pageObj" :keepalive="true"/>
   </v-card>
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
     <component ref="compObj" :is="dialogForm.comp" v-bind="dialogForm.props" />
@@ -215,11 +215,11 @@ watch(() => route.query, loadPageData);
 
 onMounted(() => {
   loadPageData();
-  // addEventListener('keydown', onKeydown);
+   addEventListener('keydown', onKeydown);
 });
 
 onBeforeUnmount(() => {
-  // removeEventListener('keydown', onKeydown);
+   removeEventListener('keydown', onKeydown);
 })
 
 let addDiag = (val: { component: any; props: any; modal: boolean; eventsHandler: ((eventName: string, eventData: any) => boolean) | null }) => {

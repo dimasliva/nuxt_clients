@@ -1,6 +1,6 @@
 <template>
   <VRow class="ma-1">
-    <VCol>
+    <VCol style="min-width: 400;">
       <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
         <img src="../../public/cat-laptop.jpg" alt="cat">
       </VCard>
@@ -14,46 +14,12 @@
     </VCol>
 
     <v-expand-x-transition>
-      <VCard v-show="drawer" class="mx-auto mb-auto" width="300">
-        <VForm v-model="form">
-          <VCol>
-            <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Поиск <v-spacer></v-spacer><v-icon
-                @click="drawer = false">mdi-close</v-icon></v-row>
-
-            <!--Для корректной работы ограничения длины строки должны быть заданы rules или v-maska или что то другое, что считывает значение после ввода --->
-            <VTextField v-model="filtredData.fio" clearable hint="Введите минимум 2 символа"
-              :ref="filtredData.$.fio.cRef" @click:clear="filtredData.fio = ''"
-              @update:focused="lastField = filtredData.$.fio.cRef" label="ФИО" class="ma-1" variant="underlined"
-              color="secondary" :rules="[]" />
-
-            <VTextField v-model="filtredData.phone" clearable hint="Введите минимум 6 символов"
-              :ref="filterFieldsRefs.phone" v-maska:[filtredData.$.phone] @click:clear="filtredData.phone = ''"
-              @update:focused="lastField = filterFieldsRefs.phone" label="Телефон" class="ma-1" variant="underlined"
-              color="secondary" />
-
-            <VTextField v-model="filtredData.email" clearable hint="Введите минимум 3 символа"
-              :ref="filterFieldsRefs.email" @click:clear="filtredData.email = ''"
-              @update:focused="lastField = filterFieldsRefs.email" label="Электронная почта" class="ma-1"
-              variant="underlined" color="secondary" :rules="[]" />
-
-            <VTextField v-model="filtredData.snils" clearable hint="Введите 11 символов" :ref="filterFieldsRefs.snils"
-              v-maska:[filtredData.$.snils] @click:clear="filtredData.snils = ''"
-              @update:focused="lastField = filterFieldsRefs.snils" label="СНИЛС" class="ma-1" variant="underlined"
-              color="secondary" />
-
-            <v-row class="ma-1" style="min-width: 200pt;">
-              <VBtn :disabled="btnsStates.btnFind" color="primary" variant="text"
-                @click="() => { filteredData(), page = 1 }">Поиск</VBtn>
-              <VBtn color="primary" variant="text" @click="filtredData.clear()"> Сбросить</VBtn>
-            </v-row>
-          </VCol>
-        </VForm>
-      </VCard>
+      <SimpleFilterForm ref="filterForm" :filterSettings="filterSetting" />
     </v-expand-x-transition>
 
   </VRow>
   <v-pagination v-if="data.length" :length="data.length" v-model="page" :total-visible="7"></v-pagination>
-  <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">{{ message }}</v-snackbar>
+  <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">{{ "g" }}</v-snackbar>
 </template>
 
 <script setup lang="ts">
@@ -63,90 +29,37 @@ import { IPageData, PageMap } from '~~/lib/PageMap';
 import ConfirmActionDialog from '~~/components/forms/ConfirmActionDialog.vue';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
-import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
+import { ClientsViews, IClientListView } from '~/lib/MoApi/Views/ClientsViews';
 import ClientProfileDialog from '~~/components/forms/ClientProfileDialog.vue';
+import SimpleFilterForm from '~~/components/forms/SimpleFilterForm';
 import * as Helpers from '~~/lib/Helpers';
-import maska from 'plugins/maska';
+import * as Utils from '~~/lib/Utils';
 
-
-class FilterDataBase {
-
-  clear() {
-    for (let item in <any>this) {
-      if (item.charAt(0) != '$')
-        this[item] = null;
-    }
-  }
-
-  static proxyHandler = {
-    set(obj, prop, value) {
-      let rules = obj["$"][prop].rules;
-      if (rules) {
-        if (rules.max && value && value.length > rules.max) return false;
-
-      }
-      return Reflect.set(obj, prop, value);
-    }
-
-  }
+type TClientFilterVals = {
+  fio?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  snils?: string | null;
 }
-
-
-class FilterData extends FilterDataBase {
-
-  fio:string | null = null;
-  phone: string | null = null;
-  email: string | null = null;
-  snils: string | null = null;
-
-
-  $ = {
-    fio: { 
-      rules:{ max: 10},
-      cRef: ref()
-     },
-    email: { max: 10 },
-    phone: { mask: '#-###-###-##-##-###-###' },
-    snils: { mask: '###-###-### ##' }
-  }
-
-  static create = () => new Proxy<FilterData>(new FilterData, FilterData.proxyHandler);
-}
-
-const filtredData = reactive(FilterData.create());
 
 
 let page = ref(1)
 let itemPerPage = ref<number>(10)
-let form = ref(false)
-let drawer = ref(true)
 let show = ref(false)
 let loading = ref(false)
+let filterForm = ref();
 
-
-const emits = defineEmits(['cheked']);
 const iocc = useContainer();
-const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
 const clientsViews = iocc.get(ClientsViews);
 let checkEmpl = ref([]);
 let deleteBtn = ref(true);
 
+let filterVals: Ref<TClientFilterVals | null> = ref(null);
 let lastField: Ref<any>;
 let resultAnswer = ref(false);
 
-
-const btnsStates = {
-  btnFind: false
-}
-
-const filterFieldsRefs = {
-  fio: ref(),
-  phone: ref(),
-  email: ref(),
-  snils: ref()
-};
 
 
 let pageMapData: IPageData = reactive({
@@ -161,12 +74,8 @@ let pageMapData: IPageData = reactive({
       action: () => { openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
     },
     {
-      id: "delete", title: "Удалить", icon: "mdi-delete", disabled: deleteBtn.value, color: "secondary", bkgColor: "red",
-      action: () => openDialog(ConfirmActionDialog, { empl: checkEmpl.value, action: deleteEmpl })
-    },
-    {
       id: "filter", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red",
-      action: () => (drawer.value = !drawer.value)
+      action: () => { filterForm.value.toggleVis() }
     },
   ]
 });
@@ -174,49 +83,84 @@ let pageMapData: IPageData = reactive({
 pageMap.setPageData("/administration/clients", pageMapData);
 
 
-const autoFocus = (e: KeyboardEvent) => {
-  const key = e.key;
-  if (loading.value == false) {
-    console.log(key)
-    if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
-      drawer.value = true;
-      if (!lastField)
-        lastField = filterFieldsRefs.fio;
-      lastField.value.focus();
+
+const filterSetting = {
+
+  getFields() {
+    return {
+      fio: {
+        type: "string",
+        title: "ФИО",
+        hint: null,
+        rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
+        constraints: { min: 2, max: 10 },
+      },
+
+      email: {
+        type: "string",
+        title: "Электронная почта",
+        hint: "Введите минимум 2 символа",
+        rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
+        constraints: { min: 2, max: 10 },
+      },
+
+      phone: {
+        type: "string",
+        title: "Телефон",
+        hint: "Введите минимум 6 символов",
+        rules: [],
+        constraints: { min: 6, mask: '#-###-###-##-##-###-###' },
+      },
+
+      snils: {
+        type: "string",
+        title: "СНИЛС",
+        hint: "Введите минимум 2 символа",
+        rules: [],
+        constraints: { mask: '###-###-### ##' },
+      }
+
     }
-  }
+  },
+
+  defaultFocus: "fio",
+
+  //onCheckFilterVals(inputData: any) {
+  //  return false;
+  //},
+
+  onFind(inputData: any) {
+    filterVals.value = inputData;
+    loadData();
+    return true;
+  },
+}
+
+
+
+/*
+const autoFocus = (e: KeyboardEvent) => {
+
   if (key === 'ArrowLeft' && page.value > 1) {
     page.value--
   } else if (key === 'ArrowRight' && page.value < data.value.length) {
     page.value++
   }
 }
-
-const updateFilterButtonsState = () => {
-  if ((filtredData.fio || "").length < 2 && (filtredData.phone || "").length < 6 && (filtredData.email || "").length < 3) {
-    return true
-  } else {
-    return false
-  }
-}
-
-
-
+*/
 
 
 const eventsHandler = (e: string, d: any) => {
-
   switch (e) {
-    case "onKeydown": autoFocus(d); return true;
+    case "onKeydown":
+      if (!loading.value)
+        if (filterForm.value.isVisible())
+          return filterForm.value.eventsHandler(e, d);
   }
   return false;
 };
 
 
-
-const getClientData = async (select: string | string[], where: string | string[], quantity: number) => {
-
-}
 
 let currentDate = new Date();
 currentDate.setDate(currentDate.getDate() - 7);
@@ -244,50 +188,57 @@ const disabledFunc = () => {
   (checkEmpl.value.length >= 1 && checkEmpl.value.length <= 5000) ? deleteBtn.value = false : deleteBtn.value = true;
 }
 
-let params = ref<string[]>([]);
-let value = ref<string[]>([]);
 
 
 
-const filterItems = (where: string, select: string | string[]) => {
-  if (where !== '') {
-    where = Helpers.removeSpaces(where);
-    if (Array.isArray(select)) { // Обрабатываем случай, когда в строке может быть больше одного параметра, например ФИО.
-      where = Helpers.toTitleCase(where);
-      let currWhere = where.split(" ");
-      select.map((str, i) => {
-        if (!params.value.includes(str)) {
-          params.value.push(str);
-          value.value.push(currWhere[i]);
-        } else {
-          let ind = params.value.indexOf(str)
-          value.value.splice(ind, 1, currWhere[ind])
-        }
-      })
-      value.value = value.value.filter((el) => {
-        return el !== undefined;
-      })
-      params.value.splice(currWhere.length)
-    } else if (!params.value.includes(select)) {
-      params.value.push(select);
-      value.value.push(where);
-    } else {
-      let ind = params.value.indexOf(select) //С помощью ind делаем динамическое редактирование отдельных элементов, без необходимости обновлять форму целиком.
-      value.value.splice(ind, 1, where)
-    }
-  } else {
-    let emptIndex = value.value.findIndex((el) => {
-      return el === '';
-    })
-    params.value.splice(emptIndex, 1);
-    value.value.splice(emptIndex, 1);
+const getData = async (select: string, where: TClientFilterVals, sortedBy: string, quantity: number) => {
+  let whereArr: string[] = [];
+  let fioStr = Utils.normalizeFio(where.fio);
+
+  if (fioStr) {
+    let fioArr = fioStr.split(' ');
+    fioArr[fioArr.length - 1] += '%';
+    whereArr.push(`surname like '${fioArr[0]}'`);
+    if (fioArr[1]) whereArr.push(`name like '${fioArr[1]}'`);
+    if (fioArr[2]) whereArr.push(`patronymic like '${fioArr[2]}'`);
+  }
+
+  let tmp = where.phone?.trim();
+  if (tmp) whereArr.push(`mainPhone='${tmp}'`);
+  tmp = where.email?.trim();
+  if (tmp) whereArr.push(`mainEmail='${tmp}'`);
+  tmp = where.snils?.trim();
+  if (tmp) whereArr.push(`snils='${tmp}'`);
+
+  if (whereArr.length == 0) return [];
+  let wherestr = whereArr.join(" and ");
+  const startTime = performance.now();
+  let recArr = await clientsViews.getClientListView(new QueryParams(select, wherestr, sortedBy, quantity));
+  const res: IClientListView[] = [];
+  let row: IClientListView | undefined;
+
+  while (row = recArr.getNext()) {
+    res.push(row);
+  }
+  const endTime = performance.now();
+  console.debug(`clients count=${recArr.getLength()} for ${endTime - startTime} ms`);
+  return res;
+}
+
+
+const loadData = async () => {
+  debugger
+  try {
+    loading.value = true;
+    data.value = await getData("id,name,surname,patronymic,mainPhone,mainEmail,snils", filterVals.value!, "changedAt desc", 5000);
+  }
+  finally {
+    loading.value = false;
   }
 }
 
-const filteredData = () => {
-  data.value = [];
-  getClientData(params.value, value.value, 500);
-}
+
+//watch(filterVals,()=>loadData());
 
 let th = [{ title: "ФИО", key: ["surname", "name", "patronymic"] }, { title: "Телефон", key: "mainPhone" }, { title: "E-mail", key: "mainEmail" }]
 
@@ -296,7 +247,7 @@ let data = ref<any>([])
 let tableActions = ref([
   {
     id: "change", title: "Редактировать", icon: "mdi-pencil", color: "secondary", bkgColor: "red",
-    action: () => { openDialog(ClientProfileDialog, { empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false }, true, () => foc.value = true); foc.value = false }
+    action: () => { openDialog(ClientProfileDialog, { empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false }, true,); }
   },
   {
     id: "delete", title: "Удалить", icon: "mdi-delete", color: "secondary", bkgColor: "red",

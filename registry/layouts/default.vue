@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div style="min-width: 1024px;">
       <v-app>
         <v-main>
           <SideBar/>

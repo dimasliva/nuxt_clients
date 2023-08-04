@@ -27,8 +27,7 @@ export class ModuleManager {
             icon: "mdi-account-tie",
             childs: [
                 { id: "employees", title: "Сотрудники", getPagePath: () => "/administration/employees", icon: "mdi-account-circle" },
-                { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" },
-                { id: "clients", title: "Клиенты", getPagePath: () => "/administration/clients", icon: "mdi-account-circle" },
+                { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" }
             ]
         });
         res.push({
@@ -37,7 +36,7 @@ export class ModuleManager {
             getPagePath: () => "",
             icon: "mdi-account-tie",
             childs: [
-                { id: "clients", title: "Клиенты", getPagePath: () => "/administration/clients", icon: "mdi-account-circle" },
+                { id: "clients", title: "Клиенты", getPagePath: () => "/list/clients", icon: "mdi-account-circle" },
             ]
         });
 

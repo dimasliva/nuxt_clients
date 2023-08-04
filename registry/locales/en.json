@@ -20,6 +20,10 @@
     "vemail": "Must be a valid e-mail",
     "vbirthday": "DD.MM.YYYY",
     "vname": "Please enter name with capital letter",
-    "vsurname": "Please enter surname with capital letter"
+    "vsurname": "Please enter surname with capital letter",
+    "edit":"Edit",
+    "delete":"Delete",
+    "update":"Update",
+    "add":"Add"
   }
   

@@ -1,3 +1,5 @@
+import  type {EMessageType} from "./globalTypes";
+
 declare global {
     interface Class<T = any> {
         /**
@@ -50,7 +52,7 @@ declare global {
         id: string;
         title: string;
         icon: string;
-        disabled:boolean;
+        disabled: boolean;
         action: () => string | object | void;
         childs?: IMenu[] | null
     }
@@ -59,11 +61,12 @@ declare global {
         id: string;
         title: string;
         icon: string;
-        disabled:boolean;
-        color:string;
-        bkgColor:string;
+        disabled: boolean;
+        color: string;
+        bkgColor: string;
         action: () => string | object | void;
     }
+
 }
 
 

@@ -16,7 +16,7 @@ export default defineComponent({
         const filterSettings = props.filterSettings;
         const filterFields = filterSettings.getFields();
         const isBtnFindDisabled = ref(true);
-        let lastField = ref();
+        let lastField = "";
         const cRefs = {};
         const updateKey = ref(0);
 
@@ -28,7 +28,7 @@ export default defineComponent({
 
             if (findDelay == 0) {
                 if (!isBtnFindDisabled.value) {
-                    filterSettings.onFind(filterValues);
+                    //filterSettings.onFind(filterValues);
                 }
             }
         }, 1000);
@@ -54,6 +54,7 @@ export default defineComponent({
         const isVisible = () => visiblity.value;
         const show = () => visiblity.value = true;
         const hide = () => visiblity.value = false;
+        const clear = () => {for (let item in filterValues) filterValues[item] = null}
         const toggleVis = () => { visiblity.value = !visiblity.value };
 
 
@@ -63,9 +64,10 @@ export default defineComponent({
 
         const autoFocus = (e) => {
             const key = e.key;
-            if (!lastField.value)
-                lastField.value = cRefs[filterSettings.defaultFocus].value;
-            lastField.value.focus();
+            if (!lastField)
+                lastField = filterSettings.defaultFocus;
+            if (cRefs[lastField]?.value)
+                cRefs[lastField].value.focus();
         }
 
 
@@ -92,15 +94,24 @@ export default defineComponent({
 
             switch (e) {
                 case "onKeydown":
-                    findDelay=3;
+                    findDelay = 3;
                     autoFocus(d);
-                    if (d.key == 'Delete' && lastField.value) {
-
-                        let id = lastField.value.$attrs.fldKey;
-                        if (id) {
-                            filterValues[id] = null;
-                        }
+                    if (d.key == 'Enter' && !isBtnFindDisabled.value) {
+                        filterSettings.onFind(filterValues);
                     }
+                    else
+                        if (d.key == 'Delete' && lastField) {
+                            let id = lastField;
+                            if (id) {
+                                filterValues[id] = null;
+                            }
+                        }
+                        else
+                            if (!cRefs[lastField]?.value && d.keyCode >= 32) {
+                                //фокус не установился. Что бы не терять нажатую клавишу значение записываем непосредственно в переменную
+                                filterValues[lastField] = d.key;
+                            }
+
                     return true;
             }
             return false;
@@ -108,7 +119,7 @@ export default defineComponent({
 
 
         ctx.expose({
-            show, hide, toggleVis, isVisible, eventsHandler
+            show, hide, toggleVis, isVisible, eventsHandler,clear
         });
 
 
@@ -135,10 +146,10 @@ export default defineComponent({
                 if (hint == "" && val.constraints.min)
                     hint = `Мин: ${val.constraints.min}`
 
-                let isFucused = lastField.value?.$.vnode.key == item;
+                let isFucused = lastField == item;
 
                 let node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                    clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = cRefs[item]; forcesUpdate() }} rules={val.rules} />
+                    clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
 
                 res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
             }
@@ -163,7 +174,7 @@ export default defineComponent({
                             <v-row class="ma-1" style="min-width: 200pt;" justify="center">
 
                                 <VBtn color="primary" variant="text" disabled={isBtnFindDisabled.value} onClick={() => filterSettings.onFind(filterValues)} >Поиск</VBtn>
-                                <VBtn color="primary" variant="text" onClick={() => { for (let item in filterValues) filterValues[item] = null }} > Сбросить</VBtn>
+                                <VBtn color="primary" variant="text" onClick={() => { clear() }} > Сбросить</VBtn>
                             </v-row>
                         </VCol>
                     </VForm>

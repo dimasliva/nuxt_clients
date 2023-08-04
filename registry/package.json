@@ -5,7 +5,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "clean": "npx nuxi clean"
   },
   "devDependencies": {
     "@mdi/font": "^7.2.96",
@@ -14,16 +15,17 @@
     "nuxt": "^3.6.5",
     "sass": "^1.64.0",
     "vue-i18n": "^9.2.2",
-    "vue-tsc":  "^1.8.5"
+    "vue-tsc": "^1.8.5"
   },
   "dependencies": {
     "@nuxt-alt/proxy": "^2.2.3",
     "@vuepic/vue-datepicker": "^5.4.0",
-    "inversify":"^6.0.1",
+    "inversify": "^6.0.1",
     "inversify-inject-decorators": "^3.1.0",
     "maska": "^2.1.9",
     "reflect-metadata": "^0.1.13",
     "vite-plugin-vuetify": "^1.0.2",
+    "vue-sonner": "^0.4.2",
     "vuetify": "^3.3.9"
   }
 }

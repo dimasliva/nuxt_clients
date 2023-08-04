@@ -34,6 +34,11 @@ import ClientProfileDialog from '~~/components/forms/ClientProfileDialog.vue';
 import SimpleFilterForm from '~~/components/forms/SimpleFilterForm';
 import * as Helpers from '~~/lib/Helpers';
 import * as Utils from '~~/lib/Utils';
+import { EMessageType } from '~~/lib/globalTypes'
+import { useI18n } from "vue-i18n"
+import { Exception } from 'lib/Exceptions';
+
+
 
 type TClientFilterVals = {
   fio?: string | null;
@@ -42,7 +47,7 @@ type TClientFilterVals = {
   snils?: string | null;
 }
 
-
+const { t } = useI18n()
 let page = ref(1)
 let itemPerPage = ref<number>(10)
 let show = ref(false)
@@ -66,12 +71,12 @@ let pageMapData: IPageData = reactive({
   title: "Клиенты", icon: "",
   mainBtnBar: [
     {
-      id: "update", title: "Обновить", icon: "mdi-autorenew", disabled: false, color: "secondary", bkgColor: "red",
+      id: "update", title: t("update"), icon: "mdi-autorenew", disabled: false, color: "secondary", bkgColor: "red",
       action: () => updateData()
     },
     {
-      id: "addClient", title: "Добавить", icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
-      action: () => { openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
+      id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
+      action: () => { createToast(EMessageType.Error, "Это ошибка!" ); return; openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
     },
     {
       id: "filter", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red",
@@ -80,7 +85,7 @@ let pageMapData: IPageData = reactive({
   ]
 });
 
-pageMap.setPageData("/administration/clients", pageMapData);
+pageMap.setPageData("/list/clients", pageMapData);
 
 
 
@@ -129,9 +134,11 @@ const filterSetting = {
   //  return false;
   //},
 
-  onFind(inputData: any) {
-    filterVals.value = inputData;
-    loadData();
+  async onFind(inputData: any) {
+    if (!loading.value) {
+      filterVals.value = inputData;
+      loadData();
+    }
     return true;
   },
 }
@@ -153,9 +160,18 @@ const autoFocus = (e: KeyboardEvent) => {
 const eventsHandler = (e: string, d: any) => {
   switch (e) {
     case "onKeydown":
-      if (!loading.value)
-        if (filterForm.value.isVisible())
+      if (!loading.value) {
+
+          if (!filterForm.value.isVisible() && d.keyCode >= 32) {
+            filterForm.value.clear();
+            filterForm.value.show()
+          }
+
+        if (filterForm.value.isVisible() &&(d.keyCode >= 32 || ['Enter', 'Delete'].includes(d.key)))
           return filterForm.value.eventsHandler(e, d);
+      }
+      break;
+
   }
   return false;
 };
@@ -227,10 +243,12 @@ const getData = async (select: string, where: TClientFilterVals, sortedBy: strin
 
 
 const loadData = async () => {
-  debugger
   try {
     loading.value = true;
     data.value = await getData("id,name,surname,patronymic,mainPhone,mainEmail,snils", filterVals.value!, "changedAt desc", 5000);
+  }
+  catch (exc: any) {
+    createToast(EMessageType.Error, exc.message)
   }
   finally {
     loading.value = false;
@@ -246,11 +264,11 @@ let data = ref<any>([])
 
 let tableActions = ref([
   {
-    id: "change", title: "Редактировать", icon: "mdi-pencil", color: "secondary", bkgColor: "red",
+    id: "change", title: t("edit"), icon: "mdi-pencil", color: "secondary", bkgColor: "red",
     action: () => { openDialog(ClientProfileDialog, { empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false }, true,); }
   },
   {
-    id: "delete", title: "Удалить", icon: "mdi-delete", color: "secondary", bkgColor: "red",
+    id: "delete", title: t("delete"), icon: "mdi-delete", color: "secondary", bkgColor: "red",
     action: () => openDialog(ConfirmActionDialog, { empl: checkEmpl.value, action: deleteEmpl })
   },
 ])

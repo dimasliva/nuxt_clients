@@ -11,6 +11,8 @@
   "devDependencies": {
     "@mdi/font": "^7.2.96",
     "@types/node": "^20.4.2",
+    "@vueuse/core": "^10.3.0",
+    "@vueuse/nuxt": "^10.3.0",
     "h3": "^1.7.1",
     "nuxt": "^3.6.5",
     "sass": "^1.64.0",
@@ -26,6 +28,6 @@
     "reflect-metadata": "^0.1.13",
     "vite-plugin-vuetify": "^1.0.2",
     "vue-sonner": "^0.4.2",
-    "vuetify": "^3.3.9"
+    "vuetify": "^3.3.11"
   }
 }

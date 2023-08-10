@@ -1,3 +1,4 @@
+import { EnumArray } from "./EnumArray";
 import { IApiDataListResult } from "./MoApi/RequestResults";
 
 
@@ -88,6 +89,14 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
 
     isError(): boolean {
         return false;
+    }
+
+
+    toArray():EnumArray<T>{
+        let res=new EnumArray<T>();
+        for(let i=0; i<this._data.length; i++)
+          res.push(this.getRow(i)!);
+        return res;
     }
 
 

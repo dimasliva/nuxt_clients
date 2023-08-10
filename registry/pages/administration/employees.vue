@@ -1,17 +1,17 @@
 <template>
   <VCard v-if="loading == true && nright == false" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
-    <img src="@/cat-laptop.jpg" alt="cat" class="w-50 d-inline mx-auto">
+    <img src="/cat-laptop.jpg" alt="cat" class="w-50 d-inline mx-auto">
   </VCard>
   <v-card v-if="data.length == 0 && loading == false && nright == false"  max-width="400" class="mx-auto" elevation="0" >
     <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-    <img src="@/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
+    <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
     <v-card-actions>
       <VBtn  variant="text" @click="() => {clearFilters()}">Сбросить</VBtn>
     </v-card-actions>
   </v-card>
   <v-card v-if="nright"  max-width="400" class="mx-auto" elevation="0" loading>
     <v-card-text class="text-h6">У вас нет доступа к этой странице, сейчас вы будете перенаправленны на панель управления.</v-card-text>
-    <img src="@/cat-laptop-rights.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
+    <img src="/cat-laptop-rights.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
   </v-card>
   <VRow class="ma-1" v-show="loading === false && nright == false && data.length > 0">
     <Table @cheked="checkEmpl = $event, disabledFunc(), loadEmplData()" @person="checkEmpl = $event, loadEmplData()" :info="filteredData.length? filteredData : data" :checkbox-show="show" :rights="empRights" :page="page" :headers="th" :actions="tableActions"></Table>

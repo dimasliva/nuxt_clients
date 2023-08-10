@@ -4,13 +4,18 @@
       <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
         <img src="../../public/cat-laptop.jpg" alt="cat">
       </VCard>
-      <v-card v-if="data.length == 0 && loading == false" max-width="400" class="mx-auto" elevation="0">
+      <v-card v-if="dataTableVars.rows.length == 0 && loading == false" max-width="400" class="mx-auto" elevation="0">
         <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
         <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
       </v-card>
-      <Table v-if="loading == false && data.length > 0" @cheked="checkEmpl = $event, disabledFunc()"
-        @person="checkEmpl = $event" :info="[]" :checkbox-show="show" :page="page" :headers="th" :actions="tableActions">
-      </Table>
+
+
+      <KeepAlive>
+        <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :headers="dataTableVars.headers"
+          ref="refDataTable" :rows="dataTableVars.rows" :selected="dataTableVars.selected"
+          :actionsMenu="dataTableVars.actionsMenu" />
+      </KeepAlive>
+
     </VCol>
 
     <v-expand-x-transition>
@@ -18,12 +23,9 @@
     </v-expand-x-transition>
 
   </VRow>
-  <v-pagination v-if="data.length" :length="data.length" v-model="page" :total-visible="7"></v-pagination>
-  <v-snackbar v-model="resultAnswer" :timeout="2000" color="primary" variant="tonal">{{ "g" }}</v-snackbar>
 </template>
 
 <script setup lang="ts">
-import Table from '~~/components/forms/Table.vue';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { IPageData, PageMap } from '~~/lib/PageMap';
 import ConfirmActionDialog from '~~/components/forms/ConfirmActionDialog.vue';
@@ -32,11 +34,10 @@ import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { ClientsViews, IClientListView } from '~/lib/MoApi/Views/ClientsViews';
 import ClientProfileDialog from '~~/components/forms/ClientProfileDialog.vue';
 import SimpleFilterForm from '~~/components/forms/SimpleFilterForm';
-import * as Helpers from '~~/lib/Helpers';
 import * as Utils from '~~/lib/Utils';
 import { EMessageType } from '~~/lib/globalTypes'
 import { useI18n } from "vue-i18n"
-import { Exception } from 'lib/Exceptions';
+
 
 
 
@@ -64,7 +65,29 @@ let deleteBtn = ref(true);
 let filterVals: Ref<TClientFilterVals | null> = ref(null);
 let lastField: Ref<any>;
 let resultAnswer = ref(false);
+let refDataTable = ref();
 
+
+
+const dataTableVars: any = ref({
+  itemsPerPage: 10,
+  headers: [
+    { align: 'start', sortable: false, key: "actions" },
+    { title: 'ФИО', align: 'start', sortable: true, key: 'fio' },
+    { title: 'Телефон', align: 'start', sortable: true, key: 'mainPhone' },
+    { title: 'Электронная почта', align: 'start', sortable: true, key: 'mainEmail' },
+    { title: 'СНИЛС', align: 'start', sortable: true, key: 'snils' }
+  ],
+
+  actionsMenu: [
+    { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => { } },
+    { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { } },
+
+  ] as IMenu[],
+
+  rows: [],
+  page: 1
+});
 
 
 let pageMapData: IPageData = reactive({
@@ -76,7 +99,7 @@ let pageMapData: IPageData = reactive({
     },
     {
       id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
-      action: () => { createToast(EMessageType.Error, "Это ошибка!" ); return; openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
+      action: () => { createToast(EMessageType.Error, "Это ошибка!"); return; openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
     },
     {
       id: "filter", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red",
@@ -145,31 +168,35 @@ const filterSetting = {
 
 
 
-/*
-const autoFocus = (e: KeyboardEvent) => {
-
-  if (key === 'ArrowLeft' && page.value > 1) {
-    page.value--
-  } else if (key === 'ArrowRight' && page.value < data.value.length) {
-    page.value++
-  }
-}
-*/
-
-
 const eventsHandler = (e: string, d: any) => {
   switch (e) {
     case "onKeydown":
       if (!loading.value) {
 
-          if (!filterForm.value.isVisible() && d.keyCode >= 32) {
-            filterForm.value.clear();
-            filterForm.value.show()
-          }
+        if (refDataTable.value) {
+          let inc = (d.key == 'ArrowLeft') ? -1 : (d.key == 'ArrowRight') ? 1 : 0;
 
-        if (filterForm.value.isVisible() &&(d.keyCode >= 32 || ['Enter', 'Delete'].includes(d.key)))
+          if (inc != 0) {
+            if (filterForm.value.isVisible())
+              filterForm.value.blur();
+            refDataTable.value.addCurrPage(inc);
+            break;
+          }
+        }
+
+        if (!filterForm.value.isVisible() && d.keyCode >= 32) {
+          filterForm.value.clear();
+          filterForm.value.show()
+        }
+
+
+        if (filterForm.value.isVisible() && (d.keyCode >= 32 || ['Enter', 'Delete', 'Backspace'].includes(d.key)))
           return filterForm.value.eventsHandler(e, d);
+
       }
+      break;
+
+    case "onPageActivate":
       break;
 
   }
@@ -182,9 +209,10 @@ let currentDate = new Date();
 currentDate.setDate(currentDate.getDate() - 7);
 
 const updateData = () => {
-  let btn = pageMapData.mainBtnBar!.find((o) => o.id == "addClient");
-  btn!.disabled = true;
-  btn!.color = "red";
+  //  let btn = pageMapData.mainBtnBar!.find((o) => o.id == "addClient");
+  //  btn!.disabled = true;
+  //  btn!.color = "red";
+  loadData();
 }
 
 const addClient = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
@@ -245,10 +273,28 @@ const getData = async (select: string, where: TClientFilterVals, sortedBy: strin
 const loadData = async () => {
   try {
     loading.value = true;
-    data.value = await getData("id,name,surname,patronymic,mainPhone,mainEmail,snils", filterVals.value!, "changedAt desc", 5000);
+    let rawData = await getData("id,name,surname,patronymic,mainPhone,mainEmail,snils", filterVals.value!, "changedAt desc", 5000);
+    let model: any = [];
+    for (let i = 0; i < rawData.length; i++) {
+      let row = rawData[i];
+      model.push({
+        id: row.id,
+        fio: (row.surname || "") + " " + (row.name || "") + " " + (row.patronymic || ""),
+        mainPhone: row.mainPhone,
+        mainEmail: row.mainEmail,
+        snils: row.snils
+      });
+    }
+    dataTableVars.value.rows = model;
+
+    if (refDataTable.value)
+      refDataTable.value.reset();
   }
   catch (exc: any) {
-    createToast(EMessageType.Error, exc.message)
+    if (exc.status == '429')
+      createToast(EMessageType.Error, t(`err_msg_FrequentRequests`));
+    else
+      createToast(EMessageType.Error, t(`err_msg_${exc.code}`));
   }
   finally {
     loading.value = false;
@@ -256,11 +302,6 @@ const loadData = async () => {
 }
 
 
-//watch(filterVals,()=>loadData());
-
-let th = [{ title: "ФИО", key: ["surname", "name", "patronymic"] }, { title: "Телефон", key: "mainPhone" }, { title: "E-mail", key: "mainEmail" }]
-
-let data = ref<any>([])
 
 let tableActions = ref([
   {

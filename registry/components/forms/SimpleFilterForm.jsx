@@ -49,12 +49,12 @@ export default defineComponent({
         }
 
         const filterValues = reactive(new Proxy({}, proxyHandler));
-
+        const maskaValues = reactive(new Proxy({}, proxyHandler));
 
         const isVisible = () => visiblity.value;
         const show = () => visiblity.value = true;
         const hide = () => visiblity.value = false;
-        const clear = () => {for (let item in filterValues) filterValues[item] = null}
+        const clear = () => { for (let item in filterValues) filterValues[item] = maskaValues[item] = null; }
         const toggleVis = () => { visiblity.value = !visiblity.value };
 
 
@@ -103,11 +103,11 @@ export default defineComponent({
                         if (d.key == 'Delete' && lastField) {
                             let id = lastField;
                             if (id) {
-                                filterValues[id] = null;
+                                filterValues[id] = maskaValues[id] = null;
                             }
                         }
                         else
-                            if (!cRefs[lastField]?.value && d.keyCode >= 32) {
+                            if (!cRefs[lastField]?.value && d.keyCode >= 32 && d.key.length == 1) {
                                 //фокус не установился. Что бы не терять нажатую клавишу значение записываем непосредственно в переменную
                                 filterValues[lastField] = d.key;
                             }
@@ -118,8 +118,15 @@ export default defineComponent({
         };
 
 
+        const blur = () => {
+            if (cRefs[lastField]?.value)
+                cRefs[lastField].value.blur();
+        }
+
+
+
         ctx.expose({
-            show, hide, toggleVis, isVisible, eventsHandler,clear
+            show, hide, toggleVis, isVisible, eventsHandler, clear, blur
         });
 
 
@@ -130,6 +137,7 @@ export default defineComponent({
             else
                 isBtnFindDisabled.value = !checkFieldValsConstraints();
         }
+
 
 
         const createFileds = () => {
@@ -148,8 +156,15 @@ export default defineComponent({
 
                 let isFucused = lastField == item;
 
-                let node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                    clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
+                let node = null;
+                if (val.constraints["mask"]) {
+                    node = <VTextField v-model={maskaValues[item]} key={item} variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
+                        clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules}
+                        onMaska={(e) => { filterValues[item] = e.detail.unmasked }} />
+                }
+                else
+                    node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
+                        clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
 
                 res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
             }

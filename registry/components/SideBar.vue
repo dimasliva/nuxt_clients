@@ -54,7 +54,7 @@
       </v-chip>
     </v-col>
   </v-row>
-  <v-card class="overflow-y-auto " elevation="0" height="87vh">
+  <v-card class="overflow-y-hidden " elevation="0" height="89vh">
     <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
       <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
       <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
@@ -220,6 +220,7 @@ const loadPageData = () => {
   currPageTitle.value = pageData?.title || '';
   currPageMenu.value = pageData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
+  onPageActivate();
 };
 
 onErrorCaptured((h, t) => {
@@ -381,11 +382,17 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 
+const onPageActivate = () => {
+  let handled = false;
+  const handler = getEventsHandler();
+  if (handler)
+    handled = handler("onPageActivate");
+}
+
+
 </script>
 
 <style lang="scss">
 @use "../settings.scss";
 
-html {
-  overflow-y: auto
-}</style>
+</style>

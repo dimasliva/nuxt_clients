@@ -11,9 +11,9 @@
 
 
       <KeepAlive>
-        <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :headers="dataTableVars.headers"
-          ref="refDataTable" :rows="dataTableVars.rows" :selected="dataTableVars.selected"
-          :actionsMenu="dataTableVars.actionsMenu" />
+        <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :table-descr="dataTableDescr"
+          ref="refDataTable" :rows="dataTableVars.rows" :selected="dataTableVars.selected"/>
+
       </KeepAlive>
 
     </VCol>
@@ -37,6 +37,8 @@ import SimpleFilterForm from '~~/components/forms/SimpleFilterForm';
 import * as Utils from '~~/lib/Utils';
 import { EMessageType } from '~~/lib/globalTypes'
 import { useI18n } from "vue-i18n"
+import type { UserContext } from '~~/lib/UserContext';
+import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 
 
 
@@ -56,9 +58,11 @@ let loading = ref(false)
 let filterForm = ref();
 
 const iocc = useContainer();
+const userCtx = iocc.get<UserContext>('UserContext');
 const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
 const clientsViews = iocc.get(ClientsViews);
+
 let checkEmpl = ref([]);
 let deleteBtn = ref(true);
 
@@ -66,28 +70,6 @@ let filterVals: Ref<TClientFilterVals | null> = ref(null);
 let lastField: Ref<any>;
 let resultAnswer = ref(false);
 let refDataTable = ref();
-
-
-
-const dataTableVars: any = ref({
-  itemsPerPage: 10,
-  headers: [
-    { align: 'start', sortable: false, key: "actions" },
-    { title: 'ФИО', align: 'start', sortable: true, key: 'fio' },
-    { title: 'Телефон', align: 'start', sortable: true, key: 'mainPhone' },
-    { title: 'Электронная почта', align: 'start', sortable: true, key: 'mainEmail' },
-    { title: 'СНИЛС', align: 'start', sortable: true, key: 'snils' }
-  ],
-
-  actionsMenu: [
-    { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => { } },
-    { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { } },
-
-  ] as IMenu[],
-
-  rows: [],
-  page: 1
-});
 
 
 let pageMapData: IPageData = reactive({
@@ -107,8 +89,32 @@ let pageMapData: IPageData = reactive({
     },
   ]
 });
-
 pageMap.setPageData("/list/clients", pageMapData);
+
+
+const dataTableDescr = ref<IDataTableDescription>({
+  headers: [
+    { key: "actions", align: 'start', sortable: false, title: "" },
+    { key: 'fio', title: 'ФИО', align: 'center', sortable: true, requestNames: ["name", "surname", "patronymic"] },
+    { key: 'mainPhone', title: 'Телефон', align: 'center', sortable: true, traits: { dbClientContacts: "r" }, requestNames: ["mainPhone"] },
+    { key: 'mainEmail', title: 'Электронная почта', align: 'center', sortable: true, traits: { dbClientContacts: "r" }, requestNames: ["mainEmail"] },
+    { key: 'snils', title: 'СНИЛС', align: 'center', sortable: true, traits: { dbClientDocuments: "r" }, requestNames: ["snils"] }
+  ],
+
+  actionsMenu: (item) => [
+    { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => { }, traits: { dbClient: "u" } },
+    { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { }, traits: { dbClient: "d" } },
+
+  ]
+});
+
+
+const dataTableVars = ref({
+  itemsPerPage: 10,
+  rows: [],
+  page: 1,
+  selected:[]
+});
 
 
 
@@ -130,6 +136,7 @@ const filterSetting = {
         hint: "Введите минимум 2 символа",
         rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
         constraints: { min: 2, max: 10 },
+        traits: { dbClientContacts: "r" }
       },
 
       phone: {
@@ -138,6 +145,7 @@ const filterSetting = {
         hint: "Введите минимум 6 символов",
         rules: [],
         constraints: { min: 6, mask: '#-###-###-##-##-###-###' },
+        traits: { dbClientContacts: "r" }
       },
 
       snils: {
@@ -146,6 +154,7 @@ const filterSetting = {
         hint: "Введите минимум 2 символа",
         rules: [],
         constraints: { mask: '###-###-### ##' },
+        traits: { dbClientDocuments: "r" }
       }
 
     }
@@ -160,6 +169,7 @@ const filterSetting = {
   async onFind(inputData: any) {
     if (!loading.value) {
       filterVals.value = inputData;
+
       loadData();
     }
     return true;
@@ -172,7 +182,6 @@ const eventsHandler = (e: string, d: any) => {
   switch (e) {
     case "onKeydown":
       if (!loading.value) {
-
         if (refDataTable.value) {
           let inc = (d.key == 'ArrowLeft') ? -1 : (d.key == 'ArrowRight') ? 1 : 0;
 
@@ -270,10 +279,25 @@ const getData = async (select: string, where: TClientFilterVals, sortedBy: strin
 }
 
 
+const getRequestFilterFields = (tableHeaders: any[]) => {
+  let res: any[] = [];
+  tableHeaders.forEach((item) => {
+    if (Utils.chkRights(null, item.traits))
+      if (item.requestNames)
+        res = res.concat(item.requestNames);
+  });
+  return res;
+}
+
+
 const loadData = async () => {
   try {
     loading.value = true;
-    let rawData = await getData("id,name,surname,patronymic,mainPhone,mainEmail,snils", filterVals.value!, "changedAt desc", 5000);
+    let requestFields = getRequestFilterFields(dataTableDescr.value.headers);
+    requestFields.push("id");
+    let requestFieldsInx: any = {};
+    requestFields.forEach((item) => requestFieldsInx[item] = true);
+    let rawData = await getData(requestFields.join(","), filterVals.value!, "changedAt desc", 5000);
     let model: any = [];
     for (let i = 0; i < rawData.length; i++) {
       let row = rawData[i];
@@ -291,10 +315,12 @@ const loadData = async () => {
       refDataTable.value.reset();
   }
   catch (exc: any) {
-    if (exc.status == '429')
+    if (exc.statusCode == '429')
       createToast(EMessageType.Error, t(`err_msg_FrequentRequests`));
     else
       createToast(EMessageType.Error, t(`err_msg_${exc.code}`));
+    
+      dataTableVars.value.rows.length=0;
   }
   finally {
     loading.value = false;

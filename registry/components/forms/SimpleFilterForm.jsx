@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { VBtn, VCard, VCol, VForm, VTextField } from 'vuetify/lib/components/index.mjs'
 import { vMaska } from "maska"
+import * as Utils from '~~/lib/Utils';
 
 export default defineComponent({
 
@@ -96,6 +97,12 @@ export default defineComponent({
                 case "onKeydown":
                     findDelay = 3;
                     autoFocus(d);
+                    if (d.key == 'Enter'){
+                        //обязательно! Иначе может перегружаться страница при нажатии Enter, если фокус был на поле ввода. 
+                        //т.к. поля ввода находятся на form, а form посылает данные при нажатии на Enter
+                        d.preventDefault()
+                    }
+                   
                     if (d.key == 'Enter' && !isBtnFindDisabled.value) {
                         filterSettings.onFind(filterValues);
                     }
@@ -111,7 +118,6 @@ export default defineComponent({
                                 //фокус не установился. Что бы не терять нажатую клавишу значение записываем непосредственно в переменную
                                 filterValues[lastField] = d.key;
                             }
-
                     return true;
             }
             return false;
@@ -145,7 +151,12 @@ export default defineComponent({
             let res = [];
             console.debug("rId2: " + rId + " render: " + visiblity.value)
             for (let item in filterFields) {
+
                 let val = filterFields[item];
+
+                if (!Utils.chkRights(null, val.traits))
+                    continue;
+
                 if (!cRefs[item])
                     cRefs[item] = ref();
 
@@ -161,12 +172,14 @@ export default defineComponent({
                     node = <VTextField v-model={maskaValues[item]} key={item} variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
                         clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules}
                         onMaska={(e) => { filterValues[item] = e.detail.unmasked }} />
+                    res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
                 }
-                else
+                else {
                     node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
                         clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
+                    res.push(node);
+                }
 
-                res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
             }
 
             return res;

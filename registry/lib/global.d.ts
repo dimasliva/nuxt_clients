@@ -54,7 +54,8 @@ declare global {
         icon: string;
         disabled: boolean;
         action: () => string | object | void;
-        childs?: IMenu[] | null
+        childs?: IMenu[] | null,
+        traits?: { [rec: string]: string } | null
     }
 
     interface IBtnMenu {

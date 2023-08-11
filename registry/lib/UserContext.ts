@@ -23,6 +23,12 @@ export class UserContext {
   private _CompanyLicense: any | null = null;
   public get CompanyLicense(): any | null { return this._CompanyLicense; }
 
+  private _CompanyRoles: any | null = null;
+  public get CompanyRoles(): any | null { return this._CompanyRoles; }
+
+  private _userRights: any | null = null;
+  public get UserRights(): any | null { return this._userRights; }
+
   private _EmployeeData: IEmployeeRecordData | null = null;
   public get EmployeeData(): IEmployeeRecordData | null { return this._EmployeeData; }
 
@@ -56,6 +62,8 @@ export class UserContext {
       //this._CompanyData = await this._moApiClient.send("/Company/GetCompany");
       this._CompanyProfile = await this._moApiClient.send("/Company/GetProfile");
       this._CompanyLicense = await this._moApiClient.send("/Company/GetLicense");
+      this._CompanyRoles = await this._moApiClient.send("/Roles/GetRoles");
+      this._userRights = this._createUserRights(this._EmployeeData.roles || "", this._CompanyRoles.roles)
       this._AuthorityData = authorityData;
     }
     catch (exc) {
@@ -73,6 +81,60 @@ export class UserContext {
       this.saveToState();
     }
   }
+
+
+  protected _createUserRights(userRoles: string, companyRoles) {
+
+    const res: { [rectoken: string]: string } = {};
+    const roleTokens = companyRoles;
+    const roles = userRoles.split(",");
+    for (const role of roles) {
+      if (roleTokens.hasOwnProperty(role)) {
+        const tokens = roleTokens[role];
+
+        for (let tokenn in tokens) {
+          let token = tokens[tokenn];
+          const tk = tokenn.toLowerCase();
+          if (res.hasOwnProperty(tk)) {
+            let currTraits = res[tk];
+            for (const c of token) {
+              if (!currTraits.includes(c)) {
+                currTraits += c;
+              }
+            }
+            res[tk] = currTraits;
+          } else {
+            res[tk] = token;
+          }
+        }
+      }
+    }
+    return res;
+  }
+
+
+  ChkLicModule(modname: string): boolean {
+    if (this._CompanyLicense.hasOwnProperty(modname)) {
+      const dtn = new Date();
+      const untiDate = new Date(this._CompanyLicense[modname].untilMax);
+      if (dtn > untiDate) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+
+  public ChkTokenTrait(token: string, trait: string): boolean {
+    if (this._userRights.hasOwnProperty("#companyadmin")) {
+      return this._userRights["#companyadmin"].includes(trait);
+    }
+    token = token.toLowerCase();
+    return this._userRights.hasOwnProperty(token) && this._userRights[token].includes(trait);
+  }
+
 
 
   signout() {

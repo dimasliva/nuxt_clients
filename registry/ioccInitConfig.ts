@@ -2,9 +2,8 @@ import { MoApiClient } from "@/lib/MoApi/MoApiClient";
 import { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
 import { UserContext } from "@/lib/UserContext";
 import { Container } from "inversify";
-import { ModuleManager } from "./lib/ModuleManager";
+import { ModuleManager } from "./libVis/ModuleManager";
 import { PageMap } from "./lib/PageMap";
-import { EmployeesViews } from "./lib/MoApi/Views/EmployeesViews";
 
 
 export default (container:Container) => {

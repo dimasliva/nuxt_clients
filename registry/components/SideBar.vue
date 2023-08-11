@@ -100,8 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { IModuleItemsMenu } from '~~/lib/ModuleManager';
-import { ModuleManager } from '~~/lib/ModuleManager';
+import type { ModuleManager, IModuleItemsMenu } from '~~/libVis/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
 import { IPageData, PageMap } from '~~/lib/PageMap';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
@@ -192,8 +191,8 @@ let dialogForm2: DialogForm = {
   eventsHandler: null
 };
 
-let createToast = (type:EMessageType, message:string, title?:string|null) => {
-  toast.custom(markRaw(h<any>(ToastComponent,{type, message, title})));
+let createToast = (type: EMessageType, message: string, title?: string | null) => {
+  toast.custom(markRaw(h<any>(ToastComponent, { type, message, title })));
 }
 
 interface Page {
@@ -394,5 +393,4 @@ const onPageActivate = () => {
 
 <style lang="scss">
 @use "../settings.scss";
-
 </style>

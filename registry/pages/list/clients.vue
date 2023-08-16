@@ -51,9 +51,6 @@ type TClientFilterVals = {
 }
 
 const { t } = useI18n()
-let page = ref(1)
-let itemPerPage = ref<number>(10)
-let show = ref(false)
 let loading = ref(false)
 let filterForm = ref();
 
@@ -67,8 +64,6 @@ let checkEmpl = ref([]);
 let deleteBtn = ref(true);
 
 let filterVals: Ref<TClientFilterVals | null> = ref(null);
-let lastField: Ref<any>;
-let resultAnswer = ref(false);
 let refDataTable = ref();
 
 
@@ -341,7 +336,9 @@ let tableActions = ref([
 ])
 
 
+onMounted(()=>{
+  filterForm.value.show();
+})
+
 defineExpose({ eventsHandler });
-
-
 </script>

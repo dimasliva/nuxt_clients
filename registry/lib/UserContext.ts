@@ -4,6 +4,7 @@ import { NuxtApp } from "nuxt/dist/app";
 import { Container } from "inversify";
 import type { MoApiClient } from "./MoApi/MoApiClient";
 import type { IEmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
+import { IRecordsRestricions } from "./MoApi/ApiInterfaces";
 
 
 @injectable()
@@ -23,14 +24,14 @@ export class UserContext {
   private _CompanyLicense: any | null = null;
   public get CompanyLicense(): any | null { return this._CompanyLicense; }
 
-  private _CompanyRoles: any | null = null;
-  public get CompanyRoles(): any | null { return this._CompanyRoles; }
-
   private _userRights: any | null = null;
   public get UserRights(): any | null { return this._userRights; }
 
   private _EmployeeData: IEmployeeRecordData | null = null;
   public get EmployeeData(): IEmployeeRecordData | null { return this._EmployeeData; }
+
+  private _RecordsRestricions: IRecordsRestricions | null = null;
+  public get RecordsRestricions(): IRecordsRestricions | null { return this._RecordsRestricions; }
 
   //private _CompanyData: IEmployeeRecordData | null = null;
   //public get CompanyData(): any | null { return this._CompanyData; }
@@ -56,14 +57,15 @@ export class UserContext {
 
     try {
       let authorityData = await this._moApiClient.AuthorizeClient();
+
       //получение профилей
-      this._EmployeeData = (<IEmployeeRecordData[]>await this._moApiClient.send("/Employees/GetEmployees", [authorityData.userId]))[0];
-      this._EmployeeAppProfile = await this._moApiClient.send("/Employees/GetAppProfile", authorityData.userId);
-      //this._CompanyData = await this._moApiClient.send("/Company/GetCompany");
-      this._CompanyProfile = await this._moApiClient.send("/Company/GetProfile");
-      this._CompanyLicense = await this._moApiClient.send("/Company/GetLicense");
-      this._CompanyRoles = await this._moApiClient.send("/Roles/GetRoles");
-      this._userRights = this._createUserRights(this._EmployeeData.roles || "", this._CompanyRoles.roles)
+      const appEmployeeContext:any=await this._moApiClient.send("/Employees/GetAppEmployeeContext");
+      this._EmployeeData = appEmployeeContext.employee;
+      this._EmployeeAppProfile = appEmployeeContext.employeeAppProfile;
+      this._CompanyProfile = appEmployeeContext.companyAppProfile;
+      this._CompanyLicense = appEmployeeContext.companyLicenseData;
+      this._userRights = appEmployeeContext.userRecordsRights;
+      this._RecordsRestricions = appEmployeeContext.recordRestrictions;
       this._AuthorityData = authorityData;
     }
     catch (exc) {

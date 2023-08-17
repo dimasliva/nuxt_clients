@@ -12,7 +12,7 @@
 
       <KeepAlive>
         <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :table-descr="dataTableDescr"
-          ref="refDataTable" :rows="dataTableVars.rows" :selected="dataTableVars.selected"/>
+          ref="refDataTable" :rows="dataTableVars.rows" :selected="dataTableVars.selected" />
 
       </KeepAlive>
 
@@ -39,6 +39,7 @@ import { EMessageType } from '~~/lib/globalTypes'
 import { useI18n } from "vue-i18n"
 import type { UserContext } from '~~/lib/UserContext';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
+import { useRequest } from '~/componentComposables/useLoading';
 
 
 
@@ -108,7 +109,7 @@ const dataTableVars = ref({
   itemsPerPage: 10,
   rows: [],
   page: 1,
-  selected:[]
+  selected: []
 });
 
 
@@ -285,8 +286,8 @@ const getRequestFilterFields = (tableHeaders: any[]) => {
 }
 
 
-const loadData = async () => {
-  try {
+
+const loadData = ()=>useRequest(async () => {
     loading.value = true;
     let requestFields = getRequestFilterFields(dataTableDescr.value.headers);
     requestFields.push("id");
@@ -308,19 +309,14 @@ const loadData = async () => {
 
     if (refDataTable.value)
       refDataTable.value.reset();
-  }
-  catch (exc: any) {
-    if (exc.statusCode == '429')
-      createToast(EMessageType.Error, t(`err_msg_FrequentRequests`));
-    else
-      createToast(EMessageType.Error, t(`err_msg_${exc.code}`));
-    
-      dataTableVars.value.rows.length=0;
-  }
-  finally {
-    loading.value = false;
-  }
-}
+  })
+    .catch((exc) => {
+      dataTableVars.value.rows.length = 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
 
 
 
@@ -336,7 +332,7 @@ let tableActions = ref([
 ])
 
 
-onMounted(()=>{
+onMounted(() => {
   filterForm.value.show();
 })
 

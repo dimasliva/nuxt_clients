@@ -72,7 +72,9 @@ export default defineNuxtConfig({
     }
   },
   
-  modules: ['@nuxt-alt/proxy','@vueuse/nuxt'],
+  modules: ['@nuxt-alt/proxy','@vueuse/nuxt','@nuxtjs/i18n'],
+
+
 
   nitro: {
     esbuild: {

@@ -3,7 +3,9 @@ import * as Utils from '~~/lib/Utils';
 export interface IDataTableHeadersDescription {
     key: string;
     title: string;
+    alignData?: string;
     align?: string;
+    width?:string;
     sortable?: boolean;
     requestNames?: string[]
     traits?: { [name: string]: string };

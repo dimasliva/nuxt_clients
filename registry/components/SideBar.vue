@@ -108,6 +108,7 @@ import { Toaster, toast } from 'vue-sonner'
 import ToastComponent from '~/components/ToastComponent.vue'
 import { EMessageType } from '~~/lib/globalTypes';
 import { h, markRaw } from 'vue'
+import { RouteLocationNormalizedLoaded } from 'vue-router';
 
 
 
@@ -219,7 +220,7 @@ const loadPageData = () => {
   currPageTitle.value = pageData?.title || '';
   currPageMenu.value = pageData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
-  onPageActivate();
+  onPageActivate(route);
 };
 
 onErrorCaptured((h, t) => {
@@ -381,11 +382,11 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 
-const onPageActivate = () => {
+const onPageActivate = (route:RouteLocationNormalizedLoaded) => {
   let handled = false;
   const handler = getEventsHandler();
   if (handler)
-    handled = handler("onPageActivate");
+    handled = handler("onPageActivate",route);
 }
 
 

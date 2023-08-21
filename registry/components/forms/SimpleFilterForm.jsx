@@ -57,7 +57,7 @@ export default defineComponent({
         const hide = () => visiblity.value = false;
         const clear = () => { for (let item in filterValues) filterValues[item] = maskaValues[item] = null; }
         const toggleVis = () => { visiblity.value = !visiblity.value };
-
+        const isFindable = () => !isBtnFindDisabled.value;
 
         const forcesUpdate = () => {
             updateKey.value += 1;
@@ -132,7 +132,7 @@ export default defineComponent({
 
 
         ctx.expose({
-            show, hide, toggleVis, isVisible, eventsHandler, clear, blur
+            show, hide, toggleVis, isVisible, eventsHandler, clear, blur, isFindable
         });
 
 

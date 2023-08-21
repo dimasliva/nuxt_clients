@@ -1,9 +1,9 @@
 <template>
-  <VRow class="ma-1">
-    <VCol style="min-width: 400;">
-      <VCard v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
+  <v-row class="ma-1">
+    <v-col class="w-50" style="min-width: 400; ">
+      <v-card v-if="loading == true" max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка...">
         <img src="../../public/cat-laptop.jpg" alt="cat">
-      </VCard>
+      </v-card>
       <v-card v-if="dataTableVars.rows.length == 0 && loading == false" max-width="400" class="mx-auto" elevation="0">
         <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
         <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
@@ -12,17 +12,17 @@
 
       <KeepAlive>
         <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :table-descr="dataTableDescr"
-          ref="refDataTable" :rows="dataTableVars.rows" :selected="dataTableVars.selected" />
-
+          v-model:columns="dataTableVars.columns" ref="refDataTable" :rows="dataTableVars.rows"
+          :selected="dataTableVars.selected" @onColumnsChanged="loadData()" />
       </KeepAlive>
 
-    </VCol>
+    </v-col>
 
     <v-expand-x-transition>
       <SimpleFilterForm ref="filterForm" :filterSettings="filterSetting" />
     </v-expand-x-transition>
 
-  </VRow>
+  </v-row>
 </template>
 
 <script setup lang="ts">
@@ -39,7 +39,7 @@ import { EMessageType } from '~~/lib/globalTypes'
 import { useI18n } from "vue-i18n"
 import type { UserContext } from '~~/lib/UserContext';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
-import { useRequest } from '~/componentComposables/useLoading';
+import * as vHelpers from '~~/libVis/Helpers';
 
 
 
@@ -90,11 +90,12 @@ pageMap.setPageData("/list/clients", pageMapData);
 
 const dataTableDescr = ref<IDataTableDescription>({
   headers: [
-    { key: "actions", align: 'start', sortable: false, title: "" },
-    { key: 'fio', title: 'ФИО', align: 'center', sortable: true, requestNames: ["name", "surname", "patronymic"] },
-    { key: 'mainPhone', title: 'Телефон', align: 'center', sortable: true, traits: { dbClientContacts: "r" }, requestNames: ["mainPhone"] },
-    { key: 'mainEmail', title: 'Электронная почта', align: 'center', sortable: true, traits: { dbClientContacts: "r" }, requestNames: ["mainEmail"] },
-    { key: 'snils', title: 'СНИЛС', align: 'center', sortable: true, traits: { dbClientDocuments: "r" }, requestNames: ["snils"] }
+    { key: 'fio', title: 'ФИО', align: 'center', alignData: "start", width: "400", sortable: true, requestNames: ["name", "surname", "patronymic"] },
+    { key: 'bd', title: 'Дата рождения', align: 'center', alignData: "center", width: "250", sortable: true, requestNames: ["birthdate"] },
+    { key: 'gen', title: 'Пол', align: 'center', alignData: "center", width: "50", sortable: true, requestNames: ["gender"] },
+    { key: 'mainPhone', title: 'Телефон', align: 'center', alignData: "center", width: "220", sortable: true, traits: { dbClientContacts: "r" }, requestNames: ["mainPhone"] },
+    { key: 'mainEmail', title: 'Электронная почта', align: 'center', alignData: "center", width: "240", sortable: true, traits: { dbClientContacts: "r" }, requestNames: ["mainEmail"] },
+    { key: 'snils', title: 'СНИЛС', align: 'center', alignData: "center", sortable: true, traits: { dbClientDocuments: "r" }, requestNames: ["snils"] }
   ],
 
   actionsMenu: (item) => [
@@ -107,9 +108,10 @@ const dataTableDescr = ref<IDataTableDescription>({
 
 const dataTableVars = ref({
   itemsPerPage: 10,
-  rows: [],
+  rows: [] as any[],
   page: 1,
-  selected: []
+  selected: [],
+  columns: ["fio", "bd", "mainPhone", "mainEmail"]
 });
 
 
@@ -202,6 +204,7 @@ const eventsHandler = (e: string, d: any) => {
       break;
 
     case "onPageActivate":
+      //d==RouteLocationNormalizedLoaded
       break;
 
   }
@@ -209,9 +212,6 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-
-let currentDate = new Date();
-currentDate.setDate(currentDate.getDate() - 7);
 
 const updateData = () => {
   //  let btn = pageMapData.mainBtnBar!.find((o) => o.id == "addClient");
@@ -232,17 +232,11 @@ const deleteEmpl = async (id: any) => {
 
 }
 
-const disabledFunc = () => {
-  debugger;
-  (checkEmpl.value.length >= 1 && checkEmpl.value.length <= 5000) ? deleteBtn.value = false : deleteBtn.value = true;
-}
 
 
-
-
-const getData = async (select: string, where: TClientFilterVals, sortedBy: string, quantity: number) => {
+const getWhereFromFilter = (filterVals: TClientFilterVals) => {
   let whereArr: string[] = [];
-  let fioStr = Utils.normalizeFio(where.fio);
+  let fioStr = Utils.normalizeFio(filterVals.fio);
 
   if (fioStr) {
     let fioArr = fioStr.split(' ');
@@ -252,70 +246,87 @@ const getData = async (select: string, where: TClientFilterVals, sortedBy: strin
     if (fioArr[2]) whereArr.push(`patronymic like '${fioArr[2]}'`);
   }
 
-  let tmp = where.phone?.trim();
+  let tmp = filterVals.phone?.trim();
   if (tmp) whereArr.push(`mainPhone='${tmp}'`);
-  tmp = where.email?.trim();
+  tmp = filterVals.email?.trim();
   if (tmp) whereArr.push(`mainEmail='${tmp}'`);
-  tmp = where.snils?.trim();
+  tmp = filterVals.snils?.trim();
   if (tmp) whereArr.push(`snils='${tmp}'`);
 
-  if (whereArr.length == 0) return [];
-  let wherestr = whereArr.join(" and ");
-  const startTime = performance.now();
-  let recArr = await clientsViews.getClientListView(new QueryParams(select, wherestr, sortedBy, quantity));
-  const res: IClientListView[] = [];
-  let row: IClientListView | undefined;
 
-  while (row = recArr.getNext()) {
-    res.push(row);
-  }
+  if (whereArr.length == 0) return "";
+  return whereArr.join(" and ");
+}
+
+
+
+const getData = async (select: string, where: string, sortedBy: string, quantity: number) => {
+
+  const startTime = performance.now();
+  let recArr = await clientsViews.getClientListView(new QueryParams(select, where, sortedBy, quantity));
+
   const endTime = performance.now();
   console.debug(`clients count=${recArr.getLength()} for ${endTime - startTime} ms`);
+
+  const res: any[] = [];
+  let row: IClientListView | undefined;
+
+
+  while (row = recArr.getNext()) {
+
+    res.push({
+      id: row.id,
+      fio: (row.surname || "") + " " + (row.name || "") + " " + (row.patronymic || ""),
+      bd: row.birthdate ? new Intl.DateTimeFormat().format(new Date(row.birthdate)) : "",
+      gen: vHelpers.getGenderStr(row.gender),
+      mainPhone: row.mainPhone,
+      mainEmail: row.mainEmail,
+      snils: row.snils
+    });
+  }
+
   return res;
 }
 
 
-const getRequestFilterFields = (tableHeaders: any[]) => {
+
+const getRequestFilterFields = (tableHeaders: any[], selColumns?: string[]) => {
   let res: any[] = [];
   tableHeaders.forEach((item) => {
-    if (Utils.chkRights(null, item.traits))
-      if (item.requestNames)
-        res = res.concat(item.requestNames);
+    if (!selColumns || selColumns.includes(item.key))
+      if (Utils.chkRights(null, item.traits))
+        if (item.requestNames)
+          res = res.concat(item.requestNames);
   });
   return res;
 }
 
 
 
-const loadData = ()=>useRequest(async () => {
-    loading.value = true;
-    let requestFields = getRequestFilterFields(dataTableDescr.value.headers);
-    requestFields.push("id");
-    let requestFieldsInx: any = {};
-    requestFields.forEach((item) => requestFieldsInx[item] = true);
-    let rawData = await getData(requestFields.join(","), filterVals.value!, "changedAt desc", 5000);
-    let model: any = [];
-    for (let i = 0; i < rawData.length; i++) {
-      let row = rawData[i];
-      model.push({
-        id: row.id,
-        fio: (row.surname || "") + " " + (row.name || "") + " " + (row.patronymic || ""),
-        mainPhone: row.mainPhone,
-        mainEmail: row.mainEmail,
-        snils: row.snils
-      });
-    }
-    dataTableVars.value.rows = model;
+const loadData = () => vHelpers.action(async () => {
+  loading.value = true;
+  let requestFields = ["id"].concat(getRequestFilterFields(dataTableDescr.value.headers, dataTableVars.value.columns));
 
-    if (refDataTable.value)
-      refDataTable.value.reset();
+  let where = "changedAt <= '3000-01-01'";
+  let limit = 100;
+
+  if (filterForm.value.isFindable()) {
+    limit = 0;
+    where = getWhereFromFilter(filterVals.value!)
+  }
+
+  dataTableVars.value.rows = await getData(requestFields.join(","), where, "changedAt desc", limit);
+  vHelpers.chkMaxItemsLimit(dataTableVars.value.rows);
+
+  if (refDataTable.value)
+    refDataTable.value.reset();
+})
+  .catch((exc) => {
+    dataTableVars.value.rows.length = 0;
   })
-    .catch((exc) => {
-      dataTableVars.value.rows.length = 0;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+  .finally(() => {
+    loading.value = false;
+  });
 
 
 
@@ -334,6 +345,7 @@ let tableActions = ref([
 
 onMounted(() => {
   filterForm.value.show();
+  loadData();
 })
 
 defineExpose({ eventsHandler });

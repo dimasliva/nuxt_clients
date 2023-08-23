@@ -19,8 +19,8 @@
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
             <VTextField v-model="fio" v-if="empRights.empProfRights.includes('r')" clearable hint="Введите минимум 2 символа"  ref="fioF" @click:clear="() => {filterItems('', th[0].key),fio='', stopAutoReq()}"
                @update:focused="lastField=fioF, searchField = false" :label="th[0].title"  variant="underlined" color="secondary" @update:model-value="() => {filterItems(fio, th[0].key), autoReq(fio)}"/>
-            <VTextField v-model="phone" v-if="empRights.empContRights.includes('r')" type="number" clearable hint="Введите минимум 6 цифр" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone='', stopAutoReq()}"
-               @update:focused="lastField=phoneF, searchField = false" :label="th[1].title"  variant="underlined" color="secondary" @input="autoReq(phone)" @update:model-value="() => {filterItems(phone, th[1].key)}"/>
+            <VTextField v-model="phone" v-if="empRights.empContRights.includes('r')" v-maska:[phoneOptions] clearable hint="Введите минимум 6 цифр" ref="phoneF" @click:clear="() => {filterItems('', th[1].key), phone='', stopAutoReq()}"
+               @update:focused="lastField=phoneF, searchField = false" :label="th[1].title"  variant="underlined" color="secondary" @input="autoReq(phone.replace(/[+() --]/g, '').trim())" @update:model-value="() => {filterItems(phone.replace(/[+() --]/g, '').trim(), th[1].key)}"/>
             <VTextField v-model="email" v-if="empRights.empContRights.includes('r')" clearable hint="Введите минимум 3 символа" ref="emailF" @click:clear="() => {filterItems('', th[2].key), email='', stopAutoReq()}"
                @update:focused="lastField=emailF, searchField = false" :label="th[2].title"  variant="underlined" color="secondary" @input="autoReq(email)" @update:model-value="() => {filterItems(email, th[2].key)}"/>
             <VTextField v-model="itemPerPage" label="Количество элементов на странице"  min="5" max="100" step="5" variant="underlined" color="secondary" type="number" @input="itemPerPage > 5? true : itemPerPage = 5 "></VTextField>
@@ -65,7 +65,9 @@ let fio = ref<string>('')
 let phone = ref<string>('')
 let email = ref<string>('')
 let message = ref('')
-
+const phoneOptions = {
+  mask: "+7(###) ###-##-##"
+}
 let { name } = useDisplay();
 let filtPos = computed(() => {
   switch (name.value) {
@@ -161,7 +163,7 @@ const btnDis = () => {
     return true;
   } else if (f > 0 && f < 2) {
     return true;
-  } else if (p > 0 && p < 6) {
+  } else if (p > 0 && p < 9) {
     return true;
   } else if (e > 0 && e < 3) {
     return true;

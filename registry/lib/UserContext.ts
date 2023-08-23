@@ -4,6 +4,9 @@ import { NuxtApp } from "nuxt/dist/app";
 import { Container } from "inversify";
 import type { MoApiClient } from "./MoApi/MoApiClient";
 import type { IEmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
+import { IRecordsRestricions } from "./MoApi/ApiInterfaces";
+import { EmployeeAppProfile } from "./EmployeeAppProfile";
+import { CompanyAppProfile } from "./CompanyAppProfile";
 
 
 @injectable()
@@ -14,20 +17,25 @@ export class UserContext {
   protected _AuthorityData: IAuthorityData | null = null;
   public get AuthorityData(): IAuthorityData | null { return this._AuthorityData; }
 
-  private _CompanyProfile: any | null = null;
-  public get CompanyProfile(): any | null { return this._CompanyProfile; }
+  private _CompanyProfile: CompanyAppProfile | null = null;
+  public get CompanyProfile(): CompanyAppProfile | null { return this._CompanyProfile; }
 
-  private _EmployeeAppProfile: any | null = null;
-  public get EmployeeAppProfile(): any | null { return this._EmployeeAppProfile; }
+  private _EmployeeAppProfile: EmployeeAppProfile | null = null;
+  public get EmployeeAppProfile(): EmployeeAppProfile | null { return this._EmployeeAppProfile; }
 
   private _CompanyLicense: any | null = null;
   public get CompanyLicense(): any | null { return this._CompanyLicense; }
 
+  private _userRights: any | null = null;
+  public get UserRights(): any | null { return this._userRights; }
+
   private _EmployeeData: IEmployeeRecordData | null = null;
   public get EmployeeData(): IEmployeeRecordData | null { return this._EmployeeData; }
 
-  //private _CompanyData: IEmployeeRecordData | null = null;
-  //public get CompanyData(): any | null { return this._CompanyData; }
+  private _RecordsRestricions: IRecordsRestricions | null = null;
+  public get RecordsRestricions(): IRecordsRestricions | null { return this._RecordsRestricions; }
+
+
 
   constructor(@inject("MoApiClient") protected _moApiClient: MoApiClient, @inject("NuxtApp") protected _nuxtApp: NuxtApp) {
     this.restoreFromState()
@@ -50,12 +58,15 @@ export class UserContext {
 
     try {
       let authorityData = await this._moApiClient.AuthorizeClient();
+
       //получение профилей
-      this._EmployeeData = (<IEmployeeRecordData[]>await this._moApiClient.send("/Employees/GetEmployees", [authorityData.userId]))[0];
-      this._EmployeeAppProfile = await this._moApiClient.send("/Employees/GetAppProfile", authorityData.userId);
-      //this._CompanyData = await this._moApiClient.send("/Company/GetCompany");
-      this._CompanyProfile = await this._moApiClient.send("/Company/GetProfile");
-      this._CompanyLicense = await this._moApiClient.send("/Company/GetLicense");
+      const appEmployeeContext:any=await this._moApiClient.send("/Employees/GetAppEmployeeContext");
+      this._EmployeeData = appEmployeeContext.employee;
+      this._EmployeeAppProfile =  new EmployeeAppProfile(this._moApiClient, appEmployeeContext.employeeAppProfile),
+      this._CompanyProfile = new CompanyAppProfile(this._moApiClient, appEmployeeContext.companyAppProfile);
+      this._CompanyLicense = appEmployeeContext.companyLicenseData;
+      this._userRights = appEmployeeContext.userRecordsRights;
+      this._RecordsRestricions = appEmployeeContext.recordRestrictions;
       this._AuthorityData = authorityData;
     }
     catch (exc) {
@@ -73,6 +84,31 @@ export class UserContext {
       this.saveToState();
     }
   }
+
+
+
+  ChkLicModule(modname: string): boolean {
+    if (this._CompanyLicense.hasOwnProperty(modname)) {
+      const dtn = new Date();
+      const untiDate = new Date(this._CompanyLicense[modname].untilMax);
+      if (dtn > untiDate) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+
+  public ChkTokenTrait(token: string, trait: string): boolean {
+    if (this._userRights.hasOwnProperty("#companyadmin")) {
+      return this._userRights["#companyadmin"].includes(trait);
+    }
+    token = token.toLowerCase();
+    return this._userRights.hasOwnProperty(token) && this._userRights[token].includes(trait);
+  }
+
 
 
   signout() {

@@ -23,16 +23,16 @@ export class ClientRecord extends ApiRecord<IClientRecordData>{
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             id: this.Key,
             name: '',
             surname: '',
             patronymic: null,
-            gender: '',
+            gender: 'u',
             birthdate: null,
             notActive: null,
             advData: null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

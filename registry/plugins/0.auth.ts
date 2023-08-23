@@ -15,23 +15,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         await userCtx.tryAuthorize();
         ioccAfterAuthConfig(userCtx,iocc);
 
-        /*
-        if (userCtx.isAuth) {
-                //получение профилей
-
-                const sessionContainer = useSessionContainer();
-                try {
-                        const recStore = sessionContainer.get<RecordsStore>("RecordsStore");
-                        let empl = await recStore.fetch(EmployeeRecord, userCtx.AuthorityData!.userId);
-
-
-                }
-                finally {
-                        sessionContainer.unbindAllAsync();
-                }
-        }
-        */
-
         addRouteMiddleware('auth.global', (to, from) => {
                 console.debug("middleware auth")
                 const userCtx = useContainer().get<UserContext>("UserContext");

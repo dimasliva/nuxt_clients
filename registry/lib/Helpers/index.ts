@@ -27,3 +27,20 @@ export function excToLog(excIn: string, exc: any) {
     else
       console.error(`Exception in ${excIn}: ${JSON.stringify(exc)}`);
 }
+
+
+/**Удаляет пробелы в начале и конце строки, а также более одного пробела, идущих подряд  внутри строки*/
+export const removeSpaces = (str: string | null | undefined): string => {
+  if (!str) return "";
+  str = str.trim();
+  str = str.replace(/ +/g, ' ');
+  return str;
+}
+
+
+/**Конвертация входной строки в TitleCase] */
+export const toTitleCase = (str: string): string => {
+  return str.replace(/\S+\s*/g, function (txt: string): string {
+    return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+  });
+}

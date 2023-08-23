@@ -45,14 +45,10 @@ export class RecordsStore {
     async createNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         const rec = new type(this._MoApiClient, this._UserContext);
         rec.createAllData();
-        fillFunc(<Tdata>rec.Data);
-        await rec.save();
-
-        if (!this._store[type.name])
-            this._store[type.name] = {};
-        this._store[type.name][rec.Key] = rec;
+        fillFunc(<Tdata>rec.MData);
         return <T>rec;
     }
+    
 
     async tryCreateNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         try {

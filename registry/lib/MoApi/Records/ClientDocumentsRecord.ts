@@ -34,7 +34,7 @@ export class ClientDocumentsRecord extends ApiRecord<IClientDocumentsRecordData>
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             id: this.Key,
             snils: null,
             mainDocument: null,
@@ -53,7 +53,7 @@ export class ClientDocumentsRecord extends ApiRecord<IClientDocumentsRecordData>
             dmsInsuranceCompany: null,
             otherDocuments: null,
             advData: null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

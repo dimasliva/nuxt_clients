@@ -4,7 +4,7 @@
      <v-row class="pa-4">
        <div class="text-h5 ma-2">{{ props.header }}</div>
        <v-spacer></v-spacer>
-       <img class="mr-4 mt-2 bg-secondary rounded-circle" height="50" width="50" src="@/doctor-test.jpg"/>
+       <img class="mr-4 mt-2 bg-secondary rounded-circle" height="50" width="50" src="/doctor-test.jpg"/>
        <v-icon @click="closeDialog(console.log())">mdi-close</v-icon>
      </v-row>
     </v-card-title>

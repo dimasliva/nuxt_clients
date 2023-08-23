@@ -54,38 +54,43 @@
       </v-chip>
     </v-col>
   </v-row>
-    <v-card class="overflow-y-auto " elevation="0" height="87vh">
-      <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
-        <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
-        <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
-          <v-icon color="secondary">mdi-pin</v-icon>
-          <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
-        </v-btn>
-        <v-btn v-else variant="text" size="small"
-          @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
-          icon>
-          <v-icon color="secondary">mdi-pin-off</v-icon>
-          <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
-        </v-btn>
-        <v-spacer></v-spacer>
-        <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
-          <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl" :id="buttons.id" :index="index" :icon="(buttons.title.length)? false : buttons.icon" :append-icon="(buttons.title.length >= 1)? buttons.icon : undefined"
-            variant="outlined" :color="buttons.color" :background-color="buttons.bkgColor" :text="(buttons.title.length)? buttons.title : undefined" :density="(buttons.title.length)? `default` : `comfortable`"
-            @click="buttons.action()" />
+  <v-card class="overflow-y-hidden " elevation="0" height="89vh">
+    <v-row class="ma-0 pt-3 px-4 bg-background" style="position: sticky !important; top:0">
+      <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
+      <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
+        <v-icon color="secondary">mdi-pin</v-icon>
+        <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
+      </v-btn>
+      <v-btn v-else variant="text" size="small"
+        @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
+        icon>
+        <v-icon color="secondary">mdi-pin-off</v-icon>
+        <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
+      </v-btn>
+      <v-spacer></v-spacer>
+      <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
+        <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl"
+          :id="buttons.id" :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
+          :append-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="outlined" :color="buttons.color"
+          :background-color="buttons.bkgColor" :text="(buttons.title.length) ? buttons.title : undefined"
+          :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
+      </template>
+      <v-menu :open-on-hover="true">
+        <template v-slot:activator="{ props }">
+          <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
+            :icon="currPageMenu?.icon" />
         </template>
-        <v-menu :open-on-hover="true">
-          <template v-slot:activator="{ props }">
-            <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4" :icon="currPageMenu?.icon" />
-          </template>
         <v-list>
-          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled" @click="child.action">
+          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
+            @click="child.action">
             <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
     </v-row>
-    <NuxtPage ref="pageObj" :keepalive="true" @cheked="loadPageData" :field="rail"/>
+    <NuxtPage ref="pageObj" :keepalive="true" />
   </v-card>
+  <Toaster position="bottom-right" :expand="true" closeButton richColors />
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
     <component ref="compObj" :is="dialogForm.comp" v-bind="dialogForm.props" />
   </v-dialog>
@@ -95,11 +100,17 @@
 </template>
 
 <script setup lang="ts">
-import { IModuleItemsMenu } from '~~/lib/ModuleManager';
-import { ModuleManager } from '~~/lib/ModuleManager';
+import type { ModuleManager, IModuleItemsMenu } from '~~/libVis/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
 import { IPageData, PageMap } from '~~/lib/PageMap';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
+import { Toaster, toast } from 'vue-sonner'
+import ToastComponent from '~/components/ToastComponent.vue'
+import { EMessageType } from '~~/lib/globalTypes';
+import { h, markRaw } from 'vue'
+import { RouteLocationNormalizedLoaded } from 'vue-router';
+
+
 
 interface DialogForm {
   comp: any;
@@ -181,6 +192,10 @@ let dialogForm2: DialogForm = {
   eventsHandler: null
 };
 
+let createToast = (type: EMessageType, message: string, title?: string | null) => {
+  toast.custom(markRaw(h<any>(ToastComponent, { type, message, title })));
+}
+
 interface Page {
   icon: string;
   title: string;
@@ -197,7 +212,7 @@ const chapters = modManager.getModuleItemsMenu();
 const route = useRoute();
 let pageData: IPageData | null;
 
-    
+
 const loadPageData = () => {
   currPageButtons.value = [];
   pageData = pageMap.getPageData(route.path);
@@ -205,6 +220,7 @@ const loadPageData = () => {
   currPageTitle.value = pageData?.title || '';
   currPageMenu.value = pageData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
+  onPageActivate(route);
 };
 
 onErrorCaptured((h, t) => {
@@ -215,11 +231,11 @@ watch(() => route.query, loadPageData);
 
 onMounted(() => {
   loadPageData();
-  // addEventListener('keydown', onKeydown);
+  addEventListener('keydown', onKeydown);
 });
 
 onBeforeUnmount(() => {
-  // removeEventListener('keydown', onKeydown);
+  removeEventListener('keydown', onKeydown);
 })
 
 let addDiag = (val: { component: any; props: any; modal: boolean; eventsHandler: ((eventName: string, eventData: any) => boolean) | null }) => {
@@ -267,6 +283,8 @@ const onDialogEvents = (e: string, eData: any) => {
 }
 
 regDialogHandler(addDiag, closeDiag, onDialogEvents);
+regToastHandler(createToast);
+
 
 const onPinPageBtnClick = (e: any) => {
   const pageData = pageMap.getPageData(route.path);
@@ -364,12 +382,16 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 
+const onPageActivate = (route:RouteLocationNormalizedLoaded) => {
+  let handled = false;
+  const handler = getEventsHandler();
+  if (handler)
+    handled = handler("onPageActivate",route);
+}
+
+
 </script>
 
 <style lang="scss">
 @use "../settings.scss";
-
-html {
-  overflow-y: auto
-}
 </style>

@@ -1,3 +1,5 @@
+import type { EMessageType } from "./globalTypes";
+
 declare global {
     interface Class<T = any> {
         /**
@@ -50,20 +52,29 @@ declare global {
         id: string;
         title: string;
         icon: string;
-        disabled:boolean;
+        disabled: boolean;
         action: () => string | object | void;
-        childs?: IMenu[] | null
+        childs?: IMenu[] | null,
+        traits?: { [rec: string]: string } | null
     }
 
     interface IBtnMenu {
         id: string;
         title: string;
         icon: string;
-        disabled:boolean;
-        color:string;
-        bkgColor:string;
-        action: () => string | object | void;
+        disabled: boolean;
+        color: string;
+        bkgColor: string;
+        action: () => string | object | void | boolean;
     }
+
+
+    interface IAppSettingsStorage {
+        getSection<T=any>(sectionName:string):T;
+        setSection<T=any>(sectionName:string, val:T);
+        async save();
+    }
+
 }
 
 

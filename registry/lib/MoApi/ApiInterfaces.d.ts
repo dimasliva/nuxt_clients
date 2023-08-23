@@ -10,3 +10,9 @@
     recCode:string;
     relType:number;
  }
+
+
+ export interface 	IRecordsRestricions {
+   maxRowsPerRequest:number,
+   maxRecordsPerRequest:number
+}

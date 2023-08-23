@@ -30,13 +30,17 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     public get Key(): string { return this._Key; }
     public set Key(value: string) { this._Key = value; }
 
-     get RecCode(): number {return RecordsCodes[this._RecordType.name]}
+    get RecCode(): number { return RecordsCodes[this._RecordType.name] }
 
     protected _Data: T | null = null;
     public get Data(): T | null { return this._Data; }
-    public set Data(value: T | null) { this._Data = value; }
+    //public set Data(value: T | null) { this._Data = value; }
 
-    protected _prevData: T | null = null;
+
+    protected _ModifiedData: T | null = null;
+    public get MData(): T  { return this._ModifiedData ? this._ModifiedData: this._ModifiedData = new Proxy(CloneData(this._Data!),this._getModifingProxyHanlders()) }
+    //public set MData(value: T | null) { this._ModifiedData = value; }
+
     protected _isNewData: boolean = true;
 
     protected _childsData: { [code: number]: IRelData[] } = {};
@@ -54,16 +58,20 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     protected abstract _getApiRecordPathDelete(): string;
     protected abstract _createNewAllData(): void;
 
-    
+
 
 
     protected _getProxyHanlders(): ProxyHandler<T> {
-        return {};
+        return {
+            set(target, p, newValue, receiver) {
+                return false; //редактирование _Data запрещено из-за общего объекта при асинхронных операциях. Редактирование следует осуществлять через MData
+            },
+        };
     }
 
 
-    protected _setPrev(): void {
-        this._prevData = CloneData(this._Data);
+    protected _getModifingProxyHanlders(): ProxyHandler<T> {
+        return { };
     }
 
 
@@ -75,28 +83,26 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected async _addAllData() {
-        let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._Data);
-        this._Data!.id = guid;
+        let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
+        this._ModifiedData!.id = guid;
         this.Key = guid;
         return guid;
     }
 
 
     protected async _updateAllData() {
-        return this._MoApiClient.send<any, boolean>(this._getApiRecordPathUpdate(), this._Data);
+        return this._MoApiClient.send<any, boolean>(this._getApiRecordPathUpdate(), this._ModifiedData);
     }
 
 
     createAllData(): void {
         this._createNewAllData();
-        this._setPrev();
     }
 
 
     async loadAllData() {
         await this._loadAData();
         this._isNewData = false;
-        this._setPrev();
     }
 
     async tryLoadAllData() {
@@ -109,14 +115,31 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     }
 
 
+    _setModData() {
+        if (this._ModifiedData)
+            this._Data =  new Proxy(this._ModifiedData, this._getProxyHanlders());
+        this.cancelModifingData();
+    }
+
+
+    cancelModifingData(){
+        this._ModifiedData = null;
+    }
+
+
     isDataChanged() {
-        return JSON.stringify(this._Data) === JSON.stringify(this._Data);
+        if (!this._ModifiedData)
+            return false;
+        return JSON.stringify(this._Data) === JSON.stringify(this._ModifiedData);
     }
 
 
     async save() {
         if (!this.isDataChanged)
+        {
+            this.cancelModifingData();
             return;
+        }
 
         if (this._isNewData) {
             this._isNewData = false;
@@ -126,7 +149,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
             await this._updateAllData();
         }
 
-        this._setPrev();
+        this._setModData();
     }
 
 
@@ -248,4 +271,5 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     async updateRelationByRec(childRec: ApiRecord, relType: number) {
         await this.updateRelation(childRec.Key, childRec.RecCode, relType);
     }
+
 }

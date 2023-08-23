@@ -21,13 +21,13 @@ export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             id: this.Key,
             mainPhone: null,
             mainEmail: null,
             otherContacts: null,
             advData: null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

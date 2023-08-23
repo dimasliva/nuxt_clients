@@ -5,6 +5,8 @@ import { Container } from "inversify";
 import type { MoApiClient } from "./MoApi/MoApiClient";
 import type { IEmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
 import { IRecordsRestricions } from "./MoApi/ApiInterfaces";
+import { EmployeeAppProfile } from "./EmployeeAppProfile";
+import { CompanyAppProfile } from "./CompanyAppProfile";
 
 
 @injectable()
@@ -15,11 +17,11 @@ export class UserContext {
   protected _AuthorityData: IAuthorityData | null = null;
   public get AuthorityData(): IAuthorityData | null { return this._AuthorityData; }
 
-  private _CompanyProfile: any | null = null;
-  public get CompanyProfile(): any | null { return this._CompanyProfile; }
+  private _CompanyProfile: CompanyAppProfile | null = null;
+  public get CompanyProfile(): CompanyAppProfile | null { return this._CompanyProfile; }
 
-  private _EmployeeAppProfile: any | null = null;
-  public get EmployeeAppProfile(): any | null { return this._EmployeeAppProfile; }
+  private _EmployeeAppProfile: EmployeeAppProfile | null = null;
+  public get EmployeeAppProfile(): EmployeeAppProfile | null { return this._EmployeeAppProfile; }
 
   private _CompanyLicense: any | null = null;
   public get CompanyLicense(): any | null { return this._CompanyLicense; }
@@ -33,8 +35,7 @@ export class UserContext {
   private _RecordsRestricions: IRecordsRestricions | null = null;
   public get RecordsRestricions(): IRecordsRestricions | null { return this._RecordsRestricions; }
 
-  //private _CompanyData: IEmployeeRecordData | null = null;
-  //public get CompanyData(): any | null { return this._CompanyData; }
+
 
   constructor(@inject("MoApiClient") protected _moApiClient: MoApiClient, @inject("NuxtApp") protected _nuxtApp: NuxtApp) {
     this.restoreFromState()
@@ -61,8 +62,8 @@ export class UserContext {
       //получение профилей
       const appEmployeeContext:any=await this._moApiClient.send("/Employees/GetAppEmployeeContext");
       this._EmployeeData = appEmployeeContext.employee;
-      this._EmployeeAppProfile = appEmployeeContext.employeeAppProfile;
-      this._CompanyProfile = appEmployeeContext.companyAppProfile;
+      this._EmployeeAppProfile =  new EmployeeAppProfile(this._moApiClient, appEmployeeContext.employeeAppProfile),
+      this._CompanyProfile = new CompanyAppProfile(this._moApiClient, appEmployeeContext.companyAppProfile);
       this._CompanyLicense = appEmployeeContext.companyLicenseData;
       this._userRights = appEmployeeContext.userRecordsRights;
       this._RecordsRestricions = appEmployeeContext.recordRestrictions;
@@ -84,35 +85,6 @@ export class UserContext {
     }
   }
 
-
-  protected _createUserRights(userRoles: string, companyRoles) {
-
-    const res: { [rectoken: string]: string } = {};
-    const roleTokens = companyRoles;
-    const roles = userRoles.split(",");
-    for (const role of roles) {
-      if (roleTokens.hasOwnProperty(role)) {
-        const tokens = roleTokens[role];
-
-        for (let tokenn in tokens) {
-          let token = tokens[tokenn];
-          const tk = tokenn.toLowerCase();
-          if (res.hasOwnProperty(tk)) {
-            let currTraits = res[tk];
-            for (const c of token) {
-              if (!currTraits.includes(c)) {
-                currTraits += c;
-              }
-            }
-            res[tk] = currTraits;
-          } else {
-            res[tk] = token;
-          }
-        }
-      }
-    }
-    return res;
-  }
 
 
   ChkLicModule(modname: string): boolean {

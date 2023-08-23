@@ -20,7 +20,7 @@ export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             "id": this.Key,
             "createdAt": '',
             "changedAt": '',
@@ -28,7 +28,7 @@ export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
             "linkedRecs": "",
             "profile": null,
             "advData": ""
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

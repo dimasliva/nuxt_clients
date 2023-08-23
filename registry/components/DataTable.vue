@@ -87,7 +87,7 @@ import { VDataTable, VDataTableRow } from 'vuetify/labs/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
 
-const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged"])
+const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
 
 
 const props = defineProps({
@@ -215,7 +215,7 @@ const getDataAlignClass = (val: string) => {
 
 let colChangeTimeout: any = null;
 
-const clearChangeTimout = () => {
+const clearChangeTimeout = () => {
     if (colChangeTimeout)
         clearTimeout(colChangeTimeout);
     colChangeTimeout = null;
@@ -228,9 +228,9 @@ const toggleSelectColumn = (e, colName: string) => {
     else
         props.columns.splice(inx, 1);
 
-    clearChangeTimout();
+    clearChangeTimeout();
 
-   // colChangeTimeout = setTimeout(() => emit("onColumnsChanged", props.columns), 3000);
+    colChangeTimeout = setTimeout(() => emit("onColumnsChangedDelayed", props.columns), 3000);
 }
 
 

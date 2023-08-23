@@ -21,12 +21,12 @@ export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordDat
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             id: this.Key,
             mainPhone: null,
             mainEmail: null,
             advData: null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

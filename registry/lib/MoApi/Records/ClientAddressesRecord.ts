@@ -20,12 +20,12 @@ export class ClientAddressesRecord extends ApiRecord<IClientAddressesRecordData>
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             id: this.Key,
             mainAddress: null,
             permanentRegistration: null,
             advData: null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

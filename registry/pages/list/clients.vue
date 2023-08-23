@@ -13,7 +13,7 @@
       <KeepAlive>
         <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :table-descr="dataTableDescr"
           v-model:columns="dataTableVars.columns" ref="refDataTable" :rows="dataTableVars.rows"
-          :selected="dataTableVars.selected" @onColumnsChanged="loadData()" />
+          :selected="dataTableVars.selected" @onColumnsChanged="loadData()" @onColumnsChangedDelayed="saveSettings()" />
       </KeepAlive>
 
     </v-col>
@@ -40,6 +40,12 @@ import { useI18n } from "vue-i18n"
 import type { UserContext } from '~~/lib/UserContext';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import * as vHelpers from '~~/libVis/Helpers';
+import { debug } from 'console';
+import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord';
+import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord';
+import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
+import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
+import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 
 
 
@@ -50,6 +56,8 @@ type TClientFilterVals = {
   email?: string | null;
   snils?: string | null;
 }
+
+const PAGE_PATH = "/list/clients";
 
 const { t } = useI18n()
 let loading = ref(false)
@@ -67,6 +75,8 @@ let deleteBtn = ref(true);
 let filterVals: Ref<TClientFilterVals | null> = ref(null);
 let refDataTable = ref();
 
+const pageSettings = userCtx.EmployeeAppProfile?.getPageSettings(PAGE_PATH) || { tcols: ["fio", "bd", "mainPhone", "mainEmail"] }
+
 
 let pageMapData: IPageData = reactive({
   title: "Клиенты", icon: "",
@@ -77,7 +87,7 @@ let pageMapData: IPageData = reactive({
     },
     {
       id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
-      action: () => { createToast(EMessageType.Error, "Это ошибка!"); return; openDialog(ClientProfileDialog, { empl: {}, action: addClient, header: 'Добавление клиента', button: 'Добавить', adding: true }, true); }
+      action: () => addClient()
     },
     {
       id: "filter", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red",
@@ -85,7 +95,7 @@ let pageMapData: IPageData = reactive({
     },
   ]
 });
-pageMap.setPageData("/list/clients", pageMapData);
+pageMap.setPageData(PAGE_PATH, pageMapData);
 
 
 const dataTableDescr = ref<IDataTableDescription>({
@@ -111,7 +121,7 @@ const dataTableVars = ref({
   rows: [] as any[],
   page: 1,
   selected: [],
-  columns: ["fio", "bd", "mainPhone", "mainEmail"]
+  columns: pageSettings.tcols
 });
 
 
@@ -176,6 +186,7 @@ const filterSetting = {
 
 
 
+
 const eventsHandler = (e: string, d: any) => {
   switch (e) {
     case "onKeydown":
@@ -220,16 +231,24 @@ const updateData = () => {
   loadData();
 }
 
-const addClient = async (name: string, surname: string, patronymic: string, gender: string, phone?: string, mail?: string) => {
-
+const addClient = async () => {
+  openDialog(ClientProfileDialog, { recKey: null }, true, (e, d) => (e == "onBeforeClose") ? d ? onAddClient(d) : true : true)
 }
 
-const editClient = async (name: string, surname: string, patronymic: string, gender: string, mainPhone: string, mainEmail: string, id: string) => {
+const editClient = async (key) => {
+  openDialog(ClientProfileDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? onUpdateClient(d) : true)
 
 }
 
 const deleteEmpl = async (id: any) => {
 
+}
+
+
+const onAddClient = (key) => {
+  if (key && !filterForm.value.isFindable())
+    loadData();
+  return true;
 }
 
 
@@ -259,6 +278,40 @@ const getWhereFromFilter = (filterVals: TClientFilterVals) => {
 }
 
 
+const convertRow = (rawData) => {
+  return {
+    id: rawData.id,
+    fio: (rawData.surname || "") + " " + (rawData.name || "") + " " + (rawData.patronymic || ""),
+    bd: rawData.birthdate ? new Intl.DateTimeFormat().format(new Date(rawData.birthdate)) : "",
+    gen: vHelpers.getGenderStr(rawData.gender),
+    mainPhone: rawData.mainPhone,
+    mainEmail: rawData.mainEmail,
+    snils: rawData.snils
+  }
+};
+
+const onUpdateClient = (key) => {
+
+  (async () => {
+    var row = dataTableVars.value.rows.find((i) => i.id == key);
+    if (row) {
+      let rec = await recStore.fetch(ClientRecord, key);
+      let recDoc = await recStore.fetch(ClientDocumentsRecord, key);
+      let recAddr = await recStore.fetch(ClientAddressesRecord, key);
+      let recCont = await recStore.fetch(ClientContactsRecord, key);
+      let recSd = await recStore.fetch(ClientSdRecord, key);
+
+      row.fio = (rec.Data!.surname || "") + " " + (rec.Data!.name || "") + " " + (rec.Data!.patronymic || "");
+      row.bd = rec.Data!.birthdate ? new Intl.DateTimeFormat().format(new Date(rec.Data!.birthdate)) : "";
+      row.gen = vHelpers.getGenderStr(rec.Data!.gender);
+      row.mainPhone = recCont.Data!.mainPhone;
+      row.mainEmail = recCont.Data!.mainEmail;
+      row.snils = recDoc.Data!.snils;
+    }
+  })();
+
+  return true;
+}
 
 const getData = async (select: string, where: string, sortedBy: string, quantity: number) => {
 
@@ -271,19 +324,8 @@ const getData = async (select: string, where: string, sortedBy: string, quantity
   const res: any[] = [];
   let row: IClientListView | undefined;
 
-
-  while (row = recArr.getNext()) {
-
-    res.push({
-      id: row.id,
-      fio: (row.surname || "") + " " + (row.name || "") + " " + (row.patronymic || ""),
-      bd: row.birthdate ? new Intl.DateTimeFormat().format(new Date(row.birthdate)) : "",
-      gen: vHelpers.getGenderStr(row.gender),
-      mainPhone: row.mainPhone,
-      mainEmail: row.mainEmail,
-      snils: row.snils
-    });
-  }
+  while (row = recArr.getNext())
+    res.push(convertRow(row));
 
   return res;
 }
@@ -328,6 +370,11 @@ const loadData = () => vHelpers.action(async () => {
     loading.value = false;
   });
 
+
+const saveSettings = () => {
+  userCtx.EmployeeAppProfile?.setPageSettings(PAGE_PATH, pageSettings);
+  userCtx.EmployeeAppProfile?.save();
+}
 
 
 

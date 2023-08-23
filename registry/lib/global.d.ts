@@ -1,4 +1,4 @@
-import  type {EMessageType} from "./globalTypes";
+import type { EMessageType } from "./globalTypes";
 
 declare global {
     interface Class<T = any> {
@@ -66,6 +66,13 @@ declare global {
         color: string;
         bkgColor: string;
         action: () => string | object | void;
+    }
+
+
+    interface IAppSettingsStorage {
+        getSection<T=any>(sectionName:string):T;
+        setSection<T=any>(sectionName:string, val:T);
+        async save();
     }
 
 }

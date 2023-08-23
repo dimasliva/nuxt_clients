@@ -22,14 +22,14 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             id: this.Key,
             citizenship: null,
             kinship: null,
             individualId: null,
             comments: null,
             advData: null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

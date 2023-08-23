@@ -31,7 +31,7 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
     get RecCode(){return 1004;}
 
     protected _createNewAllData(): void {
-        this._Data = new Proxy({
+        this._ModifiedData = new Proxy({
             "id": this.Key,
             "name": '',
             "surname": '',
@@ -45,7 +45,7 @@ export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
             "linkedRecs": null,
             "profile": null,
             "advData": null
-        }, this._getProxyHanlders());
+        }, this._getModifingProxyHanlders());
     }
 
 

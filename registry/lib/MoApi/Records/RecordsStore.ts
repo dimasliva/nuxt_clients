@@ -1,7 +1,8 @@
 import { injectable, inject } from "inversify";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord } from "./ApiRecord";
+import { ApiRecord, ApiRecordClass } from "./ApiRecord";
+import { chkRights } from "~/lib/Utils"
 
 
 @injectable()
@@ -48,7 +49,7 @@ export class RecordsStore {
         fillFunc(<Tdata>rec.MData);
         return <T>rec;
     }
-    
+
 
     async tryCreateNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
         try {
@@ -59,15 +60,54 @@ export class RecordsStore {
     }
 
 
-    async getOrCreate<T extends ApiRecord, Tdata>(type: Class<T>, Key:string, fillFunc?: (data: Tdata) => void) {
-        let rec=this.get<T>(type,Key);
-        var loaded=await rec.tryLoadAllData();
-        if(!loaded){
+    async getOrCreate<T extends ApiRecord, Tdata>(type: Class<T>, Key: string, fillFunc?: (data: Tdata) => void) {
+        let rec = this.get<T>(type, Key);
+        var loaded = await rec.tryLoadAllData();
+        if (!loaded) {
             rec.createAllData();
-            if(fillFunc)
-               fillFunc(<Tdata>rec.Data);
+            if (fillFunc)
+                fillFunc(<Tdata>rec.Data);
         }
         return rec;
     }
 
+
+    clearAll() {
+        this._store = {};
+    }
+
+
+    canRecRead(type: ApiRecordClass){
+        let traits:any={}
+        traits[type.rightToken]="r";
+        return chkRights(null,traits);
+    }
+
+
+    canRecWrite(type: ApiRecordClass){
+        let traits:any={}
+        traits[type.rightToken]="w";
+        return chkRights(null,traits);
+    }
+
+
+    canRecCreate(type: ApiRecordClass){
+        let traits:any={}
+        traits[type.rightToken]="c";
+        return chkRights(null,traits);
+    }
+
+
+    canRecDelete(type: ApiRecordClass){
+        let traits:any={}
+        traits[type.rightToken]="d";
+        return chkRights(null,traits);
+    }
+
+
+    canRecSpecial(type: ApiRecordClass){
+        let traits:any={}
+        traits[type.rightToken]="s";
+        return chkRights(null,traits);
+    }
 }

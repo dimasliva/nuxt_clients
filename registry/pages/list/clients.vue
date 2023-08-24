@@ -13,7 +13,8 @@
       <KeepAlive>
         <DataTable :visibility="loading == false && dataTableVars.rows.length > 0" :table-descr="dataTableDescr"
           v-model:columns="dataTableVars.columns" ref="refDataTable" :rows="dataTableVars.rows"
-          :selected="dataTableVars.selected" @onColumnsChanged="loadData()" @onColumnsChangedDelayed="saveSettings()" />
+          :selected="dataTableVars.selected" @on-row-dbl-click="(rowitem) => editClient(rowitem.key, rowitem.index)"
+          @onColumnsChanged="loadData()" @onColumnsChangedDelayed="saveSettings()" />
       </KeepAlive>
 
     </v-col>
@@ -66,7 +67,7 @@ let filterForm = ref();
 const iocc = useContainer();
 const userCtx = iocc.get<UserContext>('UserContext');
 const pageMap = iocc.get<PageMap>("PageMap");
-const recStore = iocc.get(RecordsStore);
+const recStore = iocc.get<RecordsStore>("RecordsStore");
 const clientsViews = iocc.get(ClientsViews);
 
 let checkEmpl = ref([]);
@@ -77,6 +78,8 @@ let refDataTable = ref();
 
 const pageSettings = userCtx.EmployeeAppProfile?.getPageSettings(PAGE_PATH) || { tcols: ["fio", "bd", "mainPhone", "mainEmail"] }
 
+
+let ttt=recStore.canRecRead(ClientRecord);
 
 let pageMapData: IPageData = reactive({
   title: "Клиенты", icon: "",
@@ -109,7 +112,7 @@ const dataTableDescr = ref<IDataTableDescription>({
   ],
 
   actionsMenu: (item) => [
-    { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => { }, traits: { dbClient: "u" } },
+    { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => editClient(item.key, item.index), traits: { dbClient: "u" } },
     { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { }, traits: { dbClient: "d" } },
 
   ]
@@ -135,7 +138,7 @@ const filterSetting = {
         title: "ФИО",
         hint: null,
         rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
-        constraints: { min: 2, max: 10 },
+        constraints: { min: 2, max: 384 },
       },
 
       email: {
@@ -143,7 +146,7 @@ const filterSetting = {
         title: "Электронная почта",
         hint: "Введите минимум 2 символа",
         rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
-        constraints: { min: 2, max: 10 },
+        constraints: { min: 2, max: 64 },
         traits: { dbClientContacts: "r" }
       },
 
@@ -235,9 +238,8 @@ const addClient = async () => {
   openDialog(ClientProfileDialog, { recKey: null }, true, (e, d) => (e == "onBeforeClose") ? d ? onAddClient(d) : true : true)
 }
 
-const editClient = async (key) => {
-  openDialog(ClientProfileDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? onUpdateClient(d) : true)
-
+const editClient = async (key, index?) => {
+  openDialog(ClientProfileDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? onUpdateClient(d, index) : true)
 }
 
 const deleteEmpl = async (id: any) => {
@@ -290,16 +292,22 @@ const convertRow = (rawData) => {
   }
 };
 
-const onUpdateClient = (key) => {
+const onUpdateClient = (key, index?) => {
 
   (async () => {
-    var row = dataTableVars.value.rows.find((i) => i.id == key);
+    var row;
+
+    if (index != null)
+      row = dataTableVars.value.rows[index]
+    else
+      row = dataTableVars.value.rows.find((i) => i.id == key);
+
     if (row) {
       let rec = await recStore.fetch(ClientRecord, key);
-      let recDoc = await recStore.fetch(ClientDocumentsRecord, key);
-      let recAddr = await recStore.fetch(ClientAddressesRecord, key);
-      let recCont = await recStore.fetch(ClientContactsRecord, key);
-      let recSd = await recStore.fetch(ClientSdRecord, key);
+      let recDoc = await recStore.getOrCreate(ClientDocumentsRecord, key);
+      let recAddr = await recStore.getOrCreate(ClientAddressesRecord, key);
+      let recCont = await recStore.getOrCreate(ClientContactsRecord, key);
+      let recSd = await recStore.getOrCreate(ClientSdRecord, key);
 
       row.fio = (rec.Data!.surname || "") + " " + (rec.Data!.name || "") + " " + (rec.Data!.patronymic || "");
       row.bd = rec.Data!.birthdate ? new Intl.DateTimeFormat().format(new Date(rec.Data!.birthdate)) : "";
@@ -376,18 +384,6 @@ const saveSettings = () => {
   userCtx.EmployeeAppProfile?.save();
 }
 
-
-
-let tableActions = ref([
-  {
-    id: "change", title: t("edit"), icon: "mdi-pencil", color: "secondary", bkgColor: "red",
-    action: () => { openDialog(ClientProfileDialog, { empl: checkEmpl.value, action: editClient, header: 'Карточка клиента', button: 'Сохранить', adding: false }, true,); }
-  },
-  {
-    id: "delete", title: t("delete"), icon: "mdi-delete", color: "secondary", bkgColor: "red",
-    action: () => openDialog(ConfirmActionDialog, { empl: checkEmpl.value, action: deleteEmpl })
-  },
-])
 
 
 onMounted(() => {

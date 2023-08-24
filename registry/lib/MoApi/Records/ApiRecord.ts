@@ -4,6 +4,7 @@ import { CloneData } from "../../Helpers";
 import { UserContext } from "~~/lib/UserContext";
 import { ICouplingData, IRelData } from "../ApiInterfaces"
 import { RecordsCodes } from "./RecordsCodes";
+import { Exception } from "~/lib/Exceptions";
 
 
 export interface IApiRecordData {
@@ -22,6 +23,8 @@ export interface IApiRecordCompanyData extends IApiRecordChData {
 
 export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
+    public static rightToken = "";
+
     protected _RecordType: Function;
     public get RecordType(): Function { return this._RecordType; }
     public set RecordType(value: Function) { this._RecordType = value; }
@@ -38,7 +41,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected _ModifiedData: T | null = null;
-    public get MData(): T  { return this._ModifiedData ? this._ModifiedData: this._ModifiedData = new Proxy(CloneData(this._Data!),this._getModifingProxyHanlders()) }
+    public get MData(): T { return this._ModifiedData ? this._ModifiedData : this._ModifiedData = new Proxy(CloneData(this._Data!), this._getModifingProxyHanlders()) }
     //public set MData(value: T | null) { this._ModifiedData = value; }
 
     protected _isNewData: boolean = true;
@@ -56,9 +59,13 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     protected abstract _getApiRecordPathAdd(): string;
     protected abstract _getApiRecordPathUpdate(): string;
     protected abstract _getApiRecordPathDelete(): string;
-    protected abstract _createNewAllData(): void;
+    protected abstract _createNewData(): IApiRecordData;
 
 
+    protected _createNewAllData(): void {
+        this._isNewData = true;
+        this._Data = <T>new Proxy(this._createNewData(), this._getProxyHanlders());
+    }
 
 
     protected _getProxyHanlders(): ProxyHandler<T> {
@@ -71,14 +78,26 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected _getModifingProxyHanlders(): ProxyHandler<T> {
-        return { };
+        return {};
     }
 
 
-    protected async _loadAData() {
+    protected async _loadData() {
         const arr = await this._MoApiClient.send<string[], T[]>(this._getApiRecordPathGet(), [this._Key]);
+        if (!arr[0])
+            Exception.throw("RecNotFound", `Запись ${this._Key}  не найдена`);
         this._Data = new Proxy(arr[0], this._getProxyHanlders());
         return this._Data;
+    }
+
+
+    protected async _loadOrCreateData() {
+        const arr = await this._MoApiClient.send<string[], T[]>(this._getApiRecordPathGet(), [this._Key]);
+        if (!arr[0])
+            return false;
+
+        this._Data = new Proxy(arr[0], this._getProxyHanlders());
+        return true
     }
 
 
@@ -101,7 +120,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     async loadAllData() {
-        await this._loadAData();
+        await this._loadData();
         this._isNewData = false;
     }
 
@@ -117,12 +136,12 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
     _setModData() {
         if (this._ModifiedData)
-            this._Data =  new Proxy(this._ModifiedData, this._getProxyHanlders());
+            this._Data = new Proxy(this._ModifiedData, this._getProxyHanlders());
         this.cancelModifingData();
     }
 
 
-    cancelModifingData(){
+    cancelModifingData() {
         this._ModifiedData = null;
     }
 
@@ -135,8 +154,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     async save() {
-        if (!this.isDataChanged)
-        {
+        if (!this.isDataChanged) {
             this.cancelModifingData();
             return;
         }
@@ -272,4 +290,10 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
         await this.updateRelation(childRec.Key, childRec.RecCode, relType);
     }
 
+}
+
+
+
+export interface ApiRecordClass extends Class {
+    rightToken: string;
 }

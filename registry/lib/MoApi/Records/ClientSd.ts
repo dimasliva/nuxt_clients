@@ -16,20 +16,22 @@ export interface IClientSdRecordData extends IApiRecordChData {
 
 export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
+    static  rightToken= "dbClientSd";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, ClientSdRecord, Key);
     }
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             id: this.Key,
             citizenship: null,
             kinship: null,
             individualId: null,
             comments: null,
             advData: null
-        }, this._getModifingProxyHanlders());
+        };
     }
 
 

@@ -6,20 +6,24 @@ export interface IRoleRecordData extends IApiRecordCompanyData {
     roles: {[roleName:string]:string}
 }
 
-export class RoleRecord extends ApiRecord<IRoleRecordData>{
+export class RolesRecord extends ApiRecord<IRoleRecordData>{
+
+    static  rightToken= "DbRoles";
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, RoleRecord, Key);
+        super(_MoApiClient, __UserContext, RolesRecord, Key);
     }
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    
+    protected _createNewData(){
+      return {
             id: this.Key,
             roles: {}
-        }, this._getModifingProxyHanlders());
+        };
     }
 
-    protected async _loadAData() {
+
+    protected async _loadData() {
         const arr = await this._MoApiClient.send<string[], IRoleRecordData>(this._getApiRecordPathGet(), [this._Key]);
         this._Data = new Proxy(arr,this._getProxyHanlders());
         return this._Data;

@@ -42,12 +42,12 @@
                     <template v-slot:item.actions="{ item }">
                         <v-menu v-if="props.tableDescr.actionsMenu">
                             <template v-slot:activator="{ props }">
-                                <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"></v-btn>
+                                <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text" @click="()=>lineSelected = item.raw.id"></v-btn>
                             </template>
 
                             <template v-slot:default="{ isActive }">
                                 <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for="action in getActionsMenu(item)" @click-once="action.action">
+                                    <v-list-item v-for="action in getActionsMenu(item)" @click-once="()=>action.action(item)">
                                         <v-icon :icon="action.icon" size="x-small" />
                                         {{ action.title }}
                                     </v-list-item>
@@ -188,13 +188,13 @@ const onRowClick = (dtitem: any) => {
             //click
             clearInterval(clckInterval);
             clckInterval = null;
-            emit('onRowClick', dtitem.raw);
+            emit('onRowClick', dtitem);
         }, 300);
 
     else {//dblclick
         clearInterval(clckInterval);
         clckInterval = null;
-        emit('onRowDblClick', dtitem.raw);
+        emit('onRowDblClick', dtitem);
     }
 
 

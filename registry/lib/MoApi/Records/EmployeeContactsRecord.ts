@@ -14,19 +14,21 @@ export interface IEmployeeContactsRecordData extends IApiRecordChData {
 
 export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordData>{
 
+    static  rightToken= "dbEmployeeContacts";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, EmployeeContactsRecord, Key);
     }
 
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             id: this.Key,
             mainPhone: null,
             mainEmail: null,
             advData: null
-        }, this._getModifingProxyHanlders());
+        };
     }
 
 
@@ -39,6 +41,6 @@ export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordDat
     protected _getApiRecordPathUpdate = () => "/Employees/SetEmployeeContacts";
 
 
-    protected _getApiRecordPathDelete() { Exception.throw("MethodNotImplemented","Функция не реализована"); return "" }
+    protected _getApiRecordPathDelete() { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" }
 
 }

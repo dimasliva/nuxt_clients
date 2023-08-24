@@ -50,7 +50,7 @@ import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
 import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
 import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
-import { RoleRecord, IRoleRecordData} from '~~/lib/MoApi/Records/RoleRecord';
+import { RolesRecord, IRoleRecordData} from '~~/lib/MoApi/Records/RolesRecord';
 import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 
 let page = ref(1)
@@ -150,7 +150,7 @@ const checkRole = async () => {
   pageButtons.value = [];
   tableActions.value = [];
   //Запрос роли сотрудника и проверка прав доступа
-  let rec = await recStore.fetch(RoleRecord, '');
+  let rec = await recStore.fetch(RolesRecord, '');
   role.value = Object.values(rec.Data!.roles)[0];
   // role.value = {
   //   "dbEmployee": "cruds",

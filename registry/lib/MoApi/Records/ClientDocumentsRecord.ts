@@ -28,13 +28,15 @@ export interface IClientDocumentsRecordData extends IApiRecordChData {
 
 export class ClientDocumentsRecord extends ApiRecord<IClientDocumentsRecordData>{
 
+    static  rightToken= "dbClientDocuments";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, ClientDocumentsRecord, Key);
     }
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             id: this.Key,
             snils: null,
             mainDocument: null,
@@ -53,7 +55,7 @@ export class ClientDocumentsRecord extends ApiRecord<IClientDocumentsRecordData>
             dmsInsuranceCompany: null,
             otherDocuments: null,
             advData: null
-        }, this._getModifingProxyHanlders());
+        };
     }
 
 

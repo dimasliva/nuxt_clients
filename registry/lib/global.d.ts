@@ -65,7 +65,7 @@ declare global {
         disabled: boolean;
         color: string;
         bkgColor: string;
-        action: () => string | object | void;
+        action: () => string | object | void | boolean;
     }
 
 

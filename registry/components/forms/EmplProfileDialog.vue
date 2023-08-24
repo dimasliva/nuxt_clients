@@ -13,39 +13,22 @@
       <v-container>
         <v-row class="pa-6">
           <v-col cols="12" sm="6">
-            <v-text-field label="Имя" clearable v-model="empName" :autofocus="updProf" :disabled="!updProf" required maxlength="128" variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]">
-              <template v-slot:append-inner>
-                <input v-model="empName" @input="empName = translit(empName).charAt(0).toUpperCase() + translit(empName).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я;,.']|a:[a-я;.,']:multiple" class="w-100"/>
-              </template>
-            </v-text-field>
+            <v-text-field label="Имя" clearable v-model="empName" v-maska:[fioOptions] :autofocus="updProf" :disabled="!updProf" required maxlength="128" variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]" @input="empName = translit(empName).charAt(0).toUpperCase() + translit(empName).slice(1).toLowerCase()"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field label="Фамилия" clearable v-model="empSurname" :disabled="!updProf" required maxlength="128" variant="underlined" placeholder="Иванов" density="compact" :rules="[(v: string) => !!v || $t('required')]">
-              <template v-slot:append-inner>
-                <input v-model="empSurname"  @input="empSurname = translit(empSurname).charAt(0).toUpperCase() + translit(empSurname).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я;,.']|a:[a-я;,.']:multiple" class="w-100"/>
-              </template>
-            </v-text-field>
+            <v-text-field label="Фамилия" clearable v-model="empSurname" v-maska:[fioOptions] :disabled="!updProf" required maxlength="128" variant="underlined" placeholder="Иванов" density="compact" :rules="[(v: string) => !!v || $t('required')]" @input="empSurname = translit(empSurname).charAt(0).toUpperCase() + translit(empSurname).slice(1).toLowerCase()"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field label="Отчество" clearable v-model="empPatronymic" :disabled="!updProf" maxlength="128" variant="underlined" placeholder="Иванович" density="compact">
-              <template v-slot:append-inner>
-                <input v-model="empPatronymic" @input="empPatronymic = translit(empPatronymic).charAt(0).toUpperCase() + translit(empPatronymic).slice(1).toLowerCase()" v-maska data-maska="Aa" data-maska-tokens="A:[A-я;,.']|a:[a-я;,.']:multiple" class="w-100"/>
-              </template>
-            </v-text-field>
+            <v-text-field label="Отчество" clearable v-model="empPatronymic" v-maska:[fioOptions] :disabled="!updProf" maxlength="128" variant="underlined" placeholder="Иванович" density="compact" @input="empPatronymic = translit(empPatronymic).charAt(0).toUpperCase() + translit(empPatronymic).slice(1).toLowerCase()"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
             <v-text-field v-model="empEmail" label="Email" :disabled="!updCont" placeholder="ivanov@mail.com" required maxlength="64" variant="underlined" density="compact" :rules="[(v: string) => !!v || $t('required'), (v: string) => (/.+@.+\..+/.test(v)) || $t('vemail')]"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field clearable v-model="empPhone" :disabled="!updCont" placeholder="+7(999) 999-99-99" required maxlength="24" label="Телефон" variant="underlined" density="compact" :rules="[(v: string) => !!v || $t('required')]">
-              <template v-slot:append-inner>
-                <input v-model="empPhone" v-maska data-maska="+7(###) ###-##-##" class="w-100"/>
-              </template>
-            </v-text-field>
+            <v-text-field clearable v-model="empPhone" :disabled="!updCont" placeholder="+7(999) 999-99-99" v-maska:[phoneOptions] required maxlength="24" label="Телефон" variant="underlined" density="compact" :rules="[(v: string) => !!v || $t('required')]"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6" v-if="crtEmpl">
-            <v-text-field label="Логин" :disabled="!addAccount" clearable v-model="empLogin" @click:control="empLogin = empEmail" :required="addAccount" maxlength="128" variant="underlined" placeholder="Ivan001" density="compact" :rules="addAccount?[(v: string) => !!v || $t('required')]: undefined">
-            </v-text-field>
+            <v-text-field label="Логин" :disabled="!addAccount" clearable v-model="empLogin" @click:control="empLogin = empEmail" :required="addAccount" maxlength="128" variant="underlined" placeholder="Ivan001" density="compact" :rules="addAccount?[(v: string) => !!v || $t('required')]: undefined"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
             <VueDatePicker v-model="empBirthdate" :enable-time-picker="false"  model-type="yyyy-MM-dd" locale="ru" auto-apply teleport-center>
@@ -64,7 +47,7 @@
             <v-select v-model="empGender" density="compact" label="Пол" :disabled="!updProf" :items="[{gender: 'м', val: 'm'}, {gender: 'ж', val: 'f'}]" item-title="gender" item-value="val" variant="underlined"></v-select>
           </v-col>
           <v-col v-if="specEmpl" cols="12" sm="6">
-            <v-select v-model="empRole" multiple density="compact" label="Роль" :disabled="!updProf" :items="roles" item-title="role" item-value="val" variant="underlined"></v-select>
+            <v-select v-model="empRole" density="compact" label="Роль" :disabled="!updProf" :items="roles" variant="underlined"></v-select>
           </v-col>
         </v-row>
         <v-checkbox class="ml-4" v-if="adding" label="создать аккаунт" v-model="addAccount" color="primary"></v-checkbox>
@@ -104,18 +87,32 @@
  interface ExtraInfo {
    gender: string;
    birthdate: any;
+   roles: string;
  }
  
  interface Props {
    rights: Rights;
    empl: Employee;
    extr: ExtraInfo;
-   action: (name: string, surname: string, patronymic: string, gender: string, birthdate: string, mainPhone: string, mainEmail: string, id: string) => void;
+   action: (name: string, surname: string, patronymic: string, gender: string, birthdate: string, roles: string, mainPhone: string, mainEmail: string, id: string, login?: string) => void;
    header: string;
    button: string;
    adding: boolean;
+   compRoles: Array<string>
  }
  const props = defineProps<Props> ()
+
+const phoneOptions = {
+  mask: "+7(###) ###-##-##"
+}
+
+const fioOptions = {
+  mask: "Aa",
+  tokens: {
+    A:{pattern: /[A-я;,.']/},
+    a:{pattern: /[a-я;,.']/, multiple: true}
+  }
+}
 
 let addAccount = ref(props.adding? false : true)
 let form = ref(false)
@@ -127,17 +124,15 @@ let empPhone = ref(props.empl.mainPhone)
 let empBirthdate = ref(props.extr.birthdate? props.extr.birthdate.slice(0, 10) : props.extr.birthdate)
 let empEmail = ref(props.empl.mainEmail)
 let empId = ref(props.empl.id)
-let empLogin = ref(props.adding?'':null)
+let empLogin = ref<any>(props.adding?'':null)
 let empGender = ref(props.extr.gender)
-let empRole = ref()
+let empRole = ref(props.extr.roles)
 let updProf = ref(props.rights.empProfRights.includes('u'))
 let updCont = ref(props.rights.empContRights.includes('u'))
 let crtEmpl = ref(props.rights.empContRights.includes('c') && props.rights.empProfRights.includes('c'))
 let specEmpl = ref(props.rights.empContRights.includes('s') && props.rights.empProfRights.includes('s'))
 
-let roles = ref([
-  {role: 'Администратор', val: 'admin'}
-])
+let roles = ref(props.compRoles)
 
 let translit = (word) => {
    const converter = {
@@ -158,7 +153,7 @@ let translit = (word) => {
 
  
 const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString() ,empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value);
+props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString(), empRole.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value, empLogin.value);
 closeDialog(console.log());
 }
  </script>

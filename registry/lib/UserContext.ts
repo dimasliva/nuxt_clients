@@ -102,8 +102,8 @@ export class UserContext {
 
 
   public ChkTokenTrait(token: string, trait: string): boolean {
-    if (this._userRights.hasOwnProperty("#companyadmin")) {
-      return this._userRights["#companyadmin"].includes(trait);
+    if (this._userRights.hasOwnProperty("#allrecords")) {
+      return this._userRights["#allrecords"].includes(trait);
     }
     token = token.toLowerCase();
     return this._userRights.hasOwnProperty(token) && this._userRights[token].includes(trait);

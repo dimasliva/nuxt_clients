@@ -4,6 +4,7 @@
             :headers="_headers" hide-default-footer v-model:page="currentPage" :items="props.rows" class="elevation-1"
             fixed-header height="72dvh" disable-pagination>
 
+            <!-- настройка колонок-->
             <template v-slot:column.actions="{ column }">
 
                 <v-menu :close-on-content-click="false">
@@ -14,19 +15,22 @@
 
                     <template v-slot:default="{ isActive }">
                         <v-card class="mx-auto" max-width="400">
-                        <v-list >
-                            <v-list-item v-for="val in props.tableDescr.headers">
-                                <template v-slot:prepend="{ isActive }">
-                                    <v-list-item-action start>
-                                        <v-checkbox-btn :model-value="columns.includes(val.key)"
-                                            @update:modelValue="(e) => toggleSelectColumn(e, val.key)"></v-checkbox-btn>
-                                    </v-list-item-action>
-                                </template>
-                                <v-list-item-title>{{ val.title || "" }}</v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                        <VBtn class="ml-5 mb-5" color="primary" variant="text" @click="$emit('onColumnsChanged', props.columns)">Обновить</VBtn>
-                        <VBtn class="mr-5 mb-5" color="primary" variant="text" @click="() =>columns.length=0">Сбросить</VBtn>
+                            <v-list>
+                                <v-list-item v-for="val in accessibleColItems">
+                                    <template v-slot:prepend="{ isActive }">
+                                        <v-list-item-action start>
+                                            <v-checkbox-btn :model-value="columns.includes(val.key)"
+                                                @update:modelValue="(e) => toggleSelectColumn(e, val.key)"></v-checkbox-btn>
+                                        </v-list-item-action>
+                                    </template>
+                                    <v-list-item-title>{{ val.title || "" }}</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                            <VBtn class="ml-5 mb-5" color="primary" variant="text"
+                                @click="$emit('onColumnsChanged', props.columns)">Обновить</VBtn>
+                            <VBtn class="mr-5 mb-5" color="primary" variant="text" @click="() => columns.length = 0">
+                                Сбросить
+                            </VBtn>
                         </v-card>
                     </template>
                 </v-menu>
@@ -42,12 +46,14 @@
                     <template v-slot:item.actions="{ item }">
                         <v-menu v-if="props.tableDescr.actionsMenu">
                             <template v-slot:activator="{ props }">
-                                <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text" @click="()=>lineSelected = item.raw.id"></v-btn>
+                                <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
+                                    @click="() => lineSelected = item.raw.id"></v-btn>
                             </template>
 
                             <template v-slot:default="{ isActive }">
                                 <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for="action in getActionsMenu(item)" @click-once="()=>action.action(item)">
+                                    <v-list-item v-for="action in getActionsMenu(item)"
+                                        @click-once="() => action.action(item)">
                                         <v-icon :icon="action.icon" size="x-small" />
                                         {{ action.title }}
                                     </v-list-item>
@@ -86,6 +92,7 @@ import { UserContext } from '~~/lib/UserContext';
 import { VDataTable, VDataTableRow } from 'vuetify/labs/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
+import { debug } from 'console';
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
 
@@ -114,16 +121,6 @@ const userCtx = iocc.get<UserContext>('UserContext');
 
 const { scrollTo } = useScroll(refDt);
 
-const notAccessibleCols = ref<string[]>([]);
-const accessibleCols = ref<string[]>([]);
-
-props.tableDescr.headers.forEach((item) => {
-    if (!chkRights(null, item.traits))
-        notAccessibleCols.value.push(item.key)
-    else
-        accessibleCols.value.push(item.key);
-});
-
 
 const pagesCount = computed(() => {
     if (props.rows.length % itemsPerPage.value == 0)
@@ -133,11 +130,28 @@ const pagesCount = computed(() => {
 });
 
 
+const notAccessibleCols = ref<string[]>([]);
+const accessibleCols = ref<string[]>([]);
+const accessibleColItems=ref<any[]>([]);
+
+props.tableDescr.headers.forEach((item) => {
+    if (!chkRights(null, item.traits))
+        notAccessibleCols.value.push(item.key)
+    else
+    {
+        accessibleCols.value.push(item.key);
+        accessibleColItems.value.push(item);
+    }
+});
+
+
 const _headers = computed(() => {
     const res: any[] = [{ key: "actions", align: 'start', width: "10", sortable: false, title: "" }];
 
     props.columns.forEach((item) => {
-        res.push(props.tableDescr.headers.find((el) => el.key == item));
+        let headerItem = accessibleColItems.value.find((el) => el.key == item)
+         if(headerItem)
+           res.push(headerItem);
     });
 
     res.push({ key: "_space", sortable: false, title: "" })
@@ -145,17 +159,19 @@ const _headers = computed(() => {
 });
 
 
+
 const _headersMap = computed(() => {
 
     let res: any = {};
 
     _headers.value.forEach((item) => {
-        if (props.columns.includes(item.key))
-            res[item.key] = item;
+        res[item.key] = item;
     });
 
     return res;
 });
+
+
 
 
 const getActionsMenu = (item: any) => {

@@ -290,6 +290,16 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
         await this.updateRelation(childRec.Key, childRec.RecCode, relType);
     }
 
+
+    async lock(){
+        return await this._MoApiClient.send<any, boolean>('/Records/LockRecord', { id: this.Key, code: this.RecCode});
+    }
+
+    
+    async unlock(){
+        return await this._MoApiClient.send<any, boolean>('/Records/UnlockRecord', { id: this.Key, code: this.RecCode});
+    }
+
 }
 
 

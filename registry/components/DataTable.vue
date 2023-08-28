@@ -109,7 +109,7 @@ const props = defineProps({
 let itemsPerPage = ref(12);
 let currentPage = ref(1);
 let selected = ref([]);
-let refDt = ref();
+let refDt = ref(null);
 let refPag = ref();
 const classMap = { "start": "d-flex justify-start", "center": "d-flex justify-center mr-5", "end": "d-flex justify-end" }
 
@@ -133,6 +133,7 @@ const pagesCount = computed(() => {
 const notAccessibleCols = ref<string[]>([]);
 const accessibleCols = ref<string[]>([]);
 const accessibleColItems=ref<any[]>([]);
+
 
 props.tableDescr.headers.forEach((item) => {
     if (!chkRights(null, item.traits))

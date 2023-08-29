@@ -1,7 +1,7 @@
 <template>
     <div style="min-width: 1024px;">
       <v-app>
-        <v-main>
+        <v-main class="bg-tertiary">
           <SideBar/>
         </v-main>
       </v-app>
@@ -13,7 +13,4 @@
 </script>
 
 <style>
-html{
-    overflow: hidden;
-  }
 </style>

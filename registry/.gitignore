@@ -7,3 +7,6 @@ node_modules
 .env
 dist
 .DS_Store
+nuxt.config.ts
+package.json
+package-lock.json

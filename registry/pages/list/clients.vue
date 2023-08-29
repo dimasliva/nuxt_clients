@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
+import { MoApiClient } from '~~/lib/MoApi/MoApiClient'
 import { IPageData, PageMap } from '~~/lib/PageMap';
 import ConfirmActionDialog from '~~/components/forms/ConfirmActionDialog.vue';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';

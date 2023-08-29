@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="ma-1 h-25 overflow-y-auto">
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Et officia impedit sequi beatae! Similique ullam tempore quibusdam optio at tenetur ab hic, alias, possimus illo
          earum quo nisi aperiam assumenda inventore rerum perspiciatis incidunt beatae quidem natus quaerat? Ad minima, deleniti odit vero obcaecati quae quis maxime perferendis velit.
           Quos nihil unde, provident saepe nisi mollitia impedit, architecto minus delectus maxime voluptates libero officia? Voluptates neque doloribus minima similique quos, explicabo

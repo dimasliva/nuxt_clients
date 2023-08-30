@@ -18,11 +18,11 @@
                 </v-col>
                 <v-expand-transition>
                     <v-col v-if="inherit&&upd" cols="12" sm="12">
-                        <FormsRoleGrid :role-name="rolename" :rights-set="roleRights" :creating-right="true" ref="roleCreation"></FormsRoleGrid>
+                        <FormsRoleGrid :role-name="rolename" :rights-set="roleRights" :all-rights="roleRights" :creating-right="true" ref="roleCreation"></FormsRoleGrid>
                     </v-col>
                 </v-expand-transition>    
             </v-row>
-            <v-overlay v-model="confirm" contained class="align-center justify-center">
+            <v-overlay v-model="confirm" class="align-center justify-center h-100">
                 <v-card>
                     <v-card-title primary-title>
                         Подтверждение
@@ -54,6 +54,7 @@
 const props = defineProps({
     roleNames: Array,
     rightsSet: Array,
+    allRightsSet: Object,
     onCloseFunc: Function
 })
 let confirm = ref(false)
@@ -62,12 +63,9 @@ let newRole = 'Новая роль'
 let parentRole = ref([newRole, ...props.roleNames!])
 let inherit = ref()
 let rolename = ref('')
-let emptyRights = ref(
-    {'dbRoles' : '','dbCompany' : '', 'dbEmployee' : '','dbClient' : '','#CompanyAdmin' : '','dbEmployeeContacts' : '', "dbFilelink": ''}, 
-)
+let emptyRights = ref(props.allRightsSet)
 let roleRights = ref()
 let roleCreation = ref<any>();
-
 
 const selectParent = async() => {
     upd.value = false;

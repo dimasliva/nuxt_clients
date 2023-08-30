@@ -27,7 +27,7 @@
           <v-col cols="12" sm="6">
             <v-text-field clearable v-model="empPhone" :disabled="!updCont" placeholder="+7(999) 999-99-99" v-maska:[phoneOptions] required maxlength="24" label="Телефон" variant="underlined" density="compact" :rules="[(v: string) => !!v || $t('required')]"></v-text-field>
           </v-col>
-          <v-col cols="12" sm="6" v-if="crtEmpl">
+          <v-col cols="12" sm="6" v-if="crtEmpl&&adding">
             <v-text-field label="Логин" :disabled="!addAccount" clearable v-model="empLogin" @click:control="empLogin = empEmail" :required="addAccount" maxlength="128" variant="underlined" placeholder="Ivan001" density="compact" :rules="addAccount?[(v: string) => !!v || $t('required')]: undefined"></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
@@ -47,7 +47,7 @@
             <v-select v-model="empGender" density="compact" label="Пол" :disabled="!updProf" :items="[{gender: 'м', val: 'm'}, {gender: 'ж', val: 'f'}]" item-title="gender" item-value="val" variant="underlined"></v-select>
           </v-col>
           <v-col v-if="specEmpl" cols="12" sm="6">
-            <v-select v-model="empRole" density="compact" label="Роль" :disabled="!updProf" :items="roles" variant="underlined"></v-select>
+            <v-select v-model="empRole" density="compact" label="Роль" :disabled="!updProf" :items="roles" variant="underlined" multiple></v-select>
           </v-col>
         </v-row>
         <v-checkbox class="ml-4" v-if="adding" label="создать аккаунт" v-model="addAccount" color="primary"></v-checkbox>
@@ -126,7 +126,7 @@ let empEmail = ref(props.empl.mainEmail)
 let empId = ref(props.empl.id)
 let empLogin = ref<any>(props.adding?'':null)
 let empGender = ref(props.extr.gender)
-let empRole = ref(props.extr.roles)
+let empRole = ref<any>(typeof props.extr.roles == 'string'?props.extr.roles.split(','):props.extr.roles)
 let updProf = ref(props.rights.empProfRights.includes('u'))
 let updCont = ref(props.rights.empContRights.includes('u'))
 let crtEmpl = ref(props.rights.empContRights.includes('c') && props.rights.empProfRights.includes('c'))
@@ -153,7 +153,7 @@ let translit = (word) => {
 
  
 const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString(), empRole.value, empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value, empLogin.value);
-closeDialog(console.log());
+props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString(), empRole.value.toString(), empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value, empLogin.value);
+closeDialog(console.log(empRole.value));
 }
  </script>

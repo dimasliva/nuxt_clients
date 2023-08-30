@@ -7,9 +7,10 @@
     <img src="../../public/cat-laptop-rights.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
   </v-card>
   <VRow class="ma-1 flex-nowrap" >
-    <Table v-show="loading === false && nright == false && data.length > 0" @cheked="checkEmpl = $event, disabledFunc(), loadEmplData()" @person="checkEmpl = $event, loadEmplData()" :info="filteredData.length? filteredData : data" :checkbox-show="show" :rights="empRights" :page="page" :headers="th" :actions="tableActions"></Table>
-  <v-card v-if="data.length == 0 && loading == false && nright == false"  max-width="400" class="mx-auto" elevation="0" >
-    <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
+    <Table v-show="loading === false && nright == false && data.length > 0" @cheked="checkEmpl = $event, disabledFunc(), loadEmplData()" @person="checkEmpl = $event, loadEmplData()"
+       :info="filteredData.length? filteredData : data" :checkbox-show="show" :rights="empRights" :page="page" :headers="th" :actions="tableActions"></Table>
+    <v-card v-if="data.length == 0 && loading == false && nright == false"  max-width="400" class="mx-auto" elevation="0" >
+      <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
       <img src="../../public/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
   </v-card>
     <v-expand-x-transition>
@@ -207,19 +208,19 @@ const checkRole = async () => {
   let k = empAuth.AuthorityData?.userId;
   let r = (await recStore.getOrCreate(EmployeeRecord, k!)).Data?.roles;
   //Запрос роли сотрудника и проверка прав доступа
-  let rec = await recStore.fetch(RolesRecord, '');
-  allRoles.value = Object.keys(rec.Data!.roles);
-  role.value = rec.Data!.roles[r!];
+  let rec = await recStore.fetch(RolesRecord, k!);
+  allRoles.value = Object.keys(rec.MData.roles);
+  role.value = rec.MData.roles[r!];
   // role.value = {
-  //   "dbEmployee": "cruds",
-  //   "dbEmployeeContacts": "cds",
-  // }
-  //Создание необходимого функционала, в соответствии с правами 
-  if(role.value['#CompanyAdmin']){
-  //Если роль админ компании, то все права разрешены  
-    for(let r in empRights.value){
-      empRights.value[r] = role.value['#CompanyAdmin'];
-    }
+    //   "dbEmployee": "cruds",
+    //   "dbEmployeeContacts": "cds",
+    // }
+    //Создание необходимого функционала, в соответствии с правами 
+    if(role.value['#AllRecords']){
+      //Если роль админ компании, то все права разрешены  
+      for(let r in empRights.value){
+        empRights.value[r] = role.value['#AllRecords'];
+      }
       pageMapData.mainBtnBar!.push(updBtn, addBtn, delBtn, filtBtn);
     tableActions.value.push(chnBtn, delBtn);
   } else if(!role.value.dbEmployee&&!role.value.dbEmployeeContacts){
@@ -298,6 +299,7 @@ currentDate.setDate(currentDate.getDate() - 7);
 
 const updateData = () => {
   data.value = [];
+  checkRole();
   params.value.length? filteredData(): getEmplData('changedAt', currentDate.toISOString().slice(0, -14).replace(/-/g, '') , 5000);
 }
 
@@ -311,17 +313,19 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
     data.roles = roles;
   })
 
+  await rec.save();
+
   if(login){
   let emplAcc = await recStore.getOrCreate(EmployeeAccount, rec.Key);
-  emplAcc.Data!.login = login;
-  emplAcc.Data!.phone = phone!;
-  emplAcc.Data!.email = mail!;
+  emplAcc.MData.login = login;
+  emplAcc.MData.phone = phone!;
+  emplAcc.MData.email = mail!;
   emplAcc.save();
-}
+  }
 
   let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
-  emplcont.Data!.mainPhone = phone || null;
-  emplcont.Data!.mainEmail = mail || null;
+  emplcont.MData.mainPhone = phone || null;
+  emplcont.MData.mainEmail = mail || null;
   emplcont.save();
   message.value = 'Сотрудник успешно добавлен!';
   updateData();
@@ -336,21 +340,21 @@ const loadEmplData = async () => {
 }
 
 const editEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, roles: string, mainPhone: string, mainEmail: string, id: string) => {
-const rec = await recStore.fetch(EmployeeRecord, id);
+const rec = await recStore.getOrCreate(EmployeeRecord, id);
 if (rec.Key == id) {
   // Обновить данные сотрудника
-  rec.Data!.name = name;
-  rec.Data!.surname = surname;
-  rec.Data!.patronymic = patronymic;
-  rec.Data!.gender = gender;
-  rec.Data!.birthdate = birthdate;
-  rec.Data!.roles = roles;
+  rec.MData.name = name;
+  rec.MData.surname = surname;
+  rec.MData.patronymic = patronymic;
+  rec.MData.gender = gender;
+  rec.MData.birthdate = birthdate;
+  rec.MData.roles = roles;
   // Сохранить изменения
   await rec.save();
   // Обновить данные контактов сотрудника
   const emplcont = await recStore.getOrCreate(EmployeeContactsRecord, id);
-  emplcont.Data!.mainPhone = mainPhone || null;
-  emplcont.Data!.mainEmail = mainEmail || null;
+  emplcont.MData.mainPhone = mainPhone || null;
+  emplcont.MData.mainEmail = mainEmail || null;
   await emplcont.save();
   // Вернуть результат обновления
   message.value = 'Данные сотрудника изменены!'
@@ -500,11 +504,3 @@ defineExpose({eventsHandler});
 
 
 </script>
-
-<style>
-#input-24.v-field__input::-webkit-outer-spin-button,
-#input-24.v-field__input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-</style>

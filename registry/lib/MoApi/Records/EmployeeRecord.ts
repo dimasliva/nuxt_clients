@@ -1,10 +1,6 @@
-import { DataList } from "~/lib/DataList";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
-import { QueryParams } from "~/lib/MoApi/RequestArgs";
-import { IApiDataListResult } from "../RequestResults";
-
 
 export interface IEmployeeRecordData extends IApiRecordChData {
     name: string;

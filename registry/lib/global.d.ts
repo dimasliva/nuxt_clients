@@ -62,9 +62,15 @@ declare global {
         id: string;
         title: string;
         icon: string;
+<<<<<<< Updated upstream
         disabled: boolean;
         color: string;
         bkgColor: string;
+=======
+        disabled:boolean;
+        color:string;
+        bkgColor:string;
+>>>>>>> Stashed changes
         action: () => string | object | void | boolean;
     }
 

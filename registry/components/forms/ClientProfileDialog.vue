@@ -95,6 +95,7 @@ watch(isRecLock, (val) => {
 isRecLock.value = await rec.value.lock();
 
 
+
 let pingLockInterval = setInterval(async () => {
   isRecLock.value = await rec.value.lock();
 }, 150 * 1000)

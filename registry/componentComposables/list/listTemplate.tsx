@@ -21,7 +21,7 @@ export abstract class ListTemplate<TFilterVals> {
     pageMap = this.iocc.get<PageMap>("PageMap");
     recStore = this.iocc.get<RecordsStore>("RecordsStore");
 
-    filterVals= ref({}) as Ref<TFilterVals>;
+    filterVals = ref({}) as Ref<TFilterVals>;
     refDataTable = ref();
     refFilterForm = ref();
     loading = ref(false);
@@ -234,38 +234,40 @@ export abstract class ListTemplate<TFilterVals> {
 
     render() {
 
-        return () => <v-row class="ma-1">
-            <v-col class="w-50" style="min-width: 400; ">
-                {
-                    (() => {
-                        if (this.loading.value == true)
-                            return <v-card max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка..."></v-card>
-                        else
-                            if (this.dataTableVars.value.rows.length == 0 && this.loading.value == false)
-                                return <v-card max-width="400" class="mx-auto" elevation="0">
-                                    <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-                                    <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto" />
-                                </v-card>
-                    })()
-                }
-                {
-                    (() => {
-                        const dt = <DataTable table-descr={this.dataTableDescr.value} visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
-                            v-model:columns={this.dataTableVars.value.columns} 
-                            ref={this.refDataTable} rows={this.dataTableVars.value.rows}
-                            selected={this.dataTableVars.value.selected} onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
-                            onOnColumnsChanged={() => { this.loadData() }} onOnColumnsChangedDelayed={() => { this.saveSettings() }} />;
+        return () => <div  style="height: 100%;">
+            <v-row class="ma-1 bg-background">
+                <v-col class="w-50" style="min-width: 400; ">
+                    {
+                        (() => {
+                            if (this.loading.value == true)
+                                return <v-card max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка..."></v-card>
+                            else
+                                if (this.dataTableVars.value.rows.length == 0 && this.loading.value == false)
+                                    return <v-card max-width="400" class="mx-auto" elevation="0">
+                                        <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
+                                        <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto" />
+                                    </v-card>
+                        })()
+                    }
+                    {
+                        (() => {
+                            const dt = <DataTable table-descr={this.dataTableDescr.value} visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
+                                v-model:columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
+                                ref={this.refDataTable} rows={this.dataTableVars.value.rows}
+                                selected={this.dataTableVars.value.selected} onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
+                                onOnColumnsChanged={() => { this.loadData() }} onOnColumnsChangedDelayed={() => { this.saveSettings() }} />;
 
-                        //return h(KeepAlive, dt);
-                        return  dt;
-                    })()
-                }
-            </v-col>
+                            //return h(KeepAlive, dt);
+                            return dt;
+                        })()
+                    }
+                </v-col>
 
-            <v-expand-x-transition>
-                <SimpleFilterForm  v-model={this.filterVals} ref={this.refFilterForm} filterSettings={this.filterSetting} />
-            </v-expand-x-transition>
+                <v-expand-x-transition>
+                    <SimpleFilterForm v-model={this.filterVals} ref={this.refFilterForm} filterSettings={this.filterSetting} />
+                </v-expand-x-transition>
 
-        </v-row>
+            </v-row>
+        </div>
     }
 }

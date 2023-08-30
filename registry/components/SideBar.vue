@@ -2,7 +2,7 @@
   <v-app-bar color="primary" :density="appBarSize" elevation="0">
     <v-app-bar-nav-icon @click="rail = !rail" :size="iconSize"></v-app-bar-nav-icon>
     <v-spacer></v-spacer>
-    <v-menu :open-on-hover="true">
+    <v-menu >
       <template v-slot:activator="{ props }">
         <p>{{ currUserName }}</p> <v-btn variant="text" v-bind="props" icon="mdi-account-circle"></v-btn>
       </template>
@@ -23,7 +23,7 @@
   <v-navigation-drawer v-model="drawer" :rail="rail" :rail-width="railWidth" permanent class="bg-tertiary" floating 
     :width="drawerWidth">
     <v-list :opened="rail ? [] : opened" open-strategy="single" :selected="selected" select-strategy="classic">
-      <v-list-item prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
+      <v-list-item  prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
         <v-text-field v-model="input" single-line clearable hide-details ref="pInput" density="compact"
           @click:clear="input = ''">
           <v-tooltip v-if="rail" activator="parent" location="right">Поиск</v-tooltip>
@@ -52,7 +52,7 @@
       </template>
     </v-list>
   </v-navigation-drawer>
-  <v-row align="center" justify="start" class="ma-0" style="height: 40px !important;">
+  <v-row justify="start" class="ma-0 bg-tertiary" style="height: 40px !important;">
     <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
       <v-chip closable class="bg-secondary ma-0" @click="navigateTo(selection.link)"
         @click:close="pages.splice(i, 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true">
@@ -60,8 +60,8 @@
       </v-chip>
     </v-col>
   </v-row>
-  <v-sheet class="bg-tertiary">
-    <v-row class="ma-0 pt-3 px-4 bg-tertiary">
+  <v-sheet class="bg-background">
+    <v-row class="ma-0 pt-3 px-4 bg-background">
       <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
       <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
         <v-icon color="secondary">mdi-pin</v-icon>
@@ -109,9 +109,7 @@
 import type { ModuleManager, IModuleItemsMenu } from '~~/libVis/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
 import { IPageData, PageMap } from '~~/lib/PageMap';
-import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
-import { EmployeeRecord } from '~~/lib/MoApi/Records/EmployeeRecord';
-import { UserContext } from '~~/lib/UserContext';
+import type { UserContext } from '~~/lib/UserContext';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { Toaster, toast } from 'vue-sonner'
 import ToastComponent from '~/components/ToastComponent.vue'
@@ -175,8 +173,7 @@ let railWidth = computed(() => {
 });
 
 const iocc = useContainer();
-const recStore = iocc.get(RecordsStore);
-let currUser = iocc.get(UserContext);
+let currUser = iocc.get<UserContext>('UserContext');
 let pInput = ref<any>(null);
 let input = ref<string>('');
 let drawer = ref<boolean>(true);
@@ -367,10 +364,9 @@ let filteredChaptersGr = () => {
   return res;
 }
 
-let usK = currUser.AuthorityData?.userId;
-let userData = await recStore.getOrCreate(EmployeeRecord, usK!);
-let currUserName = userData.Data?.name;
-let userInitials = (userData.Data!.surname + ' ' + (userData.Data!.name[0].toUpperCase()) + '.'+ (userData.Data!.patronymic? userData.Data!.patronymic[0] + '.': ''));
+let userData = currUser.EmployeeData!;
+let currUserName = userData.name;
+let userInitials = userData.surname + ' ' + (userData.name[0].toUpperCase()) + '.'+ (userData.patronymic? userData.patronymic[0] + '.': '');
 
 const getEventsHandler = () => {
   if (showDialog2.value)

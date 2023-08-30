@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
-import { RoleRecord} from '~~/lib/MoApi/Records/RoleRecord';
+import { RolesRecord } from '~~/lib/MoApi/Records/RolesRecord';
 
 const iocc=useContainer();
 const recStore = iocc.get(RecordsStore);
@@ -136,7 +136,7 @@ const cancelChange = async() => {
 const updateOrCreateRights = async() => {
     objTransform();
     upd.value = false;
-    let roleRec = await recStore.getOrCreate(RoleRecord, '');
+    let roleRec = await recStore.getOrCreate(RolesRecord, '');
     roleRec.MData.roles[props.roleName!] = role.value;
     await roleRec.save();
     readingRights.value = true;

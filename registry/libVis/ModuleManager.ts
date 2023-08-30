@@ -33,8 +33,8 @@ export class ModuleManager {
                 icon: "mdi-account-tie",
                 childs: [
                     { id: "employees", title: "Сотрудники", getPagePath: () => "/administration/employees", icon: "mdi-account-circle" },
-                { id: "reports", title: "Роли & права", getPagePath: () => "/administration/rights", icon: "mdi-account-circle" },
-                { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" }
+                    { id: "roles", title: "Роли", getPagePath: () => "/administration/rights", icon: "mdi-account-circle" },
+                    { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" }
                 ]
             });
 

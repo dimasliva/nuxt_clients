@@ -5,7 +5,7 @@
         <div class="text-h5 ma-2">Профиль клиента</div>
         <v-spacer></v-spacer>
         <img class="mr-4 mt-2 bg-secondary rounded-circle" height="50" width="50" src="doctor-test.jpg" />
-        <v-icon @click="closeDialog(console.log())">mdi-close</v-icon>
+        <v-icon @click="close(null)">mdi-close</v-icon>
       </v-row>
     </v-card-title>
     <v-card-text>
@@ -30,7 +30,7 @@
     </v-card-text>
     <v-card-actions class="mr-4 mb-1">
       <v-spacer></v-spacer>
-      <v-btn color="primary" variant="text" @click="rec.cancelModifingData(); closeDialog(null)">
+      <v-btn color="primary" variant="text" @click="rec.cancelModifingData(); close(null)">
         {{ $t('close') }}
       </v-btn>
       <v-btn color="primary" variant="text" @click="onSaveBtnClick()">
@@ -67,17 +67,39 @@ const fioMaskOptions = {
 
 const rec = ref(props.recKey ? await recStore.fetch(ClientRecord, props.recKey) : await recStore.createNew(ClientRecord, (data) => { }));
 
+const isRecLock = ref();
 
-const onSaveBtnClick= async ()=>{
-  await rec.value.save(); 
-  closeDialog(rec.value.Key)
+watch(isRecLock, (val) => {
+  if (!val)
+    warnToast("Запись заблокирована для изменения. Редакция невозможна");
+})
+
+isRecLock.value = await rec.value.lock();
+
+
+let pingLockInterval = setInterval(async () => {
+  isRecLock.value = await rec.value.lock();
+}, 150 * 1000)
+
+
+const onSaveBtnClick = async () => {
+  await rec.value.save();
+  close(rec.value.Key);
 }
+
 
 const eventsHandler = (e: string, d: any) => {
   switch (e) {
     case "onKeydown": return true;
   }
 };
+
+
+const close = (result) => {
+  clearInterval(pingLockInterval);
+  rec.value.unlock();
+  closeDialog(result)
+}
 
 
 defineExpose({ eventsHandler });

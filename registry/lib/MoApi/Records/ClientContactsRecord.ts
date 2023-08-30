@@ -15,19 +15,21 @@ export interface IClientContactsRecordData extends IApiRecordChData {
 
 export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
 
+    static  rightToken= "dbClientContacts";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, ClientContactsRecord, Key);
     }
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             id: this.Key,
             mainPhone: null,
             mainEmail: null,
             otherContacts: null,
             advData: null
-        }, this._getModifingProxyHanlders());
+        };
     }
 
 

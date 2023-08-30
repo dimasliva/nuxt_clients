@@ -8,22 +8,22 @@ export interface IAllRecordData extends IApiRecordCompanyData {
         description: string
 }
 
-export class AllRecord extends ApiRecord<IAllRecordData>{
+export class AllRecords extends ApiRecord<IAllRecordData>{
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, AllRecord, Key);
+        super(_MoApiClient, __UserContext, AllRecords, Key);
     }
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return{
             id: this.Key,
             name: '',
             code: 0,
             description: ''
-        }, this._getModifingProxyHanlders());
+        }
     }
 
-    protected async _loadAData() {
+    protected async _loadData() {
         const arr = await this._MoApiClient.send<string[], IAllRecordData>(this._getApiRecordPathGet(), [this._Key], true);
         this._Data = new Proxy(arr,this._getProxyHanlders());
         return this._Data;

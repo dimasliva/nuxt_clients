@@ -30,9 +30,9 @@ import { PageMap, IPageData } from '~~/lib/PageMap';
 import { UserContext } from '~~/lib/UserContext';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { EmployeeRecord } from '~~/lib/MoApi/Records/EmployeeRecord';
-import { RoleRecord} from '~~/lib/MoApi/Records/RoleRecord';
+import { RolesRecord} from '~~/lib/MoApi/Records/RolesRecord';
 import RoleCreatorDialog  from '~~/components/forms/RoleCreatorDialog.vue';
-import { AllRecord } from '~~/lib/MoApi/Records/AllRecords'
+import { AllRecords } from '~~/lib/MoApi/Records/AllRecords'
 
 const searchAction = () => {
   if(drawer.value){
@@ -142,12 +142,13 @@ const completeEdit = () => {
 
 let allRights = ref();
 
+
 const checkRole = async () => {
   // Проверка роли пользователя
   let k = empAuth.AuthorityData?.userId;
+  let rec = await recStore.fetch(RolesRecord, k!);
   let r = (await recStore.getOrCreate(EmployeeRecord, k!)).Data?.roles;
-  let rec = await recStore.fetch(RoleRecord, k!);
-  allRights.value = (await recStore.fetch(AllRecord, ''));
+  allRights.value = (await recStore.fetch(AllRecords, ''));
   let thisEmpRights = rec.Data!.roles[r!];
   // Присвоение соотвествующих прав
   if(thisEmpRights['#AllRecords']){
@@ -174,13 +175,13 @@ const checkRole = async () => {
 }
 checkRole();
 
-
 const reqRole = async () => {
-  let rec = await recStore.fetch(RoleRecord, '');
+  let rec = await recStore.fetch(RolesRecord, '');
   role.value = Object.values(rec.Data!.roles); 
   roleName.value = Object.keys(rec.Data!.roles);
 };
 reqRole();
+
 
 defineExpose({eventsHandler});
 

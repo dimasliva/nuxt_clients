@@ -20,28 +20,30 @@ export interface IEmployeeRecordData extends IApiRecordChData {
 
 export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
 
+    static  rightToken= "dbEmployee";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, EmployeeRecord, Key);
     }
 
-    get RecCode(){return 1004;}
+    get RecCode() { return 1004; }
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             "id": this.Key,
             "name": '',
             "surname": '',
             "patronymic": null,
             "gender": 'u',
             "birthdate": null,
-            "rank":null,
-            "photo":null,
+            "rank": null,
+            "photo": null,
             "roles": '',
             "notActive": false,
             "linkedRecs": null,
             "profile": null,
             "advData": null
-        }, this._getModifingProxyHanlders());
+        };
     }
 
 

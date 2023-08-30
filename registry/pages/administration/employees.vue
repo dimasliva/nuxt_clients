@@ -12,7 +12,7 @@
     <v-card v-if="data.length == 0 && loading == false && nright == false"  max-width="400" class="mx-auto" elevation="0" >
       <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
       <img src="../../public/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
-    </v-card>
+  </v-card>
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mb-auto mx-1" :location="filtLoc" :position="filtPos">
         <VForm v-model="form" @keydown.enter="btnDis() ? btnDis(): (search(), page = 1)" @keyup.delete="(e) => {if(e.key == 'Delete'){ fio='', phone='', email='', params = [], value = [], stopAutoReq()}}">
@@ -47,14 +47,14 @@ import { IPageData, PageMap } from '~~/lib/PageMap';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
-import { RoleRecord} from '~~/lib/MoApi/Records/RoleRecord';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import {EmployeeAccount} from '~~/lib/MoApi/Records/EmployeeAccount';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
-import { EmployeeContactsRecord } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
 import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
+import { RolesRecord, IRoleRecordData} from '~~/lib/MoApi/Records/RolesRecord';
+import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 
 let page = ref(1)
 let itemPerPage = ref<number>(10)
@@ -144,16 +144,16 @@ let searchField = ref(props.field)
 const autoFocus = (e: KeyboardEvent) => {
   const key = e.key;
   if(foc.value == true && loading.value == false){
-    if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
-      drawer.value = true;
-      lastField.value ? lastField.value.focus() : fioF.value.focus();
+      if (/[a-яA-Я0-9]/.test(key) && key.length == 1) {
+        drawer.value = true;
+        lastField.value ? lastField.value.focus() : fioF.value.focus();
+      }
     }
-  }
-  if (key === 'ArrowLeft'  && page.value > 1) {
-    page.value--
-  } else if (key === 'ArrowRight' && page.value < data.value.length) {
-    page.value++
-  }
+    if (key === 'ArrowLeft'  && page.value > 1) {
+      page.value--
+    } else if (key === 'ArrowRight' && page.value < data.value.length) {
+      page.value++
+    }
 }
 
 const btnDis = () => {
@@ -196,10 +196,10 @@ const eventsHandler= (e: string, d: any) => {
 
 const redirFunc = () => {
   nright.value = true;
-  setTimeout(() => {
-    navigateTo('/dashboard');
-    nright.value = false;
-  }, 2000);
+      setTimeout(() => {
+        navigateTo('/dashboard');
+        nright.value = false;
+      }, 2000);
 }
 
 const checkRole = async () => {
@@ -208,7 +208,7 @@ const checkRole = async () => {
   let k = empAuth.AuthorityData?.userId;
   let r = (await recStore.getOrCreate(EmployeeRecord, k!)).Data?.roles;
   //Запрос роли сотрудника и проверка прав доступа
-  let rec = await recStore.fetch(RoleRecord, k!);
+  let rec = await recStore.fetch(RolesRecord, k!);
   allRoles.value = Object.keys(rec.MData.roles);
   role.value = rec.MData.roles[r!];
   // role.value = {
@@ -222,15 +222,15 @@ const checkRole = async () => {
         empRights.value[r] = role.value['#AllRecords'];
       }
       pageMapData.mainBtnBar!.push(updBtn, addBtn, delBtn, filtBtn);
-      tableActions.value.push(chnBtn, delBtn);
-    } else if(!role.value.dbEmployee&&!role.value.dbEmployeeContacts){
-      redirFunc();
-    } else {
-      // В зависимости от доступных прав отображаем действия на странице
-      empRights.value.empProfRights = role.value.dbEmployee;
-      empRights.value.empContRights = role.value.dbEmployeeContacts;
+    tableActions.value.push(chnBtn, delBtn);
+  } else if(!role.value.dbEmployee&&!role.value.dbEmployeeContacts){
+    redirFunc();
+  } else {
+    // В зависимости от доступных прав отображаем действия на странице
+    empRights.value.empProfRights = role.value.dbEmployee;
+    empRights.value.empContRights = role.value.dbEmployeeContacts;
       pageMapData.mainBtnBar.push(updBtn);
-      tableActions.value.push(chnBtn)
+    tableActions.value.push(chnBtn)
     if(empRights.value.empProfRights.includes('c')&&empRights.value.empContRights.includes('c')){
       pageMapData.mainBtnBar.push(addBtn);
     }

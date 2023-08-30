@@ -12,6 +12,7 @@ export interface ICompanyRecordData extends IApiRecordChData {
 
 export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
 
+    static  rightToken= "dbCompany";
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, CompanyRecord, Key);
@@ -19,8 +20,8 @@ export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
 
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             "id": this.Key,
             "createdAt": '',
             "changedAt": '',
@@ -28,7 +29,7 @@ export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
             "linkedRecs": "",
             "profile": null,
             "advData": ""
-        }, this._getModifingProxyHanlders());
+        };
     }
 
 

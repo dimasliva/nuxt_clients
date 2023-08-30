@@ -5,8 +5,12 @@ import * as Utils from '~~/lib/Utils';
 
 export default defineComponent({
 
+
+    emits: ['update:modelValue'],
+
     props: {
-        filterSettings: {}
+        filterSettings: {},
+        modelValue:{}
     },
 
 
@@ -20,6 +24,7 @@ export default defineComponent({
         let lastField = "";
         const cRefs = {};
         const updateKey = ref(0);
+
 
         let findDelay = -1;
 
@@ -43,13 +48,12 @@ export default defineComponent({
                 if (rules) {
                     if (rules.max && value && value.length > rules.max)
                         return true;
-
                 }
-                return Reflect.set(obj, prop, value);
+                 return Reflect.set(obj, prop, value);
             }
         }
 
-        const filterValues = reactive(new Proxy({}, proxyHandler));
+        const filterValues = reactive(new Proxy(props.modelValue.value, proxyHandler));
         const maskaValues = reactive(new Proxy({}, proxyHandler));
 
         const isVisible = () => visiblity.value;

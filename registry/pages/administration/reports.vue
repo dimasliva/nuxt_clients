@@ -1,6 +1,6 @@
 <template>
 </template>
-
+  
 <script setup lang="ts">
 import Table from '~~/components/forms/Table.vue';
 import { PageMap } from '~~/lib/PageMap';
@@ -8,7 +8,7 @@ import { PageMap } from '~~/lib/PageMap';
 const iocc=useContainer();
 const pageMap = iocc.get<PageMap>("PageMap");
 
-pageMap.setPageData("/visitors", {title: "Посетители", icon: ""});
+pageMap.setPageData("/administration/reports", {title: "Отчеты", icon: "mdi-account-circle"});
 
 let comps = [ 
   {header : "Сотрудники", val : "administration/employees"},
@@ -16,7 +16,4 @@ let comps = [
   {header : "Отчеты", val: "administration/reports", },
 ]
 
-definePageMeta({
-  keepalive: true
-});
 </script>

@@ -1,7 +1,7 @@
 import { Exception } from "../../Exceptions";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, IApiRecordChData, IApiRecordData } from "./ApiRecord";
 
 
 
@@ -14,18 +14,21 @@ export interface IClientAddressesRecordData extends IApiRecordChData {
 
 export class ClientAddressesRecord extends ApiRecord<IClientAddressesRecordData>{
 
+    static  rightToken= "dbClientAddresses";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, ClientAddressesRecord, Key);
     }
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+
+    protected _createNewData() {
+        return {
             id: this.Key,
             mainAddress: null,
             permanentRegistration: null,
             advData: null
-        }, this._getModifingProxyHanlders());
+        }
     }
 
 

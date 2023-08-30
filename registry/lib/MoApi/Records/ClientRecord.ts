@@ -17,13 +17,15 @@ export interface IClientRecordData extends IApiRecordChData {
 
 export class ClientRecord extends ApiRecord<IClientRecordData>{
 
+    static  rightToken= "dbClient";
+
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
         super(_MoApiClient, __UserContext, ClientRecord, Key);
     }
 
 
-    protected _createNewAllData(): void {
-        this._ModifiedData = new Proxy({
+    protected _createNewData() {
+        return {
             id: this.Key,
             name: '',
             surname: '',
@@ -32,7 +34,7 @@ export class ClientRecord extends ApiRecord<IClientRecordData>{
             birthdate: null,
             notActive: null,
             advData: null
-        }, this._getModifingProxyHanlders());
+        }
     }
 
 

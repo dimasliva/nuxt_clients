@@ -12,8 +12,8 @@ export function useScroll(refDt: Ref<any>) {
             el.scroll(scrollX, scrollY);
         }
     }
-    
-    
+
+
     const scrollTo = (x: number, y: number) => {
         if (refDt.value) {
             let el = refDt.value.$el.children[0];
@@ -21,19 +21,24 @@ export function useScroll(refDt: Ref<any>) {
         }
     }
 
-    
+
     watch(isVisible, () => {
-        //костыль c прокруткой. Если вешать onscroll на другие элементы, то событие не вызывается
-        if (isVisible.value) {
-            let el = refDt.value.$el.children[0];
-            el.onscrollend = (e) => {
-                scrollY = el.scrollTop;
-                scrollX = el.scrollLeft;
-                //console.log(scrollX+" "+scrollY);
-            }
+        if (refDt.value) {
             restoreScrolls();
         }
     });
 
-    return {scrollTo,restoreScrolls}
+
+    watch(refDt, () => {
+        //костыль c прокруткой. Если вешать onscroll на другие элементы, то событие не вызывается
+        if (refDt.value) {
+            let el = refDt.value.$el.children[0];
+            el.onscrollend = (e) => {
+                scrollY = el.scrollTop;
+                scrollX = el.scrollLeft;
+            }
+        }
+    });
+
+    return { scrollTo, restoreScrolls }
 }

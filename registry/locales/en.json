@@ -15,7 +15,7 @@
   "emplName": "Your name",
   "emplSurname": "Your surname",
   "emplPatronymic": "Your lastname",
-  "emplBirthdate": "Your date of birth",
+  "birthdate": "Your date of birth",
   "close": "Close",
   "vemail": "Must be a valid e-mail",
   "vbirthday": "DD.MM.YYYY",

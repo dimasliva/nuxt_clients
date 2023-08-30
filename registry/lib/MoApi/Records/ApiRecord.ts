@@ -149,12 +149,12 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     isDataChanged() {
         if (!this._ModifiedData)
             return false;
-        return JSON.stringify(this._Data) === JSON.stringify(this._ModifiedData);
+        return JSON.stringify(this._Data) !== JSON.stringify(this._ModifiedData);
     }
 
 
     async save() {
-        if (!this.isDataChanged) {
+        if (!this.isDataChanged()) {
             this.cancelModifingData();
             return;
         }

@@ -223,7 +223,7 @@ export abstract class ListTemplate<TFilterVals> {
 
 
     async edit(key, index?) {
-        openDialog(this.modelEditDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? this.onUpdateModel(d, index) : true)
+        openDialog(this.modelEditDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
     }
 
 

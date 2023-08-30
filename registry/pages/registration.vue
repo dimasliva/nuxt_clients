@@ -27,7 +27,7 @@
                 <v-text-field v-model="date" type="date" variant="underlined" :readonly="loading" :rules="rules" required clearable>
                   <template v-slot:label>
                     <span>
-                      {{ $t('emplBirthdate') }} <span class="text-info">*</span>
+                      {{ $t('birthdate') }} <span class="text-info">*</span>
                     </span>
                   </template>
                 </v-text-field>

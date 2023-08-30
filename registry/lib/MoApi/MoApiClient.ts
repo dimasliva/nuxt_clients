@@ -24,7 +24,7 @@ export class MoApiClient {
 
     protected _AuthToken: string = "";
     protected _currentApiHost: string = "";
-    protected _RelationApiSection: RelationApiSection=new RelationApiSection(this);
+    protected _RelationApiSection: RelationApiSection = new RelationApiSection(this);
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -45,7 +45,7 @@ export class MoApiClient {
     async send<inT, outT>(path: string, data?: inT, inParam: boolean = false) {
 
         if (inParam)
-            var res = await this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null,null);
+            var res = await this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null, null);
         else
             var res = await this.sendRequest("POST", `${this._APIPATH}${path}`, data);
 
@@ -69,7 +69,7 @@ export class MoApiClient {
     async trySend<inT, OutT>(path: string, data?: inT, inParam: boolean = false) {
         try {
             if (inParam)
-                return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null,null);
+                return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null, null);
             else
                 return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}`, data);
         }
@@ -80,12 +80,28 @@ export class MoApiClient {
     }
 
 
+    async sendMultipart(path: string, data) {
+        const fd = new FormData();
+        for (let item in data)
+            fd.append(item, data[item]);
+
+        return await this.send(path, fd)
+    }
+
+
+    async downloadFile(path: string, pars) {
+        let res = await this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(pars)}`, null, null);
+        return res.bodyData as Blob;
+    }
+
+
     async checkConnection() {
         return false;
     }
 
 
-    async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string | null= "application/json") {
+
+    async sendRequest(method: HTTPMethod, path: string, content: string | any, contenttype: string | null = "application/json") {
         let baseurl = "";
         try {
             if (this._currentApiHost)
@@ -106,9 +122,6 @@ export class MoApiClient {
                 if (this._AuthToken)
                     headers["Authorization"] = `Bearer ${this._AuthToken}`;
 
-                if (contenttype)
-                    headers["Content-Type"] = contenttype;
-
                 try {
                     let option: RequestInit = {
                         method: method,
@@ -117,8 +130,16 @@ export class MoApiClient {
                     };
 
                     if (content != null) {
-                        option.body = JSON.stringify(content);
+                        if (content.constructor && content.constructor == FormData) {
+                            option.body = content;
+                            contenttype = null;
+                        }
+                        else
+                            option.body = JSON.stringify(content);
                     }
+
+                    if (contenttype)
+                        headers["Content-Type"] = contenttype;
 
                     response = await fetch(fulluri, option);
 
@@ -128,6 +149,10 @@ export class MoApiClient {
                         switch (contType[0]) {
                             case "application/json":
                                 bodyData = await response.json();
+                                break;
+
+                            case 'application/octet-stream':
+                                bodyData = await response.blob();
                                 break;
 
                             default:
@@ -307,7 +332,7 @@ export class MoApiClient {
 
 
 
-    getRelationApiSection=() => this._RelationApiSection;
+    getRelationApiSection = () => this._RelationApiSection;
 
 
     _convertToURLParams(obj: any): string {

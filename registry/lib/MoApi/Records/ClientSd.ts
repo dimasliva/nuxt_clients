@@ -35,7 +35,7 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
     }
 
 
-    protected _getApiRecordPathGet = () => "/Clients/GetClientSd";
+    protected _getApiRecordPathGet = () => "/Clients/GetClientsSd";
 
 
     protected _getApiRecordPathAdd = () => "/Clients/SetClientSd";

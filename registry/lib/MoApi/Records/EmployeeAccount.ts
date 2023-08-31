@@ -1,6 +1,7 @@
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 
 
@@ -13,29 +14,28 @@ export interface IEmployeeAccountData extends IApiRecordChData {
 
 export class EmployeeAccount extends ApiRecord<IEmployeeAccountData>{
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, EmployeeAccount, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, EmployeeAccount, Key);
     }
 
-    get RecCode(){return 1004;}
 
-    protected _createNewAllData(): void {
-        this._Data = new Proxy({
+    protected _createNewData() {
+        return {
             id: this.Key,
             login: "",
             email: "",
             phone: ""
-        }, this._getProxyHanlders());
+        };
     }
 
 
-    protected _getApiRecordPathGet  () { throw  "Функция не реализована"; return ""};
+    protected _getApiRecordPathGet() { throw "Функция не реализована"; return "" };
 
 
     protected _getApiRecordPathAdd = () => "/Employees/CreateEmployeeAccount";
 
 
-    protected _getApiRecordPathUpdate  () { throw  "Функция не реализована"; return ""};
+    protected _getApiRecordPathUpdate() { throw "Функция не реализована"; return "" };
 
 
     protected _getApiRecordPathDelete = () => "/Employees/DeleteEmployeeAccount";

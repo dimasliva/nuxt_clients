@@ -1,7 +1,8 @@
 import { Exception } from "../../Exceptions";
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 
 
@@ -14,10 +15,10 @@ export interface IEmployeeContactsRecordData extends IApiRecordChData {
 
 export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordData>{
 
-    static  rightToken= "dbEmployeeContacts";
+    static rightToken = "dbEmployeeContacts";
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, EmployeeContactsRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, EmployeeContactsRecord, Key);
     }
 
 

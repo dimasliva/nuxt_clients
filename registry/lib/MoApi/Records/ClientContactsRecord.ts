@@ -1,7 +1,8 @@
 import { Exception } from "../../Exceptions";
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 
 
@@ -15,10 +16,10 @@ export interface IClientContactsRecordData extends IApiRecordChData {
 
 export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
 
-    static  rightToken= "dbClientContacts";
+    static rightToken = "dbClientContacts";
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, ClientContactsRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, ClientContactsRecord, Key);
     }
 
 
@@ -42,6 +43,6 @@ export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
     protected _getApiRecordPathUpdate = () => "/Clients/SetClientContacts";
 
 
-    protected _getApiRecordPathDelete() { Exception.throw("MethodNotImplemented","Функция не реализована"); return "" }
+    protected _getApiRecordPathDelete() { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" }
 
 }

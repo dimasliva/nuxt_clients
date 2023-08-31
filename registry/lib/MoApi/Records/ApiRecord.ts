@@ -1,10 +1,11 @@
 
 import { MoApiClient } from "../MoApiClient";
 import { CloneData } from "../../Helpers";
-import { UserContext } from "~~/lib/UserContext";
+import { UserContext } from "../../UserContext";
 import { ICouplingData, IRelData } from "../ApiInterfaces"
 import { RecordsCodes } from "./RecordsCodes";
-import { Exception } from "~/lib/Exceptions";
+import { Exception } from "../../Exceptions";
+import { RecordsStore } from "./RecordsStore";
 
 
 export interface IApiRecordData {
@@ -45,12 +46,13 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     //public set MData(value: T | null) { this._ModifiedData = value; }
 
     protected _isNewData: boolean = true;
+    get IsNew() { return this._isNewData }
 
     protected _childsData: { [code: number]: IRelData[] } = {};
     protected _parentsData: { [code: number]: IRelData[] } = {};
     protected _couplingsData: { [code: number]: ICouplingData[] } = {};
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, RecType: Class<ApiRecord>, Key: string) {
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, protected _RecStore: RecordsStore, RecType: Class<ApiRecord>, Key: string) {
         this._RecordType = RecType;
         this._Key = Key;
     }
@@ -102,10 +104,16 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected async _addAllData() {
-        let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
-        this._ModifiedData!.id = guid;
-        this.Key = guid;
-        return guid;
+        if (this.Key) {
+            this._ModifiedData!.id = this.Key;
+            await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
+        }
+        else {
+            let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
+            this._ModifiedData!.id = guid;
+            this.Key = guid;
+        }
+        return this.Key;
     }
 
 
@@ -291,13 +299,13 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     }
 
 
-    async lock(){
-        return await this._MoApiClient.send<any, boolean>('/Records/LockRecord', { id: this.Key, code: this.RecCode});
+    async lock() {
+        return await this._MoApiClient.send<any, boolean>('/Records/LockRecord', { id: this.Key, code: this.RecCode });
     }
 
-    
-    async unlock(){
-        return await this._MoApiClient.send<any, boolean>('/Records/UnlockRecord', { id: this.Key, code: this.RecCode});
+
+    async unlock() {
+        return await this._MoApiClient.send<any, boolean>('/Records/UnlockRecord', { id: this.Key, code: this.RecCode });
     }
 
 }

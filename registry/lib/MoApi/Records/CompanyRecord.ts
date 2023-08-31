@@ -1,6 +1,7 @@
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 export interface ICompanyRecordData extends IApiRecordChData {
     "defaultOrg": string | null,
@@ -14,8 +15,8 @@ export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
 
     static  rightToken= "dbCompany";
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, CompanyRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, CompanyRecord, Key);
     }
 
 

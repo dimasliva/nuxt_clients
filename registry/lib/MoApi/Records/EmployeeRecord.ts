@@ -1,6 +1,7 @@
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 export interface IEmployeeRecordData extends IApiRecordChData {
     name: string;
@@ -20,10 +21,10 @@ export interface IEmployeeRecordData extends IApiRecordChData {
 
 export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
 
-    static  rightToken= "dbEmployee";
+    static rightToken = "dbEmployee";
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, EmployeeRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, EmployeeRecord, Key);
     }
 
     get RecCode() { return 1004; }

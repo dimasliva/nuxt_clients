@@ -9,25 +9,52 @@
       </v-row>
     </v-card-title>
     <v-card-text>
-      <v-row class="mt-1 justify-center">
-        <img class="mr-4  bg-secondary rounded-circle" height="128" width="128" :src="foto" @click="() => upldFoto()" />
+      <v-row class="mt-1 justify-center ">
+        <v-col>
+          <v-row>
+            <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
+          </v-row>
+          <v-row>
+            <FilePicker @onFileSelect="(f) => setPhoto(f)" text="Выбор фото" variant="elevated" rounded color="primary"
+              accept="image/*">
+              <template #default="{ loading, openFileDialog }">
 
+                <v-menu >
+                  <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
+                    ></v-btn>
+                  </template>
+
+                  <template v-slot:default="{ isActive }">
+                    <v-list @mouseleave="(e) => { isActive.value = false }">
+                      <v-list-item v-for="action in PhotoActionsMenu" @click-once="() => action.action(item)">
+                        <v-icon :icon="action.icon" size="x-small" />
+                        {{ action.title }}
+                      </v-list-item>
+                    </v-list>
+                  </template>
+                </v-menu>
+              </template>
+            </FilePicker>
+          </v-row>
+        </v-col>
       </v-row>
-      <v-file-input id="avatar" label="File input" variant="outlined"></v-file-input>
+
+
       <v-row class="mt-10">
         <v-col sm="4">
-          <v-text-field label="Фамилия" v-model="rec.MData.surname" clearable autofocus required maxlength="128"
+          <v-text-field label="Фамилия" v-model="rec!.MData.surname" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иванов" density="compact" v-maska:[fioMaskOptions] />
         </v-col>
 
         <v-col sm="4">
-          <v-text-field label="Имя" v-model="rec.MData.name" clearable autofocus required maxlength="128"
+          <v-text-field label="Имя" v-model="rec!.MData.name" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]"
             v-maska:[fioMaskOptions] />
         </v-col>
 
         <v-col sm="4">
-          <v-text-field label="Отчество" v-model="rec.MData.patronymic" clearable autofocus required maxlength="128"
+          <v-text-field label="Отчество" v-model="rec!.MData.patronymic" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иванович" density="compact" v-maska:[fioMaskOptions] />
         </v-col>
 
@@ -35,14 +62,14 @@
 
       <v-row class="">
         <v-col sm="4">
-          <DatePicker v-model="rec.MData.birthdate" :label="$t('birthdate')" />
+          <DatePicker v-model="rec!.MData.birthdate" :label="$t('birthdate')" />
         </v-col>
       </v-row>
 
     </v-card-text>
     <v-card-actions class="mr-4 mb-1">
       <v-spacer></v-spacer>
-      <v-btn color="primary" variant="text" @click="rec.cancelModifingData(); close(null)">
+      <v-btn color="primary" variant="text" @click="cancelModifingData(); close(null)">
         {{ $t('close') }}
       </v-btn>
       <v-btn color="primary" variant="text" @click="onSaveBtnClick()">
@@ -62,6 +89,10 @@ import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord'
 import { VDatePicker } from 'vuetify/labs/VDatePicker'
 import { useI18n } from "vue-i18n"
 import { FilelinkRecord, IFilelinkRecordData } from '~/lib/MoApi/Records/FilelinkRecord';
+import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord';
+import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
+import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
+import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 
 const { t, locale } = useI18n();
 
@@ -83,7 +114,33 @@ const fioMaskOptions = {
   tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я]/, multiple: true } }
 }
 
-const rec = ref(props.recKey ? await recStore.fetch(ClientRecord, props.recKey) : await recStore.createNew(ClientRecord, (data) => { }));
+const PhotoActionsMenu=  [
+      { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: () => true, traits: { dbClient: "u" } },
+      { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: () => { }, traits: { dbClient: "d" } },
+]
+
+let rec = ref<ClientRecord>();
+let recDoc = ref<ClientDocumentsRecord>();
+let recAddr = ref<ClientAddressesRecord>();
+let recCont = ref<ClientContactsRecord>();
+let recSd = ref<ClientSdRecord>();
+
+if (props.recKey) {
+  rec.value = await recStore.fetch(ClientRecord, props.recKey);
+  recDoc.value = await recStore.getOrCreate(ClientDocumentsRecord, props.recKey);
+  recAddr.value = await recStore.getOrCreate(ClientAddressesRecord, props.recKey);
+  recCont.value = await recStore.getOrCreate(ClientContactsRecord, props.recKey);
+  recSd.value = await recStore.getOrCreate(ClientSdRecord, props.recKey);
+}
+else {
+  rec.value = await recStore.createNew(ClientRecord, (data) => { });
+  recDoc.value = await recStore.createNew(ClientDocumentsRecord, (data) => { });
+  recAddr.value = await recStore.createNew(ClientAddressesRecord, (data) => { });
+  recCont.value = await recStore.createNew(ClientContactsRecord, (data) => { });
+  recSd.value = await recStore.createNew(ClientSdRecord, (data) => { });
+}
+
+
 
 const isRecLock = ref();
 
@@ -92,32 +149,60 @@ watch(isRecLock, (val) => {
     warnToast("Запись заблокирована для изменения. Редакция невозможна");
 })
 
-isRecLock.value = await rec.value.lock();
+let pingLockInterval: any = null;
 
-
-
-let pingLockInterval = setInterval(async () => {
+if (!rec.value.IsNew) {
   isRecLock.value = await rec.value.lock();
-}, 150 * 1000)
 
-
-let flrec = await recStore.fetch(FilelinkRecord, "8c9b8add-8a62-4efd-8e49-d27e50550414");
-foto.value = URL.createObjectURL(await flrec.GetBlob());
-
-
-const upldFoto = async () => {
-  const input: any = document.getElementById('avatar');
-
-  let nflrec = await recStore.createNew<FilelinkRecord, IFilelinkRecordData>(FilelinkRecord, (data) => { data.title = "avatar" });
-  debugger;
-  nflrec.SetFile(input.files[0]);
-  nflrec.save();
-
+  pingLockInterval = setInterval(async () => {
+    isRecLock.value = await rec.value!.lock();
+  }, 150 * 1000)
 }
 
+
+const setPhoto = async (file?: File) => {
+  if (file) {
+    await recSd.value?.setMPhoto(file)
+    foto.value = URL.createObjectURL(file);
+  }
+  else {
+    let blob = await recSd.value?.getCurrentPhoto();
+    if (blob)
+      foto.value = URL.createObjectURL(blob);
+    else
+      foto.value = "";
+  }
+}
+
+setPhoto();
+
+
 const onSaveBtnClick = async () => {
-  await rec.value.save();
-  close(rec.value.Key);
+  if (rec.value!.IsNew) {
+    await rec.value!.save();
+    recDoc.value!.Key = rec.value!.Key;
+    recAddr.value!.Key = rec.value!.Key;
+    recCont.value!.Key = rec.value!.Key;
+    recSd.value!.Key = rec.value!.Key;
+  }
+  else
+    await rec.value!.save();
+
+  await recDoc.value!.save();
+  await recAddr.value!.save();
+  await recCont.value!.save();
+  await recSd.value!.save();
+
+  close(rec.value!.Key);
+}
+
+
+const cancelModifingData = () => {
+  rec.value!.cancelModifingData();
+  recDoc.value!.cancelModifingData();
+  recAddr.value!.cancelModifingData();
+  recCont.value!.cancelModifingData();
+  recSd.value!.cancelModifingData();
 }
 
 
@@ -129,8 +214,11 @@ const eventsHandler = (e: string, d: any) => {
 
 
 const close = (result) => {
-  clearInterval(pingLockInterval);
-  rec.value.unlock();
+  if (pingLockInterval) {
+    clearInterval(pingLockInterval);
+    rec.value!.unlock();
+  }
+
   closeDialog(result)
 }
 

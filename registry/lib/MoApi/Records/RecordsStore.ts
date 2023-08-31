@@ -18,7 +18,7 @@ export class RecordsStore {
             this._store[type.name] = {};
 
         if (!this._store[type.name][Key]) {
-            this._store[type.name][Key] = new type(this._MoApiClient, this._UserContext, Key);
+            this._store[type.name][Key] = new type(this._MoApiClient, this._UserContext, this, Key);
         }
 
         return <T>this._store[type.name][Key];
@@ -44,7 +44,7 @@ export class RecordsStore {
 
 
     async createNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
-        const rec = new type(this._MoApiClient, this._UserContext);
+        const rec = new type(this._MoApiClient, this._UserContext, this);
         rec.createAllData();
         fillFunc(<Tdata>rec.MData);
         return <T>rec;

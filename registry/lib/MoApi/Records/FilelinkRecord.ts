@@ -1,7 +1,8 @@
 import { Exception } from "../../Exceptions";
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 
 
@@ -30,10 +31,13 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
     static rightToken = "dbFilelink";
 
     protected _blob: Blob | null = null;
-    protected _mfile: File | null = null;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, FilelinkRecord, Key);
+    protected _mblob: Blob | null = null;
+    get MBlob(): Blob | null { return this._mblob; }
+    set MBlob(file: Blob) { this._mblob = file }
+
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, FilelinkRecord, Key);
     }
 
 
@@ -53,7 +57,7 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
 
     cancelModifingData() {
         this._ModifiedData = null;
-        this._mfile = null;
+        this._mblob = null;
     }
 
 
@@ -62,15 +66,23 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
         if (this._ModifiedData)
             this._Data = new Proxy(this._ModifiedData, this._getProxyHanlders());
 
-        if (this._mfile)
-            this._blob = this._mfile;
+        if (this._mblob)
+            this._blob = this._mblob;
 
         this.cancelModifingData();
     }
 
 
+    async getCurrentBlob() {
+        if (this.isDataChanged())
+            return this._mblob;
+
+        return await this.GetBlob();
+    }
+    
+
     isDataChanged() {
-        if (this._mfile)
+        if (this._mblob)
             return true;
         return super.isDataChanged()
     }
@@ -84,10 +96,10 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
 
         const datamodifed = super.isDataChanged();
 
-        if (this._mfile) {
+        if (this._mblob) {
 
             let args: any = {
-                File: this._mfile
+                File: this._mblob
             };
 
             if (this.Key)
@@ -115,17 +127,15 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
 
 
     async GetBlob() {
+        if (this._isNewData)
+            return null;
+
         if (!this._blob)
             this._blob = await this._downloadFile();
 
         return this._blob;
     }
 
-
-
-    async SetFile(blob: File) {
-        this._mfile = blob;
-    }
 
 
     protected _getApiRecordPathGet = () => "/Files/GetFilelinks";

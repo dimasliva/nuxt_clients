@@ -1,7 +1,9 @@
 import { Exception } from "../../Exceptions";
-import { UserContext } from "../../UserContext";
-import { MoApiClient } from "../MoApiClient";
+import type { UserContext } from "../../UserContext";
+import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { FilelinkRecord, IFilelinkRecordData } from "./FilelinkRecord";
+import type { RecordsStore } from "./RecordsStore";
 
 
 
@@ -9,6 +11,7 @@ export interface IClientSdRecordData extends IApiRecordChData {
     citizenship?: number | null;
     kinship?: any | null;
     individualId?: string | null;
+    photo?: string | null;
     comments?: string | null;
     advData?: any | null;
 }
@@ -16,11 +19,15 @@ export interface IClientSdRecordData extends IApiRecordChData {
 
 export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
-    static  rightToken= "dbClientSd";
+    static rightToken = "dbClientSd";
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, Key: string) {
-        super(_MoApiClient, __UserContext, ClientSdRecord, Key);
+
+    protected _photoFl: FilelinkRecord | null = null;
+
+    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, __UserContext, _RecStore, ClientSdRecord, Key);
     }
+
 
 
     protected _createNewData() {
@@ -28,11 +35,113 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
             id: this.Key,
             citizenship: null,
             kinship: null,
+            photo: null,
             individualId: null,
             comments: null,
             advData: null
         };
     }
+
+
+
+    protected async _getPhotoFilelink() {
+        if (this._photoFl)
+            return this._photoFl;
+
+        if (!this.Data!.photo)
+            return null;
+
+        return this._photoFl = await this._RecStore.fetch(FilelinkRecord, this.Data!.photo);
+    }
+
+
+
+    async GetFoto() {
+        let pfl = await this._getPhotoFilelink();
+        if (!pfl)
+            return null;
+
+        return pfl.GetBlob();
+    }
+
+
+    getMPhoto() {
+        if (this._photoFl)
+            return this._photoFl.MBlob
+
+        return null;
+    }
+
+
+
+    async setMPhoto(blob: Blob) {
+        if (this._photoFl) {
+            this._photoFl.MBlob = blob;
+            return;
+        }
+
+        if (!this.Data!.photo) {
+            this._photoFl = await this._RecStore.createNew<FilelinkRecord, IFilelinkRecordData>(FilelinkRecord, (data) => { data.title = `#clientPhoto@${this.Key}` });
+        }
+        else
+            await this._getPhotoFilelink()
+
+        if (!this._photoFl)
+            Exception.throw("FileLinkCreateErr", "Ошибка создания записи filelink");
+
+        this._photoFl!.MBlob = blob;
+    }
+
+
+
+    async getCurrentPhoto() {
+        let pfl = await this._getPhotoFilelink();
+        if (!pfl) return null;
+        return pfl.getCurrentBlob();
+    }
+
+
+
+    cancelModifingData() {
+        this._ModifiedData = null;
+        if (this._photoFl)
+            this._photoFl.cancelModifingData();
+    }
+
+
+    isDataChanged() {
+        if (this._photoFl && this._photoFl.isDataChanged())
+            return true;
+
+        return super.isDataChanged();
+    }
+
+
+
+    async save() {
+
+        if (this._photoFl) {
+            this._photoFl.MData.client = this.Key;
+            await this._photoFl.save();
+            this.MData.photo = this._photoFl.Key;
+        }
+
+        if (!super.isDataChanged()) {
+            this.cancelModifingData();
+            return;
+        }
+
+        if (this._isNewData) {
+            this._isNewData = false;
+            await this._addAllData();
+        }
+        else {
+            await this._updateAllData();
+        }
+
+        this._setModData();
+    }
+
 
 
     protected _getApiRecordPathGet = () => "/Clients/GetClientsSd";

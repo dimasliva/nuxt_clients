@@ -1,5 +1,5 @@
 <template>
-  <v-card width="700" style="height: 80dvh;">
+  <v-card width="750" style="height: 85dvh;">
     <v-card-title class="mx-2">
       <v-row class="pt-4">
         <div class="text-h5 ma-2">Профиль клиента</div>
@@ -9,25 +9,23 @@
       </v-row>
     </v-card-title>
     <v-card-text>
-      <v-row class="mt-1 justify-center ">
-        <v-col>
-          <v-row>
+      <v-row class="mt-1 ">
+        <v-col xs="3" sm="3">
+
+          <v-row class="mt-1 justify-start ">
             <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
-          </v-row>
-          <v-row>
             <FilePicker @onFileSelect="(f) => setPhoto(f)" text="Выбор фото" variant="elevated" rounded color="primary"
               accept="image/*">
-              <template #default="{ loading, openFileDialog }">
+              <template #default="props">
 
-                <v-menu >
+                <v-menu>
                   <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
-                    ></v-btn>
+                    <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"></v-btn>
                   </template>
 
                   <template v-slot:default="{ isActive }">
                     <v-list @mouseleave="(e) => { isActive.value = false }">
-                      <v-list-item v-for="action in PhotoActionsMenu" @click-once="() => action.action(item)">
+                      <v-list-item v-for="action in PhotoActionsMenu" @click-once="() => action.action(props)">
                         <v-icon :icon="action.icon" size="x-small" />
                         {{ action.title }}
                       </v-list-item>
@@ -38,33 +36,29 @@
             </FilePicker>
           </v-row>
         </v-col>
-      </v-row>
-
-
-      <v-row class="mt-10">
-        <v-col sm="4">
+        <v-col xs="3" sm="4">
           <v-text-field label="Фамилия" v-model="rec!.MData.surname" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иванов" density="compact" v-maska:[fioMaskOptions] />
-        </v-col>
 
-        <v-col sm="4">
           <v-text-field label="Имя" v-model="rec!.MData.name" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]"
             v-maska:[fioMaskOptions] />
-        </v-col>
 
-        <v-col sm="4">
           <v-text-field label="Отчество" v-model="rec!.MData.patronymic" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иванович" density="compact" v-maska:[fioMaskOptions] />
         </v-col>
 
-      </v-row>
+        <v-col sm="1"></v-col>
 
-      <v-row class="">
-        <v-col sm="4">
-          <DatePicker v-model="rec!.MData.birthdate" :label="$t('birthdate')" />
+        <v-col sm="3">
+          <DatePicker class="pb-4" v-model="rec!.MData.birthdate" :label="$t('birthdate')" />
+
+          <v-select style="max-width: 15dvh; height: 10px;" label="Пол" :items="['М', 'Ж']" v-model="gender"
+            variant="solo" />
+
         </v-col>
       </v-row>
+
 
     </v-card-text>
     <v-card-actions class="mr-4 mb-1">
@@ -93,6 +87,7 @@ import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord
 import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
 import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
+import * as vHelpers from '~~/libVis/Helpers';
 
 const { t, locale } = useI18n();
 
@@ -108,15 +103,16 @@ const userCtx = iocc.get<UserContext>('UserContext');
 const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
 const foto = ref("");
+const gender = ref("");
 
 const fioMaskOptions = {
   mask: "Aa",
   tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я]/, multiple: true } }
 }
 
-const PhotoActionsMenu=  [
-      { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: () => true, traits: { dbClient: "u" } },
-      { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: () => { }, traits: { dbClient: "d" } },
+const PhotoActionsMenu = [
+  { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: (props) => props.openFileDialog(), traits: { dbClient: "u" } },
+  { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: (props) => delPhoto(), traits: { dbClient: "d" } },
 ]
 
 let rec = ref<ClientRecord>();
@@ -176,24 +172,39 @@ const setPhoto = async (file?: File) => {
 
 setPhoto();
 
+const delPhoto = () => {
+  recSd.value!.delMPhoto();
+  foto.value = "";
+}
+
+
+if (rec.value.Data!.gender != "u")
+  gender.value = rec.value.Data!.gender == "m" ? "М" : "Ж";
+
+watch(gender, (val, oldval) => {
+  rec.value!.MData.gender = gender.value == "М" ? "m" : "f";
+});
+
 
 const onSaveBtnClick = async () => {
-  if (rec.value!.IsNew) {
-    await rec.value!.save();
-    recDoc.value!.Key = rec.value!.Key;
-    recAddr.value!.Key = rec.value!.Key;
-    recCont.value!.Key = rec.value!.Key;
-    recSd.value!.Key = rec.value!.Key;
-  }
-  else
-    await rec.value!.save();
 
-  await recDoc.value!.save();
-  await recAddr.value!.save();
-  await recCont.value!.save();
-  await recSd.value!.save();
+  await vHelpers.action(async () => {
+    if (rec.value!.IsNew) {
+      await rec.value!.save();
+      recDoc.value!.Key = rec.value!.Key;
+      recAddr.value!.Key = rec.value!.Key;
+      recCont.value!.Key = rec.value!.Key;
+      recSd.value!.Key = rec.value!.Key;
+    }
+    else
+      await rec.value!.save();
 
-  close(rec.value!.Key);
+    await recDoc.value!.save();
+    await recAddr.value!.save();
+    await recCont.value!.save();
+    await recSd.value!.save();
+  })
+  .then(()=> close(rec.value!.Key))
 }
 
 

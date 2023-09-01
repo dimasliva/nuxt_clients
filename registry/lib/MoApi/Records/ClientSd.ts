@@ -94,6 +94,19 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
 
 
+    delMPhoto() {
+        if (this._photoFl)
+
+            if (!this._photoFl.Key)
+                this._photoFl = null;
+            else
+                this._photoFl.cancelModifingData();
+
+        this.MData!.photo = null;
+    }
+
+
+
     async getCurrentPhoto() {
         let pfl = await this._getPhotoFilelink();
         if (!pfl) return null;
@@ -121,10 +134,17 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
     async save() {
 
         if (this._photoFl) {
-            this._photoFl.MData.client = this.Key;
-            await this._photoFl.save();
-            this.MData.photo = this._photoFl.Key;
+            if (!this.Data!.photo) {
+                //новое фото
+                this._photoFl.MData.client = this.Key;
+                await this._photoFl.save();
+                this.MData.photo = this._photoFl.Key;
+            }
+            else
+                if (this._photoFl.isDataChanged())
+                    await this._photoFl.save();
         }
+
 
         if (!super.isDataChanged()) {
             this.cancelModifingData();
@@ -138,6 +158,15 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
         else {
             await this._updateAllData();
         }
+
+        /*
+        if (!this.MData!.photo && this.Data!.photo) {
+            //удаление фото
+            await this._getPhotoFilelink();
+            await this._photoFl?.delete();
+            this._photoFl = null;
+        }
+        */
 
         this._setModData();
     }

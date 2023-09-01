@@ -191,7 +191,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     async delete() {
-        return this._MoApiClient.send<string, boolean>(this._getApiRecordPathDelete(), this._Key);
+        return await this._MoApiClient.send<string, boolean>(this._getApiRecordPathDelete(), this._Key);
     }
 
 

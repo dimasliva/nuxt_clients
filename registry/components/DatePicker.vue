@@ -2,7 +2,7 @@
     <VueDatePicker :modelValue="modelValue" :enable-time-picker="false" model-type="yyyy-MM-dd" :locale="locale" auto-apply
         @update:modelValue="(d) => emit('update:modelValue', d)">
         <template #trigger>
-            <v-text-field :modelValue="modelValue" type="date" variant="underlined" required clearable>
+            <v-text-field :modelValue="modelValue" type="date" variant="underlined" required clearable  density="compact" >
                 <template v-slot:label>
                     <span>
                         {{ label || "" }} <span v-if="required" class="text-info">*</span>

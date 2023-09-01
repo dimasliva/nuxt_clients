@@ -6,7 +6,7 @@
         </slot>
 
         <!-- Create a File Input that will be hidden but triggered with JavaScript -->
-        <input ref="refUploader" class="d-none" type="file" @change="onFileChanged" :accept="accept">
+        <input  ref="refUploader" class="d-none" type="file" @change="onFileChanged" :accept="accept">
     </div>
 </template>
 
@@ -36,7 +36,6 @@ const refUploader = ref();
 
 const handleFileImport = () => {
     isSelecting.value = true;
-
     // After obtaining the focus when closing the FilePicker, return the button state to normal
     window.addEventListener('focus', () => {
         isSelecting.value = false
@@ -48,7 +47,9 @@ const handleFileImport = () => {
 
 
 const onFileChanged = (e) => {
+    var t=refUploader.value;
     selectedFile.value = e.target.files[0];
+    e.target.value = ''
     emit("onFileSelect", selectedFile.value);
 };
 

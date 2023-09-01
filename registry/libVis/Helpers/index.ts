@@ -37,8 +37,8 @@ export async function chkMaxItemsLimit(data: any[]) {
 
 
 const _genderMap={
-    "m":"муж",
-    "f":"жен",
+    "m":"М",
+    "f":"Ж",
     "u":"",
   }
   

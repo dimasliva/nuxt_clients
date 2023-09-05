@@ -15,13 +15,15 @@ export interface IClientAddressesRecordData extends IApiRecordChData {
 
 export class ClientAddressesRecord extends ApiRecord<IClientAddressesRecordData>{
 
-    static rightToken = "dbClientAddresses";
+    static RightToken = "dbClientAddresses";
+    static RecCode = 1014;
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, __UserContext, _RecStore, ClientAddressesRecord, Key);
     }
 
 
+    get RecCode() { return ClientAddressesRecord.RecCode; }
 
     protected _createNewData() {
         return {

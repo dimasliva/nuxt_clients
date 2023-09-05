@@ -21,13 +21,14 @@ export interface IEmployeeRecordData extends IApiRecordChData {
 
 export class EmployeeRecord extends ApiRecord<IEmployeeRecordData>{
 
-    static rightToken = "dbEmployee";
+    static RightToken = "dbEmployee";
+    static RecCode = 1004;
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, __UserContext, _RecStore, EmployeeRecord, Key);
     }
 
-    get RecCode() { return 1004; }
+    get RecCode() { return EmployeeRecord.RecCode; }
 
     protected _createNewData() {
         return {

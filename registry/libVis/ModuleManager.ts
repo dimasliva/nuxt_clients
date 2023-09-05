@@ -8,7 +8,7 @@ export interface IModuleItemsMenu {
     title: string;
     icon: string;
     getPagePath: () => string;
-    requiredModule?: string[] | null; //если хотя бы один из модулей в списке доступен, то меню появляется
+    requiredFeature?: string[] | null; //если хотя бы один из фич в списке доступен, то меню появляется
     requiredRights?: { [rec: string]: string } | null;//должны имется все указанные права
     childs?: IModuleItemsMenu[] | null
 }

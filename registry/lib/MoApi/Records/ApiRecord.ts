@@ -24,7 +24,9 @@ export interface IApiRecordCompanyData extends IApiRecordChData {
 
 export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
-    public static rightToken = "";
+    public static RightToken = "";
+    public static RecCode = 0;
+    
 
     protected _RecordType: Function;
     public get RecordType(): Function { return this._RecordType; }
@@ -34,7 +36,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     public get Key(): string { return this._Key; }
     public set Key(value: string) { this._Key = value; }
 
-    get RecCode(): number { return RecordsCodes[this._RecordType.name] }
+    abstract get RecCode(): number;
 
     protected _Data: T | null = null;
     public get Data(): T | null { return this._Data; }

@@ -117,7 +117,7 @@ let clckInterval: any = null;
 let lineSelected = ref();
 
 const iocc = useContainer();
-const userCtx = iocc.get<UserContext>('UserContext');
+//const userCtx = iocc.get<UserContext>('UserContext');
 
 const { scrollTo } = useScroll(refDt);
 

@@ -9,7 +9,8 @@ export interface IRoleRecordData extends IApiRecordCompanyData {
 
 export class RolesRecord extends ApiRecord<IRoleRecordData>{
 
-    static rightToken = "DbRoles";
+    static RightToken = "DbRoles";
+    static RecCode = 1008;
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, __UserContext, _RecStore, RolesRecord, Key);
@@ -22,6 +23,8 @@ export class RolesRecord extends ApiRecord<IRoleRecordData>{
             roles: {}
         };
     }
+
+    get RecCode() { return RolesRecord.RecCode; }
 
 
     protected async _loadData() {

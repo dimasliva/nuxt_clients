@@ -1,5 +1,5 @@
 <template>
-  <v-card width="750" style="height: 85dvh;">
+  <v-card width="800" style="height: 85dvh;">
     <v-card-title class="mx-2">
       <v-row class="pt-4">
         <div class="text-h5 ma-2">Профиль клиента</div>
@@ -37,27 +37,31 @@
           </v-row>
         </v-col>
         <v-col xs="3" sm="4">
-          <v-text-field label="Фамилия" v-model="rec!.MData.surname" clearable autofocus required maxlength="128"
+          <v-text-field class="mb-1" label="Фамилия" v-model="rec!.MData.surname" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иванов" density="compact" v-maska:[fioMaskOptions] />
 
-          <v-text-field label="Имя" v-model="rec!.MData.name" clearable autofocus required maxlength="128"
+          <v-text-field  class="mb-1" label="Имя" v-model="rec!.MData.name" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]"
             v-maska:[fioMaskOptions] />
 
-          <v-text-field label="Отчество" v-model="rec!.MData.patronymic" clearable autofocus required maxlength="128"
+          <v-text-field class="mb-1" label="Отчество" v-model="rec!.MData.patronymic" clearable autofocus required maxlength="128"
             variant="underlined" placeholder="Иванович" density="compact" v-maska:[fioMaskOptions] />
         </v-col>
 
         <v-col sm="1"></v-col>
 
         <v-col sm="3">
-          <DatePicker class="pb-4" v-model="rec!.MData.birthdate" :label="$t('birthdate')" />
+          <InputField class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate" :hint="$t('birthdate')"
+            :constraints="{ min: '1900-01-01', max: new Date() }" :errCnt="errCnt" />
 
-          <v-select style="max-width: 15dvh; height: 10px;" label="Пол" :items="['М', 'Ж']" v-model="gender"
+          <v-select style=" max-width: 10dvh; height: 10px;" label="Пол" :items="['М', 'Ж']" v-model="gender"
             variant="solo" />
 
         </v-col>
       </v-row>
+
+      <InputField v-model="testDateValue" v-bind="testDate">
+      </InputField>
 
 
     </v-card-text>
@@ -66,7 +70,7 @@
       <v-btn color="primary" variant="text" @click="cancelModifingData(); close(null)">
         {{ $t('close') }}
       </v-btn>
-      <v-btn color="primary" variant="text" @click="onSaveBtnClick()">
+      <v-btn color="primary" variant="text" :disabled="errCnt.cnt > 0" @click="onSaveBtnClick()">
         Сохранить
       </v-btn>
     </v-card-actions>
@@ -74,20 +78,19 @@
 </template>
  
 <script setup lang="ts">
-import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { PageMap } from '~/lib/PageMap';
 import { UserContext } from '~/lib/UserContext';
 import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord'
-import { VDatePicker } from 'vuetify/labs/VDatePicker'
 import { useI18n } from "vue-i18n"
-import { FilelinkRecord, IFilelinkRecordData } from '~/lib/MoApi/Records/FilelinkRecord';
 import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord';
 import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
 import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import * as vHelpers from '~~/libVis/Helpers';
+import InputField from '~/components/InputField.vue';
+import { EDataType } from '~/lib/globalTypes';
 
 const { t, locale } = useI18n();
 
@@ -104,6 +107,15 @@ const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
+const errCnt = ref({ cnt: 0 });
+
+const testDate = {
+  type: EDataType.date,
+  hint: "test",
+  constraints: { min: '1900-01-01', max: new Date() }
+}
+
+const testDateValue = ref('2023-05-02');
 
 const fioMaskOptions = {
   mask: "Aa",
@@ -204,7 +216,7 @@ const onSaveBtnClick = async () => {
     await recCont.value!.save();
     await recSd.value!.save();
   })
-  .then(()=> close(rec.value!.Key))
+    .then(() => close(rec.value!.Key))
 }
 
 

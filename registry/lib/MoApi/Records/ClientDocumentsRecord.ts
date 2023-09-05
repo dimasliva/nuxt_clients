@@ -29,12 +29,15 @@ export interface IClientDocumentsRecordData extends IApiRecordChData {
 
 export class ClientDocumentsRecord extends ApiRecord<IClientDocumentsRecordData>{
 
-    static  rightToken= "dbClientDocuments";
+    static RightToken = "dbClientDocuments";
+    static RecCode = 1012;
 
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, __UserContext, _RecStore, ClientDocumentsRecord, Key);
     }
 
+
+    get RecCode() { return ClientDocumentsRecord.RecCode; }
 
     protected _createNewData() {
         return {

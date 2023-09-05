@@ -28,7 +28,8 @@ export interface IFilelinkRecordData extends IApiRecordChData {
 
 export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
 
-    static rightToken = "dbFilelink";
+    static RightToken = "dbFilelink";
+    static RecCode = 1019;
 
     protected _blob: Blob | null = null;
 
@@ -40,6 +41,7 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
         super(_MoApiClient, __UserContext, _RecStore, FilelinkRecord, Key);
     }
 
+    get RecCode() { return FilelinkRecord.RecCode; }
 
     protected _createNewData() {
         return {
@@ -79,7 +81,7 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
 
         return await this.GetBlob();
     }
-    
+
 
     isDataChanged() {
         if (this._mblob)

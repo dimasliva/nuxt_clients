@@ -19,7 +19,8 @@ export interface IClientSdRecordData extends IApiRecordChData {
 
 export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
-    static rightToken = "dbClientSd";
+    static RightToken = "dbClientSd";
+    static RecCode = 1011;
 
 
     protected _photoFl: FilelinkRecord | null = null;
@@ -28,6 +29,8 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
         super(_MoApiClient, __UserContext, _RecStore, ClientSdRecord, Key);
     }
 
+
+    get RecCode() { return ClientSdRecord.RecCode; }
 
 
     protected _createNewData() {

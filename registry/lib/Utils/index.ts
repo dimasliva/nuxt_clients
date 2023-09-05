@@ -1,18 +1,17 @@
 
 import { Exception } from "../Exceptions";
-import type{ UserContext } from "../UserContext";
-import * as Helpers  from "../Helpers";
+import type { UserContext } from "../UserContext";
+import * as Helpers from "../Helpers";
 
 
 
-export  function chkRights(requiredModule: string[] | null | undefined, requiredRights: { [rec: string]: string } | null | undefined) {
+export function chkRights(requiredFeature: string[] | null | undefined, requiredRights: { [rec: string]: string } | null | undefined) {
     const iocc = useContainer();
-    const UserCtx=iocc.get<UserContext>('UserContext');
+    const UserCtx = iocc.get<UserContext>('UserContext');
     let modPermit = false;
-    const _UserContext=useCounter
 
-    if (requiredModule)
-        for (let mod of requiredModule) {
+    if (requiredFeature)
+        for (let mod of requiredFeature) {
             if (UserCtx.ChkLicModule(mod)) {
                 modPermit = true;
                 break;
@@ -34,7 +33,22 @@ export  function chkRights(requiredModule: string[] | null | undefined, required
 
 
 
+export function chkTrait(tokens: string[] | null, trait: string) {
+    const iocc = useContainer();
+    const UserCtx = iocc.get<UserContext>('UserContext');
+
+    if (tokens)
+        for (let token in tokens) {
+            if (!UserCtx.ChkTokenTrait(token, trait)) {
+                return false;
+            }
+        }
+    return true;
+}
+
+
+
 /**Нормализация  строки фио */
-export const normalizeFio = (fio?: string|null): string => Helpers.toTitleCase(Helpers.removeSpaces(fio));
+export const normalizeFio = (fio?: string | null): string => Helpers.toTitleCase(Helpers.removeSpaces(fio));
 
 

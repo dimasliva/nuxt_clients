@@ -12,9 +12,9 @@
     <v-card-text class="text-h6">Такой роли мы не нашли.</v-card-text>
     <img src="../../public/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
   </v-card>
-  <div class="ma-4  overflow-auto" v-if="upd"> 
+  <div id="roleContainer" class="ma-4" v-if="upd" style="height: 75vh; width: fit-content; overflow-y: auto;"> 
     <v-expansion-panels>
-        <v-expansion-panel v-for="(value, index) in role" :key="index">
+        <v-expansion-panel v-for="(value, index) in role" :key="index" elevation="0">
           <v-expansion-panel-title class="text-h6">{{ roleName[index] }}</v-expansion-panel-title>
           <v-expansion-panel-text>
             <FormsRoleGrid :rights-set="value" :role-name="roleName[index]" @updated="completeEdit()" :user-rights="userRights" :all-rights="allRights"></FormsRoleGrid>
@@ -26,13 +26,14 @@
 </template>
   
 <script setup lang="ts">
+import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { PageMap, IPageData } from '~~/lib/PageMap';
 import { UserContext } from '~~/lib/UserContext';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { EmployeeRecord } from '~~/lib/MoApi/Records/EmployeeRecord';
 import { RolesRecord} from '~~/lib/MoApi/Records/RolesRecord';
 import RoleCreatorDialog  from '~~/components/forms/RoleCreatorDialog.vue';
-import { AllRecords } from '~~/lib/MoApi/Records/AllRecords'
+import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 
 const searchAction = () => {
   if(drawer.value){
@@ -46,12 +47,35 @@ const searchAction = () => {
 let createBtn = { id: "create", title: "Создать", icon: "mdi-plus-circle", disabled:false, color:"secondary", bkgColor:"red", action: () => openDialog(RoleCreatorDialog, {roleNames: roleName.value, rightsSet: role.value, allRightsSet: allRights.value, onCloseFunc: closeAfterCreation,}) };
 let searchBtn = { id: "filter", title: "", icon: "mdi-magnify", disabled:false, color:"secondary", bkgColor:"red",  action: () => searchAction() };
 const iocc=useContainer();
+const api = iocc.get<MoApiClient>("MoApiClient");
 const empAuth = iocc.get(UserContext);
 const recStore = iocc.get(RecordsStore);
 const pageMap = iocc.get<PageMap>("PageMap");
+const allRec = api.getRecordsApiSection();
 let pageMapData: IPageData = reactive({title: "Роли & права", icon: "mdi-account-circle", mainBtnBar:[]});
 
 pageMap.setPageData("/administration/rights", pageMapData);
+
+let { name } = useDisplay();
+let blockHeight = computed(() => {
+  switch (name.value) {
+    case 'xs': return '60vh'
+    case 'sm': return '65vh'
+    case 'md': return '65vh'
+    case 'lg': return '70vh'
+    case 'xl': return '80vh'
+    case 'xxl': return '80vh'
+  }
+
+    return undefined
+});
+
+const heightFunc = async () => {
+  await nextTick();
+  document.getElementById('roleContainer')!.style.height = blockHeight.value!;
+}
+
+heightFunc();
 
 let emptyRoles = ref(false)
 let result = ref(false);
@@ -148,7 +172,7 @@ const checkRole = async () => {
   let k = empAuth.AuthorityData?.userId;
   let rec = await recStore.fetch(RolesRecord, k!);
   let r = (await recStore.getOrCreate(EmployeeRecord, k!)).Data?.roles;
-  allRights.value = (await recStore.fetch(AllRecords, ''));
+  allRights.value = await allRec.getAllRecords();
   let thisEmpRights = rec.Data!.roles[r!];
   // Присвоение соотвествующих прав
   if(thisEmpRights['#AllRecords']){
@@ -163,7 +187,7 @@ const checkRole = async () => {
   }
   pageMapData.mainBtnBar?.push(searchBtn);
   let tempArr: any = [];
-  allRights.value.MData.map((rec) => {
+  allRights.value.map((rec) => {
     if(rec.name != 'Coupling' && rec.name != 'Relation')
     tempArr.push('db'+rec.name)
   })
@@ -184,7 +208,6 @@ reqRole();
 
 
 defineExpose({eventsHandler});
-
 
 </script>
 

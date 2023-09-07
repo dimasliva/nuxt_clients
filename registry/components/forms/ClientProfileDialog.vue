@@ -1,5 +1,5 @@
 <template>
-  <v-card width="800" style="height: 85dvh;">
+  <v-card width="800" style="height: 90dvh;">
     <v-card-title class="mx-2">
       <v-row class="pt-4">
         <div class="text-h5 ma-2">Профиль клиента</div>
@@ -14,8 +14,10 @@
 
           <v-row class="mt-1 justify-start ">
             <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
-            <FilePicker @onFileSelect="(f) => setPhoto(f)" text="Выбор фото" variant="elevated" rounded color="primary"
-              accept="image/*">
+
+            <!--Фото-->
+            <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.changedCnt.cnt++; }" text="Выбор фото"
+              variant="elevated" rounded color="primary" accept="image/*">
               <template #default="props">
 
                 <v-menu>
@@ -37,32 +39,33 @@
           </v-row>
         </v-col>
         <v-col xs="3" sm="4">
-          <v-text-field class="mb-1" label="Фамилия" v-model="rec!.MData.surname" clearable autofocus required maxlength="128"
-            variant="underlined" placeholder="Иванов" density="compact" v-maska:[fioMaskOptions] />
-
-          <v-text-field  class="mb-1" label="Имя" v-model="rec!.MData.name" clearable autofocus required maxlength="128"
-            variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]"
-            v-maska:[fioMaskOptions] />
-
-          <v-text-field class="mb-1" label="Отчество" v-model="rec!.MData.patronymic" clearable autofocus required maxlength="128"
-            variant="underlined" placeholder="Иванович" density="compact" v-maska:[fioMaskOptions] />
+          <!--Поля ФИО-->
+          <InputField v-bind="fioOptions" label="Фамилия" v-model="rec!.MData.surname" required placeholder="Иванов" />
+          <InputField v-bind="fioOptions" label="Имя" placeholder="Иван" required v-model="rec!.MData.name" />
+          <InputField v-bind="fioOptions" label="Отчество" v-model="rec!.MData.patronymic" placeholder="Иванович" />
         </v-col>
 
         <v-col sm="1"></v-col>
 
         <v-col sm="3">
-          <InputField class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate" :hint="$t('birthdate')"
-            :constraints="{ min: '1900-01-01', max: new Date() }" :errCnt="errCnt" />
+          <!--Поле даты рождения-->
+          <InputField v-bind="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
+            :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
 
-          <v-select style=" max-width: 10dvh; height: 10px;" label="Пол" :items="['М', 'Ж']" v-model="gender"
-            variant="solo" />
-
+          <!--Поле выбора пола-->
+          <InputField v-bind="fieldsOptions" :type="EDataType.strictstring" style=" max-width: 10dvh; height: 10px;"
+            label="Пол" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="gender" required />
         </v-col>
       </v-row>
 
-      <InputField v-model="testDateValue" v-bind="testDate">
-      </InputField>
+      <v-row>
+        <InputField  class="mb-5" v-bind="fieldsOptions" :type="EDataType.strictstringarray" style=" max-width: 50dvh;"
+          label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list" required />
+      </v-row>
 
+      <v-row class="mt-1 ">
+        <InputField v-bind="fieldsOptions" :type="EDataType.int" label="Целое" v-model="Int" required  :constraints="{min:0, max:100}" />
+      </v-row>
 
     </v-card-text>
     <v-card-actions class="mr-4 mb-1">
@@ -70,7 +73,8 @@
       <v-btn color="primary" variant="text" @click="cancelModifingData(); close(null)">
         {{ $t('close') }}
       </v-btn>
-      <v-btn color="primary" variant="text" :disabled="errCnt.cnt > 0" @click="onSaveBtnClick()">
+      <v-btn color="primary" variant="text" :disabled="fieldsOptions.changedCnt.cnt == 0 || fieldsOptions.errCnt.cnt > 0"
+        @click="onSaveBtnClick()">
         Сохранить
       </v-btn>
     </v-card-actions>
@@ -102,25 +106,32 @@ interface IProps {
 const props = defineProps<IProps>();
 
 const iocc = useContainer();
-const userCtx = iocc.get<UserContext>('UserContext');
-const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
-const errCnt = ref({ cnt: 0 });
+const isRecLock = ref();
 
-const testDate = {
-  type: EDataType.date,
-  hint: "test",
-  constraints: { min: '1900-01-01', max: new Date() }
-}
+const list = ref([]);
+const Int = ref(0);
 
-const testDateValue = ref('2023-05-02');
+const fieldsOptions = reactive({
+  errCnt: { cnt: 0 },
+  changedCnt: { cnt: 0 },
+  readonly: isRecLock.value,
+})
 
-const fioMaskOptions = {
-  mask: "Aa",
-  tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я]/, multiple: true } }
-}
+
+const fioOptions = reactive(Object.assign({
+  class: "mb-1",
+  type: EDataType.string,
+  constraints: { max: 128, min: 2 },
+  maska: {
+    mask: "Aa",
+    tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я]/, multiple: true } }
+  }
+},
+  fieldsOptions));
+
 
 const PhotoActionsMenu = [
   { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: (props) => props.openFileDialog(), traits: { dbClient: "u" } },
@@ -148,9 +159,6 @@ else {
   recSd.value = await recStore.createNew(ClientSdRecord, (data) => { });
 }
 
-
-
-const isRecLock = ref();
 
 watch(isRecLock, (val) => {
   if (!val)
@@ -187,18 +195,22 @@ setPhoto();
 const delPhoto = () => {
   recSd.value!.delMPhoto();
   foto.value = "";
+  fieldsOptions.changedCnt.cnt++;
 }
 
 
 if (rec.value.Data!.gender != "u")
-  gender.value = rec.value.Data!.gender == "m" ? "М" : "Ж";
+  gender.value = rec.value.Data!.gender;
 
 watch(gender, (val, oldval) => {
-  rec.value!.MData.gender = gender.value == "М" ? "m" : "f";
+  rec.value!.MData.gender = gender.value = val;
 });
 
 
-const onSaveBtnClick = async () => {
+
+const save = async () => {
+
+  let res = false;
 
   await vHelpers.action(async () => {
     if (rec.value!.IsNew) {
@@ -216,7 +228,16 @@ const onSaveBtnClick = async () => {
     await recCont.value!.save();
     await recSd.value!.save();
   })
-    .then(() => close(rec.value!.Key))
+    .then(() => { res = true; fieldsOptions.changedCnt.cnt = 0; });
+
+
+  return res;
+}
+
+
+const onSaveBtnClick = async () => {
+  if (await save())
+    close(rec.value!.Key);
 }
 
 

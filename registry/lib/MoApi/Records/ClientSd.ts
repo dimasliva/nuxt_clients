@@ -135,7 +135,6 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
 
     async save() {
-
         if (this._photoFl) {
             if (!this.Data!.photo) {
                 //новое фото
@@ -145,7 +144,10 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
             }
             else
                 if (this._photoFl.isDataChanged())
+                {
                     await this._photoFl.save();
+                    this.MData.photo = this._photoFl.Key;
+                }
         }
 
 

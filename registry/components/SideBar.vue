@@ -1,8 +1,8 @@
 <template>
   <v-app-bar color="primary" :density="appBarSize" elevation="0">
-    <v-app-bar-nav-icon @click="rail = !rail" :size="iconSize"></v-app-bar-nav-icon>
+    <v-app-bar-nav-icon @click="() => {rail = !rail, rail ? opened = [] : opened}" :size="iconSize"></v-app-bar-nav-icon>
     <v-spacer></v-spacer>
-    <v-menu >
+    <v-menu open-on-hover>
       <template v-slot:activator="{ props }">
         <p>{{ currUserName }}</p> <v-btn variant="text" v-bind="props" icon="mdi-account-circle"></v-btn>
       </template>
@@ -22,17 +22,17 @@
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" :rail="rail" :rail-width="railWidth" permanent class="bg-tertiary" floating 
     :width="drawerWidth">
-    <v-list :opened="rail ? [] : opened" open-strategy="single" :selected="selected" select-strategy="classic">
-      <v-list-item  prepend-icon="mdi-magnify" value="search" @click="rail = false, pInput.focus()">
-        <v-text-field v-model="input" single-line clearable hide-details ref="pInput" density="compact"
+    <v-list :opened="opened" open-strategy="single" :selected="selected" select-strategy="independent">
+      <v-list-item  prepend-icon="mdi-magnify" :active="false" value="search" @click="rail = false, pInput.focus()">
+        <v-text-field v-model="input" single-line :focused="false" clearable hide-details ref="pInput" density="compact"
           @click:clear="input = ''">
           <v-tooltip v-if="rail" activator="parent" location="right">Поиск</v-tooltip>
         </v-text-field>
       </v-list-item>
       <template v-for="item in filteredChaptersGr()">
         <v-list-group v-if="item.childs?.length! > 0" :value="item.title">
-          <template v-slot:activator="{ props }">
-            <v-list-item @click="rail = false" :active="false" v-bind="props" :prepend-icon="item.icon"
+          <template v-slot:activator="{ props, isOpen }">
+            <v-list-item @click="() => {rail = false}" :active="false" v-bind="props" :prepend-icon="item.icon"
               :title="item.title">
               <v-tooltip v-if="rail" activator="parent" location="right">{{item.title}}</v-tooltip>
             </v-list-item>

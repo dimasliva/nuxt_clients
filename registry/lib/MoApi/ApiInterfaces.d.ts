@@ -11,6 +11,12 @@
     relType:number;
  }
 
+ export interface 	IRecordsData {
+   name:string;
+   code:number;
+   description:string;
+}
+
 
  export interface 	IRecordsRestricions {
    maxRowsPerRequest:number,

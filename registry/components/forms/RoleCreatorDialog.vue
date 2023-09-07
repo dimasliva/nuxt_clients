@@ -60,12 +60,14 @@ const props = defineProps({
 let confirm = ref(false)
 let upd = ref(true);
 let newRole = 'Новая роль'
-let parentRole = ref([newRole, ...props.roleNames!])
+let parentRole = ref<any>([newRole, ...props.roleNames!])
 let inherit = ref()
 let rolename = ref('')
 let emptyRights = ref(props.allRightsSet)
 let roleRights = ref()
 let roleCreation = ref<any>();
+let admRoleInd = parentRole.value.indexOf('admin');
+parentRole.value.splice(admRoleInd, 1);
 
 const selectParent = async() => {
     upd.value = false;

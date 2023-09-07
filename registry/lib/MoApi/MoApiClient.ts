@@ -6,6 +6,7 @@ import { sleep, excToLog } from "@/lib/Helpers";
 import { Exception, NetException } from '../Exceptions';
 import { IApiResult } from './RequestResults';
 import { RelationApiSection } from './ApiSectionsV1/RelationApiSection';
+import { RecordsApiSection } from './ApiSectionsV1/RecordsApiSection';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -25,6 +26,7 @@ export class MoApiClient {
     protected _AuthToken: string = "";
     protected _currentApiHost: string = "";
     protected _RelationApiSection: RelationApiSection = new RelationApiSection(this);
+    protected _RecordsApiSection: RecordsApiSection = new RecordsApiSection(this);
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -333,6 +335,8 @@ export class MoApiClient {
 
 
     getRelationApiSection = () => this._RelationApiSection;
+
+    getRecordsApiSection = () => this._RecordsApiSection;
 
 
     _convertToURLParams(obj: any): string {

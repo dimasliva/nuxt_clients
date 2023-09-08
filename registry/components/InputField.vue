@@ -1,9 +1,8 @@
 <template>
     <!--Строка-->
-    <v-text-field v-if="type == EDataType.string && visible" v-bind="$attrs" :modelValue="modelValue" :readonly="readonly"
-        type="text" variant="underlined" :clearable="!readonly" density="compact" v-maska:[maska]
-        :maxlength="constraints?.max"
-        @update:modelValue="(d) => { emit('update:modelValue', d); if (changedCnt) changedCnt.cnt++; }"
+    <v-text-field v-if="type == EDataType.string && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact" v-maska:[maska]
+        :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
         :rules="StringFieldRules">
         <template v-slot:label>
             <span>
@@ -14,17 +13,15 @@
 
 
     <!--Дата-->
-    <VueDatePicker v-if="type == EDataType.date && visible" ref="refField" v-bind="$attrs" :modelValue="modelValue"
-        :readonly="readonly" :dark="useTheme().global.current.value.dark" :enable-time-picker="false"
-        model-type="yyyy-MM-dd" :locale="locale" auto-apply keep-action-row :min-date="constraints?.min"
-        :max-date="constraints?.max"
+    <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal" :readonly="readonly"
+        :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd" :locale="locale"
+        auto-apply keep-action-row :min-date="constraints?.min" :max-date="constraints?.max"
         :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }" now-button-label="Сегодня"
-        @update:modelValue="(d) => { emit('update:modelValue', d); if (changedCnt) changedCnt.cnt++; }">
+        @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }">
 
         <template #trigger>
-            <v-text-field :modelValue="modelValue" type="date" variant="underlined" :clearable="!readonly" density="compact"
-                :readonly="readonly"
-                @update:modelValue="(e) => { emit('update:modelValue', e || null); if (changedCnt) changedCnt.cnt++; }"
+            <v-text-field v-model="CurrModelVal" type="date" ref="refField" variant="underlined" :clearable="!readonly"
+                density="compact" :readonly="readonly" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
                 :rules="DatePickerRules">
                 <template v-slot:label>
                     <span>
@@ -37,10 +34,9 @@
 
 
     <!--Выпадаюший список-->
-    <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="modelValue"
+    <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="CurrModelVal"
         hide-details :readonly="readonly" :label="label || ''" :items="items" variant="solo" :rules="SingleStrSelectRules"
-        @update:modelValue="(d) => { emit('update:modelValue', d); if (changedCnt) changedCnt.cnt++; }"
-        :menuProps="{ scrollStrategy: 'close' }">
+        @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-info">*</span>
@@ -50,11 +46,10 @@
 
 
     <!--Выпадаюший список с множественным выбором-->
-    <v-select v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs" :modelValue="modelValue"
+    <v-select v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
         multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items" variant="solo"
-        :rules="MultipleStrSelectRules"
-        @update:modelValue="(d) => { emit('update:modelValue', d); if (changedCnt) changedCnt.cnt++; }"
-        :menuProps="{ scrollStrategy: 'close' }">
+        :rules="MultipleStrSelectRules" @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
+        @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-info">*</span>
@@ -64,10 +59,21 @@
 
 
     <!--Целое число-->
-    <v-text-field v-if="type == EDataType.int && visible" v-bind="$attrs" :modelValue="modelValue" :readonly="readonly"
-        type="text" variant="underlined" :clearable="!readonly" density="compact" v-maska:[intFieldMaska]
-        @update:modelValue="(d) => { emit('update:modelValue', d); if (changedCnt) changedCnt.cnt++; }"
-        :rules="IntFieldRules">
+    <v-text-field v-if="type == EDataType.int && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        v-maska:[IntFieldMaska] @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" :rules="NumberFieldRules">
+        <template v-slot:label>
+            <span>
+                {{ label || "" }} <span v-if="required" class="text-info">*</span>
+            </span>
+        </template>
+    </v-text-field>
+
+    <!--Плавоющее число-->
+    <v-text-field v-if="type == EDataType.float && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        v-maska:[FloatFieldMaska] @blur="() => onFloatChanged()" @keydown.stop="(k) => onKeydown(k)"
+        :rules="NumberFieldRules">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-info">*</span>
@@ -115,6 +121,30 @@ const props = defineProps<IProps>();
 const visible = ref(props.tokens ? chkTrait(props.tokens, "r") : true);
 const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.readonly);
 const refField = ref();
+
+let OldModelVal = ref();
+let CurrModelVal = ref();
+let isMenuActive = false;
+
+
+const onValChanged = (force?: boolean) => {
+    if (!currErr || force) {
+        if (props.changedCnt) props.changedCnt.cnt++
+        emit('update:modelValue', CurrModelVal.value);
+    }
+}
+
+const onKeydown = (k) => {
+    if (k.key == 'Enter')
+        refField.value.blur();
+    else
+        if (k.key == 'Escape') {
+            CurrModelVal.value = props.modelValue;
+            refField.value.blur();
+        }
+
+}
+
 
 
 const StringFieldRules = [
@@ -198,27 +228,28 @@ const MultipleStrSelectRules = [
 ]
 
 
-const intFieldMaska: any = {
+
+const IntFieldMaska: any = {
     mask: null,
-    tokens: { D: { pattern: /\d/, multiple: true }, Z: { pattern: /-/, optional: true } }
+    tokens: { D: { pattern: /\d/, multiple: false }, Z: { pattern: /-/, optional: true } }
 }
 
 if (props.type == EDataType.int) {
     let min = (props.constraints?.min != null) ? props.constraints.min : Number.MIN_SAFE_INTEGER;
     let max = (props.constraints?.max != null) ? props.constraints.max : Number.MAX_SAFE_INTEGER;
-    intFieldMaska.tokens.D.multiple = false;
+    IntFieldMaska.tokens.D.multiple = false;
     let maxLength = Math.max(Math.abs(min).toString().length, Math.abs(max).toString().length)
 
     if (min < 0 && max < 0)
-        intFieldMaska.mask = 'Z' + 'D'.repeat(maxLength);
+        IntFieldMaska.mask = 'Z' + 'D'.repeat(maxLength);
     else
         if (min >= 0 && max >= 0)
-            intFieldMaska.mask = 'D'.repeat(maxLength);
+            IntFieldMaska.mask = 'D'.repeat(maxLength);
         else {
             //min<0 && max>=0
             let minMsak = 'Z' + ('D'.repeat(min.toString().length - 1));
             let maxMsak = ('D'.repeat(max.toString().length));
-            intFieldMaska.mask = (v: string) => {
+            IntFieldMaska.mask = (v: string) => {
                 if (!v) return 'ZD';
                 return (v.startsWith('-')) ? minMsak : maxMsak
             }
@@ -226,12 +257,17 @@ if (props.type == EDataType.int) {
 }
 
 
-const IntFieldRules = [
+const NumberFieldRules = [
     (v) => {
         if (!v) {
             if (props.required)
                 return setErr('');
+            else
+                return resetErr(true);
         }
+
+        if (isNaN(parseFloat(v)))
+            return setErr(t('incorrect'));
 
         if (props.constraints?.min != null)
             if (v < props.constraints.min)
@@ -244,6 +280,62 @@ const IntFieldRules = [
         return resetErr(true);
     }
 ];
+
+
+
+//отслеживание изменений props.modelValue
+watch(props, (rval: any) => {
+
+    if (OldModelVal.value != rval.modelValue) {
+        OldModelVal.value = rval.modelValue;
+
+        if (props.type == EDataType.float) {
+            let val = parseFloat(rval.modelValue);
+
+            if (!isNaN(val) && props.constraints?.fixed && props.constraints?.numAfterPoint) {
+                let val = parseFloat(props.modelValue).toFixed(props.constraints.numAfterPoint);
+
+                CurrModelVal.value = <any>val;
+            }
+            else
+                CurrModelVal.value = null;
+        }
+        else
+            CurrModelVal.value = rval.modelValue;
+
+    }
+});
+
+
+
+const onFloatChanged = () => {
+    let val = parseFloat(CurrModelVal.value);
+
+    if (!currErr) {
+        if (props.changedCnt) props.changedCnt.cnt++
+        emit('update:modelValue', isNaN(val) ? null : val);
+    }
+}
+
+
+const FloatFieldMaska: any = {
+    mask: "ZDDD.##",
+    tokens: { D: { pattern: /\d/, optional: true }, Z: { pattern: /-/, optional: true } },
+}
+
+
+if (props.type == EDataType.float) {
+
+    let min = (props.constraints?.min != null) ? props.constraints.min : Number.MIN_VALUE;
+    let max = (props.constraints?.max != null) ? props.constraints.max : Number.MAX_VALUE;
+    let maxLength = Math.max(Math.trunc(Math.abs(min)).toString().length, Math.trunc(Math.abs(max)).toString().length);
+
+    let suff = (props.constraints?.numAfterPoint) ? "." + "#".repeat(props.constraints.numAfterPoint) : "";
+    let pattern = "";
+    pattern = ('D'.repeat(maxLength)) + suff;
+    if (min < 0) pattern = 'Z' + pattern;
+    FloatFieldMaska.mask = pattern;
+}
 
 
 

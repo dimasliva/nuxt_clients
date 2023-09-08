@@ -60,11 +60,15 @@
 
       <v-row>
         <InputField  class="mb-5" v-bind="fieldsOptions" :type="EDataType.strictstringarray" style=" max-width: 50dvh;"
-          label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list" required />
+          label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list"  />
+      </v-row>
+
+      <v-row class="mt-1  mb-5">
+        <InputField v-bind="fieldsOptions" :type="EDataType.int" label="Плавающее" v-model="Int"  required :constraints="{min:-10, max:100, numAfterPoint:2, fixed:true}" />
       </v-row>
 
       <v-row class="mt-1 ">
-        <InputField v-bind="fieldsOptions" :type="EDataType.int" label="Целое" v-model="Int" required  :constraints="{min:0, max:100}" />
+        <InputField v-bind="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
       </v-row>
 
     </v-card-text>
@@ -112,7 +116,7 @@ const gender = ref("");
 const isRecLock = ref();
 
 const list = ref([]);
-const Int = ref(0);
+const Int = ref(45.000);
 
 const fieldsOptions = reactive({
   errCnt: { cnt: 0 },

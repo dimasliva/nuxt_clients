@@ -117,6 +117,9 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
             for (let item in nf)
                 if (this.MData[item] === void 0 && nf[item] !== void 0)
                     this.MData[item] = nf[item];
+            this.MData.changedAt = nf.changedAt;
+            this.MData.size = nf.size;
+            this.MData.hash = nf.hash;
         }
 
 

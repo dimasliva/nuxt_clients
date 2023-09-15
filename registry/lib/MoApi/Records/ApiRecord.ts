@@ -22,7 +22,7 @@ export interface IApiRecordCompanyData extends IApiRecordChData {
 }
 
 
-export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
+export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
 
     public static RightToken = "";
     public static RecCode = 0;
@@ -63,7 +63,7 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
     protected abstract _getApiRecordPathAdd(): string;
     protected abstract _getApiRecordPathUpdate(): string;
     protected abstract _getApiRecordPathDelete(): string;
-    protected abstract _createNewData(): IApiRecordData;
+    protected abstract _createNewData(): IApiRecordChData;
 
 
     protected _createNewAllData(): void {
@@ -120,7 +120,9 @@ export abstract class ApiRecord<T extends IApiRecordData = IApiRecordData>{
 
 
     protected async _updateAllData() {
-        return this._MoApiClient.send<any, boolean>(this._getApiRecordPathUpdate(), this._ModifiedData);
+       let res=await this._MoApiClient.send<any, {id:string, changedAt:string}>(this._getApiRecordPathUpdate(), this._ModifiedData);
+       this.MData.changedAt=res.changedAt;
+       return res;
     }
 
 

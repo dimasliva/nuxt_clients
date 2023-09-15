@@ -44,7 +44,7 @@
                     @click="(e) => { onRowClick(item) }">
 
                     <template v-slot:item.actions="{ item }">
-                        <v-menu v-if="props.tableDescr.actionsMenu">
+                        <v-menu  scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
                             <template v-slot:activator="{ props }">
                                 <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
                                     @click="() => lineSelected = item.raw.id"></v-btn>

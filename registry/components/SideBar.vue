@@ -20,7 +20,7 @@
       </v-list>
     </v-menu>
   </v-app-bar>
-  <v-navigation-drawer v-model="drawer" :rail="rail" :rail-width="railWidth" permanent class="bg-tertiary" floating 
+  <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" floating 
     :width="drawerWidth">
     <v-list :opened="opened" open-strategy="single" :selected="selected" select-strategy="independent">
       <v-list-item  prepend-icon="mdi-magnify" :active="false" value="search" @click="rail = false, pInput.focus()">
@@ -31,7 +31,7 @@
       </v-list-item>
       <template v-for="item in filteredChaptersGr()">
         <v-list-group v-if="item.childs?.length! > 0" :value="item.title">
-          <template v-slot:activator="{ props, isOpen }">
+          <template v-slot:activator="{ props }">
             <v-list-item @click="() => {rail = false}" :active="false" v-bind="props" :prepend-icon="item.icon"
               :title="item.title">
               <v-tooltip v-if="rail" activator="parent" location="right">{{item.title}}</v-tooltip>
@@ -60,41 +60,41 @@
       </v-chip>
     </v-col>
   </v-row>
-  <v-sheet class="bg-background">
-    <v-row class="ma-0 pt-3 px-4 bg-background">
-      <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
-      <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
-        <v-icon color="secondary">mdi-pin</v-icon>
-        <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
-      </v-btn>
-      <v-btn v-else variant="text" size="small"
-        @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
-        icon>
-        <v-icon color="secondary">mdi-pin-off</v-icon>
-        <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
-      </v-btn>
-      <v-spacer></v-spacer>
-      <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
-        <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl"
-          :id="buttons.id" :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
-          :append-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="outlined" :color="buttons.color"
-          :background-color="buttons.bkgColor" :text="(buttons.title.length) ? buttons.title : undefined"
-          :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
-      </template>
-      <v-menu :open-on-hover="true">
-        <template v-slot:activator="{ props }">
-          <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
-            :icon="currPageMenu?.icon" />
+  <v-sheet class="bg-background pr-sm-12 pr-md-12 pr-lg-0">
+      <v-row class="ma-0 pt-3 px-4 bg-background">
+        <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
+        <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
+          <v-icon color="secondary">mdi-pin</v-icon>
+          <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
+        </v-btn>
+        <v-btn v-else variant="text" size="small"
+          @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
+          icon>
+          <v-icon color="secondary">mdi-pin-off</v-icon>
+          <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
+          <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl"
+            :id="buttons.id" :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
+            :append-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="outlined" :color="buttons.color"
+            :background-color="buttons.bkgColor" :text="(buttons.title.length) ? buttons.title : undefined"
+            :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
         </template>
-        <v-list>
-          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
-            @click="child.action">
-            <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-row>
-  <NuxtPage ref="pageObj" :keepalive="true" />
+        <v-menu :open-on-hover="true">
+          <template v-slot:activator="{ props }">
+            <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
+              :icon="currPageMenu?.icon" />
+          </template>
+          <v-list>
+            <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
+              @click="child.action">
+              <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-row>
+    <NuxtPage ref="pageObj" :keepalive="true" />
 </v-sheet>
 <Toaster position="bottom-right" :expand="true" closeButton richColors />
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
@@ -134,7 +134,7 @@ let drawerWidth = computed(() => {
     case 'md': return 250
     case 'lg': return 350
     case 'xl': return 350
-    case 'xxl': return 600
+    case 'xxl': return 400
   }
   return undefined
 });
@@ -157,17 +157,6 @@ let iconSize = computed(() => {
     case 'lg': return 'default'
     case 'xl': return 'large'
     case 'xxl': return 'x-large'
-  }
-  return undefined
-});
-let railWidth = computed(() => {
-  switch (name.value) {
-    case 'xs': return 1
-    case 'sm': return 1
-    case 'md': return 46
-    case 'lg': return 56
-    case 'xl': return 56
-    case 'xxl': return 120
   }
   return undefined
 });

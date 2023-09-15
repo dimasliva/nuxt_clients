@@ -69,10 +69,15 @@ let roleCreation = ref<any>();
 let admRoleInd = parentRole.value.indexOf('admin');
 parentRole.value.splice(admRoleInd, 1);
 
+
+
 const selectParent = async() => {
     upd.value = false;
     if(inherit.value === newRole){
         roleRights.value = emptyRights.value;
+        for (let right in roleRights.value){
+            roleRights.value[right] = ''
+        }
     } else {
         let ind = props.roleNames?.indexOf(inherit.value);
         roleRights.value = props.rightsSet![ind!];

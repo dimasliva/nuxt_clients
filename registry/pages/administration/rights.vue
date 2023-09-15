@@ -9,10 +9,9 @@
     </v-responsive>
   </v-expand-transition>
   <v-card v-if="emptyRoles" max-width="400" class="mx-auto" elevation="0">
-    <v-card-text class="text-h6">Такой роли мы не нашли.</v-card-text>
-    <img src="../../public/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
+    <v-card-text class="text-h6">Ничего не найдено.</v-card-text>
   </v-card>
-  <div id="roleContainer" class="ma-4" v-if="upd" style="height: 75vh; width: fit-content; overflow-y: auto;"> 
+  <div id="roleContainer" class="ma-4" v-if="upd" style="height: 75vh; overflow-y: auto;"> 
     <v-expansion-panels>
         <v-expansion-panel v-for="(value, index) in role" :key="index" elevation="0">
           <v-expansion-panel-title class="text-h6">{{ roleName[index] }}</v-expansion-panel-title>

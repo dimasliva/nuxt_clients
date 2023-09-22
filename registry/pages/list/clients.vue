@@ -14,6 +14,7 @@ import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate } from '~/componentComposables/list/listTemplate';
 import { ClientsViews, IClientListView } from '~/lib/MoApi/Views/ClientsViews';
+import { del } from 'nuxt/dist/app/compat/capi';
 
 let t: any;
 
@@ -52,11 +53,14 @@ class ClientList extends ListTemplate<TClientFilterVals>
 
     actionsMenu: (item) => [
       { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbClient: "u" } },
-      { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { }, traits: { dbClient: "d" } },
+      { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del() }, traits: { dbClient: "d" } },
 
     ]
   });
 
+  async del(){
+    let res=await useDelQU("Вы действительно хотите удалить запись клиента?");
+  }
 
   //Настрока формы фильтра
   filterFieldSetting = {
@@ -184,6 +188,10 @@ export default {
     t = useI18n().t;
     const o = new ClientList();
     o.setup();
+
+    const del =()=>{
+      
+    }
 
     expose({
       eventsHandler: (e, d) => o.eventsHandler(e, d)

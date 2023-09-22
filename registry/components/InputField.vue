@@ -111,15 +111,18 @@ interface IProps {
     label?: string | null;
     rules?: any[] | null;
     tokens?: string[] | null,
-    errCnt?: { cnt: number } | null,
-    changedCnt?: { cnt: number } | null,
-    readonly?: boolean | null
+
+    state?: {
+        errCnt: number,
+        changedCnt: number,
+        readonly: boolean
+    } | null
 }
 
 const props = defineProps<IProps>();
 
 const visible = ref(props.tokens ? chkTrait(props.tokens, "r") : true);
-const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.readonly);
+const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.state?.readonly);
 const refField = ref();
 
 let OldModelVal = ref();
@@ -129,7 +132,7 @@ let isMenuActive = false;
 
 const onValChanged = (force?: boolean) => {
     if (!currErr || force) {
-        if (props.changedCnt) props.changedCnt.cnt++
+        if (props.state) props.state.changedCnt++
         emit('update:modelValue', CurrModelVal.value);
     }
 }
@@ -151,7 +154,7 @@ const StringFieldRules = [
     (v) => {
         if (!v) {
             if (props.required)
-                return setErr(t('required'));
+                return setErr(false); //setErr(t('required'));
         }
 
         if (props.constraints?.min) {
@@ -285,6 +288,8 @@ const NumberFieldRules = [
 
 //отслеживание изменений props.modelValue
 watch(props, (rval: any) => {
+    //присваивние здесь значения CurrModelVal приводит к тому, что обязательные поля становятся в ошибочное состояние сразу, 
+    //а не после того как было введено значение пользователем
 
     if (OldModelVal.value != rval.modelValue) {
         OldModelVal.value = rval.modelValue;
@@ -312,7 +317,7 @@ const onFloatChanged = () => {
     let val = parseFloat(CurrModelVal.value);
 
     if (!currErr) {
-        if (props.changedCnt) props.changedCnt.cnt++
+        if (props.state) props.state.changedCnt++;
         emit('update:modelValue', isNaN(val) ? null : val);
     }
 }
@@ -343,9 +348,9 @@ if (props.type == EDataType.float) {
 let currErr = false;
 
 const setErr = (res: any) => {
-    if (props.errCnt && !currErr) {
+    if (props.state && !currErr) {
         currErr = true;
-        props.errCnt.cnt++;
+        props.state.errCnt++;
     }
     return res;
 }
@@ -353,9 +358,9 @@ const setErr = (res: any) => {
 
 
 const resetErr = (res: any) => {
-    if (props.errCnt && currErr) {
+    if (props.state && currErr) {
         currErr = false;
-        props.errCnt.cnt--;
+        props.state.errCnt--;
     }
     return res;
 }

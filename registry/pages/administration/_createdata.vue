@@ -140,9 +140,11 @@ const addClient = async (name: string, surname: string, patronymic: string, gend
         data.birthdate = generateRandomDate();
     })
 
+    await rec.save();
+
     let reccont = await recStore.getOrCreate(ClientContactsRecord, rec.Key);
-    reccont.Data!.mainEmail = mail || null;
-    reccont.Data!.mainPhone = phone || null;
+    reccont.MData!.mainEmail = mail || null;
+    reccont.MData!.mainPhone = phone || null;
     reccont.save();
 }
 
@@ -209,6 +211,6 @@ function generateRandomDate(): string {
     const end = new Date().getTime();
     const randomTime = Math.random() * (end - start) + start;
     const randomDate = new Date(randomTime);
-    return randomDate.toISOString();
+    return randomDate.toISOString().split('T')[0];
 }
 </script>

@@ -16,7 +16,7 @@
             <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
 
             <!--Фото-->
-            <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.changedCnt.cnt++; }" text="Выбор фото"
+            <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.state.changedCnt++; }" text="Выбор фото"
               variant="elevated" rounded color="primary" accept="image/*">
               <template #default="props">
 
@@ -59,12 +59,13 @@
       </v-row>
 
       <v-row>
-        <InputField  class="mb-5" v-bind="fieldsOptions" :type="EDataType.strictstringarray" style=" max-width: 50dvh;"
-          label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list"  />
+        <InputField class="mb-5" v-bind="fieldsOptions" :type="EDataType.strictstringarray" style=" max-width: 50dvh;"
+          label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list" />
       </v-row>
 
       <v-row class="mt-1  mb-5">
-        <InputField v-bind="fieldsOptions" :type="EDataType.int" label="Плавающее" v-model="Int"  required :constraints="{min:-10, max:100, numAfterPoint:2, fixed:true}" />
+        <InputField v-bind="fieldsOptions" :type="EDataType.int" label="Плавающее" v-model="Int" required
+          :constraints="{ min: -10, max: 100, numAfterPoint: 2, fixed: true }" />
       </v-row>
 
       <v-row class="mt-1 ">
@@ -77,7 +78,7 @@
       <v-btn color="primary" variant="text" @click="cancelModifingData(); close(null)">
         {{ $t('close') }}
       </v-btn>
-      <v-btn color="primary" variant="text" :disabled="fieldsOptions.changedCnt.cnt == 0 || fieldsOptions.errCnt.cnt > 0"
+      <v-btn color="primary" variant="text" :disabled="fieldsOptions.state.changedCnt == 0 || fieldsOptions.state.errCnt > 0"
         @click="onSaveBtnClick()">
         Сохранить
       </v-btn>
@@ -119,9 +120,11 @@ const list = ref([]);
 const Int = ref(45.000);
 
 const fieldsOptions = reactive({
-  errCnt: { cnt: 0 },
-  changedCnt: { cnt: 0 },
-  readonly: isRecLock.value,
+  state: {
+    errCnt: 0,
+    changedCnt: 0,
+    readonly: isRecLock.value
+  }
 })
 
 
@@ -199,7 +202,7 @@ setPhoto();
 const delPhoto = () => {
   recSd.value!.delMPhoto();
   foto.value = "";
-  fieldsOptions.changedCnt.cnt++;
+  fieldsOptions.state.changedCnt++;
 }
 
 
@@ -232,7 +235,7 @@ const save = async () => {
     await recCont.value!.save();
     await recSd.value!.save();
   })
-    .then(() => { res = true; fieldsOptions.changedCnt.cnt = 0; });
+    .then(() => { res = true; fieldsOptions.state.changedCnt = 0; });
 
 
   return res;

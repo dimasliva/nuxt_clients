@@ -25,9 +25,23 @@ export async function useDelQU(message) {
         icon: "mdi-map-marker-alert",
         iconColor: "warning",
         btns: { "y": "Удалить", "n": "Отмена" },
-        close: "0"
+        close: "n"
     };
 
     return await showModal(ActionDialog, props) == "y";
 }
 
+
+
+export async function useCloseQU(message) {
+    const props: IActionDialogProps = {
+        title: "Подтверждение",
+        message: message,
+        icon: "mdi-map-marker-alert",
+        iconColor: "warning",
+        btns: { "y": "Закрыть", "n": "Отмена" },
+        close: "n"
+    };
+
+    return await showModal(ActionDialog, props) == "y";
+}

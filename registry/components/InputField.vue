@@ -6,10 +6,22 @@
         :rules="StringFieldRules">
         <template v-slot:label>
             <span>
-                {{ label || "" }} <span v-if="required" class="text-info">*</span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
     </v-text-field>
+
+
+    <!--Текст-->
+    <v-textarea v-if="type == EDataType.text && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+        :clearable="!readonly" label="Label" variant="solo" :readonly="readonly" :maxlength="constraints?.max"
+         :rules="StringFieldRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
+        <template v-slot:label>
+            <span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
+            </span>
+        </template>
+    </v-textarea>
 
 
     <!--Дата-->
@@ -25,7 +37,7 @@
                 :rules="DatePickerRules">
                 <template v-slot:label>
                     <span>
-                        {{ label || "" }} <span v-if="required" class="text-info">*</span>
+                        {{ label || "" }} <span v-if="required" class="text-error">*</span>
                     </span>
                 </template>
             </v-text-field>
@@ -39,7 +51,7 @@
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
-                {{ label || "" }} <span v-if="required" class="text-info">*</span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
     </v-select>
@@ -52,7 +64,7 @@
         @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
-                {{ label || "" }} <span v-if="required" class="text-info">*</span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
     </v-select>
@@ -64,7 +76,7 @@
         v-maska:[IntFieldMaska] @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" :rules="NumberFieldRules">
         <template v-slot:label>
             <span>
-                {{ label || "" }} <span v-if="required" class="text-info">*</span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
     </v-text-field>
@@ -76,7 +88,7 @@
         :rules="NumberFieldRules">
         <template v-slot:label>
             <span>
-                {{ label || "" }} <span v-if="required" class="text-info">*</span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
     </v-text-field>
@@ -132,13 +144,15 @@ let isMenuActive = false;
 
 const onValChanged = (force?: boolean) => {
     if (!currErr || force) {
-        if (props.state) props.state.changedCnt++
-        emit('update:modelValue', CurrModelVal.value);
+        if (props.state && CurrModelVal.value != props.modelValue) {
+            props.state.changedCnt++;
+            emit('update:modelValue', CurrModelVal.value);
+        }
     }
 }
 
 const onKeydown = (k) => {
-    if (k.key == 'Enter')
+    if (k.key == 'Enter' && props.type!=EDataType.text)
         refField.value.blur();
     else
         if (k.key == 'Escape') {

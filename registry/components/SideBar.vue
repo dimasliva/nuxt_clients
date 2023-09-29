@@ -77,7 +77,7 @@
         <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
           <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl"
             :id="buttons.id" :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
-            :append-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="outlined" :color="buttons.color"
+            :prepend-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="text" :color="buttons.color"
             :background-color="buttons.bkgColor" :text="(buttons.title.length) ? buttons.title : undefined"
             :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
         </template>

@@ -1,15 +1,12 @@
-import { IDataTableDescription } from "componentComposables/dataTables/useDataTable";
+import { IDataTableDescription } from "~/componentComposables/dataTables/useDataTable";
 import { QueryParams } from "~/lib/MoApi/RequestArgs";
 import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { IPageData, PageMap } from "~/lib/PageMap";
 import { UserContext } from "~/lib/UserContext";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
-import { DataList } from "lib/DataList";
-import { NuxtApp, } from "nuxt/schema";
+import { DataList } from "~/lib/DataList";
 import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
-import { VRow } from "vuetify/lib/components/index.mjs";
-import { h, KeepAlive, Teleport, Transition, TransitionGroup } from 'vue'
 import DataTable from "~/components/DataTable.vue";
 
 
@@ -62,15 +59,15 @@ export abstract class ListTemplate<TFilterVals> {
             title: "Клиенты", icon: "",
             mainBtnBar: [
                 {
-                    id: "update", title: t("update"), icon: "mdi-autorenew", disabled: false, color: "secondary", bkgColor: "red",
+                    id: "update", title: t("update"), icon: "mdi-autorenew", disabled: false, color: "primary", bkgColor: "blue",
                     action: () => this.updateData()
                 },
                 {
-                    id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "secondary", bkgColor: "red",
+                    id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "primary", bkgColor: "red",
                     action: () => this.add()
                 },
                 {
-                    id: "filter", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red",
+                    id: "filter", title: "", icon: "mdi-magnify", disabled: false, color: "primary", bkgColor: "red",
                     action: () => { this.refFilterForm.value.toggleVis() }
                 },
             ]

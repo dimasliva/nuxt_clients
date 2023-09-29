@@ -7,6 +7,10 @@ import { Exception, NetException } from '../Exceptions';
 import { IApiResult } from './RequestResults';
 import { RelationApiSection } from './ApiSectionsV1/RelationApiSection';
 import { RecordsApiSection } from './ApiSectionsV1/RecordsApiSection';
+import { DictionariesApiSection } from "./ApiSectionsV1/DictionariesApiSection"
+import { LogLevel } from '@microsoft/signalr';
+import { RtmService } from './SignalR/RtmService';
+import { GlobalEventBus } from '../EventBus';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -27,6 +31,7 @@ export class MoApiClient {
     protected _currentApiHost: string = "";
     protected _RelationApiSection: RelationApiSection = new RelationApiSection(this);
     protected _RecordsApiSection: RecordsApiSection = new RecordsApiSection(this);
+    protected _DictionariesApiSection: DictionariesApiSection = new DictionariesApiSection(this);
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -300,6 +305,7 @@ export class MoApiClient {
                         let data = await response.json();
                         this._AuthToken = data.token;
                         this._currentApiHost = data.hosts[0];
+                        this.connectRtMessaging();
                         return <IAuthorityData>data;
                     }
                     else
@@ -308,12 +314,12 @@ export class MoApiClient {
                 else
                     if (response.status >= 500 && response.status < 600) {
                         if (ATTEMPS - attemp == 1)
-                            sleep(1000);
+                            await sleep(1000);
                         else
                             if (ATTEMPS - attemp == 2)
-                                sleep(5000);
+                                await sleep(5000);
                             else
-                                sleep(10000);
+                                await sleep(10000);
                         continue;
                     }
                     else
@@ -333,10 +339,44 @@ export class MoApiClient {
     }
 
 
+    protected _rtmService: RtmService = null!;
+    protected _rtmServiceLastConnDate: number = Date.now();
+
+    async connectRtMessaging() {
+
+        //ограничение по частоте реконнекта
+        let diff = Date.now() - this._rtmServiceLastConnDate;
+        if (diff < 2000)
+            await sleep(2000 - diff);
+        this._rtmServiceLastConnDate = Date.now();
+
+        if (!this._currentApiHost || !this._AuthToken) {
+            await this.AuthorizeClient();
+        }
+
+        if (!this._rtmService) {
+            this._rtmService = new RtmService({
+                onConnectionError: async (err) => {
+                    while (true)
+                        try { await this.AuthorizeClient(); break; } catch { await sleep(15000); };//connectRtMessaging асинхронно вызывается из AuthorizeClient при успешной авторизации
+                },
+                logLevel: LogLevel.Debug
+            });
+
+            //GlobalEventBus
+        }
+
+        this._rtmService.reconnect(`https://${this._currentApiHost}/api/rtm`, this._AuthToken, true);
+        
+    }
+
+
 
     getRelationApiSection = () => this._RelationApiSection;
 
     getRecordsApiSection = () => this._RecordsApiSection;
+
+    getDictionariesApiSection = () => this._DictionariesApiSection;
 
 
     _convertToURLParams(obj: any): string {

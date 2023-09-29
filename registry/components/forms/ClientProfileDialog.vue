@@ -56,23 +56,55 @@
           </v-col>
         </v-row>
 
-        <v-row>
-          <InputField class="mb-5" :state="fieldsOptions" :type="EDataType.strictstringarray" style=" max-width: 50dvh;"
-            label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list" />
-        </v-row>
 
-        <v-row class="mt-1  mb-5">
-          <InputField :state="fieldsOptions" :type="EDataType.int" label="Плавающее" v-model="Int" required
-            :constraints="{ min: -10, max: 100, numAfterPoint: 2, fixed: true }" />
-        </v-row>
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
 
-        <v-row class="mt-1 ">
-          <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
-        </v-row>
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Документ, удостоверящий личность</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
 
-        <v-row class="mt-1 ">
-          <InputField :state="fieldsOptions" :type="EDataType.text" label="Текст" v-model="rec!.MData.patronymic" />
-        </v-row>
+
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Другие документы</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Адрес постоянной регистрации</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Адрес фактического проживания</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+
+
 
       </v-card-text>
     </template>
@@ -94,11 +126,11 @@ import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
 import { EDataType } from '~/lib/globalTypes';
 
+
 const { t, locale } = useI18n();
 
-
 interface IProps {
-  recKey: string | null;
+  recKey: string | null
 }
 
 const props = defineProps<IProps>();
@@ -252,8 +284,6 @@ const close = () => {
 
 
 defineExpose({ eventsHandler });
-
-
 
 
 </script>

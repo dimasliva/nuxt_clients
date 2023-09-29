@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': false,
     },
-    /*//for nuxt 3.7
+    //for nuxt 3.7
     esbuild: {
         tsconfigRaw: {
           compilerOptions: {
@@ -42,7 +42,7 @@ export default defineNuxtConfig({
           }
         }
     }
-    */
+    
   },
 
   "ssr": false,

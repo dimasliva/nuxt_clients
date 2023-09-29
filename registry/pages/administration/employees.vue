@@ -50,7 +50,7 @@ import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import {EmployeeAccount} from '~~/lib/MoApi/Records/EmployeeAccount';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
-import ConfirmActionDialog  from '~~/components/forms/ConfirmActionDialog.vue';
+import ActionDialog  from '~~/components/forms/ActionDialog.vue';
 import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
 import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
 import { RolesRecord, IRoleRecordData} from '~~/lib/MoApi/Records/RolesRecord';
@@ -176,7 +176,7 @@ const btnDis = () => {
 
 let updBtn = { id: "update", title: "Обновить", icon: "mdi-autorenew", disabled:false, color:"secondary", bkgColor:"red", action: () => updateData() };
 let addBtn = { id: "addEmployee", title: "Добавить", icon: "mdi-account", disabled:false, color:"secondary", bkgColor:"red",  action: () =>{ openDialog(EmplProfileDialog,  {rights: empRights.value, empl: {}, extr: {}, action: addEmployee, header: 'Добавление сотрудника', button: 'Добавить', adding: true, compRoles: allRoles.value}, true, () => foc.value = true); foc.value = false} };
-let delBtn = { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary",disabled: true,  bkgColor:"red",  action: () => openDialog(ConfirmActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) };
+let delBtn = { id: "delete", title: "Удалить", icon: "mdi-delete", color:"secondary",disabled: true,  bkgColor:"red",  action: () => openDialog(ActionDialog, {empl: checkEmpl.value, action: deleteEmpl}) };
 let filtBtn = { id: "filter", title: "", icon: "mdi-filter", disabled:false, color:"secondary", bkgColor:"red",  action: () => drawer.value = !drawer.value };
 let chnBtn = { id: "change", title: "Редактировать", icon: "mdi-pencil", color:"secondary", bkgColor:"red", action: () =>  {openDialog(EmplProfileDialog, {rights: empRights.value, empl: checkEmpl.value, extr: extraEmplInfo.value, action: editEmployee, header: 'Карточка сотрудника', button: 'Сохранить', adding: false, compRoles: allRoles.value}, true, () => foc.value = true); foc.value = false; loadEmplData();} };
 

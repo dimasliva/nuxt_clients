@@ -39,21 +39,21 @@
             </template>
 
 
-            <template v-slot:item="{ item, index }">
-                <VDataTableRow :index="index" :item="item" :class="item.raw.id == lineSelected ? 'lineSelectedRow' : ''"
-                    @click="(e) => { onRowClick(item) }">
+            <template v-slot:item="{ internalItem, index }">
+                <VDataTableRow :index="index" :item="internalItem" :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
+                    @click="(e) => { onRowClick(internalItem) }">
 
                     <template v-slot:item.actions="{ item }">
                         <v-menu  scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
                             <template v-slot:activator="{ props }">
                                 <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
-                                    @click="() => lineSelected = item.raw.id"></v-btn>
+                                    @click="() => lineSelected = internalItem.raw.id"></v-btn>
                             </template>
 
                             <template v-slot:default="{ isActive }">
                                 <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for="action in getActionsMenu(item)"
-                                        @click-once="() => action.action(item)">
+                                    <v-list-item v-for="action in getActionsMenu(internalItem)"
+                                        @click-once="() => action.action(internalItem)">
                                         <v-icon :icon="action.icon" size="x-small" />
                                         {{ action.title }}
                                     </v-list-item>
@@ -62,8 +62,8 @@
                         </v-menu>
                     </template>
 
-                    <template v-for="val in accessibleCols" #[`item.${val}`]="{ item }">
-                        <div :class="getDataAlignClass(val)"> {{ item.columns[val] }} </div>
+                    <template v-for="val in accessibleCols" #[`item.${val}`]="{ internalItem }">
+                        <div :class="getDataAlignClass(val)"> {{ internalItem.columns[val] }} </div>
                     </template>
 
                     <template v-for="val in notAccessibleCols" #[`item.${val}`]>

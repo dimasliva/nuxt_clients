@@ -1,89 +1,114 @@
 <template>
-  <v-card width="800" style="height: 90dvh;">
-    <v-card-title class="mx-2">
-      <v-row class="pt-4">
-        <div class="text-h5 ma-2">Профиль клиента</div>
+  <FormsEditWindowDialog title="Профиль клиента" :on-save="save" :on-close="close" :readonly="readonly">
+    <template #default="{ fieldsOptions }">
+      <v-card-text>
+        <v-row class="mt-1 ">
+          <v-col xs="3" sm="3">
 
-        <v-spacer></v-spacer>
-        <v-icon @click="close(null)">mdi-close</v-icon>
-      </v-row>
-    </v-card-title>
-    <v-card-text>
-      <v-row class="mt-1 ">
-        <v-col xs="3" sm="3">
+            <v-row class="mt-1 justify-start ">
+              <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
 
-          <v-row class="mt-1 justify-start ">
-            <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
+              <!--Фото-->
+              <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.changedCnt++; }" text="Выбор фото"
+                variant="elevated" rounded color="primary" accept="image/*">
+                <template #default="props">
 
-            <!--Фото-->
-            <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.state.changedCnt++; }" text="Выбор фото"
-              variant="elevated" rounded color="primary" accept="image/*">
-              <template #default="props">
+                  <v-menu>
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-if="!fieldsOptions.readonly" v-bind="props" icon="mdi-dots-vertical"
+                        variant="text"></v-btn>
+                    </template>
 
-                <v-menu>
-                  <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"></v-btn>
-                  </template>
+                    <template v-slot:default="{ isActive }">
+                      <v-list @mouseleave="(e) => { isActive.value = false }">
+                        <v-list-item v-for="action in PhotoActionsMenu"
+                          @click-once="() => action.action(props, fieldsOptions)">
+                          <v-icon :icon="action.icon" size="x-small" />
+                          {{ action.title }}
+                        </v-list-item>
+                      </v-list>
+                    </template>
+                  </v-menu>
+                </template>
+              </FilePicker>
+            </v-row>
+          </v-col>
+          <v-col xs="3" sm="4">
+            <!--Поля ФИО-->
+            <InputField v-bind="fioOptions" :state="fieldsOptions" label="Фамилия" v-model="rec!.MData.surname" required
+              placeholder="Иванов" />
+            <InputField v-bind="fioOptions" :state="fieldsOptions" label="Имя" placeholder="Иван" required
+              v-model="rec!.MData.name" />
+            <InputField v-bind="fioOptions" :state="fieldsOptions" bel="Отчество" v-model="rec!.MData.patronymic"
+              placeholder="Иванович" />
+          </v-col>
 
-                  <template v-slot:default="{ isActive }">
-                    <v-list @mouseleave="(e) => { isActive.value = false }">
-                      <v-list-item v-for="action in PhotoActionsMenu" @click-once="() => action.action(props)">
-                        <v-icon :icon="action.icon" size="x-small" />
-                        {{ action.title }}
-                      </v-list-item>
-                    </v-list>
-                  </template>
-                </v-menu>
-              </template>
-            </FilePicker>
-          </v-row>
-        </v-col>
-        <v-col xs="3" sm="4">
-          <!--Поля ФИО-->
-          <InputField v-bind="fioOptions" label="Фамилия" v-model="rec!.MData.surname" required placeholder="Иванов" />
-          <InputField v-bind="fioOptions" label="Имя" placeholder="Иван" required v-model="rec!.MData.name" />
-          <InputField v-bind="fioOptions" label="Отчество" v-model="rec!.MData.patronymic" placeholder="Иванович" />
-        </v-col>
+          <v-col sm="1"></v-col>
 
-        <v-col sm="1"></v-col>
+          <v-col sm="3">
+            <!--Поле даты рождения-->
+            <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
+              :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
 
-        <v-col sm="3">
-          <!--Поле даты рождения-->
-          <InputField v-bind="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
-            :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
+            <!--Поле выбора пола-->
+            <InputField :state="fieldsOptions" :type="EDataType.strictstring" style=" max-width: 10dvh; height: 10px;"
+              label="Пол" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="gender" required />
+          </v-col>
+        </v-row>
 
-          <!--Поле выбора пола-->
-          <InputField v-bind="fieldsOptions" :type="EDataType.strictstring" style=" max-width: 10dvh; height: 10px;"
-            label="Пол" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="gender" required />
-        </v-col>
-      </v-row>
 
-      <v-row>
-        <InputField class="mb-5" v-bind="fieldsOptions" :type="EDataType.strictstringarray" style=" max-width: 50dvh;"
-          label="Список" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="list" />
-      </v-row>
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
 
-      <v-row class="mt-1  mb-5">
-        <InputField v-bind="fieldsOptions" :type="EDataType.int" label="Плавающее" v-model="Int" required
-          :constraints="{ min: -10, max: 100, numAfterPoint: 2, fixed: true }" />
-      </v-row>
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Документ, удостоверящий личность</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
 
-      <v-row class="mt-1 ">
-        <InputField v-bind="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
-      </v-row>
 
-    </v-card-text>
-    <v-card-actions class="mr-4 mb-1">
-      <v-spacer></v-spacer>
-      <v-btn color="primary" variant="text" @click="cancelModifingData(); close(null)">
-        {{ $t('close') }}
-      </v-btn>
-      <v-btn color="primary" variant="text" :disabled="fieldsOptions.state.changedCnt == 0 || fieldsOptions.state.errCnt > 0"
-        @click="onSaveBtnClick()">
-        Сохранить
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Другие документы</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Адрес постоянной регистрации</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Адрес фактического проживания</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+
+
+
+      </v-card-text>
+    </template>
+  </FormsEditWindowDialog>>
 </template>
  
 <script setup lang="ts">
@@ -100,12 +125,13 @@ import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
 import { EDataType } from '~/lib/globalTypes';
+import { MoApiClient } from '~/lib/MoApi/MoApiClient';
+
 
 const { t, locale } = useI18n();
 
-
 interface IProps {
-  recKey: string | null;
+  recKey: string | null
 }
 
 const props = defineProps<IProps>();
@@ -115,20 +141,15 @@ const recStore = iocc.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
 const isRecLock = ref();
+let readonly = ref(false);
 
 const list = ref([]);
 const Int = ref(45.000);
 
-const fieldsOptions = reactive({
-  state: {
-    errCnt: 0,
-    changedCnt: 0,
-    readonly: isRecLock.value
-  }
-})
 
 
-const fioOptions = reactive(Object.assign({
+
+const fioOptions = reactive({
   class: "mb-1",
   type: EDataType.string,
   constraints: { max: 128, min: 2 },
@@ -136,13 +157,12 @@ const fioOptions = reactive(Object.assign({
     mask: "Aa",
     tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я]/, multiple: true } }
   }
-},
-  fieldsOptions));
+});
 
 
 const PhotoActionsMenu = [
-  { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: (props) => props.openFileDialog(), traits: { dbClient: "u" } },
-  { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: (props) => delPhoto(), traits: { dbClient: "d" } },
+  { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: (props, fieldsOptions) => props.openFileDialog(), traits: { dbClient: "u" } },
+  { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: (props, fieldsOptions) => delPhoto(fieldsOptions), traits: { dbClient: "d" } },
 ]
 
 let rec = ref<ClientRecord>();
@@ -168,9 +188,13 @@ else {
 
 
 watch(isRecLock, (val) => {
-  if (!val)
+  if (!val) {
     warnToast("Запись заблокирована для изменения. Редакция невозможна");
-})
+    readonly.value = true;
+  }
+  else
+    readonly.value = false;
+});
 
 let pingLockInterval: any = null;
 
@@ -199,10 +223,10 @@ const setPhoto = async (file?: File) => {
 
 setPhoto();
 
-const delPhoto = () => {
+const delPhoto = (fieldsOptions) => {
   recSd.value!.delMPhoto();
   foto.value = "";
-  fieldsOptions.state.changedCnt++;
+  fieldsOptions.changedCnt++;
 }
 
 
@@ -217,35 +241,22 @@ watch(gender, (val, oldval) => {
 
 const save = async () => {
 
-  let res = false;
+  if (rec.value!.IsNew) {
+    await rec.value!.save();
+    recDoc.value!.Key = rec.value!.Key;
+    recAddr.value!.Key = rec.value!.Key;
+    recCont.value!.Key = rec.value!.Key;
+    recSd.value!.Key = rec.value!.Key;
+  }
+  else
+    await rec.value!.save();
 
-  await vHelpers.action(async () => {
-    if (rec.value!.IsNew) {
-      await rec.value!.save();
-      recDoc.value!.Key = rec.value!.Key;
-      recAddr.value!.Key = rec.value!.Key;
-      recCont.value!.Key = rec.value!.Key;
-      recSd.value!.Key = rec.value!.Key;
-    }
-    else
-      await rec.value!.save();
-
-    await recDoc.value!.save();
-    await recAddr.value!.save();
-    await recCont.value!.save();
-    await recSd.value!.save();
-  })
-    .then(() => { res = true; fieldsOptions.state.changedCnt = 0; });
-
-
-  return res;
+  await recDoc.value!.save();
+  await recAddr.value!.save();
+  await recCont.value!.save();
+  await recSd.value!.save();
 }
 
-
-const onSaveBtnClick = async () => {
-  if (await save())
-    close(rec.value!.Key);
-}
 
 
 const cancelModifingData = () => {
@@ -264,19 +275,23 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-const close = (result) => {
+const close = () => {
   if (pingLockInterval) {
     clearInterval(pingLockInterval);
     rec.value!.unlock();
   }
-
-  closeDialog(result)
+  return rec.value?.Key;
 }
 
 
 defineExpose({ eventsHandler });
 
+let t1= iocc.get<MoApiClient>("MoApiClient");
+let t2= iocc.get(MoApiClient);
+let eq= t1==t2;
 
-
-
+let dict=t1.getDictionaryStore().getDictionary("1212");
+debugger;
+await t1.sendRtm("onDictionaryChanged", "1212", 2);
+//await t1.sendRtm("testAsync");
 </script>

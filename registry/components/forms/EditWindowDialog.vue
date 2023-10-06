@@ -2,14 +2,14 @@
     <v-card width="800" style="height: 90dvh;">
         <v-card-title class="mx-2">
             <v-row class="pt-4">
-                <div class="text-h5 ma-2">{{ title }}</div>
+                <div class="text-h5 ma-2">{{ title+(props.readonly? ' (только чтение)':'') }}</div>
 
                 <v-spacer></v-spacer>
                 <v-icon @click="close()">mdi-close</v-icon>
             </v-row>
         </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="overflow-y-auto">
             <slot :fieldsOptions="fieldsOptions">
 
             </slot>
@@ -18,17 +18,19 @@
 
         <v-card-actions class="mr-4 mb-1">
             <v-spacer></v-spacer>
-            <v-btn color="primary" variant="text" @click="() => close()">
-                {{ $t('close') }}
-            </v-btn>
-            <v-btn color="primary" variant="text"
-                :disabled="fieldsOptions.changedCnt.cnt == 0 || fieldsOptions.errCnt.cnt > 0" @click="() => save()">
+
+            <v-btn color="primary" variant="text" :disabled="fieldsOptions.changedCnt == 0 || fieldsOptions.errCnt > 0"
+                @click="() => save()">
                 Сохранить
             </v-btn>
 
-            <v-btn color="primary" variant="text"
-                :disabled="fieldsOptions.changedCnt.cnt == 0 || fieldsOptions.errCnt.cnt > 0" @click="() => saveAndClose()">
+            <v-btn color="primary" variant="text" :disabled="fieldsOptions.changedCnt == 0 || fieldsOptions.errCnt > 0"
+                @click="() => saveAndClose()">
                 Сохранить и закрыть
+            </v-btn>
+
+            <v-btn color="primary" variant="text" @click="() => close()">
+                {{ $t('close') }}
             </v-btn>
         </v-card-actions>
     </v-card>
@@ -57,8 +59,8 @@ interface IProps {
 const props = defineProps<IProps>();
 
 const fieldsOptions = reactive({
-    errCnt: { cnt: 0 },
-    changedCnt: { cnt: 0 },
+    errCnt: 0,
+    changedCnt: 0,
     readonly: props.readonly ? true : false
 })
 
@@ -77,7 +79,7 @@ const eventsHandler = (e: string, d: any) => {
 
 const save = async () => {
     let res = false;
-    await vHelpers.action(props.onSave).then(() => { res = true; fieldsOptions.changedCnt.cnt = 0; });
+    await vHelpers.action(props.onSave).then(() => { res = true; fieldsOptions.changedCnt = 0; });
     return res;
 }
 
@@ -93,15 +95,18 @@ const saveAndClose = async () => {
 const close = async () => {
     let res = null;
 
-    if (props.onClose)
-        res = props.onClose(fieldsOptions.changedCnt.cnt > 0);
-    closeDialog(res);
+    if (fieldsOptions.changedCnt == 0 || await useCloseQU("Изменения не были сохранены. Закрыть?")) {
+
+        if (props.onClose)
+            res = props.onClose(fieldsOptions.changedCnt > 0);
+        closeDialog(res);
+    }
 }
 
 
 
 
-defineExpose({ eventsHandler });
+defineExpose({ eventsHandler, fieldsOptions });
 
 
 </script>

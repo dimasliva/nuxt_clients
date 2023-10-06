@@ -7,7 +7,7 @@ import vuetify from 'vite-plugin-vuetify'
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"//разрешение для nodejs принимать самоподписанные сертификаты https
 
-const mainApiServer = "172.16.121.60";
+const mainApiServer = "172.16.121.39";
 const mainApiServerPort = 7132;
 const { resolve } = createResolver(import.meta.url)
 
@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': false,
     },
-    /*//for nuxt 3.7
+    //for nuxt 3.7
     esbuild: {
         tsconfigRaw: {
           compilerOptions: {
@@ -42,7 +42,7 @@ export default defineNuxtConfig({
           }
         }
     }
-    */
+    
   },
 
   "ssr": false,

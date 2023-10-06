@@ -1,10 +1,9 @@
 <script  lang="ts">
 
-import { QueryParams } from '~~/lib/MoApi/RequestArgs';
-import ClientProfileDialog from '~~/components/forms/ClientProfileDialog.vue';
-import SimpleFilterForm from '~~/components/forms/SimpleFilterForm';
-import * as Utils from '~~/lib/Utils';
-import * as vHelpers from '~~/libVis/Helpers';
+import { QueryParams } from '~/lib/MoApi/RequestArgs';
+import ClientProfileDialog from '~/components/forms/ClientProfileDialog.vue';
+import * as Utils from '~/lib/Utils';
+import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord';
@@ -14,7 +13,6 @@ import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate } from '~/componentComposables/list/listTemplate';
 import { ClientsViews, IClientListView } from '~/lib/MoApi/Views/ClientsViews';
-import { del } from 'nuxt/dist/app/compat/capi';
 
 let t: any;
 
@@ -53,13 +51,17 @@ class ClientList extends ListTemplate<TClientFilterVals>
 
     actionsMenu: (item) => [
       { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbClient: "u" } },
-      { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del() }, traits: { dbClient: "d" } },
+      { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key,  item.index) }, traits: { dbClient: "d" } },
 
     ]
   });
 
-  async del(){
+  async del(key:string, index){
     let res=await useDelQU("Вы действительно хотите удалить запись клиента?");
+    if(res){
+      let rec = await this.recStore.fetch(ClientRecord, key);
+
+    }
   }
 
   //Настрока формы фильтра

@@ -62,22 +62,16 @@ declare global {
         id: string;
         title: string;
         icon: string;
-<<<<<<< Updated upstream
         disabled: boolean;
         color: string;
         bkgColor: string;
-=======
-        disabled:boolean;
-        color:string;
-        bkgColor:string;
->>>>>>> Stashed changes
         action: () => string | object | void | boolean;
     }
 
 
     interface IAppSettingsStorage {
-        getSection<T=any>(sectionName:string):T;
-        setSection<T=any>(sectionName:string, val:T);
+        getSection<T = any>(sectionName: string): T;
+        setSection<T = any>(sectionName: string, val: T);
         async save();
     }
 

@@ -43,8 +43,8 @@ const searchAction = () => {
   } 
   drawer.value = !drawer.value;
 }
-let createBtn = { id: "create", title: "Создать", icon: "mdi-plus-circle", disabled:false, color:"secondary", bkgColor:"red", action: () => openDialog(RoleCreatorDialog, {roleNames: roleName.value, rightsSet: role.value, allRightsSet: allRights.value, onCloseFunc: closeAfterCreation,}) };
-let searchBtn = { id: "filter", title: "", icon: "mdi-magnify", disabled:false, color:"secondary", bkgColor:"red",  action: () => searchAction() };
+let createBtn = { id: "create", title: "Создать", icon: "mdi-plus-circle", disabled:false, color:"primary", bkgColor:"red", action: () => openDialog(RoleCreatorDialog, {roleNames: roleName.value, rightsSet: role.value, allRightsSet: allRights.value, onCloseFunc: closeAfterCreation,}) };
+let searchBtn = { id: "filter", title: "", icon: "mdi-magnify", disabled:false, color:"primary", bkgColor:"red",  action: () => searchAction() };
 const iocc=useContainer();
 const api = iocc.get<MoApiClient>("MoApiClient");
 const empAuth = iocc.get(UserContext);

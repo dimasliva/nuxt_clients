@@ -5,7 +5,7 @@ import { Container } from "inversify";
 import { ModuleManager } from "./libVis/ModuleManager";
 import { PageMap } from "./lib/PageMap";
 import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
-import { GlobalEventBus } from "~/lib/EventBus";
+import { EventBus } from "~/lib/EventBus";
 
 
 export default (container:Container) => {
@@ -22,7 +22,7 @@ export default (container:Container) => {
         container.bind('ModuleManager').to(ModuleManager).inSingletonScope();
         container.bind('PageMap').to(PageMap).inSingletonScope();
         container.bind("RecordsStore").to(RecordsStore);
-        container.bind("GlobalEventBus").toConstantValue(GlobalEventBus);
+        container.bind("SysEventBus").toConstantValue(new EventBus());
         
         console.debug("iocc init");
 

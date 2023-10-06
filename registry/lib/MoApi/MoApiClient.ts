@@ -10,7 +10,8 @@ import { RecordsApiSection } from './ApiSectionsV1/RecordsApiSection';
 import { DictionariesApiSection } from "./ApiSectionsV1/DictionariesApiSection"
 import { LogLevel } from '@microsoft/signalr';
 import { RtmService } from './SignalR/RtmService';
-import { GlobalEventBus } from '../EventBus';
+import type { EventBus } from '../EventBus';
+import { DictionaryStore } from '../Dicts/DictionaryStore';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -20,6 +21,9 @@ export class MoApiClient {
 
     @inject("MoApiClientSettings")
     protected _MoApiClientSettings: MoApiClientSettings = null!;
+
+    @inject("SysEventBus")
+    protected _SysEventBus: EventBus = null!;
 
     protected readonly _APIPATH = "/api/v1";
 
@@ -32,6 +36,7 @@ export class MoApiClient {
     protected _RelationApiSection: RelationApiSection = new RelationApiSection(this);
     protected _RecordsApiSection: RecordsApiSection = new RecordsApiSection(this);
     protected _DictionariesApiSection: DictionariesApiSection = new DictionariesApiSection(this);
+    protected _DictionaryStore: DictionaryStore = null!;
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -352,6 +357,7 @@ export class MoApiClient {
 
         if (!this._currentApiHost || !this._AuthToken) {
             await this.AuthorizeClient();
+            return; // connectRtMessaging рекуретно вызывается из AuthorizeClient при успешной авторизации
         }
 
         if (!this._rtmService) {
@@ -363,11 +369,20 @@ export class MoApiClient {
                 logLevel: LogLevel.Debug
             });
 
-            //GlobalEventBus
+            this._rtmService.on("DictionaryChanged", (...args) => {
+                this._SysEventBus.publish("DictionaryChanged", ...args);
+            })
         }
 
         this._rtmService.reconnect(`https://${this._currentApiHost}/api/rtm`, this._AuthToken, true);
-        
+    }
+
+
+
+    async sendRtm(methodName, ...params) {
+        if (this._rtmService) {
+            this._rtmService.invokeQ(methodName, ...params);
+        }
     }
 
 
@@ -378,24 +393,28 @@ export class MoApiClient {
 
     getDictionariesApiSection = () => this._DictionariesApiSection;
 
+    getDictionaryStore = () => this._DictionaryStore || (this._DictionaryStore = new DictionaryStore(this, this._SysEventBus));
 
-    _convertToURLParams(obj: any): string {
-        const params: any = [];
 
-        for (let key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                let value = obj[key];
 
-                if (typeof value === 'object') {
-                    value = JSON.stringify(value);
-                }
 
-                params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+_convertToURLParams(obj: any): string {
+    const params: any = [];
+
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            let value = obj[key];
+
+            if (typeof value === 'object') {
+                value = JSON.stringify(value);
             }
-        }
 
-        return params.join('&');
+            params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+        }
     }
+
+    return params.join('&');
+}
 
 }
 

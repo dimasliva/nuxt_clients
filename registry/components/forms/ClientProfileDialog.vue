@@ -125,6 +125,7 @@ import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
 import { EDataType } from '~/lib/globalTypes';
+import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 
 
 const { t, locale } = useI18n();
@@ -285,5 +286,12 @@ const close = () => {
 
 defineExpose({ eventsHandler });
 
+let t1= iocc.get<MoApiClient>("MoApiClient");
+let t2= iocc.get(MoApiClient);
+let eq= t1==t2;
 
+let dict=t1.getDictionaryStore().getDictionary("1212");
+debugger;
+await t1.sendRtm("onDictionaryChanged", "1212", 2);
+//await t1.sendRtm("testAsync");
 </script>

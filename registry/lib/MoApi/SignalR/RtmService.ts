@@ -49,7 +49,6 @@ export class RtmService {
 
             //регистрация подписчиков в новом соединении
             this._rtmListenersSet.forEach((element, methodName) => {
-                debugger;
                 element.forEach((item) => this._on(methodName, <any>item.callback, item.payloads))
             });
 
@@ -127,7 +126,6 @@ export class RtmService {
         if (this._connected)
             this._on(methodName, callback, { skip, once });
         let item = this._rtmListenersSet.get(methodName);
-        debugger;
         if (item) {
             if (!item.find((item) => item.callback === callback))
                 item.push({ callback, payloads: { skip, once } })

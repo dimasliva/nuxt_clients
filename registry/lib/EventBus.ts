@@ -132,7 +132,3 @@ export class EventBus implements IEventBus {
     }
 }
 
-
-const globalEventBus=new EventBus();
-
-export const GlobalEventBus=globalEventBus;

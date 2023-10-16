@@ -101,6 +101,7 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
         if (this._mblob) {
 
             let args: any = {
+                filetype: this.MData.fileType,
                 File: this._mblob
             };
 

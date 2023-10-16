@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --host",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -31,6 +31,6 @@
     "vite-plugin-vuetify": "^1.0.2",
     "vue-cal": "^4.8.1",
     "vue-sonner": "^0.4.4",
-    "vuetify": "^3.3.19"
+    "vuetify": "^3.3.21"
   }
 }

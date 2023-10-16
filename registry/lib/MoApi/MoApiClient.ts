@@ -310,6 +310,7 @@ export class MoApiClient {
                         let data = await response.json();
                         this._AuthToken = data.token;
                         this._currentApiHost = data.hosts[0];
+                        console.debug("Target api server: "+ this._currentApiHost);
                         this.connectRtMessaging();
                         return <IAuthorityData>data;
                     }
@@ -369,8 +370,8 @@ export class MoApiClient {
                 logLevel: LogLevel.Debug
             });
 
-            this._rtmService.on("DictionaryChanged", (...args) => {
-                this._SysEventBus.publish("DictionaryChanged", ...args);
+            this._rtmService.on("onGroupСontentChanged", (...args) => {
+                this._SysEventBus.publish("onGroupСontentChanged", ...args);
             })
         }
 

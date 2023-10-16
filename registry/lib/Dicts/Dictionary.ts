@@ -4,6 +4,14 @@ import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import type { EventBus } from "../EventBus";
 
 
+interface IDictIdArg {
+    dictKey: string;
+    section: number;
+    foreignSysKey: string;
+}
+
+
+
 export class Dictionary {
 
     static readonly DICT_SECTION_MASK = 0x7FF00000;
@@ -17,29 +25,26 @@ export class Dictionary {
     _foreignItems: { [sections: string]: { [foreignCode: string]: { [code: string]: IDictItemValueView | undefined } } } | null = null;
     _lastUpdate?: Date;
     _ttl: number = 60 * 60 * 1000; //1 час
-    _unsubscribe: any;
-    _unsubscribeF: any;
 
-    constructor(public id: string, protected _apiClient: MoApiClient, protected _sysEventBus: EventBus) {
-        let t = this._sysEventBus;
-        this._unsubscribe = this._sysEventBus.subscribe("DictionaryChanged", (dictId, section,foreignSys?: string | null) => {
-            if (this.id == dictId) {
-                if (foreignSys) {
-                    if (this._foreignItems&& this._foreignItems[section])
-                        this._foreignItems[section][foreignSys] = {};
-                }
-                else
-                    if(this._items)
-                       delete this._items[section];
-                console.debug(`Dictionary: Reset Dict ${this.id} foreign: ${foreignSys}`);
+    constructor(public id: string, protected _apiClient: MoApiClient, protected _sysEventBus: EventBus) {}
+
+
+    async onDictСontentChanged(dictArg: IDictIdArg) {
+        if (this.id == dictArg.dictKey) {
+            if (dictArg.foreignSysKey) {
+                if (this._foreignItems && this._foreignItems[dictArg.section])
+                    this._foreignItems[dictArg.section][dictArg.foreignSysKey] = {};
             }
-        })
+            else
+                if (this._items)
+                    delete this._items[dictArg.section];
+            console.debug(`Dictionary: Reset Dict ${this.id} foreign: ${dictArg.foreignSysKey} section ${dictArg.section}`);
+        }
     }
 
 
 
     async _loadItems(section: number | string) {
-        debugger;
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
         if (!this._items)
             this._items = {};
@@ -81,7 +86,7 @@ export class Dictionary {
 
     async GetItems(section: number | string,) {
         await this._chkData(section);
-        return this._items;
+        return this._items?.[section];
     }
 
 
@@ -93,9 +98,15 @@ export class Dictionary {
 
 
 
-    async GetValByCode(code: string | number) {
+    async GetItemByCode(code: string | number) {
         const items = await this.GetItems(parseInt(<any>code, 10) & Dictionary.DICT_SECTION_MASK);
-        return items?.code;
+        return items?.[code];
+    }
+
+
+
+    async GetValByCode(code: string | number) {
+        return (await this.GetItemByCode(code))?.value;
     }
 
 
@@ -144,22 +155,15 @@ export class Dictionary {
 
     async DelItem(code: string | number) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
-        await DictionariesApiSection.DeleteDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10)});
+        await DictionariesApiSection.DeleteDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10) });
     }
 
 
 
     async DelFItem(foreignSystem: string, code: string | number) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
-        await DictionariesApiSection.DeleteForeignDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), foreignSystem});
+        await DictionariesApiSection.DeleteForeignDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), foreignSystem });
     }
 
 
-
-    Dispose() {
-        if (this._sysEventBus) {
-            this._unsubscribe();
-            this._sysEventBus = null!;
-        }
-    }
 }

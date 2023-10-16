@@ -6,11 +6,12 @@
           <v-col xs="3" sm="3">
 
             <v-row class="mt-1 justify-start ">
-              <img class="bg-secondary rounded-circle" height="128" width="128" :src="foto" />
+              <img class="bg-secondary" width="128" :src="foto" />
 
               <!--Фото-->
               <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.changedCnt++; }" text="Выбор фото"
-                variant="elevated" rounded color="primary" accept="image/*">
+                variant="elevated" rounded color="primary"
+                accept="image/png,image/gif,image/jpeg,image/tga,image/tiff,image/bmp,image/pbm,image/webp">
                 <template #default="props">
 
                   <v-menu>
@@ -61,7 +62,8 @@
           <v-expansion-panel elevation="0">
             <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+              <InputField class="mt-3" style="width: 200px;" :constraints="{ min: 2 }" :state="fieldsOptions"
+                :type="EDataType.phone" label="Основной телефон" v-model="recCont!.MData.mainPhone" />
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -126,6 +128,7 @@ import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
 import { EDataType } from '~/lib/globalTypes';
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
+import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 
 
 const { t, locale } = useI18n();
@@ -217,7 +220,7 @@ const setPhoto = async (file?: File) => {
     if (blob)
       foto.value = URL.createObjectURL(blob);
     else
-      foto.value = "";
+      foto.value = "/doctor-test.jpg";
   }
 }
 
@@ -225,7 +228,7 @@ setPhoto();
 
 const delPhoto = (fieldsOptions) => {
   recSd.value!.delMPhoto();
-  foto.value = "";
+  foto.value = "/doctor-test.jpg";
   fieldsOptions.changedCnt++;
 }
 
@@ -286,6 +289,15 @@ const close = () => {
 
 defineExpose({ eventsHandler });
 
+/*
+let t1= iocc.get<MoApiClient>("MoApiClient");
+let dict=t1.getDictionaryStore().getDictionary(EDictionaries.FileTypes); //"4a1f6ee3-e6ce-4f15-afac-a5edbd0fbdba"
+
+
+let zn= await dict.GetValByCode(1);
+let f=zn;
+*/
+/*
 let t1= iocc.get<MoApiClient>("MoApiClient");
 let t2= iocc.get(MoApiClient);
 let eq= t1==t2;
@@ -294,4 +306,5 @@ let dict=t1.getDictionaryStore().getDictionary("1212");
 debugger;
 await t1.sendRtm("onDictionaryChanged", "1212", 2);
 //await t1.sendRtm("testAsync");
+*/
 </script>

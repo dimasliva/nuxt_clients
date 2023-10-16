@@ -85,6 +85,7 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
         if (!this.Data!.photo) {
             this._photoFl = await this._RecStore.createNew<FilelinkRecord, IFilelinkRecordData>(FilelinkRecord, (data) => { data.title = `#clientPhoto@${this.Key}` });
+            this._photoFl.MData.fileType=1;//персональное фото
         }
         else
             await this._getPhotoFilelink()

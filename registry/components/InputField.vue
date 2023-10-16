@@ -24,6 +24,19 @@
     </v-textarea>
 
 
+        <!--Телефон-->
+        <v-text-field v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" v-model="CurrModelMaskVal"
+        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact" v-maska:[PhoneFieldMaska]
+        :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"  :onMaska="(e) => { CurrModelVal= e.detail.unmasked }"
+        :rules="StringFieldRules">
+        <template v-slot:label>
+            <span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
+            </span>
+        </template>
+    </v-text-field>
+
+
     <!--Дата-->
     <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal" :readonly="readonly"
         :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd" :locale="locale"
@@ -139,6 +152,7 @@ const refField = ref();
 
 let OldModelVal = ref();
 let CurrModelVal = ref();
+let CurrModelMaskVal = ref();
 let isMenuActive = false;
 
 
@@ -246,6 +260,11 @@ const MultipleStrSelectRules = [
 
 
 
+const PhoneFieldMaska: any = {
+    mask: '+#-###-###-##-##-###-###'
+}
+
+
 const IntFieldMaska: any = {
     mask: null,
     tokens: { D: { pattern: /\d/, multiple: false }, Z: { pattern: /-/, optional: true } }
@@ -318,6 +337,11 @@ watch(props, (rval: any) => {
             }
             else
                 CurrModelVal.value = null;
+        }
+        else
+        if(props.type==EDataType.phone){
+            CurrModelMaskVal.value= rval.modelValue;
+            CurrModelVal.value = rval.modelValue;
         }
         else
             CurrModelVal.value = rval.modelValue;

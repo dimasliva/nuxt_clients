@@ -24,7 +24,7 @@ import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoAp
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
-import { PageMap } from 'lib/PageMap';
+import { PageMap } from '~~/lib/PageMap';
 import { ClientRecord, IClientRecordData } from '~~/lib/MoApi/Records/ClientRecord';
 import { ClientContactsRecord } from '~~/lib/MoApi/Records/ClientContactsRecord';
 

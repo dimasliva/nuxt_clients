@@ -42,7 +42,7 @@ import { ProductsRecord, IProductsRecordData } from '~~/lib/MoApi/Records/Produc
 import { ProductsCatalogRecord, IProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ProductsCatalogSectionRecord, IProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
 import { UserContext } from '~~/lib/UserContext';
-import ProductTitles from './ProductTitles';
+import ProductTitles from '~/public/ProductTitles';
 
 
 const iocc = useContainer();

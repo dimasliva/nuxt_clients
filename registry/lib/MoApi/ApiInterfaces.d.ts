@@ -22,3 +22,4 @@
    maxRowsPerRequest:number,
    maxRecordsPerRequest:number
 }
+

@@ -51,12 +51,13 @@ export class ModuleManager {
             title: "Списки",
             getPagePath: () => "",
             icon: "mdi-account-tie",
-            childs: []
+            childs: [
+                { id: "price_list", title: "Прайс-листы", getPagePath: () => "/list/price_list", icon: "mdi-list-box" },
+            ]
         };
 
         if (chkRights(null, { "dbClient": "r" }))
             menuItem.childs!.push({ id: "clients", title: "Клиенты", getPagePath: () => "/list/clients", icon: "mdi-account-circle" })
-
 
         if (menuItem.childs!.length > 0)
             rootMenu.push(menuItem)

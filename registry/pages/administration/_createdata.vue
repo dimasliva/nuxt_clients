@@ -14,7 +14,18 @@
                 </template>
             </v-btn>
         </VCol>
-
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса" hide-details="auto" />
+            <v-text-field v-model="productsCatalogSectionQuantity" variant="underlined" label="Кол-во разделов" hide-details="auto" />
+            <v-text-field v-model="priceListLoading.size" variant="underlined" label="Кол-во номенклатурных позиций" hide-details="auto" />
+            <v-btn :loading="priceListLoading.loading" type="submit" @click="addProductsCatalog(productsCatalogName)">
+            <!-- <v-btn :loading="priceListLoading.loading" type="submit" @click="console.log(fullTitles.length)"> -->
+                Создать
+                <template v-slot:loader>
+                    <v-progress-linear absolute height="7" indeterminate></v-progress-linear>
+                </template>
+            </v-btn>
+        </VCol>
     </VRow>
 </template>
 
@@ -27,18 +38,25 @@ import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { PageMap } from '~~/lib/PageMap';
 import { ClientRecord, IClientRecordData } from '~~/lib/MoApi/Records/ClientRecord';
 import { ClientContactsRecord } from '~~/lib/MoApi/Records/ClientContactsRecord';
+import { ProductsRecord, IProductsRecordData } from '~~/lib/MoApi/Records/ProductsRecord';
+import { ProductsCatalogRecord, IProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
+import { ProductsCatalogSectionRecord, IProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
+import { UserContext } from '~~/lib/UserContext';
+import ProductTitles from './ProductTitles';
 
 
 const iocc = useContainer();
 const apiClient = iocc.get<MoApiClient>("MoApiClient");
 const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
+const usData = iocc.get(UserContext);
 
 
 const numClients = ref(0);
 const numEmployees = ref(0);
 
-
+let productsCatalogSectionQuantity = ref(0)
+let productsCatalogName = ref('')
 
 
 
@@ -86,6 +104,10 @@ const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "
 const patronymicsM = ["Иванович", "Петрович", "Сергеевич", "Андреевич", "Дмитриевич", "Александрович", "Михайлович", "Николаевич", "Владимирович", "Олегович", "Артемович", "Алексеевич", "Константинович", "Викторович", "Геннадьевич", "Григорьевич", "Евгеньевич", "Егорович", "Захарович", "Игоревич", "Кириллович", "Леонидович", "Максимович", "Романович", "Русланович", "Семенович", "Станиславович", "Тимофеевич", "Федорович", "Юрьевич", "Ярославович"];
 const patronymicsF = ["Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"]
 
+const pricesA = ['100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000', '2500', '3000', '3500', '4000', '4500', '5000', '6000', '7000', '8000', '10000', ];
+
+const fullTitles = ProductTitles;
+const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
 
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
@@ -139,7 +161,7 @@ const addClient = async (name: string, surname: string, patronymic: string, gend
         data.gender = gender;
         data.birthdate = generateRandomDate();
     })
-
+    console.log(rec)
     await rec.save();
 
     let reccont = await recStore.getOrCreate(ClientContactsRecord, rec.Key);
@@ -173,12 +195,73 @@ const clientsCreateTask = async (size: number) => {
     }
 }
 
+const addProducts = async(title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
+    let rec = await recStore.createNew<ProductsRecord, IProductsRecordData>(ProductsRecord, (data) => {
+        data.title = title;
+        data.fullTitle = fullTitle;
+        data.code = code;
+        data.productsCatalog = productsCatalog;
+        data.productsCatalogSection = productsCatalogSection;
+        data.prices = prices;
+        data.comments = comments;
+    })
+    await rec.save();
+}
+let currElement = ref(0)
+let catalogKey = ref('')
+const addProductsCatalog = async (title) => {
+    priceListLoading.loading = true;
+    console.log('start creating')
+    let rec = await recStore.createNew<ProductsCatalogRecord, IProductsCatalogRecordData>(ProductsCatalogRecord, (data) => {
+        data.title = title;
+        data.code = null;
+        data.comments = null;
+        data.temporaryNotActive = false;
+        data.notActive = false;
+        data.advData = null
+    })
+    await rec.save()
 
+    catalogKey.value = rec.Key;
+    for (let i = 0; i < productsCatalogSectionQuantity.value; i++) {
+        await addProductsCatalogSection(i, catalogKey.value);
+    } 
+    priceListLoading.loading = false;
+    console.log('creating end')
+}
+
+const addProductsCatalogSection = async (quantity, prodCat) => {
+    let recSection = await recStore.createNew<ProductsCatalogSectionRecord, IProductsCatalogSectionRecordData>(ProductsCatalogSectionRecord, (data) => {
+        data.title = 'Раздел'+ (quantity + 1).toString();
+        data.code = null;
+        data.comments = null;
+        data.productsCatalog = prodCat;
+        data.temporaryNotActive = false;
+        data.notActive = false;
+        data.advData = null
+    })
+    await recSection.save()
+    productsCreateTask(priceListLoading.size, recSection.Key);
+}
+
+const productsCreateTask = async(size: number, key) => {
+    for (let i = 0; i < size; i++) {
+        currElement.value == fullTitles.length? currElement.value = 0 : currElement.value++;
+        let title: any = fullTitles[currElement.value];
+        let fullTitle: any = title;
+        let code: any = generateUniqueStrings(1, 1);
+        let productsCatalog = catalogKey.value;
+        let productsCatalogSection = key;
+        let prices = pricesA[Math.floor(Math.random() * pricesA.length)];
+        let duration = durations[Math.floor(Math.random() * durations.length)];
+        let comments: any = generateUniqueStrings(1, 3);
+        await addProducts(title, fullTitle, code, productsCatalog, productsCatalogSection, prices, duration, comments)
+    }
+}
 
 const emplLoading = reactive({ size: 0, loading: false, recName: "employees", createTask: emplCreateTask });
 const clientsLoading = reactive({ size: 0, loading: false, recName: "clients", createTask: clientsCreateTask });
-
-
+const priceListLoading = reactive({ size: 0, loading: false, recName: "products", createTask: productsCreateTask });
 
 function generatePhoneNumber() {
     let phoneNumber = "7"; // Assuming the country code is +1 for the United States
@@ -213,4 +296,25 @@ function generateRandomDate(): string {
     const randomDate = new Date(randomTime);
     return randomDate.toISOString().split('T')[0];
 }
+
+// Генерация случайного символа
+function getRandomChar() {
+  const characters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЪЭЬЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+  const randomIndex = Math.floor(Math.random() * characters.length);
+  return characters[randomIndex];
+}
+
+// Генерация неповторяющейся строки
+function generateUniqueStrings(count, length) {
+  const uniqueStrings = new Set();
+  while (uniqueStrings.size < count) {
+    let string = '';
+    while (string.length < length) {
+      string += getRandomChar();
+    }
+    uniqueStrings.add(string);
+  }
+  return Array.from(uniqueStrings)[0];
+}
+
 </script>

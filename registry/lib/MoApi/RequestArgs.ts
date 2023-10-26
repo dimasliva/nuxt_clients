@@ -13,3 +13,25 @@ export class QueryParams {
         this.orderBy=orderBy;
     }
 }
+
+export class QueryProductFtsList {
+    select: string;
+    text: string;
+    limit: number;
+    minRank: number;
+    notActive: boolean;
+    productCatalogs: string[];
+    temporaryNotActive: boolean;
+
+
+    constructor(_select: string, _text: string, _limit: number, _minRank: number, _notActive: boolean, _productCatalogs: string[], _temporaryNotActive: boolean){
+        this.select = _select;
+        this.text = _text;
+        this.limit = _limit;
+        this.minRank = _minRank;
+        this.notActive = _notActive;
+        this.productCatalogs = _productCatalogs;
+        this.temporaryNotActive = _temporaryNotActive;
+    }
+}
+    

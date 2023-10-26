@@ -57,8 +57,7 @@ const productFtsViews = iocc.get(ProductFtsViews);
 let pageMapData: IPageData = reactive({title: "Прайс-листы", icon: "mdi-list-box", mainBtnBar:[]});
 
 const getProductsData = async() => {
-    let rec = await productFtsViews.getProductFtsListView(new QueryParams('id, title, fullTitle, catalogTitle, sectionTitle','catalogTitle like "%прайс%"',null,10));
-    console.log(rec)
+
 }
 
 const getProductCatalog = async () => {

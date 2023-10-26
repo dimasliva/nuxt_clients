@@ -74,9 +74,9 @@
             <VForm>
               <VCol>
                 <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon @click="drawer=false">mdi-close</v-icon></v-row>
+                <v-text-field v-model="service" density="compact" label="Услуга" @click="openDialog(SearchProductDilaog, {})" variant="underlined"></v-text-field>
                 <v-select v-model="specialist" density="compact" label="Специалист" multiple :items="employees" item-title="specialist" item-value="specialist" variant="underlined" @update:model-value="sortFunc(specialist)"></v-select>
                 <v-select v-model="employee" density="compact" label="Сотрудник" :items="empls" item-title="label" item-value="id" variant="underlined"></v-select>
-                <v-select v-model="service" density="compact" label="Услуга" :items="['Первичный прием', 'Вторичный прием']" variant="underlined"></v-select>
                 <v-card-actions style="min-width: 200pt;">
                   <VBtn variant="text">Поиск</VBtn>
                   <VBtn variant="text" @click="clearFilters()">Сбросить</VBtn>
@@ -89,6 +89,7 @@
 </template>
 
 <script setup lang="ts">
+import SearchProductDilaog from '~/components/forms/SearchProductDilaog.vue';
 import EventDialog from '~~/components/forms/EventDialog.vue';
 import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css';

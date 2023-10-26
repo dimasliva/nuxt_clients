@@ -87,7 +87,7 @@ export class UserContext {
 
 
 
-  ChkLicModule(modname: string): boolean {
+  chkLicModule(modname: string): boolean {
     if (this._CompanyLicense.hasOwnProperty(modname)) {
       const dtn = new Date();
       const untiDate = new Date(this._CompanyLicense[modname].untilMax);
@@ -101,7 +101,7 @@ export class UserContext {
   }
 
 
-  public ChkTokenTrait(token: string, trait: string): boolean {
+  public chkTokenTrait(token: string, trait: string): boolean {
     if (this._userRights.hasOwnProperty("#allrecords")) {
       return this._userRights["#allrecords"].includes(trait);
     }

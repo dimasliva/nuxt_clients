@@ -5,7 +5,10 @@ import { MoApiClient } from "../MoApi/MoApiClient";
 
 
 export const enum EDictionaries {
-    FileTypes = "343B3C76-9BD8-441B-9F40-A1726EC0601C"
+    FileTypes = "343B3C76-9BD8-441B-9F40-A1726EC0601C",
+    Countries = "4A1F6EE3-E6CE-4F15-AFAC-A5EDBD0FBDBA",
+    Regions = "BF5496DE-7CD1-48D5-91A2-E886B103AD36",
+    SettlementTypes = "44B7270B-1095-460A-A955-6B312CA3F148"
 }
 
 

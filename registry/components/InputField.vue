@@ -15,7 +15,7 @@
     <!--Текст-->
     <v-textarea v-if="type == EDataType.text && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
         :clearable="!readonly" label="Label" variant="solo" :readonly="readonly" :maxlength="constraints?.max"
-         :rules="StringFieldRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
+        :rules="StringFieldRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -24,11 +24,11 @@
     </v-textarea>
 
 
-        <!--Телефон-->
-        <v-text-field v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" v-model="CurrModelMaskVal"
-        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact" v-maska:[PhoneFieldMaska]
-        :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"  :onMaska="(e) => { CurrModelVal= e.detail.unmasked }"
-        :rules="StringFieldRules">
+    <!--Телефон-->
+    <v-text-field v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" v-model="CurrModelMaskVal"
+        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        v-maska:[PhoneFieldMaska] :maxlength="constraints?.max" @blur="(d) => onValChanged()"
+        @keydown.stop="(k) => onKeydown(k)" :onMaska="(e) => { CurrModelVal = e.detail.unmasked }" :rules="StringFieldRules">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -124,6 +124,7 @@ defineOptions({
     customOptions: {}
 })
 
+
 const emit = defineEmits(["update:modelValue", "changed"])
 
 interface IProps {
@@ -156,6 +157,7 @@ let CurrModelMaskVal = ref();
 let isMenuActive = false;
 
 
+
 const onValChanged = (force?: boolean) => {
     if (!currErr || force) {
         if (props.state && CurrModelVal.value != props.modelValue) {
@@ -166,7 +168,7 @@ const onValChanged = (force?: boolean) => {
 }
 
 const onKeydown = (k) => {
-    if (k.key == 'Enter' && props.type!=EDataType.text)
+    if (k.key == 'Enter' && props.type != EDataType.text)
         refField.value.blur();
     else
         if (k.key == 'Escape') {
@@ -339,15 +341,14 @@ watch(props, (rval: any) => {
                 CurrModelVal.value = null;
         }
         else
-        if(props.type==EDataType.phone){
-            CurrModelMaskVal.value= rval.modelValue;
-            CurrModelVal.value = rval.modelValue;
-        }
-        else
-            CurrModelVal.value = rval.modelValue;
-
+            if (props.type == EDataType.phone) {
+                CurrModelMaskVal.value = rval.modelValue;
+                CurrModelVal.value = rval.modelValue;
+            }
+            else
+                CurrModelVal.value = rval.modelValue;
     }
-});
+}, { immediate: true });
 
 
 
@@ -403,5 +404,10 @@ const resetErr = (res: any) => {
     return res;
 }
 
+
+onMounted(() => {
+    let y = props;
+
+});
 
 </script>

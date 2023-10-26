@@ -1,8 +1,8 @@
 <template>
   <v-app-bar color="primary" :density="appBarSize" elevation="0">
-    <v-app-bar-nav-icon @click="() => {rail = !rail, rail ? opened = [] : opened}" :size="iconSize"></v-app-bar-nav-icon>
+    <v-app-bar-nav-icon @click="() => { rail = !rail }" :size="iconSize"></v-app-bar-nav-icon>
     <v-spacer></v-spacer>
-    <v-menu open-on-hover>
+    <v-menu>
       <template v-slot:activator="{ props }">
         <p>{{ currUserName }}</p> <v-btn variant="text" v-bind="props" icon="mdi-account-circle"></v-btn>
       </template>
@@ -20,24 +20,26 @@
       </v-list>
     </v-menu>
   </v-app-bar>
-  <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="bg-tertiary" floating 
-    :width="drawerWidth">
+  <!--Левая панель-->
+  <v-navigation-drawer @mouseenter="() => { railPrev = rail; rail = false; }" @mouseleave="() => { rail = railPrev; }"
+    v-model="drawer" :rail="rail" permanent class="bg-tertiary" floating :width="drawerWidth">
     <v-list :opened="opened" open-strategy="single" :selected="selected" select-strategy="independent">
-      <v-list-item  prepend-icon="mdi-magnify" :active="false" value="search" @click="rail = false, pInput.focus()">
+      <v-list-item prepend-icon="mdi-magnify" :active="false" value="search" @click="rail = false, pInput.focus()">
         <v-text-field v-model="input" single-line :focused="false" clearable hide-details ref="pInput" density="compact"
           @click:clear="input = ''">
           <v-tooltip v-if="rail" activator="parent" location="right">Поиск</v-tooltip>
         </v-text-field>
       </v-list-item>
+      <!--Левое меню-->
       <template v-for="item in filteredChaptersGr()">
         <v-list-group v-if="item.childs?.length! > 0" :value="item.title">
           <template v-slot:activator="{ props }">
-            <v-list-item @click="() => {rail = false}" :active="false" v-bind="props" :prepend-icon="item.icon"
+            <v-list-item @click="() => { rail = false }" :active="false" v-bind="props" :prepend-icon="item.icon"
               :title="item.title">
-              <v-tooltip v-if="rail" activator="parent" location="right">{{item.title}}</v-tooltip>
+              <v-tooltip v-if="rail" activator="parent" location="right">{{ item.title }}</v-tooltip>
             </v-list-item>
           </template>
-          <v-list-item v-for="el in item.childs" @click="navigateTo(el.getPagePath())"
+          <v-list-item v-for="el in item.childs" @click="() => { rail = railPrev; navigateTo(el.getPagePath()); }"
             style="padding-inline-start: 50px !important;">
             <v-icon :icon="el.icon" size="x-small" start color="secondary"></v-icon>
             <v-list-item-title class="text-body-2 d-inline">
@@ -46,12 +48,13 @@
           </v-list-item>
         </v-list-group>
         <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title" :active="false"
-          @click="navigateTo(item.getPagePath())">
-          <v-tooltip v-if="rail" activator="parent" location="right">{{item.title}}</v-tooltip>
+          @click="() => { rail = railPrev; navigateTo(item.getPagePath()); }">
+          <v-tooltip v-if="rail" activator="parent" location="right">{{ item.title }}</v-tooltip>
         </v-list-item>
       </template>
     </v-list>
   </v-navigation-drawer>
+  <!--Закрепленные страницы-->
   <v-row justify="start" class="ma-0 bg-tertiary" style="height: 40px !important;">
     <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
       <v-chip closable class="bg-secondary ma-0" @click="navigateTo(selection.link)"
@@ -60,43 +63,50 @@
       </v-chip>
     </v-col>
   </v-row>
+  <!--Страница-->
   <v-sheet class="bg-background pr-sm-12 pr-md-12 pr-lg-0">
-      <v-row class="ma-0 pt-3 px-4 bg-background">
-        <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
-        <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
-          <v-icon color="secondary">mdi-pin</v-icon>
-          <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
-        </v-btn>
-        <v-btn v-else variant="text" size="small"
-          @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
-          icon>
-          <v-icon color="secondary">mdi-pin-off</v-icon>
-          <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
-        </v-btn>
-        <v-spacer></v-spacer>
-        <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
-          <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl"
-            :id="buttons.id" :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
-            :prepend-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="text" :color="buttons.color"
-            :background-color="buttons.bkgColor" :text="(buttons.title.length) ? buttons.title : undefined"
-            :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
+    <v-row class="ma-0 pt-3 px-4 bg-background">
+      <!--Название страницы-->
+      <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
+      <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
+        <v-icon color="secondary">mdi-pin</v-icon>
+        <v-tooltip activator="parent" location="top">Закрепить</v-tooltip>
+      </v-btn>
+      <v-btn v-else variant="text" size="small"
+        @click="pages.splice(pages.findIndex(e => e.title == currPageTitle), 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true"
+        icon>
+        <v-icon color="secondary">mdi-pin-off</v-icon>
+        <v-tooltip activator="parent" location="top">Открепить</v-tooltip>
+      </v-btn>
+      <v-spacer></v-spacer>
+      <!--Пользовательские кнопки страницы-->
+      <template v-for="(buttons, index) in currPageButtons" :key="buttons.id">
+        <v-btn v-if="currPageButtons" :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl"
+          :id="buttons.id" :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
+          :prepend-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="text" :color="buttons.color"
+          :background-color="buttons.bkgColor" :text="(buttons.title.length) ? buttons.title : undefined"
+          :density="(buttons.title.length) ? `default` : `comfortable`" @click="buttons.action()" />
+      </template>
+      <!--Пользовательское меню страницы-->
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
+            :icon="currPageMenu?.icon" />
         </template>
-        <v-menu :open-on-hover="true">
-          <template v-slot:activator="{ props }">
-            <v-btn v-if="currPageMenu?.icon" v-bind="props" variant="outlined" color="secondary" size="small" class="mx-4"
-              :icon="currPageMenu?.icon" />
-          </template>
-          <v-list>
-            <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
-              @click="child.action">
-              <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </v-row>
+        <v-list>
+          <v-list-item v-for="child in currPageMenu?.childs" :key="child.id" :disabled="child.disabled"
+            @click="child.action">
+            <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon" size="x-small" /></v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-row>
+    <!--Содержимое страницы-->
     <NuxtPage ref="pageObj" :keepalive="true" />
-</v-sheet>
-<Toaster position="bottom-right" :expand="true" closeButton richColors />
+  </v-sheet>
+  <!--Всплывающие сообщения-->
+  <Toaster position="bottom-right" :expand="true" closeButton richColors />
+  <!--Поддержка диалоговых окон-->
   <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
     <component ref="compObj" :is="dialogForm.comp" v-bind="dialogForm.props" />
   </v-dialog>
@@ -167,6 +177,7 @@ let pInput = ref<any>(null);
 let input = ref<string>('');
 let drawer = ref<boolean>(true);
 let rail = ref<boolean>(true);
+let railPrev = ref<boolean>(true);
 let opened = ref<any>([]);
 let selected = ref<any>([]);
 let currPageTitle = ref<IMenu | string>('');
@@ -355,7 +366,7 @@ let filteredChaptersGr = () => {
 
 let userData = currUser.EmployeeData!;
 let currUserName = userData.name;
-let userInitials = userData.surname + ' ' + (userData.name[0].toUpperCase()) + '.'+ (userData.patronymic? userData.patronymic[0] + '.': '');
+let userInitials = userData.surname + ' ' + (userData.name[0].toUpperCase()) + '.' + (userData.patronymic ? userData.patronymic[0] + '.' : '');
 
 const getEventsHandler = () => {
   if (showDialog2.value)
@@ -381,14 +392,17 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 
-const onPageActivate = (route:RouteLocationNormalizedLoaded) => {
+const onPageActivate = (route: RouteLocationNormalizedLoaded) => {
   let handled = false;
   const handler = getEventsHandler();
   if (handler)
-    handled = handler("onPageActivate",route);
+    handled = handler("onPageActivate", route);
 }
 
-
+watch(rail, () => {
+  if (rail && !input.value)
+    opened.value = [];
+});
 </script>
 
 <style lang="scss">

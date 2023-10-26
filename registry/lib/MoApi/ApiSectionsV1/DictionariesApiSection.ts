@@ -12,11 +12,19 @@ export interface ISysDicts {
 }
 
 
-export interface IDictItemValueView {
+export interface IDictItemValueViewBase {
     value: string;
     valueType?: string | null;
     obsolete?: boolean | null;
     user?: boolean | null;
+}
+
+
+export interface IDictItemValueView extends IDictItemValueViewBase{
+    value2: string;
+}
+
+export interface IForeignDictItemValueView extends IDictItemValueViewBase{
 }
 
 
@@ -32,8 +40,11 @@ export interface IDictionaryItem {
 }
 
 
-export interface IForeignDictionaryItem extends IDictionaryItem {
-    foreignSystem: string
+export interface IForeignDictionaryItem  {
+    dictKey: string;
+    code: number;
+    foreignSystem: string;
+    item?: IForeignDictItemValueView;
 }
 
 

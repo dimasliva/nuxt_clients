@@ -12,7 +12,7 @@ export function chkRights(requiredFeature: string[] | null | undefined, required
 
     if (requiredFeature)
         for (let mod of requiredFeature) {
-            if (UserCtx.ChkLicModule(mod)) {
+            if (UserCtx.chkLicModule(mod)) {
                 modPermit = true;
                 break;
             }
@@ -24,7 +24,7 @@ export function chkRights(requiredFeature: string[] | null | undefined, required
 
     if (requiredRights)
         for (let trait in requiredRights) {
-            if (!UserCtx.ChkTokenTrait(trait, requiredRights[trait])) {
+            if (!UserCtx.chkTokenTrait(trait, requiredRights[trait])) {
                 return false;
             }
         }
@@ -39,7 +39,7 @@ export function chkTrait(tokens: string[] | null, trait: string) {
 
     if (tokens)
         for (let token in tokens) {
-            if (!UserCtx.ChkTokenTrait(token, trait)) {
+            if (!UserCtx.chkTokenTrait(token, trait)) {
                 return false;
             }
         }

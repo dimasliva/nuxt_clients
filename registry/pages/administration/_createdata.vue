@@ -161,7 +161,7 @@ const addClient = async (name: string, surname: string, patronymic: string, gend
         data.gender = gender;
         data.birthdate = generateRandomDate();
     })
-    console.log(rec)
+    //console.log(rec)
     await rec.save();
 
     let reccont = await recStore.getOrCreate(ClientContactsRecord, rec.Key);

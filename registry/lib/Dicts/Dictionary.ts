@@ -2,6 +2,7 @@
 import type { IDictItemValueView } from "~/lib/MoApi/ApiSectionsV1/DictionariesApiSection";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import type { EventBus } from "../EventBus";
+import { Exception } from "../Exceptions";
 
 
 interface IDictIdArg {
@@ -26,7 +27,7 @@ export class Dictionary {
     _lastUpdate?: Date;
     _ttl: number = 60 * 60 * 1000; //1 час
 
-    constructor(public id: string, protected _apiClient: MoApiClient, protected _sysEventBus: EventBus) {}
+    constructor(public id: string, protected _apiClient: MoApiClient, protected _sysEventBus: EventBus) { }
 
 
     async onDictСontentChanged(dictArg: IDictIdArg) {
@@ -105,10 +106,18 @@ export class Dictionary {
 
 
 
-    async GetValByCode(code: string | number) {
-        return (await this.GetItemByCode(code))?.value;
+    async GetValByCode(code: string | number): Promise<string> {
+        var val = (await this.GetItemByCode(code))?.value;
+        if (val == null || val == void 0)
+            Exception.throw("ValueNotFoundInDict", `Значение с кодом  ${code}  не найдено в словаре ${this.id}`);
+        return val!;
     }
 
+
+
+    async tryGetValByCode(code: string | number) {
+        return (await this.GetItemByCode(code))?.value;
+    }
 
     /*
         async GetCodesByVal(section: number | string,val: any) {

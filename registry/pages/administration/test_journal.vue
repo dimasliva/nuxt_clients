@@ -77,6 +77,7 @@
                 <v-text-field v-model="service" density="compact" label="Услуга" @click="openDialog(SearchProductDilaog, {})" variant="underlined"></v-text-field>
                 <v-select v-model="specialist" density="compact" label="Специалист" multiple :items="employees" item-title="specialist" item-value="specialist" variant="underlined" @update:model-value="sortFunc(specialist)"></v-select>
                 <v-select v-model="employee" density="compact" label="Сотрудник" :items="empls" item-title="label" item-value="id" variant="underlined"></v-select>
+                <v-select v-model="selectedDivisions" density="compact" label="Филиал" :items="divisions" item-title="label" item-value="id" variant="underlined"></v-select>
                 <v-card-actions style="min-width: 200pt;">
                   <VBtn variant="text">Поиск</VBtn>
                   <VBtn variant="text" @click="clearFilters()">Сбросить</VBtn>
@@ -104,6 +105,25 @@ let specialHours = ref({
     label: ''
   }
 })
+
+let divisions = ref([
+  {
+    id: 1,
+    label: 'Вайнера 15'
+  },
+  {
+    id: 2,
+    label: 'Восточная 30'
+  },
+  {
+    id: 3,
+    label: 'Московская 52'
+  },
+  {
+    id: 4,
+    label: 'Родонитовая 27'
+  },
+])
 
 let monthView = ref([
   {
@@ -176,6 +196,7 @@ let specialist = ref()
 let empls = ref(employees.value)
 let quantum = ref(60)
 let currEvent = ref<any>(null)
+let selectedDivisions = ref<any>()
 let selectedEmployee = ref()
 let drawer = ref(true)
 let selectedCurrDate = ref()

@@ -1,5 +1,5 @@
 <template>
-<v-card width="700">
+<v-card width="auto">
     <v-card-title class="px-2 bg-primary">
      <v-row class="pa-4">
        <div class="text-h5 ma-2">{{ props.creation? 'Новая запись на ' + props.event.start!.toLocaleDateString() : 'Запись на '+(props.event.start!.toLocaleDateString() +" в " + props.event.start!.toLocaleTimeString())}}</div>
@@ -82,14 +82,16 @@
     <v-card-actions>
         <v-btn class="ma-1" variant="text" @click="cancelAndClose()">{{ props.creation? 'Отменить' : 'Удалить'}}</v-btn>
         <v-btn class="ma-1" variant="text" @click="saveChanges()">Сохранить</v-btn>
+        <v-spacer></v-spacer>
         <v-btn v-if="!props.creation" class="ma-1" variant="text" @click="currStatus()">Копировать</v-btn>
         <v-btn class="ma-1" variant="text">Создать расписание</v-btn>
+        <v-btn v-if="props.creation" class="ma-1" variant="text" @click="openGroupDiag()">Групповое занятие</v-btn>
     </v-card-actions>
 </v-card>
 </template>
 
 <script setup lang="ts">
-
+import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
 
 
 const emplChoice = (split, founding) => {
@@ -110,6 +112,11 @@ const changeStatus = (status) => {
    let classes = props.event.class.split(' ');
    classes[3] = status;
    return classes.join(" ");
+}
+
+const openGroupDiag = () => {
+    closeDialog;
+    openDialog(GroupEventDialog, {})
 }
 
 const checkedClient = (check) => {

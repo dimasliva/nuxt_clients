@@ -2,14 +2,16 @@ import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, IApiRecordChData, IApiRecordData } from "./ApiRecord";
+import AddressEntity from "./DataEntities/AddressEntity";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
 export interface IClientAddressesRecordData extends IApiRecordChData {
-    mainAddress: any | null;
-    permanentRegistration: any | null;
-    advData: any | null;
+    mainAddress?: AddressEntity | null;
+    permanentRegistration?: AddressEntity | null;
+    addressesEqual?: boolean | null;
+    advData?: any | null;
 }
 
 
@@ -30,6 +32,7 @@ export class ClientAddressesRecord extends ApiRecord<IClientAddressesRecordData>
             id: this.Key,
             mainAddress: null,
             permanentRegistration: null,
+            addressesEqual:null,
             advData: null
         }
     }

@@ -3,6 +3,7 @@ import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordClass } from "./ApiRecord";
 import { chkRights } from "~/lib/Utils"
+import { DataEntity } from "./DataEntities/DataEntity";
 
 
 @injectable()
@@ -106,9 +107,16 @@ export class RecordsStore {
     }
 
 
+
     canRecSpecial(type: ApiRecordClass){
         let traits:any={}
         traits[type.rightToken]="s";
         return chkRights(null,traits);
+    }
+
+
+
+    dataEntityFactory<T extends DataEntity>(dEntity:Class<T>){
+        return new dEntity(this._MoApiClient.getDictionaryStore());
     }
 }

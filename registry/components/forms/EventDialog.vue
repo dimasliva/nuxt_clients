@@ -85,13 +85,13 @@
         <v-spacer></v-spacer>
         <v-btn v-if="!props.creation" class="ma-1" variant="text" @click="currStatus()">Копировать</v-btn>
         <v-btn class="ma-1" variant="text">Создать расписание</v-btn>
-        <v-btn v-if="props.creation" class="ma-1" variant="text" @click="openGroupDiag()">Групповое занятие</v-btn>
+        <!-- <v-btn v-if="props.creation" class="ma-1" variant="text" @click="openGroupDiag()">Групповое занятие</v-btn> -->
     </v-card-actions>
 </v-card>
 </template>
 
 <script setup lang="ts">
-import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
+// import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
 
 
 const emplChoice = (split, founding) => {
@@ -114,10 +114,10 @@ const changeStatus = (status) => {
    return classes.join(" ");
 }
 
-const openGroupDiag = () => {
-    closeDialog;
-    openDialog(GroupEventDialog, {})
-}
+// const openGroupDiag = () => {
+//     closeDialog;
+//     openDialog(GroupEventDialog, {})
+// }
 
 const checkedClient = (check) => {
     if(check == addClient){

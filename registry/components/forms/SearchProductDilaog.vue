@@ -10,11 +10,8 @@
         <v-card-text>
             <v-row>
                 <v-col>
-                    <v-select v-model="selectedCatalogs" multiple label="Выберите один или несколько прайс-листов для поиска" density="compact" :items="catalogs" item-title="title" item-value="id" variant="underlined"></v-select>
-                    <v-checkbox @click="searchAllCatalogs()" density="compact" color="primary" hide-details label="Искать по всем прайс-листам" v-model="selectAllCatalogs"></v-checkbox>
-                </v-col>
-                <v-col>
-                    <v-select v-model="selectedDivisions" multiple label="Выберите филиал" density="compact" :items="divisions" item-title="title" item-value="division" variant="underlined"></v-select>
+                    <v-select @vnode-updated="selectedCatalogs.length == catalogs.length? selectAllCatalogs=true : selectAllCatalogs = false" v-model="selectedCatalogs" multiple label="Выберите один или несколько прайс-листов для поиска" density="compact" :items="catalogs" item-title="title" item-value="id" variant="underlined"></v-select>
+                    <v-checkbox @update:model-value="searchAllCatalogs()" class="mb-2" density="compact" color="primary" hide-details label="Искать по всем прайс-листам" v-model="selectAllCatalogs"></v-checkbox>
                 </v-col>
             </v-row>
             <v-text-field @input="autoReq()" v-model="searchValue" label="Поиск товара или услуги" variant="underlined" density="compact" append-inner-icon="mdi-magnify" :disabled="!selectedCatalogs"></v-text-field>
@@ -22,8 +19,8 @@
             <v-row v-if="notFound">Ничего не найдено</v-row>
             <template v-if="listDone">
                     <v-row v-for="prod in items">
-                        <v-list density="compact" class="ma-0 pa-0">
-                            <v-list-item :value="prod" :active="false" @click="selectedProducts.push(prod)">
+                        <v-list lines="one" density="compact" class="ma-0 pa-0">
+                            <v-list-item density="compact" class="py-0 my-0" :value="prod" :active="false" @click="selectedProducts.push(prod)">
                                 <v-list-item-title>
                                     {{ prod.title + ' ' + '(' + prod.catalogTitle + ',' + prod.sectionTitle + ')' }}
                                 </v-list-item-title>
@@ -31,7 +28,8 @@
                         </v-list>    
                     </v-row>
             </template>
-            <v-combobox chips closable-chips v-if="listDone" v-model="selectedProducts" class="mt-6" readonly label="Выбранные вами позиции" item-title="title" multiple variant="underlined" density="compact" :items="selectedProducts"></v-combobox>
+            <v-divider v-if="listDone" :thickness="3" class="my-10"></v-divider>
+            <v-combobox chips closable-chips v-if="listDone" v-model="selectedProducts" readonly label="Выбранные вами позиции" item-title="title" multiple variant="underlined" density="compact" :items="selectedProducts"></v-combobox>
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
@@ -53,7 +51,6 @@ const recStore = iocc.get(RecordsStore);
 const productsView = iocc.get(ProductFtsViews);
 
 let selectAllCatalogs = ref(false)
-let selectedDivisions = ref()
 let notFound = ref(false)
 let searchValue = ref('')
 let listDone = ref(false)
@@ -65,17 +62,14 @@ let catalogs = [
     {title: 'Прайс 2', id: '10ec367f-3fd2-424f-9264-d446b0c88fa9', division: 'somestring'},
     {title: 'Прайс 3', id: '20ec367f-3fd2-424f-9264-d446b0c88fa9', division: 'somestring'},
 ]
-let divisions = [
-    {title: 'Первомайская 51', id: 'somestring'}
-]
-let selectedCatalogs: any = ref(catalogs.length==1? [catalogs[0].id] : [])
-
-const checkSelectedProds = (state) => {
-    console.log(state)
-    if(state){
-        selectedProducts.value = selectedProducts.value.splice(0, selectedProducts.value.lenght)
-    }
-}
+const cookie = useCookie(
+    'selectedCatalogs',
+    {
+        default: () => (['someid']),
+        watch: true
+    }   
+);
+    let selectedCatalogs: any = ref(catalogs.length==1? [catalogs[0].id] : cookie)
 
 const clearFunc = () => {
     items.value = []
@@ -90,6 +84,7 @@ const searchAllCatalogs = () => {
         selectedCatalogs.value = []
     }
 }
+
 
 const getProductsListView = async () => {
     clearFunc();
@@ -143,5 +138,8 @@ const addSelectedProdutcs = () => {
 <style>
 .v-expansion-panel-text__wrapper{
   padding: 0;
+}
+.v-row + .v-row {
+    margin-top: 0;
 }
 </style>

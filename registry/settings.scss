@@ -4,3 +4,7 @@ $tooltip-text-color: rgb(var(--v-theme-secondary)),
 $tooltip-border-radius: 50px,
 $tooltip-padding: 3px 6px,
 );
+
+html{
+    scrollbar-width:thin;
+}

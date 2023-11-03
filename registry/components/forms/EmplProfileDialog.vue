@@ -153,7 +153,8 @@ let translit = (word) => {
 
  
 const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString(), empRole.value.toString(), empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value, empLogin.value);
-closeDialog(console.log());
+props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString(), empRole.value.toString(), 
+empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value, empLogin.value);
+closeDialog;
 }
  </script>

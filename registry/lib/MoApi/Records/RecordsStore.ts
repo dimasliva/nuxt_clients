@@ -28,7 +28,6 @@ export class RecordsStore {
 
     async fetch<T extends ApiRecord>(type: Class<T>, Key: string) {
         const rec = this.get<ApiRecord>(type, Key);
-        console.log(rec)
         await rec.loadAllData();
         return <T>rec;
     }

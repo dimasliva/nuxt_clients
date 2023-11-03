@@ -13,8 +13,6 @@ export interface IProductsCatalogRecordData extends IApiRecordChData {
 }
 
 export class ProductsCatalogRecord extends ApiRecord<IProductsCatalogRecordData>{
-
-    static RecCode = 1012;
     
     constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, __UserContext, _RecStore, ProductsCatalogRecord, Key);

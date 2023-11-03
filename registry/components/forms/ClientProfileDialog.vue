@@ -57,13 +57,31 @@
           </v-col>
         </v-row>
 
-
-        <v-expansion-panels>
-          <v-expansion-panel elevation="0">
+        <v-expansion-panels model-value="1">
+          <v-expansion-panel elevation="0" value="1">
             <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <InputField class="mt-3" style="width: 200px;" :constraints="{ min: 2 }" :state="fieldsOptions"
-                :type="EDataType.phone" label="Основной телефон" v-model="recCont!.MData.mainPhone" />
+              <div class="mt-3" />
+              <v-row>
+                <v-col sm="6">
+                  <!--Основной телефон-->
+                  <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.phone"
+                    label="Основной телефон" v-model="recCont!.MData.mainPhone" />
+                </v-col>
+                <v-col sm="6">
+                  <!--Резервный телефон-->
+                  <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.phone"
+                    label="Резервный телефон" v-model="recCont!.MData.reservPhone" />
+                </v-col>
+              </v-row>
+              <v-col sm="6">
+                <!--Email-->
+                <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.email" label="Электронная почта"
+                  v-model="recCont!.MData.mainEmail" />
+              </v-col>
+              <v-row>
+
+              </v-row>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -91,7 +109,9 @@
           <v-expansion-panel elevation="0">
             <v-expansion-panel-title class="text-subtitle-1">Адрес постоянной регистрации</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+              <AddressInput :state="fieldsOptions"
+                :model-value="recAddr!.MData.mainAddress || recStore.dataEntityFactory(AddressEntity)"
+                @update:model-value="(val) => recAddr!.MData.mainAddress = val" />
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -129,7 +149,7 @@ import InputField from '~/components/InputField.vue';
 import { EDataType } from '~/lib/globalTypes';
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
-
+import AddressEntity from '~/lib/MoApi/Records/DataEntities/AddressEntity';
 
 const { t, locale } = useI18n();
 

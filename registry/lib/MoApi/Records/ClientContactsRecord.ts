@@ -8,6 +8,7 @@ import type { RecordsStore } from "./RecordsStore";
 
 export interface IClientContactsRecordData extends IApiRecordChData {
     mainPhone: string | null;
+    reservPhone: string | null;
     mainEmail: string | null;
     otherContacts: any | null;
     advData: any | null;
@@ -31,6 +32,7 @@ export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
         return {
             id: this.Key,
             mainPhone: null,
+            reservPhone: null,
             mainEmail: null,
             otherContacts: null,
             advData: null

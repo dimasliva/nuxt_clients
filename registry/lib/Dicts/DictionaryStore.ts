@@ -37,7 +37,7 @@ export class DictionaryStore {
 
 
 
-    Dispose() {
+    dispose() {
         if (this._EventBus) {
             this._unsubscribe();
             this._EventBus = null!;

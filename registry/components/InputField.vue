@@ -14,7 +14,7 @@
 
     <!--Текст-->
     <v-textarea v-if="type == EDataType.text && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :clearable="!readonly" label="Label" variant="solo" :readonly="readonly" :maxlength="constraints?.max"
+        :clearable="!readonly" :label="<string>label" variant="solo" :readonly="readonly" :maxlength="constraints?.max"
         :rules="StringFieldRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>
             <span>
@@ -24,11 +24,25 @@
     </v-textarea>
 
 
+
     <!--Телефон-->
-    <v-text-field v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" v-model="CurrModelMaskVal"
+    <VPhoneInput v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" :label="<string>label"
+        defaultCountry="RU" countryIconMode="svg" type="text" displayFormat="international" clearable density="compact"
+        v-model="CurrModelVal" variant="underlined" countryLabel="" :rules="PhoneRules" @blur="(d) => onValChanged()"
+        @keydown.stop="(k) => onKeydown(k)">
+        <template v-slot:label>
+            <span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
+            </span>
+        </template>
+    </VPhoneInput>
+
+
+    <!--email-->
+    <v-text-field v-if="type == EDataType.email && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
         :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
-        v-maska:[PhoneFieldMaska] :maxlength="constraints?.max" @blur="(d) => onValChanged()"
-        @keydown.stop="(k) => onKeydown(k)" :onMaska="(e) => { CurrModelVal = e.detail.unmasked }" :rules="StringFieldRules">
+        :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
+        :rules="MailFieldRules">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -108,19 +122,22 @@
 </template>
 
 
-<script setup lang="ts">
+<script setup lang="ts" inherit-attrs="true">
 import { EDataType } from '~/lib/globalTypes';
 import { chkTrait } from "~/lib/Utils"
 import { useI18n } from "vue-i18n"
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { debug } from 'console';
+import { VPhoneInput } from 'v-phone-input'; //https://github.com/paul-thebaud/v-phone-input
+import 'flag-icons/css/flag-icons.min.css';
+import 'v-phone-input/dist/v-phone-input.css';
+
 
 const { t, locale } = useI18n();
 
 defineOptions({
-    inheritAttrs: false,
+    inheritAttrs: true,
     customOptions: {}
 })
 
@@ -162,22 +179,37 @@ const onValChanged = (force?: boolean) => {
     if (!currErr || force) {
         if (props.state && CurrModelVal.value != props.modelValue) {
             props.state.changedCnt++;
-            emit('update:modelValue', CurrModelVal.value);
+
+            let val = CurrModelVal.value;
+
+            if (props.type == EDataType.phone) {
+                if (val)
+                    val = val.replace("+", "");
+            }
+            emit('update:modelValue', val);
         }
     }
 }
 
 const onKeydown = (k) => {
     if (k.key == 'Enter' && props.type != EDataType.text)
-        refField.value.blur();
+        blur()
     else
         if (k.key == 'Escape') {
             CurrModelVal.value = props.modelValue;
-            refField.value.blur();
+            blur();
         }
 
 }
 
+
+const blur = () => {
+    if (refField.value && typeof refField.value.blur == "function")
+        refField.value.blur();
+    else
+        if (document.activeElement && typeof (<any>document).activeElement.blur == "function")
+            (<any>document).activeElement.blur();
+}
 
 
 const StringFieldRules = [
@@ -261,10 +293,36 @@ const MultipleStrSelectRules = [
 ]
 
 
+const PhoneRules = [
+    (value, phone, o) => {
+        if (props.required && !value)
+            return setErr(false);
+        else
+            if (value && phone.valid != true)
+                return setErr(t("phone.invalidPhone", [o.example]));
 
-const PhoneFieldMaska: any = {
-    mask: '+#-###-###-##-##-###-###'
-}
+        return resetErr(true);
+    },
+];
+
+
+const MailFieldRules = [
+    (v) => {
+        if (!v) {
+            if (props.required)
+                return setErr(false); //setErr(t('required'));
+        }
+        else
+            if (!String(v)
+                .toLowerCase()
+                .match(
+                    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                ))
+                return setErr(false);
+
+        return resetErr(true);
+    }
+];
 
 
 const IntFieldMaska: any = {
@@ -342,8 +400,10 @@ watch(props, (rval: any) => {
         }
         else
             if (props.type == EDataType.phone) {
-                CurrModelMaskVal.value = rval.modelValue;
-                CurrModelVal.value = rval.modelValue;
+                if (rval.modelValue)
+                    CurrModelVal.value = "+" + rval.modelValue;
+                else
+                    CurrModelVal.value = rval.modelValue;
             }
             else
                 CurrModelVal.value = rval.modelValue;
@@ -383,7 +443,6 @@ if (props.type == EDataType.float) {
 
 
 
-
 let currErr = false;
 
 const setErr = (res: any) => {
@@ -406,8 +465,13 @@ const resetErr = (res: any) => {
 
 
 onMounted(() => {
-    let y = props;
-
 });
+
+
+onUnmounted(() => {
+    //т.к. компонент уничтожается, сбрсываем ошибку компонента. 
+    //Иначе может возникнуть ситуация невозможности сохранения формы из-за наличия ошибки, которую нельзя сбросить т.к. элемент уничтожен
+    resetErr(false);
+})
 
 </script>

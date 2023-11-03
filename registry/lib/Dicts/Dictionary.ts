@@ -22,7 +22,7 @@ export class Dictionary {
     _sysOnly?: boolean | null;
     _obsolete?: boolean | null;
 
-    _items: { [sections: string]: { [code: string]: IDictItemValueView | undefined } } | null = null;
+    _items: { [sections: string]: { [code: string]: IDictItemValueView } } | null = null;
     _foreignItems: { [sections: string]: { [foreignCode: string]: { [code: string]: IDictItemValueView | undefined } } } | null = null;
     _lastUpdate?: Date;
     _ttl: number = 60 * 60 * 1000; //1 час
@@ -85,29 +85,29 @@ export class Dictionary {
 
 
 
-    async GetItems(section: number | string,) {
+    async getItems(section: number | string) {
         await this._chkData(section);
         return this._items?.[section];
     }
 
 
 
-    async GetFItems(section: number | string, fSys: string) {
+    async getFItems(section: number | string, fSys: string) {
         await this._chkFData(section, fSys);
         return this._foreignItems!.section.fSys;
     }
 
 
 
-    async GetItemByCode(code: string | number) {
-        const items = await this.GetItems(parseInt(<any>code, 10) & Dictionary.DICT_SECTION_MASK);
+    async getItemByCode(code: string | number) {
+        const items = await this.getItems(parseInt(<any>code, 10) & Dictionary.DICT_SECTION_MASK);
         return items?.[code];
     }
 
 
 
-    async GetValByCode(code: string | number): Promise<string> {
-        var val = (await this.GetItemByCode(code))?.value;
+    async getValByCode(code: string | number): Promise<string> {
+        var val = (await this.getItemByCode(code))?.value;
         if (val == null || val == void 0)
             Exception.throw("ValueNotFoundInDict", `Значение с кодом  ${code}  не найдено в словаре ${this.id}`);
         return val!;
@@ -116,7 +116,7 @@ export class Dictionary {
 
 
     async tryGetValByCode(code: string | number) {
-        return (await this.GetItemByCode(code))?.value;
+        return (await this.getItemByCode(code))?.value;
     }
 
     /*
@@ -130,8 +130,8 @@ export class Dictionary {
         }
     */
 
-    async GetFValByCode(foreignSys: string, code: string | number) {
-        const items = await this.GetFItems(parseInt(<any>code, 10) & Dictionary.DICT_SECTION_MASK, foreignSys);
+    async getFValByCode(foreignSys: string, code: string | number) {
+        const items = await this.getFItems(parseInt(<any>code, 10) & Dictionary.DICT_SECTION_MASK, foreignSys);
         return items?.code;
     }
 
@@ -148,30 +148,41 @@ export class Dictionary {
     */
 
 
-    async SetItem(code: string | number, val: IDictItemValueView) {
+    async setItem(code: string | number, val: IDictItemValueView) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
         await DictionariesApiSection.AddOrUpdateDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), item: val });
     }
 
 
 
-    async SetFItem(foreignSystem: string, code: string | number, val: IDictItemValueView) {
+    async setFItem(foreignSystem: string, code: string | number, val: IDictItemValueView) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
         await DictionariesApiSection.AddOrUpdateForeignDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), foreignSystem, item: val });
     }
 
 
 
-    async DelItem(code: string | number) {
+    async delItem(code: string | number) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
         await DictionariesApiSection.DeleteDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10) });
     }
 
 
 
-    async DelFItem(foreignSystem: string, code: string | number) {
+    async delFItem(foreignSystem: string, code: string | number) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
         await DictionariesApiSection.DeleteForeignDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), foreignSystem });
+    }
+
+
+    async getItemsAsValueTitle(section: number | string, valnum = 0) {
+        let items = await this.getItems(section);
+        let res: { value: string, title: string }[] = [];
+
+        for (let code in items) {
+            res.push({ value: code, title: valnum ? items[code].value2 : items[code].value })
+        }
+        return res;
     }
 
 

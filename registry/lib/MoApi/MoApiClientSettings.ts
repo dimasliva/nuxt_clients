@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { inject, injectable } from 'inversify';
-import { IUserCredentials } from '@/lib/Security';
+import type { IUserCredentials } from '@/lib/Security';
 
 @injectable()
-export  class MoApiClientSettings {
+export class MoApiClientSettings {
 
     protected _ip: string = "";
     protected _port: number = 0;
@@ -15,9 +15,9 @@ export  class MoApiClientSettings {
     public get Credentials(): IUserCredentials | null { return this._Credentials; }
     public set Credentials(value: IUserCredentials | null) { this._Credentials = value; }
 
-    private _appId: string="";
-    public get appId(): string {return this._appId;}
-    public set appId(value: string) { this._appId = value;}
+    private _appId: string = "";
+    public get appId(): string { return this._appId; }
+    public set appId(value: string) { this._appId = value; }
 
 
     get ip() { return this._ip; }

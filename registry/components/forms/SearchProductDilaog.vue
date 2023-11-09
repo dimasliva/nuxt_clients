@@ -50,11 +50,11 @@
 </template>
 
 <script setup lang="ts">
-import { ProductFtsViews, IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
+import { ProductFtsViews, type IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { QueryProductFtsList } from "~~/lib/MoApi/RequestArgs";
-import { ProductsCatalogRecord, IProductsCatalogRecordData } from '~/lib/MoApi/Records/ProductsCatalogRecord';
+import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
 
 
 const iocc = useContainer();

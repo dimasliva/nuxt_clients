@@ -2,7 +2,7 @@ import { injectable, inject } from "inversify";
 import { QueryParams } from "../RequestArgs";
 import { MoApiClient } from "../MoApiClient";
 import { UserContext } from "~/lib/UserContext";
-import { IApiDataListResult } from "../RequestResults";
+import type { IApiDataListResult } from "../RequestResults";
 import { DataList } from "~/lib/DataList";
 
 

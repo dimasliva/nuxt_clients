@@ -1,4 +1,4 @@
-import { ICouplingData, IRelData } from "../ApiInterfaces";
+import type { ICouplingData, IRelData } from "../ApiInterfaces";
 import type { MoApiClient } from "../MoApiClient";
 
 const _apiPath = "/relations";

@@ -1,38 +1,34 @@
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
-export interface IEmployeeContactsRecordData extends IApiRecordChData {
-    mainPhone?: string | null;
-    mainEmail?: string | null;
-    advData?: any | null;
+export class EmployeeContactsRecordData extends ApiRecordChData {
+    mainPhone?: string | null=null;
+    mainEmail?: string | null=null;
+    advData?: any | null=null;
 }
 
 
-export class EmployeeContactsRecord extends ApiRecord<IEmployeeContactsRecordData>{
+export class EmployeeContactsRecord extends ApiRecord<EmployeeContactsRecordData>{
 
     static RightToken = "dbEmployeeContacts";
     static RecCode = 1006;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, EmployeeContactsRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, EmployeeContactsRecord, Key);
     }
 
     get RecCode() { return EmployeeContactsRecord.RecCode; }
 
-    protected _createNewData() {
-        return {
-            id: this.Key,
-            mainPhone: null,
-            mainEmail: null,
-            advData: null
-        };
-    }
 
+    protected _createNewData() {
+        return   this._RecStore.dataEntityFactory(EmployeeContactsRecordData, this.Key);
+    }
+    
 
     protected _getApiRecordPathGet = () => "/Employees/GetEmployeeContacts";
 

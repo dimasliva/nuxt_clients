@@ -30,17 +30,17 @@
 </template>
 
 <script setup lang="ts">
-import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
-import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
+import { EmployeeRecord, EmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
+import { EmployeeContactsRecord } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { PageMap } from '~~/lib/PageMap';
-import { ClientRecord, IClientRecordData } from '~~/lib/MoApi/Records/ClientRecord';
+import { ClientRecord, ClientRecordData } from '~~/lib/MoApi/Records/ClientRecord';
 import { ClientContactsRecord } from '~~/lib/MoApi/Records/ClientContactsRecord';
-import { ProductsRecord, IProductsRecordData } from '~~/lib/MoApi/Records/ProductsRecord';
-import { ProductsCatalogRecord, IProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
-import { ProductsCatalogSectionRecord, IProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
+import { ProductRecord, ProductRecordData } from '~~/lib/MoApi/Records/ProductRecord';
+import { ProductsCatalogRecord, ProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
+import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
 import { UserContext } from '~~/lib/UserContext';
 import ProductTitles from '~/public/ProductTitles';
 
@@ -111,7 +111,7 @@ const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
 
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
-    let rec = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
+    let rec = await recStore.createNew<EmployeeRecord, EmployeeRecordData>(EmployeeRecord, (data) => {
         data.name = name;
         data.surname = surname;
         data.patronymic = patronymic;
@@ -154,7 +154,7 @@ const emplCreateTask = async (size: number) => {
 
 
 const addClient = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
-    let rec = await recStore.createNew<ClientRecord, IClientRecordData>(ClientRecord, (data) => {
+    let rec = await recStore.createNew<ClientRecord, ClientRecordData>(ClientRecord, (data) => {
         data.name = name;
         data.surname = surname;
         data.patronymic = patronymic;
@@ -196,7 +196,7 @@ const clientsCreateTask = async (size: number) => {
 }
 
 const addProducts = async(title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
-    let rec = await recStore.createNew<ProductsRecord, IProductsRecordData>(ProductsRecord, (data) => {
+    let rec = await recStore.createNew<ProductRecord, ProductRecordData>(ProductRecord, (data) => {
         data.title = title;
         data.fullTitle = fullTitle;
         data.code = code;
@@ -212,7 +212,7 @@ let catalogKey = ref('')
 const addProductsCatalog = async (title) => {
     priceListLoading.loading = true;
     console.log('start creating')
-    let rec = await recStore.createNew<ProductsCatalogRecord, IProductsCatalogRecordData>(ProductsCatalogRecord, (data) => {
+    let rec = await recStore.createNew<ProductsCatalogRecord, ProductsCatalogRecordData>(ProductsCatalogRecord, (data) => {
         data.title = title;
         data.code = null;
         data.comments = null;
@@ -231,7 +231,7 @@ const addProductsCatalog = async (title) => {
 }
 
 const addProductsCatalogSection = async (quantity, prodCat) => {
-    let recSection = await recStore.createNew<ProductsCatalogSectionRecord, IProductsCatalogSectionRecordData>(ProductsCatalogSectionRecord, (data) => {
+    let recSection = await recStore.createNew<ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData>(ProductsCatalogSectionRecord, (data) => {
         data.title = 'Раздел'+ (quantity + 1).toString();
         data.code = null;
         data.comments = null;

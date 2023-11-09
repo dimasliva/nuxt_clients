@@ -1,5 +1,5 @@
 
-import { IActionDialogProps } from '~/components/forms/IActionDialogProps'
+import { type IActionDialogProps } from '~/components/forms/IActionDialogProps'
 import ActionDialog from '~/components/forms/ActionDialog.vue'
 
 

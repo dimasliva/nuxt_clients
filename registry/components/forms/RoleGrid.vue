@@ -76,6 +76,7 @@ let props = defineProps({
     rightsSet: Object,
     creatingRight: Boolean
 })
+debugger;
 let updRight = ref(props.userRights?.includes('u'))
 let nameRole = ref(props.roleName)
 let cruds = ref<any>(props.roleName == 'admin'?{'#AllRecords' : props.rightsSet!['#AllRecords']} : props.rightsSet)

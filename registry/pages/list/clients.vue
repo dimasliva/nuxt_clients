@@ -12,7 +12,7 @@ import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
 import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate } from '~/componentComposables/list/listTemplate';
-import { ClientsViews, IClientListView } from '~/lib/MoApi/Views/ClientsViews';
+import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
 
 let t: any;
 

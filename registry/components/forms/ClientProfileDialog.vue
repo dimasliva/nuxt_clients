@@ -146,6 +146,7 @@ import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
+import AddressInput from '~/components/AddressInput.vue';
 import { EDataType } from '~/lib/globalTypes';
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';

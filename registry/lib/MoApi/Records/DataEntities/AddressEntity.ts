@@ -1,16 +1,13 @@
 
+import  { UserContext } from "~/lib/UserContext";
 import { EDictionaries } from "../../../Dicts/DictionaryStore";
+import  { MoApiClient } from "../../MoApiClient";
 import { DataEntity } from "./DataEntity";
+import  { RecordsStore } from "../RecordsStore";
 
 export default class AddressEntity extends DataEntity {
 
-     private _country: number = 185;          //dict Countries
-    public get country(): number {
-        return this._country;
-    }
-    public set country(value: number) {
-        this._country = value;
-    }
+    country: number = 185;          //dict Countries
     /**Республика,область,край */
     region?: string | null;         //dict REGIONS
     regionCode?: number | null;     //dict REGIONS
@@ -32,22 +29,26 @@ export default class AddressEntity extends DataEntity {
     zip?: string | null;
 
 
+    constructor(protected _MoApiClient: MoApiClient, _UserContext: UserContext, _RecordStore: RecordsStore) {
+        super(_MoApiClient, _UserContext, _RecordStore);
+    }
+
 
     async setCountry(code: number) {
-        var regDict = await this._dictionaryStore.getDictionary(EDictionaries.Countries);
+        var regDict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Countries);
         await regDict.getValByCode(code);//проверка наличия значения
         this.country = code;
     }
 
 
-     getCountry() {
+    getCountry() {
         return this.country;
     }
 
 
 
     async setRegion(code: number) {
-        var regDict = await this._dictionaryStore.getDictionary(EDictionaries.Regions);
+        var regDict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Regions);
         var val = await regDict.getValByCode(code);
         this.regionCode = code;
         this.region = val;
@@ -56,16 +57,16 @@ export default class AddressEntity extends DataEntity {
 
 
     async setSettlement(code: number) {
-        var regDict = await this._dictionaryStore.getDictionary(EDictionaries.SettlementTypes);
+        var regDict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.SettlementTypes);
         var val = await regDict.getValByCode(code);
         this.settlement = val;
         this.settlementType = code;
     }
 
 
-    clone() {
-        let res = new AddressEntity(this._dictionaryStore);
-        Object.assign(res, this);
-        return res;
+    async getAvailableCountries() {
+        var countriesDicts = this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Countries);
+        return await countriesDicts.getItems(0);
     }
+
 }

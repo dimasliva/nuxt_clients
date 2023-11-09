@@ -1,5 +1,5 @@
 import { EnumArray } from "./EnumArray";
-import { IApiDataListResult } from "./MoApi/RequestResults";
+import type { IApiDataListResult } from "./MoApi/RequestResults";
 
 
 export class DataList<T = any> implements IIndexableEnumerator<T>{
@@ -10,8 +10,8 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
     protected EnumInx = -1;
 
 
-    static createFromApiDl<T=any>(apdl:IApiDataListResult){
-        var res=new DataList<T>();
+    static createFromApiDl<T = any>(apdl: IApiDataListResult) {
+        var res = new DataList<T>();
         res.setMap(apdl.headers);
         res.setData(apdl.data);
         return res;
@@ -92,10 +92,10 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
     }
 
 
-    toArray():EnumArray<T>{
-        let res=new EnumArray<T>();
-        for(let i=0; i<this._data.length; i++)
-          res.push(this.getRow(i)!);
+    toArray(): EnumArray<T> {
+        let res = new EnumArray<T>();
+        for (let i = 0; i < this._data.length; i++)
+            res.push(this.getRow(i)!);
         return res;
     }
 

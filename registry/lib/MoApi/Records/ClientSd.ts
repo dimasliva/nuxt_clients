@@ -1,23 +1,23 @@
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
-import { FilelinkRecord, IFilelinkRecordData } from "./FilelinkRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
+import { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
-export interface IClientSdRecordData extends IApiRecordChData {
-    citizenship?: number | null;
-    kinship?: any | null;
-    individualId?: string | null;
-    photo?: string | null;
-    comments?: string | null;
-    advData?: any | null;
+export class ClientSdRecordData extends ApiRecordChData {
+    citizenship?: number | null=null;
+    kinship?: any | null=null;
+    individualId?: string | null=null;
+    photo?: string | null=null;
+    comments?: string | null=null;
+    advData?: any | null=null;
 }
 
 
-export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
+export class ClientSdRecord extends ApiRecord<ClientSdRecordData>{
 
     static RightToken = "dbClientSd";
     static RecCode = 1011;
@@ -25,8 +25,8 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
     protected _photoFl: FilelinkRecord | null = null;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, ClientSdRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, ClientSdRecord, Key);
     }
 
 
@@ -34,15 +34,7 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
 
 
     protected _createNewData() {
-        return {
-            id: this.Key,
-            citizenship: null,
-            kinship: null,
-            photo: null,
-            individualId: null,
-            comments: null,
-            advData: null
-        };
+        return   this._RecStore.dataEntityFactory(ClientSdRecordData, this.Key);
     }
 
 
@@ -84,7 +76,7 @@ export class ClientSdRecord extends ApiRecord<IClientSdRecordData>{
         }
 
         if (!this.Data!.photo) {
-            this._photoFl = await this._RecStore.createNew<FilelinkRecord, IFilelinkRecordData>(FilelinkRecord, (data) => { data.title = `#clientPhoto@${this.Key}` });
+            this._photoFl = await this._RecStore.createNew<FilelinkRecord, FilelinkRecordData>(FilelinkRecord, (data) => { data.title = `#clientPhoto@${this.Key}` });
             this._photoFl.MData.fileType=1;//персональное фото
         }
         else

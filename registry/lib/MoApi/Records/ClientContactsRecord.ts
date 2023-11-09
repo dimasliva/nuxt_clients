@@ -1,27 +1,27 @@
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
-export interface IClientContactsRecordData extends IApiRecordChData {
-    mainPhone: string | null;
-    reservPhone: string | null;
-    mainEmail: string | null;
-    otherContacts: any | null;
-    advData: any | null;
+export class ClientContactsRecordData extends ApiRecordChData {
+    mainPhone: string | null = null;
+    reservPhone: string | null = null;
+    mainEmail: string | null = null;
+    otherContacts: any | null = null;
+    advData: any | null = null;
 }
 
 
-export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
+export class ClientContactsRecord extends ApiRecord<ClientContactsRecordData>{
 
     static RightToken = "dbClientContacts";
     static RecCode = 1013;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, ClientContactsRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, ClientContactsRecord, Key);
     }
 
 
@@ -29,14 +29,7 @@ export class ClientContactsRecord extends ApiRecord<IClientContactsRecordData>{
 
 
     protected _createNewData() {
-        return {
-            id: this.Key,
-            mainPhone: null,
-            reservPhone: null,
-            mainEmail: null,
-            otherContacts: null,
-            advData: null
-        };
+        return   this._RecStore.dataEntityFactory(ClientContactsRecordData, this.Key);
     }
 
 

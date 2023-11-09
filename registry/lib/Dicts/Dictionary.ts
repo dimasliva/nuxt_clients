@@ -30,6 +30,17 @@ export class Dictionary {
     constructor(public id: string, protected _apiClient: MoApiClient, protected _sysEventBus: EventBus) { }
 
 
+
+    static itemsToValueTitle(items: { [code: string]: IDictItemValueView }, valnum = 0) {
+        let res: { value: number, title: string }[] = [];
+        for (let code in items) {
+            res.push({ value: parseInt(code,10), title: valnum ? items[code].value2 : items[code].value })
+        }
+        return res;
+    }
+
+
+
     async onDictСontentChanged(dictArg: IDictIdArg) {
         if (this.id == dictArg.dictKey) {
             if (dictArg.foreignSysKey) {
@@ -87,7 +98,7 @@ export class Dictionary {
 
     async getItems(section: number | string) {
         await this._chkData(section);
-        return this._items?.[section];
+        return this._items?.[section] || null;
     }
 
 
@@ -172,17 +183,6 @@ export class Dictionary {
     async delFItem(foreignSystem: string, code: string | number) {
         const DictionariesApiSection = this._apiClient.getDictionariesApiSection();
         await DictionariesApiSection.DeleteForeignDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), foreignSystem });
-    }
-
-
-    async getItemsAsValueTitle(section: number | string, valnum = 0) {
-        let items = await this.getItems(section);
-        let res: { value: string, title: string }[] = [];
-
-        for (let code in items) {
-            res.push({ value: code, title: valnum ? items[code].value2 : items[code].value })
-        }
-        return res;
     }
 
 

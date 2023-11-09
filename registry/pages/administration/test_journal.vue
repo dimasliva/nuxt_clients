@@ -43,7 +43,7 @@ import SearchProductDilaog from '~/components/forms/SearchProductDilaog.vue';
 import EventDialog from '~~/components/forms/EventDialog.vue';
 import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css';
-import { IPageData, PageMap } from '~~/lib/PageMap';
+import { type IPageData, PageMap } from '~~/lib/PageMap';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 let specialHours = ref({7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', label: ''}})

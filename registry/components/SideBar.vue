@@ -118,14 +118,14 @@
 <script setup lang="ts">
 import type { ModuleManager, IModuleItemsMenu } from '~~/libVis/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
-import { IPageData, PageMap } from '~~/lib/PageMap';
+import { type IPageData, PageMap } from '~~/lib/PageMap';
 import type { UserContext } from '~~/lib/UserContext';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { Toaster, toast } from 'vue-sonner'
 import ToastComponent from '~/components/ToastComponent.vue'
 import { EMessageType } from '~~/lib/globalTypes';
 import { h, markRaw } from 'vue'
-import { RouteLocationNormalizedLoaded } from 'vue-router';
+import { type RouteLocationNormalizedLoaded } from 'vue-router';
 
 
 

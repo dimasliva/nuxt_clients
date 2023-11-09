@@ -1,65 +1,47 @@
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
-export interface IClientDocumentsRecordData extends IApiRecordChData {
-    snils?: string | null;
-    mainDocument?: number | null;
-    mainDocumentSeries?: string | null;
-    mainDocumentNumber?: string | null;
-    mainDocumentWhen?: string | null;
-    mainDocumentWho?: string | null;
-    mainDocumentWhoCode?: string | null;
-    omsType?: number | null;
-    omsSeries?: string | null;
-    omsNumber?: string | null;
-    omsRegionCode?: number | null;
-    omsInsuranceCompany?: string | null;
-    dmsSeries?: string | null;
-    dmsNumber?: string | null;
-    dmsInsuranceCompany?: string | null;
-    otherDocuments?: any | null;
-    advData?: any | null;
+export class ClientDocumentsRecordData extends ApiRecordChData {
+    snils?: string | null = null;
+    mainDocument?: number | null = null;
+    mainDocumentSeries?: string | null = null;
+    mainDocumentNumber?: string | null = null;
+    mainDocumentWhen?: string | null = null;
+    mainDocumentWho?: string | null = null;
+    mainDocumentWhoCode?: string | null = null;
+    omsType?: number | null = null;
+    omsSeries?: string | null = null;
+    omsNumber?: string | null = null;
+    omsRegionCode?: number | null = null;
+    omsInsuranceCompany?: string | null = null;
+    dmsSeries?: string | null = null;
+    dmsNumber?: string | null = null;
+    dmsInsuranceCompany?: string | null = null;
+    otherDocuments?: any | null = null;
+    advData?: any | null = null;
 }
 
 
-export class ClientDocumentsRecord extends ApiRecord<IClientDocumentsRecordData>{
+export class ClientDocumentsRecord extends ApiRecord<ClientDocumentsRecordData>{
 
     static RightToken = "dbClientDocuments";
     static RecCode = 1012;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, ClientDocumentsRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, ClientDocumentsRecord, Key);
     }
 
 
     get RecCode() { return ClientDocumentsRecord.RecCode; }
 
+
     protected _createNewData() {
-        return {
-            id: this.Key,
-            snils: null,
-            mainDocument: null,
-            mainDocumentSeries: null,
-            mainDocumentNumber: null,
-            mainDocumentWhen: null,
-            mainDocumentWho: null,
-            mainDocumentWhoCode: null,
-            omsType: null,
-            omsSeries: null,
-            omsNumber: null,
-            omsRegionCode: null,
-            omsInsuranceCompany: null,
-            dmsSeries: null,
-            dmsNumber: null,
-            dmsInsuranceCompany: null,
-            otherDocuments: null,
-            advData: null
-        };
+        return this._RecStore.dataEntityFactory(ClientDocumentsRecordData, this.Key);
     }
 
 

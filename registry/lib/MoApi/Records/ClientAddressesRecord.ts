@@ -1,40 +1,42 @@
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData, IApiRecordData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import AddressEntity from "./DataEntities/AddressEntity";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
-export interface IClientAddressesRecordData extends IApiRecordChData {
-    mainAddress?: AddressEntity | null;
-    permanentRegistration?: AddressEntity | null;
-    addressesEqual?: boolean | null;
-    advData?: any | null;
+export class ClientAddressesRecordData extends ApiRecordChData {
+    mainAddress: AddressEntity | null = null;
+    permanentRegistration: AddressEntity | null = null;
+    addressesEqual: boolean | null = null;
+    advData: any | null = null;
+
+
+    override fromJsonObj(obj: any) {
+        super.fromJsonObj(obj)
+        this.mainAddress = obj.mainAddress ? this._RecordStore.dataEntityFactory(AddressEntity, null, obj.mainAddress) : null;
+        this.permanentRegistration = obj.permanentRegistration ? this._RecordStore.dataEntityFactory(AddressEntity, null, obj.permanentRegistration) : null;
+    }
 }
 
 
-export class ClientAddressesRecord extends ApiRecord<IClientAddressesRecordData>{
+export class ClientAddressesRecord extends ApiRecord<ClientAddressesRecordData>{
 
     static RightToken = "dbClientAddresses";
     static RecCode = 1014;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, ClientAddressesRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, ClientAddressesRecord, Key);
     }
 
 
     get RecCode() { return ClientAddressesRecord.RecCode; }
 
+
     protected _createNewData() {
-        return {
-            id: this.Key,
-            mainAddress: null,
-            permanentRegistration: null,
-            addressesEqual:null,
-            advData: null
-        }
+        return this._RecStore.dataEntityFactory(ClientAddressesRecordData, this.Key);
     }
 
 

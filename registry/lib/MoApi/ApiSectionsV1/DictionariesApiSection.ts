@@ -1,4 +1,4 @@
-import { ICouplingData, IRelData } from "../ApiInterfaces";
+import type { ICouplingData, IRelData } from "../ApiInterfaces";
 import type { MoApiClient } from "../MoApiClient";
 
 const _apiPath = "/Dictionaries";
@@ -20,11 +20,11 @@ export interface IDictItemValueViewBase {
 }
 
 
-export interface IDictItemValueView extends IDictItemValueViewBase{
+export interface IDictItemValueView extends IDictItemValueViewBase {
     value2: string;
 }
 
-export interface IForeignDictItemValueView extends IDictItemValueViewBase{
+export interface IForeignDictItemValueView extends IDictItemValueViewBase {
 }
 
 
@@ -40,7 +40,7 @@ export interface IDictionaryItem {
 }
 
 
-export interface IForeignDictionaryItem  {
+export interface IForeignDictionaryItem {
     dictKey: string;
     code: number;
     foreignSystem: string;

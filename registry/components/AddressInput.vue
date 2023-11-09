@@ -5,7 +5,8 @@
 
             <v-col sm="6">
 
-                <InputField :type="EDataType.string" :state="state" label="Страна" :model-value="CurrModelVal!.getCountry()"
+                <InputField :type="EDataType.strictstring" :state="state" label="Страна"
+                    :model-value="CurrModelVal!.getCountry()" :items="availableCountries"
                     @update:model-value="async (val) => { CurrModelVal!.setCountry(val) }" @blur="(d) => onValChanged()"
                     @keydown.stop="(k) => onKeydown(k)" placeholder="Россия" />
             </v-col>
@@ -22,6 +23,7 @@ import { useI18n } from "vue-i18n"
 import AddressEntity from '~/lib/MoApi/Records/DataEntities/AddressEntity';
 import * as vHelpers from '~/lib/Helpers';
 import { EDataType } from "~/lib/globalTypes";
+import { Dictionary } from "~/lib/Dicts/Dictionary";
 
 const { t, locale } = useI18n();
 
@@ -34,8 +36,7 @@ defineOptions({
 const emit = defineEmits(["update:modelValue", "changed"])
 
 interface IProps {
-
-    modelValue?: AddressEntity | null;
+    modelValue: AddressEntity;
     required?: boolean;
     label?: string | null;
     tokens?: string[] | null,
@@ -50,20 +51,20 @@ const props = defineProps<IProps>();
 
 const visible = ref(props.tokens ? chkTrait(props.tokens, "r") : true);
 const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.state?.readonly);
+const availableCountries=ref();
 
-let OldModelVal = ref();
-let CurrModelVal = ref<AddressEntity | null>();
-
+let OldModelVal = ref<AddressEntity>();
+let CurrModelVal = ref<AddressEntity>();
 
 //отслеживание изменений props.modelValue
-watch(props, (rval: any) => {
+watch(props, async (rval: any) => {
     //присваивние здесь значения CurrModelVal приводит к тому, что обязательные поля становятся в ошибочное состояние сразу, 
     //а не после того как было введено значение пользователем
-    if (OldModelVal.value !== rval.modelValue) {
-        OldModelVal.value = rval.modelValue;
-        CurrModelVal.value = props.modelValue!.clone();
+    if (!rval.modelValue.equal(OldModelVal.value)) {
+        OldModelVal.value = rval.modelValue.clone();
+        CurrModelVal.value = <AddressEntity>props.modelValue!.clone();
+        availableCountries.value= Dictionary.itemsToValueTitle((await CurrModelVal.value!.getAvailableCountries())!);
     }
-
 }, { immediate: true });
 
 
@@ -71,7 +72,6 @@ const onValChanged = (force?: boolean) => {
     if (!currErr || force) {
         if (props.state && CurrModelVal.value != props.modelValue) {
             props.state.changedCnt++;
-
             emit('update:modelValue', CurrModelVal.value);
         }
     }
@@ -83,7 +83,7 @@ const onKeydown = (k) => {
         blur()
     else
         if (k.key == 'Escape') {
-            CurrModelVal.value = props.modelValue;
+            CurrModelVal.value = props.modelValue!;
             blur();
         }
 }
@@ -114,6 +114,7 @@ const blur = () => {
     if (document.activeElement && typeof (<any>document).activeElement.blur == "function")
         (<any>document).activeElement.blur();
 }
+
 
 
 onUnmounted(() => {

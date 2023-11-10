@@ -1,9 +1,9 @@
 
-import  { UserContext } from "~/lib/UserContext";
+import { UserContext } from "~/lib/UserContext";
 import { EDictionaries } from "../../../Dicts/DictionaryStore";
-import  { MoApiClient } from "../../MoApiClient";
+import { MoApiClient } from "../../MoApiClient";
 import { DataEntity } from "./DataEntity";
-import  { RecordsStore } from "../RecordsStore";
+import { RecordsStore } from "../RecordsStore";
 
 export default class AddressEntity extends DataEntity {
 
@@ -29,13 +29,13 @@ export default class AddressEntity extends DataEntity {
     zip?: string | null;
 
 
-    constructor(protected _MoApiClient: MoApiClient, _UserContext: UserContext, _RecordStore: RecordsStore) {
-        super(_MoApiClient, _UserContext, _RecordStore);
+    constructor(protected __MoApiClient: MoApiClient, __UserContext: UserContext, __RecordStore: RecordsStore) {
+        super(__MoApiClient, __UserContext, __RecordStore);
     }
 
 
     async setCountry(code: number) {
-        var regDict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Countries);
+        var regDict = await this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Countries);
         await regDict.getValByCode(code);//проверка наличия значения
         this.country = code;
     }
@@ -47,26 +47,146 @@ export default class AddressEntity extends DataEntity {
 
 
 
-    async setRegion(code: number) {
-        var regDict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Regions);
-        var val = await regDict.getValByCode(code);
-        this.regionCode = code;
-        this.region = val;
+    async setRegion(code: string | number | null) {
+        if (typeof code == "number") {
+            var regDict = await this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Regions);
+            var val = await regDict.getValByCode(code);
+            this.regionCode = code;
+            this.region = val;
+        }
+        else {
+            this.regionCode = null;
+            this.region = code;
+        }
     }
 
 
 
-    async setSettlement(code: number) {
-        var regDict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.SettlementTypes);
-        var val = await regDict.getValByCode(code);
-        this.settlement = val;
+    getRegionTitle() {
+        return this.region;
+    }
+
+
+    getRegionCode() {
+        return this.regionCode;
+    }
+
+
+    getRegion() {
+        return this.regionCode ? this.regionCode : this.region;
+    }
+
+
+
+    async setSettlementType(code: number | null) {
+        if (code) {
+            var regDict = await this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.SettlementTypes);
+            var val = await regDict.getValByCode(code);
+        }
         this.settlementType = code;
     }
 
 
-    async getAvailableCountries() {
-        var countriesDicts = this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Countries);
+    getSettlementType() {
+        return this.settlementType;
+    }
+
+
+    async setSettlement(name: string | null) {
+        this.settlement = name;
+    }
+
+
+    getSettlement() {
+        return this.settlement;
+    }
+
+
+    async getAvailableSettlementTypes() {
+        var countriesDicts = this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.SettlementTypes);
         return await countriesDicts.getItems(0);
     }
 
+
+    async getAvailableCountries() {
+        var countriesDicts = this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Countries);
+        return await countriesDicts.getItems(0);
+    }
+
+
+
+    async getAvailableRegions() {
+        var countriesDicts = this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Regions);
+        return await countriesDicts.getItems(0);
+    }
+
+
+    getDistrict() {
+        return this.district;
+    }
+
+
+    async setDistrict(val: string) {
+        this.district = val;
+    }
+
+
+    async setStreet(val: string | null) {
+        this.street = val;
+    }
+
+    getStreet() {
+        return this.street;
+    }
+
+
+    async setBuilding(val: string | null) {
+        this.building = val;
+    }
+
+    getBuilding() {
+        return this.building;
+    }
+
+
+    async setCorp(val: string | null) {
+        this.corp = val;
+    }
+
+    getCorp() {
+        return this.corp;
+    }
+
+
+    async setFlat(val: string | null) {
+        this.flat = val;
+    }
+
+    getFlat() {
+        return this.flat;
+    }
+
+
+    async setZip(val: string | null) {
+        this.zip = val;
+    }
+
+    getZip() {
+        return this.zip;
+    }
+
+
+    reset() {
+        this.country = 185;
+        this.region = null;
+        this.regionCode = null;
+        this.district = null;
+        this.settlement = null;
+        this.settlementType = null;
+        this.street = null;
+        this.building = null;
+        this.corp = null;
+        this.flat = null;
+        this.zip = null;
+    }
 }

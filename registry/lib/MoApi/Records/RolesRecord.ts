@@ -9,7 +9,7 @@ export class RoleRecordData extends ApiRecordChData {
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
-        this.roles =  this._RecordStore.dataEntityFactory(RolesEntity, null,  obj.roles);
+        this.roles =  this.__RecordStore.dataEntityFactory(RolesEntity, null,  obj.roles);
     }
 }
 

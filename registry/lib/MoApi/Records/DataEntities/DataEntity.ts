@@ -1,6 +1,6 @@
-import  type { UserContext } from "../../../UserContext";
-import  type { MoApiClient } from "../../MoApiClient";
-import  type { RecordsStore } from "../RecordsStore";
+import type { UserContext } from "../../../UserContext";
+import type { MoApiClient } from "../../MoApiClient";
+import type { RecordsStore } from "../RecordsStore";
 
 
 export abstract class DataEntity {
@@ -8,9 +8,9 @@ export abstract class DataEntity {
 
     constructor(_MoApiClient: MoApiClient, _UserContext: UserContext, protected _RecordStore: RecordsStore) { };
 
-    init(id: string | null, jsonObj: any | null) { 
-        if(jsonObj)
-          this.fromJsonObj(jsonObj);
+    init(id: string | null, jsonObj: any | null) {
+        if (jsonObj)
+            this.fromJsonObj(jsonObj);
     }
 
 
@@ -36,6 +36,12 @@ export abstract class DataEntity {
 
 
 
+    fromJson(json: string) {
+        this.fromJsonObj(JSON.parse(json));
+    }
+
+
+
     fromJsonObj(jsonObj: any) {
         for (let item in jsonObj) {
             //если значение в источнике объект, то его не копируем т.к. его тип не известен. Создание и копирование объектов должно производится в производных классах
@@ -56,7 +62,7 @@ export abstract class DataEntity {
 
     clone() {
         let newInst = this._getSelfNewInst();
-        newInst.fromJsonObj(this.getJsonObj());
+        newInst.fromJson(this.toJson());
         return newInst;
     }
 

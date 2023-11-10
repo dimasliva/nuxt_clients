@@ -175,8 +175,7 @@ const checkRole = async () => {
   let rec = await recStore.fetch(RolesRecord, k!);
   let r = (await recStore.getOrCreate(EmployeeRecord, k!)).Data?.roles;
   allRights.value = await allRec.getAllRecords();
-  debugger;
-  let thisEmpRights = rec.Data!.roles.getRole(r!);
+  let thisEmpRights = rec.Data!.roles.getRole(r!)!;
   // Присвоение соотвествующих прав
   if (thisEmpRights['#AllRecords']) {
     userRights.value = thisEmpRights['#AllRecords'];

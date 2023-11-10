@@ -10,16 +10,40 @@ export default class RolesEntity extends DataEntity {
         this.roles = obj;
     }
 
+
+    
     override  getJsonObj() {
         return this.roles;
     }
+
+
 
     getRoles() {
         return this.roles;
     }
 
 
+
+    setRoles(obj: { [roleName: string]: { [recName: string]: string } }) {
+         this.roles = obj;
+    }
+
+
+
     getRole(roleName: string): { [recName: string]: string } | undefined {
         return this.roles[roleName];
     }
+
+
+
+    setRole(roleName: string, role: { [recName: string]: string }) {
+         this.roles[roleName] = role;;
+    }
+
+
+
+    deleteRole(roleName: string) {
+        delete this.roles[roleName];
+    }
+
 }

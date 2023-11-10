@@ -2,19 +2,19 @@
     <v-card width="900">
         <v-card-title class="px-2 bg-primary">
             <v-row class="pa-4">
-                <div class="text-h5 ma-2">Поиск услуги</div>
+                <div class="text-h5 ma-2">{{ props.title }}</div>
                 <v-spacer></v-spacer>
                 <v-icon class="mt-2" @click="closeDialog">mdi-close</v-icon>
             </v-row>
         </v-card-title>
         <v-card-text>
-            <v-row>
+            <v-row v-if="props.prices">
                 <v-col>
                     <v-select @vue:updated="selectedCatalogs.length == catalogs.length? selectAllCatalogs=true : selectAllCatalogs = false" v-model="selectedCatalogs" multiple label="Выберите один или несколько прайс-листов для поиска" density="compact" :items="catalogs" item-title="title" item-value="id" variant="underlined"></v-select>
                     <v-checkbox @update:model-value="searchAllCatalogs()" class="mb-2" density="compact" color="primary" hide-details label="Искать по всем прайс-листам" v-model="selectAllCatalogs"></v-checkbox>
                 </v-col>
             </v-row>
-            <v-text-field @input="autoReq()" clearable v-model="searchValue" label="Поиск товара или услуги" variant="underlined" density="compact" append-inner-icon="mdi-magnify" :disabled="!selectedCatalogs"></v-text-field>
+            <v-text-field @input="autoReq()" clearable v-model="searchValue" label="Поиск" :placeholder="props.text_field" variant="underlined" density="compact" append-inner-icon="mdi-magnify" :disabled="!selectedCatalogs"></v-text-field>
             <v-progress-linear color="primary" class="ma-1" v-if="loading" indeterminate></v-progress-linear>
             <v-row v-if="notFound">
                 <v-card class="mx-auto my-2" prepend-icon="mdi-playlist-remove" variant="tonal">
@@ -28,18 +28,21 @@
                 </v-card>
             </v-row>
             <template v-if="listDone">
-                    <v-row v-for="prod in items">
+                    <v-row v-for="item in items">
                         <v-list lines="one" density="compact" class="ma-0 pa-0">
-                            <v-list-item density="compact" class="py-0 my-0" :value="prod" :active="false" @click="selectedProducts.push(prod)">
-                                <v-list-item-title>
-                                    {{ prod.title + ' ' + '(' + prod.catalogTitle + ',' + prod.sectionTitle + ')' }}
+                            <v-list-item density="compact" class="py-0 my-0" :value="item" :active="false" @click="selectedItems.push(item)">
+                                <v-list-item-title v-if="props.prices">
+                                    {{ item.title + ' ' + '(' + item.catalogTitle + ',' + item.sectionTitle + ')' }}
+                                </v-list-item-title>
+                                <v-list-item-title v-else>
+                                    {{item.surname+' '+item.name+' '+item.patronymic}}
                                 </v-list-item-title>
                             </v-list-item>
                         </v-list>    
                     </v-row>
             </template>
             <v-divider v-if="listDone" :thickness="3" class="my-10"></v-divider>
-            <v-combobox chips closable-chips v-if="listDone||selectedProducts.length" v-model="selectedProducts" readonly label="Выбранные вами позиции" item-title="title" multiple variant="underlined" density="compact" :items="selectedProducts"></v-combobox>
+            <v-combobox chips closable-chips v-if="listDone||selectedItems.length" v-model="selectedItems" readonly label="Вы выбрали" item-title="title" multiple variant="underlined" density="compact" :items="selectedItems"></v-combobox>
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
@@ -50,18 +53,19 @@
 </template>
 
 <script setup lang="ts">
-import { ProductFtsViews, IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
-import { QueryProductFtsList } from "~~/lib/MoApi/RequestArgs";
-import { ProductsCatalogRecord, IProductsCatalogRecordData } from '~/lib/MoApi/Records/ProductsCatalogRecord';
+import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
 
 
 const iocc = useContainer();
 const recStore = iocc.get(RecordsStore);
-const productsView = iocc.get(ProductFtsViews);
 const apiClient = iocc.get<MoApiClient>('MoApiClient');
 interface Props {
+    title: string,
+    text_field: string,
+    reqAction: (t: string, c?: any) => any[],
+    prices: boolean,
     action: (p: any) => void,
 }
 const props = defineProps<Props>()
@@ -71,18 +75,18 @@ let selectAllCatalogs = ref(false)
 let notFound = ref(false)
 let searchValue = ref('')
 let listDone = ref(false)
-let selectedProducts: any = ref([])
+let selectedItems: any = ref([])
 let items: any = ref([])
 let loading = ref(false)
 let catalogs = ref<any>([])
-const cookie = useCookie(
+const catalogCookie = useCookie(
     'selectedCatalogs',
     {
         default: () => ([]),
         watch: true
     }   
 );
-let selectedCatalogs: any = ref(cookie? cookie : (catalogs.value.length > 1? [] : catalogs.value[0]))
+let selectedCatalogs: any = ref(catalogCookie? catalogCookie : (catalogs.value.length > 1? [] : catalogs.value[0]))
 
 const clearFunc = () => {
     items.value = []
@@ -111,14 +115,10 @@ const getCatalogs = async () => {
 const getProductsListView = async () => {
     clearFunc();
     loading.value = true;
-    let prodsArr = await productsView.getProductFtsListView( new QueryProductFtsList('id, title, fullTitle, catalogTitle, sectionTitle',  searchValue.value, 20, 1, false, selectedCatalogs.value, false))
-    const prods: IProductFtsListView[] = [];
-    let row: IProductFtsListView | undefined;
-    while (row = prodsArr.getNext()) {
-        prods.push(row);
-    }
-    if(prods.length) {
-        items.value = prods;
+    let res = await props.reqAction(searchValue.value, selectedCatalogs.value);
+    console.log(res)
+    if(res.length) {
+        items.value = res;
         notFound.value = false;
         listDone.value = true;
         loading.value = false;
@@ -132,6 +132,9 @@ const getProductsListView = async () => {
 let req: any = ref(null);
 
 const autoReq = () => {
+    if(!props.prices){
+        searchValue.value = searchValue.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
     stopAutoReq();
     req = setTimeout(() => {
         search();
@@ -156,7 +159,7 @@ const search = () => {
 }
 
 const addSelectedProdutcs = () => {
-    props.action(selectedProducts.value)
+    props.action(selectedItems.value)
     closeDialog(console.log());
 }
 getCatalogs();

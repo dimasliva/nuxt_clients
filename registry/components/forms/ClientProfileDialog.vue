@@ -120,9 +120,9 @@
           <v-expansion-panel elevation="0">
             <v-expansion-panel-title class="text-subtitle-1">Адрес постоянной регистрации</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <v-checkbox v-model="isAddressesEqual" label="Совпадает с фактическим" color="primary" 
-                hide-details></v-checkbox>
-              <AddressInput v-if="!isAddressesEqual" :state="fieldsOptions"
+              <InputField :state="fieldsOptions" :type="EDataType.bool" label="Совпадает с фактическим"
+                v-model="recAddr!.MData.addressesEqual" hide-details></InputField>
+              <AddressInput v-if="!recAddr!.MData.addressesEqual" :state="fieldsOptions"
                 :model-value="recAddr!.MData.permanentRegistration || recStore.dataEntityFactory(AddressEntity)"
                 @update:model-value="(val) => recAddr!.MData.permanentRegistration = val" />
             </v-expansion-panel-text>

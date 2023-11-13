@@ -73,9 +73,9 @@
 
 
     <!--Выпадаюший список-->
-    <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="CurrModelVal" 
-        :single-line="!(label || required)" density="compact" hide-details
-        :readonly="readonly" :label="label || ''" :items="items" variant="underlined" :rules="SingleStrSelectRules"
+    <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="CurrModelVal"
+        :single-line="!(label || required)" density="compact" hide-details :readonly="readonly" :label="label || ''"
+        :items="items" variant="underlined" :rules="SingleStrSelectRules"
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span v-if="label || required">
@@ -120,6 +120,12 @@
             </span>
         </template>
     </v-text-field>
+
+    <!--чекбокс-->
+    <v-checkbox v-if="type == EDataType.bool && visible" ref="refField" v-bind="$attrs" :model-value="CurrModelVal"
+        :readonly="readonly" hide-details :label="<any>label"
+        @update:model-value="(val) => {CurrModelVal = val; onValChanged();}">
+    </v-checkbox>
 </template>
 
 

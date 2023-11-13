@@ -92,7 +92,6 @@ import { UserContext } from '~~/lib/UserContext';
 import { VDataTable, VDataTableRow } from 'vuetify/labs/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
-import { debug } from 'console';
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
 

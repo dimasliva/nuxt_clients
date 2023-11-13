@@ -85,7 +85,7 @@
 
 
     <!--Выпадаюший список с множественным выбором-->
-    <v-select v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+    <v-select width="300px" v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
         multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items" variant="solo"
         :rules="MultipleStrSelectRules" @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
         @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">

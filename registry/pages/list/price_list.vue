@@ -31,11 +31,11 @@
 <script setup lang="ts">
 import { UserContext } from '~~/lib/UserContext';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
-import { PageMap, IPageData } from '~~/lib/PageMap';
+import { PageMap, type IPageData } from '~~/lib/PageMap';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
-import { ProductsRecord, IProductsRecordData } from '~~/lib/MoApi/Records/ProductsRecord';
-import { ProductsCatalogRecord, IProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
+import { ProductRecord, ProductRecordData } from '~~/lib/MoApi/Records/ProductRecord';
+import { ProductsCatalogRecord, ProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ProductFtsViews } from '~~/lib/MoApi/Views/ProductFtsListView';
 
 

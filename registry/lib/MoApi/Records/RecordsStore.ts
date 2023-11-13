@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord, ApiRecordClass } from "./ApiRecord";
+import { ApiRecord, type ApiRecordClass } from "./ApiRecord";
 import { chkRights } from "~/lib/Utils"
 import { DataEntity } from "./DataEntities/DataEntity";
 
@@ -78,44 +78,46 @@ export class RecordsStore {
     }
 
 
-    canRecRead(type: ApiRecordClass){
-        let traits:any={}
-        traits[type.rightToken]="r";
-        return chkRights(null,traits);
+    canRecRead(type: ApiRecordClass) {
+        let traits: any = {}
+        traits[type.rightToken] = "r";
+        return chkRights(null, traits);
     }
 
 
-    canRecWrite(type: ApiRecordClass){
-        let traits:any={}
-        traits[type.rightToken]="w";
-        return chkRights(null,traits);
+    canRecWrite(type: ApiRecordClass) {
+        let traits: any = {}
+        traits[type.rightToken] = "w";
+        return chkRights(null, traits);
     }
 
 
-    canRecCreate(type: ApiRecordClass){
-        let traits:any={}
-        traits[type.rightToken]="c";
-        return chkRights(null,traits);
+    canRecCreate(type: ApiRecordClass) {
+        let traits: any = {}
+        traits[type.rightToken] = "c";
+        return chkRights(null, traits);
     }
 
 
-    canRecDelete(type: ApiRecordClass){
-        let traits:any={}
-        traits[type.rightToken]="d";
-        return chkRights(null,traits);
-    }
-
-
-
-    canRecSpecial(type: ApiRecordClass){
-        let traits:any={}
-        traits[type.rightToken]="s";
-        return chkRights(null,traits);
+    canRecDelete(type: ApiRecordClass) {
+        let traits: any = {}
+        traits[type.rightToken] = "d";
+        return chkRights(null, traits);
     }
 
 
 
-    dataEntityFactory<T extends DataEntity>(dEntity:Class<T>){
-        return new dEntity(this._MoApiClient.getDictionaryStore());
+    canRecSpecial(type: ApiRecordClass) {
+        let traits: any = {}
+        traits[type.rightToken] = "s";
+        return chkRights(null, traits);
+    }
+
+
+
+    dataEntityFactory<T extends DataEntity>(dEntity: Class<T>, id: string | null = null, jsonObj: any = null) {
+        let inst = new dEntity(this._MoApiClient, this._UserContext, this, id);
+        inst.init(id, jsonObj);
+        return inst;
     }
 }

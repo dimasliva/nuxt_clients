@@ -8,10 +8,10 @@ import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { EventBus } from "~/lib/EventBus";
 
 
-export default (container:Container) => {
+export default (container: Container) => {
     if (!container.isBound("UserContext")) {
-        container.options.autoBindInjectable=true;
-        const AppConfig=useAppConfig();
+        container.options.autoBindInjectable = true;
+        const AppConfig = useAppConfig();
         let moApiClientSettings = new MoApiClientSettings();
 
         container.bind('NuxtApp').toConstantValue(useNuxtApp());
@@ -23,8 +23,7 @@ export default (container:Container) => {
         container.bind('PageMap').to(PageMap).inSingletonScope();
         container.bind("RecordsStore").to(RecordsStore);
         container.bind("SysEventBus").toConstantValue(new EventBus());
-        
-        console.debug("iocc init");
 
+        console.debug("iocc init");
     }
 }

@@ -1,37 +1,31 @@
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
-export interface IProductsCatalogSectionRecordData extends IApiRecordChData {
-    title: string,
-    code: string | null,
-    productsCatalog: string,
-    comments: string | null,
-    temporaryNotActive: boolean,
-    notActive: boolean,
-    advData: string | null
+export class ProductsCatalogSectionRecordData extends ApiRecordChData {
+    title: string = "";
+    code: string | null = null;
+    productsCatalog: string = "";
+    comments: string | null = null;
+    temporaryNotActive: boolean | null = null;
+    notActive: boolean | null = null;
+    advData: string | null = null;
 }
 
-export class ProductsCatalogSectionRecord extends ApiRecord<IProductsCatalogSectionRecordData>{
-    
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, ProductsCatalogSectionRecord, Key);
+export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSectionRecordData>{
+
+    static RightToken = "dbProductsCatalogSection";
+    static RecCode = 1023;
+
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, ProductsCatalogSectionRecord, Key);
     }
 
     get RecCode() { return ProductsCatalogSectionRecord.RecCode; }
 
     protected _createNewData() {
-        return {
-            id: this.Key,
-            title: '',
-            code: null,
-            productsCatalog: null,
-            comments: null,
-            temporaryNotActive: false,
-            notActive: false,
-            advData: null
-        };
+        return   this._RecStore.dataEntityFactory(ProductsCatalogSectionRecordData, this.Key);
     }
 
     protected _getApiRecordPathGet = () => "/Products/GetProductsCatalogSections";

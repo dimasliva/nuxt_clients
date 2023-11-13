@@ -2,16 +2,16 @@ import { injectable, inject } from "inversify";
 import { QueryProductFtsList } from "../RequestArgs";
 import { MoApiClient } from "../MoApiClient";
 import { UserContext } from "~/lib/UserContext";
-import { IApiDataListResult } from "../RequestResults";
+import { type IApiDataListResult } from "../RequestResults";
 import { DataList } from "~/lib/DataList";
 
 
 export interface IProductFtsListView {
     "id": string | undefined,
-    "title":  string | undefined,
-    "fullTitle":  string | undefined,
-    "catalogTitle":  string | undefined,
-    "sectionTitle":  string | undefined   
+    "title": string | undefined,
+    "fullTitle": string | undefined,
+    "catalogTitle": string | undefined,
+    "sectionTitle": string | undefined
 }
 
 @injectable()

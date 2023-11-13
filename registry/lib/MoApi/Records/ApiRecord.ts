@@ -2,31 +2,49 @@
 import { MoApiClient } from "../MoApiClient";
 import { CloneData } from "../../Helpers";
 import { UserContext } from "../../UserContext";
-import { ICouplingData, IRelData } from "../ApiInterfaces"
+import type { ICouplingData, IRelData } from "../ApiInterfaces"
 import { RecordsCodes } from "./RecordsCodes";
 import { Exception } from "../../Exceptions";
 import { RecordsStore } from "./RecordsStore";
+import { DataEntity } from "./DataEntities/DataEntity";
+import { DictionaryStore } from "~/lib/Dicts/DictionaryStore";
 
 
-export interface IApiRecordData {
-    id: string;
+export abstract class ApiRecordData extends DataEntity {
+
+    id: string | null = null;
+
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecordStore: RecordsStore) {
+        super(_MoApiClient, _UserContext, _RecordStore);
+    }
+
+
+    override init(id: string | null, jsonObj: any | null) {
+        this.id = id;
+    }
 }
 
-export interface IApiRecordChData extends IApiRecordData {
-    "createdAt"?: string | undefined,
-    "changedAt"?: string | undefined
+
+export abstract class ApiRecordChData extends ApiRecordData {
+
+    "createdAt"?: string | undefined;
+    "changedAt"?: string | undefined;
+
 }
 
-export interface IApiRecordCompanyData extends IApiRecordChData {
+
+export abstract class ApiRecordCompanyData extends ApiRecordChData {
     "company"?: string | undefined;
 }
 
 
-export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
+
+
+export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData>{
 
     public static RightToken = "";
     public static RecCode = 0;
-    
+
 
     protected _RecordType: Function;
     public get RecordType(): Function { return this._RecordType; }
@@ -44,7 +62,7 @@ export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
 
 
     protected _ModifiedData: T | null = null;
-    public get MData(): T { return this._ModifiedData ? this._ModifiedData : this._ModifiedData = new Proxy(CloneData(this._Data!), this._getModifingProxyHanlders()) }
+    public get MData(): T { return this._ModifiedData ? this._ModifiedData : this._ModifiedData = <T>new Proxy(this._Data!.clone(), this._getModifingProxyHanlders()) }
     //public set MData(value: T | null) { this._ModifiedData = value; }
 
     protected _isNewData: boolean = true;
@@ -54,7 +72,7 @@ export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
     protected _parentsData: { [code: number]: IRelData[] } = {};
     protected _couplingsData: { [code: number]: ICouplingData[] } = {};
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, protected _RecStore: RecordsStore, RecType: Class<ApiRecord>, Key: string) {
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, protected _RecStore: RecordsStore, RecType: Class<ApiRecord>, Key: string) {
         this._RecordType = RecType;
         this._Key = Key;
     }
@@ -63,7 +81,15 @@ export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
     protected abstract _getApiRecordPathAdd(): string;
     protected abstract _getApiRecordPathUpdate(): string;
     protected abstract _getApiRecordPathDelete(): string;
-    protected abstract _createNewData(): IApiRecordChData;
+    protected abstract _createNewData(): ApiRecordChData;
+
+
+
+    protected _createDataFromLoaded(obj): DataEntity {
+        let data = this._createNewData();
+        data.fromJsonObj(obj);
+        return data;
+    }
 
 
     protected _createNewAllData(): void {
@@ -87,12 +113,13 @@ export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
 
 
     protected async _loadData() {
-        const arr = await this._MoApiClient.send<string[], T[]>(this._getApiRecordPathGet(), [this._Key]);
+        const arr = await this._MoApiClient.send<string[], any[]>(this._getApiRecordPathGet(), [this._Key]);
         if (!arr[0])
             Exception.throw("RecNotFound", `Запись ${this._Key}  не найдена`);
-        this._Data = new Proxy(arr[0], this._getProxyHanlders());
+        this._Data = <T>new Proxy(this._createDataFromLoaded(arr[0]), this._getProxyHanlders());
         return this._Data;
     }
+
 
 
     protected async _loadOrCreateData() {
@@ -120,9 +147,9 @@ export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
 
 
     protected async _updateAllData() {
-       let res=await this._MoApiClient.send<any, {id:string, changedAt:string}>(this._getApiRecordPathUpdate(), this._ModifiedData);
-       this.MData.changedAt=res.changedAt;
-       return res;
+        let res = await this._MoApiClient.send<any, { id: string, changedAt: string }>(this._getApiRecordPathUpdate(), this._ModifiedData);
+        this.MData.changedAt = res.changedAt;
+        return res;
     }
 
 
@@ -161,7 +188,8 @@ export abstract class ApiRecord<T extends IApiRecordChData = IApiRecordChData>{
     isDataChanged() {
         if (!this._ModifiedData)
             return false;
-        return JSON.stringify(this._Data) !== JSON.stringify(this._ModifiedData);
+
+        return !this._Data!.equal(this._ModifiedData);
     }
 
 

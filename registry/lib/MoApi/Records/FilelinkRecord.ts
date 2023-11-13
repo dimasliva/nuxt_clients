@@ -1,21 +1,21 @@
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
 
-export interface IFilelinkRecordData extends IApiRecordChData {
+export class FilelinkRecordData extends ApiRecordChData {
     position?: string;
     createDate?: string;
-    title: string;
+    title: string = "";
     uid?: string | null;
     client?: string | null;
     path?: string | null;
     ext?: string | null;
-    size: number;
-    hash: string;
+    size: number = null!;
+    hash: string = null!;
     docType?: number | null;
     fileType?: number | null;
     group?: string | null;
@@ -26,7 +26,7 @@ export interface IFilelinkRecordData extends IApiRecordChData {
 }
 
 
-export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
+export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
 
     static RightToken = "dbFilelink";
     static RecCode = 1019;
@@ -37,17 +37,15 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
     get MBlob(): Blob | null { return this._mblob; }
     set MBlob(file: Blob) { this._mblob = file }
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, FilelinkRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, FilelinkRecord, Key);
     }
 
     get RecCode() { return FilelinkRecord.RecCode; }
 
+
     protected _createNewData() {
-        return {
-            id: this.Key,
-            title: ""
-        };
+        return this._RecStore.dataEntityFactory(FilelinkRecordData, this.Key);
     }
 
 
@@ -108,11 +106,11 @@ export class FilelinkRecord extends ApiRecord<IFilelinkRecordData>{
             if (this.Key)
                 args.FilelinkId = this.Key
 
-            let nf = await this._MoApiClient.sendMultipart("/Files/UploadFile", args) as IFilelinkRecordData;
+            let nf = await this._MoApiClient.sendMultipart("/Files/UploadFile", args) as FilelinkRecordData;
             if (this._isNewData) {
                 this._isNewData = false;
                 this.MData.id = nf.id;
-                this.Key = nf.id;
+                this.Key = nf.id!;
             }
 
             for (let item in nf)

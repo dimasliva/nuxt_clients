@@ -1,10 +1,10 @@
 import { inject, injectable } from 'inversify';
-import type { MoApiClientSettings } from "@/lib/MoApi/MoApiClientSettings";
-import { HTTPMethod } from 'h3';
-import { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '@/lib/Security';
+import type { MoApiClientSettings } from "~/lib/MoApi/MoApiClientSettings";
+import { type HTTPMethod } from 'h3';
+import type { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '~/lib/Security';
 import { sleep, excToLog } from "@/lib/Helpers";
 import { Exception, NetException } from '../Exceptions';
-import { IApiResult } from './RequestResults';
+import type { IApiResult } from './RequestResults';
 import { RelationApiSection } from './ApiSectionsV1/RelationApiSection';
 import { RecordsApiSection } from './ApiSectionsV1/RecordsApiSection';
 import { DictionariesApiSection } from "./ApiSectionsV1/DictionariesApiSection"
@@ -146,8 +146,12 @@ export class MoApiClient {
                             option.body = content;
                             contenttype = null;
                         }
-                        else
-                            option.body = JSON.stringify(content);
+                        else {
+                            if (typeof content.toJson === "function")
+                                option.body = content.toJson();
+                            else
+                                option.body = JSON.stringify(content);
+                        }
                     }
 
                     if (contenttype)
@@ -310,7 +314,7 @@ export class MoApiClient {
                         let data = await response.json();
                         this._AuthToken = data.token;
                         this._currentApiHost = data.hosts[0];
-                        console.debug("Target api server: "+ this._currentApiHost);
+                        console.debug("Target api server: " + this._currentApiHost);
                         this.connectRtMessaging();
                         return <IAuthorityData>data;
                     }
@@ -399,23 +403,26 @@ export class MoApiClient {
 
 
 
-_convertToURLParams(obj: any): string {
-    const params: any = [];
+    _convertToURLParams(obj: any): string {
+        const params: any = [];
 
-    for (let key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            let value = obj[key];
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                let value = obj[key];
 
-            if (typeof value === 'object') {
-                value = JSON.stringify(value);
+                if (typeof value === 'object') {
+                    if (typeof value.toJson === "function")
+                        value = value.toJson();
+                    else
+                        value = JSON.stringify(value);
+                }
+
+                params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
             }
-
-            params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
         }
-    }
 
-    return params.join('&');
-}
+        return params.join('&');
+    }
 
 }
 

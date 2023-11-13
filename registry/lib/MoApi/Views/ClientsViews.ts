@@ -2,7 +2,7 @@ import { injectable, inject } from "inversify";
 import { QueryParams } from "../RequestArgs";
 import { MoApiClient } from "../MoApiClient";
 import { UserContext } from "~/lib/UserContext";
-import { IApiDataListResult } from "../RequestResults";
+import { type IApiDataListResult } from "../RequestResults";
 import { DataList } from "~/lib/DataList";
 
 
@@ -13,7 +13,7 @@ export interface IClientListView {
     "surname": string | undefined,
     "patronymic": string | undefined | null,
     "gender": string;
-    "birthdate": string|null;
+    "birthdate": string | null;
     "mainPhone": string | undefined | null,
     "mainEmail": string | undefined | null,
     "snils": string | undefined | null

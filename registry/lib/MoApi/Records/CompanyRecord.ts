@@ -1,38 +1,31 @@
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordChData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
-export interface ICompanyRecordData extends IApiRecordChData {
-    "defaultOrg": string | null,
-    "linkedRecs": string | null,
-    "profile": string | null,
-    "advData": string | null
+export class CompanyRecordData extends ApiRecordChData {
+    "defaultOrg": string | null = null;
+    "linkedRecs": string | null = null;
+    "profile": string | null = null;
+    "advData": string | null = null;
 }
 
 
-export class CompanyRecord extends ApiRecord<ICompanyRecordData>{
+export class CompanyRecord extends ApiRecord<CompanyRecordData>{
 
     static RightToken = "dbCompany";
     static RecCode = 1001;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, CompanyRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, CompanyRecord, Key);
     }
 
 
     get RecCode() { return CompanyRecord.RecCode; }
 
+
     protected _createNewData() {
-        return {
-            "id": this.Key,
-            "createdAt": '',
-            "changedAt": '',
-            "defaultOrg": "",
-            "linkedRecs": "",
-            "profile": null,
-            "advData": ""
-        };
+        return this._RecStore.dataEntityFactory(CompanyRecordData, this.Key);
     }
 
 

@@ -1,5 +1,5 @@
 import { HubConnection, LogLevel } from '@microsoft/signalr';
-import { LiteralUnion } from './Ts-helpers';
+import type { LiteralUnion } from './Ts-helpers';
 
 export interface SignalREvents { }
 export interface SignalRCommands { }

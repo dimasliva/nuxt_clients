@@ -1,35 +1,39 @@
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, IApiRecordCompanyData } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
+import  RolesEntity from "./DataEntities/RolesEntity";
 import type { RecordsStore } from "./RecordsStore";
 
-export interface IRoleRecordData extends IApiRecordCompanyData {
-    roles: { [roleName: string]: string }
+export class RoleRecordData extends ApiRecordChData {
+    roles: RolesEntity=null!;
+
+    override fromJsonObj(obj: any) {
+        super.fromJsonObj(obj)
+        this.roles =  this._RecordStore.dataEntityFactory(RolesEntity, null,  obj.roles);
+    }
 }
 
-export class RolesRecord extends ApiRecord<IRoleRecordData>{
+export class RolesRecord extends ApiRecord<RoleRecordData>{
 
     static RightToken = "DbRoles";
     static RecCode = 1008;
 
-    constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, __UserContext, _RecStore, RolesRecord, Key);
+    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
+        super(_MoApiClient, _UserContext, _RecStore, RolesRecord, Key);
     }
 
 
     protected _createNewData() {
-        return {
-            id: this.Key,
-            roles: {}
-        };
+        return   this._RecStore.dataEntityFactory(RoleRecordData, this.Key);
     }
+    
 
     get RecCode() { return RolesRecord.RecCode; }
 
 
     protected async _loadData() {
-        const arr = await this._MoApiClient.send<string[], IRoleRecordData>(this._getApiRecordPathGet(), [this._Key]);
-        this._Data = new Proxy(arr, this._getProxyHanlders());
+        const arr = await this._MoApiClient.send<string[], any>(this._getApiRecordPathGet(), [this._Key]);
+        this._Data = new Proxy(<RoleRecordData>this._createDataFromLoaded(arr), this._getProxyHanlders());
         return this._Data;
     }
 

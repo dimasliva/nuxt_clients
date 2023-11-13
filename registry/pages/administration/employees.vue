@@ -43,18 +43,18 @@
 <script setup lang="ts">
 import { UserContext } from '~~/lib/UserContext';
 import Table from '~~/components/forms/Table.vue';
-import { IPageData, PageMap } from '~~/lib/PageMap';
+import { type IPageData, PageMap } from '~~/lib/PageMap';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
-import {EmployeeAccount} from '~~/lib/MoApi/Records/EmployeeAccount';
+//import {EmployeeAccount} from '~~/lib/MoApi/Records/EmployeeAccount';
 import EmplProfileDialog  from '~~/components/forms/EmplProfileDialog.vue';
 import ActionDialog  from '~~/components/forms/ActionDialog.vue';
-import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
-import { EmployeeRecord, IEmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
-import { RolesRecord, IRoleRecordData} from '~~/lib/MoApi/Records/RolesRecord';
-import { EmployeeContactsRecord, IEmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
+import { EmployeesViews, type IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
+import { EmployeeRecord, EmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
+import { RolesRecord, RoleRecordData} from '~~/lib/MoApi/Records/RolesRecord';
+import { EmployeeContactsRecord, EmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 
 let page = ref(1)
 let itemPerPage = ref<number>(10)
@@ -304,7 +304,7 @@ const updateData = () => {
 }
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, roles: string, phone?: string, mail?: string, id?:string, login?: string) => {
-  let rec = await recStore.createNew<EmployeeRecord, IEmployeeRecordData>(EmployeeRecord, (data) => {
+  let rec = await recStore.createNew<EmployeeRecord, EmployeeRecordData>(EmployeeRecord, (data) => {
     data.name = name;
     data.surname = surname;
     data.patronymic = patronymic;
@@ -316,11 +316,13 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
   await rec.save();
 
   if(login){
+    /*
   let emplAcc = await recStore.getOrCreate(EmployeeAccount, rec.Key);
   emplAcc.MData.login = login;
   emplAcc.MData.phone = phone!;
   emplAcc.MData.email = mail!;
   emplAcc.save();
+  */
   }
 
   let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);

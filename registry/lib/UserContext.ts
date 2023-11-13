@@ -1,10 +1,10 @@
-import { IAuthorityData, IUserCredentials } from "@/lib/Security";
+import type { IAuthorityData, IUserCredentials } from "@/lib/Security";
 import { injectable, inject } from "inversify";
-import { NuxtApp } from "nuxt/dist/app";
+import type { NuxtApp } from "nuxt/dist/app";
 import { Container } from "inversify";
 import type { MoApiClient } from "./MoApi/MoApiClient";
-import type { IEmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
-import { IRecordsRestricions } from "./MoApi/ApiInterfaces";
+import type { EmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
+import type { IRecordsRestricions } from "./MoApi/ApiInterfaces";
 import { EmployeeAppProfile } from "./EmployeeAppProfile";
 import { CompanyAppProfile } from "./CompanyAppProfile";
 
@@ -29,8 +29,8 @@ export class UserContext {
   private _userRights: any | null = null;
   public get UserRights(): any | null { return this._userRights; }
 
-  private _EmployeeData: IEmployeeRecordData | null = null;
-  public get EmployeeData(): IEmployeeRecordData | null { return this._EmployeeData; }
+  private _EmployeeData: EmployeeRecordData | null = null;
+  public get EmployeeData(): EmployeeRecordData | null { return this._EmployeeData; }
 
   private _RecordsRestricions: IRecordsRestricions | null = null;
   public get RecordsRestricions(): IRecordsRestricions | null { return this._RecordsRestricions; }
@@ -60,10 +60,10 @@ export class UserContext {
       let authorityData = await this._moApiClient.AuthorizeClient();
 
       //получение профилей
-      const appEmployeeContext:any=await this._moApiClient.send("/Employees/GetAppEmployeeContext");
+      const appEmployeeContext: any = await this._moApiClient.send("/Employees/GetAppEmployeeContext");
       this._EmployeeData = appEmployeeContext.employee;
-      this._EmployeeAppProfile =  new EmployeeAppProfile(this._moApiClient, appEmployeeContext.employeeAppProfile),
-      this._CompanyProfile = new CompanyAppProfile(this._moApiClient, appEmployeeContext.companyAppProfile);
+      this._EmployeeAppProfile = new EmployeeAppProfile(this._moApiClient, appEmployeeContext.employeeAppProfile),
+        this._CompanyProfile = new CompanyAppProfile(this._moApiClient, appEmployeeContext.companyAppProfile);
       this._CompanyLicense = appEmployeeContext.companyLicenseData;
       this._userRights = appEmployeeContext.userRecordsRights;
       this._RecordsRestricions = appEmployeeContext.recordRestrictions;

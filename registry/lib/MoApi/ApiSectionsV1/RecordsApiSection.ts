@@ -1,4 +1,4 @@
-import { IRecordsData } from "../ApiInterfaces";
+import type { IRecordsData } from "../ApiInterfaces";
 import type { MoApiClient } from "../MoApiClient";
 
 export class RecordsApiSection {

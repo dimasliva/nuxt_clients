@@ -1,6 +1,6 @@
 //import { getCurrentInstance, onBeforeUnmount } from 'vue';
 import { resolveMethodName } from './Mapping';
-import {
+import type{
     SignalRCommandKey,
     SignalRCommandPayload,
     SignalREventKey,

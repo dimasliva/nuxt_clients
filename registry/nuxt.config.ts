@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 // nuxt.config.ts
 import { defineNuxtConfig } from "nuxt/config"
-import { Nitro } from "nitropack/types";
+import type { Nitro } from "nitropack/types";
 import { createResolver } from '@nuxt/kit'
 import vuetify from 'vite-plugin-vuetify'
 
@@ -42,7 +42,6 @@ export default defineNuxtConfig({
           }
         }
     }
-    
   },
 
   "ssr": false,
@@ -63,6 +62,7 @@ export default defineNuxtConfig({
       )
     }
   },
+
   proxy: {
     enableProxy:true,
     proxies: {
@@ -98,5 +98,6 @@ export default defineNuxtConfig({
       }
     }
   }
+
 
 });

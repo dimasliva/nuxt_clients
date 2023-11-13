@@ -206,7 +206,7 @@ const onViewChange = ({ view }) => {
       })
 
       cells.forEach(day => {if(day.className.includes('out-of-scope')) {day.classList.remove('vuecal__cell--out-of-scope')}})
-    }, 600)
+    }, 400)
   }
 }
 

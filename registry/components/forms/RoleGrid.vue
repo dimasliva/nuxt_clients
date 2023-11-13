@@ -76,6 +76,7 @@ let props = defineProps({
     rightsSet: Object,
     creatingRight: Boolean
 })
+
 let updRight = ref(props.userRights?.includes('u'))
 let nameRole = ref(props.roleName)
 let cruds = ref<any>(props.roleName == 'admin'?{'#AllRecords' : props.rightsSet!['#AllRecords']} : props.rightsSet)
@@ -137,7 +138,7 @@ const updateOrCreateRights = async() => {
     objTransform();
     upd.value = false;
     let roleRec = await recStore.getOrCreate(RolesRecord, '');
-    roleRec.MData.roles[props.roleName!] = role.value;
+    roleRec.MData.roles.setRole(props.roleName!, role.value);
     await roleRec.save();
     readingRights.value = true;
     upd.value = true;

@@ -8,10 +8,13 @@
             </v-row>
         </v-card-title>
         <v-card-text>
-            <v-row v-if="props.prices">
+            <v-row>
                 <v-col>
-                    <v-select @vue:updated="selectedCatalogs.length == catalogs.length? selectAllCatalogs=true : selectAllCatalogs = false" v-model="selectedCatalogs" multiple label="Выберите один или несколько прайс-листов для поиска" density="compact" :items="catalogs" item-title="title" item-value="id" variant="underlined"></v-select>
-                    <v-checkbox @update:model-value="searchAllCatalogs()" class="mb-2" density="compact" color="primary" hide-details label="Искать по всем прайс-листам" v-model="selectAllCatalogs"></v-checkbox>
+                    <v-row>
+                        <v-select v-if="props.prices" class="mx-4" chips closable-chips @vue:updated="selectedCatalogs.length == catalogs.length? selectAllCatalogs=true : selectAllCatalogs = false" v-model="selectedCatalogs" multiple label="Выберите один или несколько прайс-листов для поиска" :items="catalogs" item-title="title" item-value="id" variant="underlined"></v-select>
+                        <!-- <VTextField v-model="itemPerPage" class="mx-4" label="Количество элементов на странице"  min="5" max="100" step="5" variant="underlined" color="secondary" type="number" @input="itemPerPage > 5? true : itemPerPage = 5 "></VTextField> -->
+                    </v-row>
+                    <v-checkbox v-if="props.prices" @update:model-value="searchAllCatalogs()" class="mb-2" density="compact" color="primary" hide-details label="Искать по всем прайс-листам" v-model="selectAllCatalogs"></v-checkbox>
                 </v-col>
             </v-row>
             <v-text-field @input="autoReq()" clearable v-model="searchValue" label="Поиск" :placeholder="props.text_field" variant="underlined" density="compact" append-inner-icon="mdi-magnify" :disabled="!selectedCatalogs"></v-text-field>
@@ -28,21 +31,24 @@
                 </v-card>
             </v-row>
             <template v-if="listDone">
-                    <v-row v-for="item in items">
-                        <v-list lines="one" density="compact" class="ma-0 pa-0">
-                            <v-list-item density="compact" class="py-0 my-0" :value="item" :active="false" @click="selectedItems.push(item)">
-                                <v-list-item-title v-if="props.prices">
-                                    {{ item.title + ' ' + '(' + item.catalogTitle + ',' + item.sectionTitle + ')' }}
-                                </v-list-item-title>
-                                <v-list-item-title v-else>
-                                    {{item.surname+' '+item.name+' '+item.patronymic}}
-                                </v-list-item-title>
-                            </v-list-item>
-                        </v-list>    
+                    <v-row>
+                        <v-card class="overflow-y-auto w-100" height="300" flat>
+                            <v-list lines="one" density="compact" class="ma-0 pa-0 ">
+                                <v-list-item v-for="item in items" density="compact" class="py-0 my-0" :value="item" :active="false" @click="selectedItems.push(item)">
+                                    <v-list-item-title v-if="props.prices">
+                                        {{ item.title + ' ' + '(' + item.catalogTitle + ',' + item.sectionTitle + ')' }}
+                                    </v-list-item-title>
+                                    <v-list-item-title v-else>
+                                        {{item.surname+' '+item.name+' '+item.patronymic}}
+                                    </v-list-item-title>
+                                </v-list-item>
+                            </v-list>    
+                        </v-card>
                     </v-row>
             </template>
-            <v-divider v-if="listDone" :thickness="3" class="my-10"></v-divider>
-            <v-combobox chips closable-chips v-if="listDone||selectedItems.length" v-model="selectedItems" readonly label="Вы выбрали" item-title="title" multiple variant="underlined" density="compact" :items="selectedItems"></v-combobox>
+            <v-divider v-if="listDone" :thickness="3" class="mb-10 mt-3"></v-divider>
+            <v-select hide-details chips closable-chips v-if="listDone||selectedItems.length" v-model="selectedItems" readonly label="Вы выбрали" item-title="title"
+             multiple variant="underlined" density="compact" :items="selectedItems"></v-select>
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
@@ -87,6 +93,7 @@ const catalogCookie = useCookie(
     }   
 );
 let selectedCatalogs: any = ref(catalogCookie? catalogCookie : (catalogs.value.length > 1? [] : catalogs.value[0]))
+let itemPerPage = ref(20)
 
 const clearFunc = () => {
     items.value = []
@@ -116,7 +123,7 @@ const getProductsListView = async () => {
     clearFunc();
     loading.value = true;
     let res = await props.reqAction(searchValue.value, selectedCatalogs.value);
-    console.log(res)
+
     if(res.length) {
         items.value = res;
         notFound.value = false;

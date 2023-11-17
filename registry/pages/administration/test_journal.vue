@@ -1,10 +1,13 @@
 <template>
     <v-row style="height: 75vh; overflow-y: auto;" class="ma-1 flex-nowrap">
-        <vue-cal
+        <wt
           :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)" :on-event-click="currView === 'month'? openCurrDay : editEvent" :cell-click-hold="false"
           :time-to="21 * 60"  :snap-to-time="5"  :time-step="30" ref="vuecal" class="rounded" v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
           :editable-events="{ title: false, drag: true, resize: true, delete: true, create: true }" :events="currView === 'month'? monthView : events" :split-days="employeesArr" :sticky-split-labels="true" 
-          events-on-month-view="true" :disable-views="[ 'year', 'week','years']" :drag-to-create-event="false" :time-from="6 * 60" @view-change="onViewChange" :min-date="new Date()">
+          events-on-month-view="true" :disable-views="[ 'week','years']" :drag-to-create-event="false" :time-from="6 * 60" @view-change="onViewChange" :min-date="new Date()">
+          <template #title="{title, view }">
+            <span v-if="view.id === 'month'">{{ view.firstCellDate.format('DD.MM.YYYY') }}-{{ view.lastCellDate.format('DD.MM.YYYY')}}</span>
+          </template>
           <template v-if="currView === 'month'" #event="{ event }">
             <div class="vuecal__event-title">{{ event.title }}</div>
             <v-menu activator="parent" location="end" :close-on-content-click="false">
@@ -16,7 +19,7 @@
               </v-card>
             </v-menu>
           </template> 
-        </vue-cal>
+        </wt>
         <v-expand-x-transition>
           <VCard v-show="drawer" class="mb-auto mx-1" max-width="20vw">
             <VForm>
@@ -27,10 +30,10 @@
                 variant="underlined"></v-combobox>
 
                 <v-combobox chips closable-chips readonly multiple v-model="products" density="compact" label="Услуга" :items="productsArr"  variant="underlined"
-                @click="schedulerItemGroup || employees? false : openDialog(SearchProductDilaog, {title: 'Поиск позиции', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action: setProds})"></v-combobox>
+                @click="schedulerItemGroup || employees? false : openDialog(SearchProductDilaog, {title: 'Поиск товаров и услуг', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action: setProds})"></v-combobox>
                 
-                <v-combobox chips closable-chips readonly multiple v-model="employees" density="compact" label="Сотрудник" :items="employeesArr" item-title="title" item-value="id" variant="underlined" 
-                @click="schedulerItemGroup || products? false : openDialog(SearchProductDilaog, {title: 'Поиск сотрудника', text_field: 'Иванов Иван Иванович', reqAction: searchEmployee, prices: false, action: setEmployees})"></v-combobox>
+                <v-combobox chips closable-chips  multiple v-model="employees" density="compact" label="Сотрудник" :items="employeesArr" item-title="title" item-value="id" variant="underlined"
+                @click="schedulerItemGroup || products? false : openDialog(SearchProductDilaog, {title: 'Поиск сотрудника', text_field: 'Иванов Иван Иванович', reqAction: searchEmployee, prices: false, action: setEmployees})" ></v-combobox>
                 
                 <v-combobox v-model="division" density="compact" label="Филиал" :items="divisions" item-title="label" item-value="id" variant="underlined"></v-combobox>
                 
@@ -50,25 +53,20 @@ import SearchProductDilaog from '~/components/forms/SearchProductDilaog.vue';
 import EventDialog from '~~/components/forms/EventDialog.vue';
 import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css';
-import { IPageData, PageMap } from '~~/lib/PageMap';
+import wt from '~~/components/customMonthView/vue-cal-m';
+import type { IPageData, PageMap } from '~~/lib/PageMap';
 import { QueryParams, QueryProductFtsList } from '~~/lib/MoApi/RequestArgs';
-import { ProductFtsViews, IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
-import { EmployeesViews, IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
+import { ProductFtsViews, type IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
+import { EmployeesViews, type IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
-let specialHours = ref({7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', label: ''}})
+let specialHours = ref({7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: ''}})
 
 let divisions = ref([])
 
 let monthView = ref([])
 
 let events = []
-// let employees = ref([
-//     { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", label: "Бобров А.В.",},
-//     { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", label: "Александров Б.Ю.",},
-//     { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", label: "Рязанцев М.В.", },
-//     { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", label: "Арсеньтьев Н.В.", }
-// ])
 
 let status = ref([
   {icon: 'mdi-account', title: 'Контакт'},
@@ -78,16 +76,22 @@ let status = ref([
 ])
 //__________________________^^^ Статичные данные, удалить при работе с API ^^^
 
-
 const iocc=useContainer();
 const pageMap = iocc.get<PageMap>("PageMap");
 let currView = ref('day');
 
+let titleOnMonth = ref()
 let vuecal = ref<any>(null);
 let products = ref()
 let productsArr = ref([])
 let employees = ref()
 let employeesArr = ref<any>([])
+// employeesArr = ref([
+//     { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.",},
+//     { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Александров Б.Ю.",},
+//     { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", title: "Рязанцев М.В.", },
+//     { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Арсеньтьев Н.В.", }
+// ])
 let quantum = ref(60)
 let currEvent = ref<any>(null)
 let division = ref<any>()
@@ -134,6 +138,8 @@ const closeCurrDay = () => {
   console.log('here i am closed')
 
 }
+
+
 
 const searchEmployee = async(txt) => {
   let reqStr = '';
@@ -192,21 +198,24 @@ const clearFilters = () => {
 
 const onViewChange = ({ view }) => {
   if (view === 'month') {
-
+    let cells: any = []
+    // let today = new Date()
+    // let weekDay = today.getDay()
     setTimeout(() => {
-      let cells: any = []
       cells = Array.from(document.querySelectorAll('.vuecal__cell'))
 
-      cells.map((day, ind) => {
-        if((day.className.includes('before-min'))&&(ind<7)){
-          day.style.display = 'none'
-        } else {
-          day.style.display = 'block'
+      // cells.forEach((day: any) => {
+      //   if (day.className.includes('before-min')) {
+      //     day.classList.remove('vuecal__cell--before-min').remove('vuecal__cell--disabled')
+      //   }
+      // })
+
+      cells.forEach((day: any) => {
+        if (day.className.includes('out-of-scope')) {
+          day.classList.remove('vuecal__cell--out-of-scope')
         }
       })
-
-      cells.forEach(day => {if(day.className.includes('out-of-scope')) {day.classList.remove('vuecal__cell--out-of-scope')}})
-    }, 400)
+    }, 200)
   }
 }
 
@@ -221,7 +230,11 @@ pageMap.setPageData("/administration/test_journal", pageMapData);
 defineExpose({eventsHandler});
 
 </script>
-<style>
+<style >
+.vuecal__title-bar{
+  background-color: transparent;
+  justify-content: center;
+}
 .not_working_hours{
   background-color:#929090;
 }
@@ -240,6 +253,7 @@ defineExpose({eventsHandler});
 .book {background-color: rgba(152, 185, 247, 0.5);}
 .delivered {background-color: #fff;}
 
+.vuecal__cell--before-min{color:#00000040}
 
 .vuecal--month-view .vuecal__cell-content {
   justify-content: flex-start;
@@ -248,8 +262,8 @@ defineExpose({eventsHandler});
 }
 .vuecal--month-view .vuecal__cell-date {padding: 4px;}
 .vuecal--month-view .vuecal__no-event {display: none;}
-/* .vuecal--month-view .vuecal__event {
-  width: 30%;
-  display: inline-block;
-} */
+.vuecal__cell--disabled {
+    color: #00000040;
+    cursor: pointer;
+}
 </style>

@@ -71,7 +71,7 @@ const getProductCatalogSection = async () => {
 pageMap.setPageData("/list/price_list", pageMapData);
 </script>
 
-<style>
+<style scoped>
 .v-expansion-panel-text__wrapper{
   padding: 0;
 }

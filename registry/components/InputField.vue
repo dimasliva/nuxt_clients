@@ -53,8 +53,8 @@
 
     <!--Дата-->
     <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal" :readonly="readonly"
-        :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd" :locale="locale"
-        auto-apply keep-action-row :min-date="constraints?.min" :max-date="constraints?.max"
+        :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd"
+        :locale="locale" auto-apply keep-action-row :min-date="constraints?.min" :max-date="constraints?.max"
         :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }" now-button-label="Сегодня"
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }">
 
@@ -75,12 +75,18 @@
     <!--Выпадаюший список-->
     <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="CurrModelVal"
         :single-line="!(label || required)" density="compact" hide-details :readonly="readonly" :label="label || ''"
-        :items="items" variant="underlined" :rules="SingleStrSelectRules"
-        @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }" :menuProps="{ scrollStrategy: 'close' }">
+        :items="items" :item-props="itemProps" variant="underlined" :rules="SingleStrSelectRules"
+        @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }"
+        :menuProps="{ scrollStrategy: 'close', maxWidth: 0 }">
         <template v-slot:label>
             <span v-if="label || required">
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
+        </template>
+        <template #item="{ item, props }">
+            <v-list-item v-bind="props" :title="undefined">
+                <v-list-item-title class="text-wrap">{{ item.title }}</v-list-item-title>
+            </v-list-item>
         </template>
     </v-select>
 
@@ -88,7 +94,8 @@
     <!--Выпадаюший список с множественным выбором-->
     <v-select width="300px" v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs"
         v-model="CurrModelVal" multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items"
-        variant="solo" :rules="MultipleStrSelectRules" @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
+        :item-props="itemProps" variant="solo" :rules="MultipleStrSelectRules"
+        @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
         @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
@@ -124,7 +131,7 @@
     <!--чекбокс-->
     <v-checkbox v-if="type == EDataType.bool && visible" ref="refField" v-bind="$attrs" :model-value="CurrModelVal"
         :readonly="readonly" hide-details :label="<any>label"
-        @update:model-value="(val) => {CurrModelVal = val; onValChanged();}">
+        @update:model-value="(val) => { CurrModelVal = val; onValChanged(); }">
     </v-checkbox>
 </template>
 
@@ -157,6 +164,7 @@ interface IProps {
     maska?: any;
     modelValue?: any | null;
     items?: any | null;
+    itemProps?: any | null;
     required?: boolean;
     label?: string | null;
     rules?: any[] | null;

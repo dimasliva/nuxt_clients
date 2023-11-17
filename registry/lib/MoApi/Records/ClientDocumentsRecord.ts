@@ -1,14 +1,16 @@
+import { RUSSIAN_PASSPORT } from "~/lib/Dicts/DictPersonalDocumentsConst";
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
+import PersonalDocumentEntity from "./DataEntities/PersonalDocumentEntity";
 
 
 
 export class ClientDocumentsRecordData extends ApiRecordChData {
     snils?: string | null = null;
-    mainDocument?: number | null = null;
+    mainDocument?: number | null = RUSSIAN_PASSPORT;
     mainDocumentSeries?: string | null = null;
     mainDocumentNumber?: string | null = null;
     mainDocumentWhen?: string | null = null;
@@ -22,8 +24,14 @@ export class ClientDocumentsRecordData extends ApiRecordChData {
     dmsSeries?: string | null = null;
     dmsNumber?: string | null = null;
     dmsInsuranceCompany?: string | null = null;
-    otherDocuments?: any | null = null;
+    otherDocuments?: PersonalDocumentEntity[] | null = null;
     advData?: any | null = null;
+
+
+    override fromJsonObj(obj: any) {
+        super.fromJsonObj(obj)
+        this.otherDocuments = obj.otherDocuments ? obj.otherDocuments.map(item => this.__RecordStore.dataEntityFactory(PersonalDocumentEntity, null, item)) : null;
+    }
 }
 
 

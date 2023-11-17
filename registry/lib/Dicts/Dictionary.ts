@@ -16,6 +16,8 @@ interface IDictIdArg {
 export class Dictionary {
 
     static readonly DICT_SECTION_MASK = 0x7FF00000;
+    static readonly DICT_SECTION_K= 0x00100000;
+    static readonly DICT_USER_SECTION= 0x70000000;
 
     _title?: string | null = null;
     _description?: string | null;
@@ -34,7 +36,7 @@ export class Dictionary {
     static itemsToValueTitle(items: { [code: string]: IDictItemValueView }, valnum = 0) {
         let res: { value: number, title: string }[] = [];
         for (let code in items) {
-            res.push({ value: parseInt(code,10), title: valnum ? items[code].value2 : items[code].value })
+            res.push({ value: parseInt(code, 10), title: valnum ? items[code].value2 : items[code].value })
         }
         return res;
     }
@@ -117,11 +119,12 @@ export class Dictionary {
 
 
 
-    async getValByCode(code: string | number): Promise<string> {
-        var val = (await this.getItemByCode(code))?.value;
-        if (val == null || val == void 0)
+    async getValByCode(code: string | number, valnum: number = 0): Promise<string | undefined> {
+        var item = (await this.getItemByCode(code));
+        if (!item)
             Exception.throw("ValueNotFoundInDict", `Значение с кодом  ${code}  не найдено в словаре ${this.id}`);
-        return val!;
+
+        return valnum ? item?.value2 : item?.value;
     }
 
 

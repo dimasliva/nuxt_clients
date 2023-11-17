@@ -16,6 +16,8 @@ export abstract class ApiRecordData extends DataEntity {
 
     constructor(protected __MoApiClient: MoApiClient, protected __UserContext: UserContext, __RecordStore: RecordsStore) {
         super(__MoApiClient, __UserContext, __RecordStore);
+        Object.defineProperty(this, "__MoApiClient", {enumerable:false});
+        Object.defineProperty(this, "__UserContext", {enumerable:false});
     }
 
 

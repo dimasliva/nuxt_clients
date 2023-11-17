@@ -4,10 +4,11 @@ import { EDictionaries } from "../../../Dicts/DictionaryStore";
 import { MoApiClient } from "../../MoApiClient";
 import { DataEntity } from "./DataEntity";
 import { RecordsStore } from "../RecordsStore";
+import { RUSSIA } from "~/lib/Dicts/DictCountriesConst";
 
 export default class AddressEntity extends DataEntity {
 
-    country: number = 185;          //dict Countries
+    country: number = RUSSIA;          //dict Countries
     /**Республика,область,край */
     region?: string | null;         //dict REGIONS
     regionCode?: number | null;     //dict REGIONS
@@ -31,6 +32,7 @@ export default class AddressEntity extends DataEntity {
 
     constructor(protected __MoApiClient: MoApiClient, __UserContext: UserContext, __RecordStore: RecordsStore) {
         super(__MoApiClient, __UserContext, __RecordStore);
+        Object.defineProperty(this, "__MoApiClient", { enumerable: false });
     }
 
 
@@ -52,7 +54,7 @@ export default class AddressEntity extends DataEntity {
             var regDict = await this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Regions);
             var val = await regDict.getValByCode(code);
             this.regionCode = code;
-            this.region = val;
+            this.region = null;
         }
         else {
             this.regionCode = null;
@@ -62,8 +64,12 @@ export default class AddressEntity extends DataEntity {
 
 
 
-    getRegionTitle() {
-        return this.region;
+    async getRegionTitle() {
+        if (this.region)
+            return this.region;
+
+        var regDict = await this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.Regions);
+        return await regDict.getValByCode(this.regionCode!);
     }
 
 
@@ -177,7 +183,7 @@ export default class AddressEntity extends DataEntity {
 
 
     reset() {
-        this.country = 185;
+        this.country = RUSSIA;
         this.region = null;
         this.regionCode = null;
         this.district = null;

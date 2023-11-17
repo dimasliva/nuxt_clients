@@ -213,7 +213,7 @@ defineExpose({ eventsHandler });
 
 </script>
 
-<style>
+<style scoped>
 .v-expansion-panel-text__wrapper {
   padding: 0;
 }

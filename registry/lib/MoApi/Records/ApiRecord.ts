@@ -14,8 +14,8 @@ export abstract class ApiRecordData extends DataEntity {
 
     id: string | null = null;
 
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecordStore: RecordsStore) {
-        super(_MoApiClient, _UserContext, _RecordStore);
+    constructor(protected __MoApiClient: MoApiClient, protected __UserContext: UserContext, __RecordStore: RecordsStore) {
+        super(__MoApiClient, __UserContext, __RecordStore);
     }
 
 

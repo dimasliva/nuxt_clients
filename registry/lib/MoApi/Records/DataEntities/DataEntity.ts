@@ -6,7 +6,7 @@ import type { RecordsStore } from "../RecordsStore";
 export abstract class DataEntity {
 
 
-    constructor(_MoApiClient: MoApiClient, _UserContext: UserContext, protected _RecordStore: RecordsStore) { };
+    constructor(__MoApiClient: MoApiClient, __UserContext: UserContext, protected __RecordStore: RecordsStore) { };
 
     init(id: string | null, jsonObj: any | null) {
         if (jsonObj)
@@ -17,7 +17,7 @@ export abstract class DataEntity {
     getJsonObj() {
         let obj: any = {}
         for (let item in this)
-            if (!item.startsWith("_") && typeof item != "function") {
+            if (!item.startsWith("__") && typeof item != "function") {
                 let val = this[item];
                 if (val instanceof DataEntity)
                     obj[item] = val.getJsonObj();
@@ -69,7 +69,7 @@ export abstract class DataEntity {
 
 
     protected _getSelfNewInst() {
-        return this._RecordStore.dataEntityFactory((<any>this).constructor);
+        return this.__RecordStore.dataEntityFactory((<any>this).constructor);
     }
 }
 

@@ -107,7 +107,7 @@
 
         <v-expansion-panels>
           <v-expansion-panel elevation="0">
-            <v-expansion-panel-title class="text-subtitle-1">Адрес постоянной регистрации</v-expansion-panel-title>
+            <v-expansion-panel-title class="text-subtitle-1">Адрес фактического проживания</v-expansion-panel-title>
             <v-expansion-panel-text>
               <AddressInput :state="fieldsOptions"
                 :model-value="recAddr!.MData.mainAddress || recStore.dataEntityFactory(AddressEntity)"
@@ -118,9 +118,13 @@
 
         <v-expansion-panels>
           <v-expansion-panel elevation="0">
-            <v-expansion-panel-title class="text-subtitle-1">Адрес фактического проживания</v-expansion-panel-title>
+            <v-expansion-panel-title class="text-subtitle-1">Адрес постоянной регистрации</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+              <InputField :state="fieldsOptions" :type="EDataType.bool" label="Совпадает с фактическим"
+                v-model="recAddr!.MData.addressesEqual" hide-details></InputField>
+              <AddressInput v-if="!recAddr!.MData.addressesEqual" :state="fieldsOptions"
+                :model-value="recAddr!.MData.permanentRegistration || recStore.dataEntityFactory(AddressEntity)"
+                @update:model-value="(val) => recAddr!.MData.permanentRegistration = val" />
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -166,6 +170,7 @@ const foto = ref("");
 const gender = ref("");
 const isRecLock = ref();
 let readonly = ref(false);
+const isAddressesEqual = ref(true);
 
 const list = ref([]);
 const Int = ref(45.000);

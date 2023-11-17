@@ -16,8 +16,8 @@ export class ClientAddressesRecordData extends ApiRecordChData {
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
-        this.mainAddress = obj.mainAddress ? this._RecordStore.dataEntityFactory(AddressEntity, null, obj.mainAddress) : null;
-        this.permanentRegistration = obj.permanentRegistration ? this._RecordStore.dataEntityFactory(AddressEntity, null, obj.permanentRegistration) : null;
+        this.mainAddress = obj.mainAddress ? this.__RecordStore.dataEntityFactory(AddressEntity, null, obj.mainAddress) : null;
+        this.permanentRegistration = obj.permanentRegistration ? this.__RecordStore.dataEntityFactory(AddressEntity, null, obj.permanentRegistration) : null;
     }
 }
 

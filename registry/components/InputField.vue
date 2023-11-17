@@ -74,10 +74,11 @@
 
     <!--Выпадаюший список-->
     <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="CurrModelVal"
-        hide-details :readonly="readonly" :label="label || ''" :items="items" variant="solo" :rules="SingleStrSelectRules"
+        :single-line="!(label || required)" density="compact" hide-details :readonly="readonly" :label="label || ''"
+        :items="items" variant="underlined" :rules="SingleStrSelectRules"
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
-            <span>
+            <span v-if="label || required">
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
@@ -85,9 +86,9 @@
 
 
     <!--Выпадаюший список с множественным выбором-->
-    <v-select width="300px" v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items" variant="solo"
-        :rules="MultipleStrSelectRules" @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
+    <v-select width="300px" v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs"
+        v-model="CurrModelVal" multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items"
+        variant="solo" :rules="MultipleStrSelectRules" @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
         @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
@@ -119,6 +120,12 @@
             </span>
         </template>
     </v-text-field>
+
+    <!--чекбокс-->
+    <v-checkbox v-if="type == EDataType.bool && visible" ref="refField" v-bind="$attrs" :model-value="CurrModelVal"
+        :readonly="readonly" hide-details :label="<any>label"
+        @update:model-value="(val) => {CurrModelVal = val; onValChanged();}">
+    </v-checkbox>
 </template>
 
 

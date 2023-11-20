@@ -12,7 +12,6 @@ class de {
   constructor(t) {
     W(this, "_vuecal", null);
     W(this, "selectCell", (t = !1, i, n) => {
-        console.log(t, i, n)
       this._vuecal.$emit("cell-click", n ? { date: i, split: n } : i), this._vuecal.clickToNavigate || t ? this._vuecal.switchToNarrowerView() : this._vuecal.dblclickToNavigate && "ontouchstart" in window && (this._vuecal.domEvents.dblTapACell.taps++, setTimeout(() => this._vuecal.domEvents.dblTapACell.taps = 0, this._vuecal.domEvents.dblTapACell.timeout), this._vuecal.domEvents.dblTapACell.taps >= 2 && (this._vuecal.domEvents.dblTapACell.taps = 0, this._vuecal.switchToNarrowerView(), this._vuecal.$emit("cell-dblclick", n ? { date: i, split: n } : i)));
     });
     W(this, "keyPressEnterCell", (t, i) => {
@@ -318,7 +317,6 @@ const he = { class: "vuecal__flex vuecal__weekdays-headings" }, ce = ["onClick"]
 }, isSelected: { get() {
   let e = !1;
   const { selectedDate: t } = this.view;
-  console.log(e)
   return e = this.view.id === "years" ? t.getFullYear() === this.data.startDate.getFullYear() : this.view.id === "year" ? t.getFullYear() === this.data.startDate.getFullYear() && t.getMonth() === this.data.startDate.getMonth() : t.getTime() === this.data.startDate.getTime(), e;
 }, set(e) {
   this.view.selectedDate = e, this.vuecal.$emit("update:selected-date", this.view.selectedDate);
@@ -909,6 +907,7 @@ A valid view must be one of: ${ee.join(", ")}.`), e = "week"), this.enabledViews
         const r = e.addDays(o, d), u = new Date(r);
         u.setHours(23, 59, 59, 0);
         const m = !n && e.isToday(r) && !n++;
+        // вне диапазона месяца красит серым true или false
         return { startDate: r, formattedDate: e.formatDateLite(r), endDate: u, content: r.getDate(), today: m, outOfScope: r.getMonth() !== s, class: `vuecal__cell--day${r.getDay() || 7}` };
       }), (this.hideWeekends || this.hideWeekdays.length) && (t = t.filter((a) => {
         const d = a.startDate.getDay() || 7;

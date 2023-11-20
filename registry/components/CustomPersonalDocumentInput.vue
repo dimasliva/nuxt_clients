@@ -8,7 +8,7 @@
                         <InputField :type="EDataType.string" :state="state" label="Серия" :ref="cRefs['selected']"
                             :model-value="CurrModelVal!.getSerial()" ::maska="capLettersNumbersMask"
                             @update:model-value="async (val) => { CurrModelVal!.setSerial(val); onValChanged(); }"
-                            :constraints="{ max: 16 }"  @vnode-mounted="(f)=>{ nextTick(()=>cRefs['selected'].value.focus()) }" />
+                            :constraints="{ max: 16 }"  @vue:mounted="(f)=>{ nextTick(()=>cRefs['selected'].value.focus()) }" />
                     </v-col>
                     <v-col style="max-width:35%">
                         <InputField :state="state" :type="EDataType.string" label="Номер" :maska="capLettersNumbersMask"

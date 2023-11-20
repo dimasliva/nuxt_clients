@@ -5,7 +5,7 @@
             fixed-header height="72dvh" disable-pagination>
 
             <!-- настройка колонок-->
-            <template v-slot:column.actions="{ column }">
+            <template v-slot:header.actions="{ column }">
 
                 <v-menu :close-on-content-click="false">
 
@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { UserContext } from '~~/lib/UserContext';
-import { VDataTable, VDataTableRow } from 'vuetify/labs/VDataTable'
+import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
 

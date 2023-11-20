@@ -53,8 +53,8 @@
 
     <!--Дата-->
     <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal" :readonly="readonly"
-        :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd"
-        :locale="locale" auto-apply keep-action-row :min-date="constraints?.min" :max-date="constraints?.max"
+        :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd" :locale="locale"
+        auto-apply keep-action-row :min-date="constraints?.min" :max-date="constraints?.max"
         :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }" now-button-label="Сегодня"
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }">
 
@@ -478,6 +478,11 @@ const resetErr = (res: any) => {
     return res;
 }
 
+const focus = () => {
+    if (refField.value.focus)
+        refField.value.focus();
+}
+
 
 onMounted(() => {
 });
@@ -489,4 +494,8 @@ onUnmounted(() => {
     resetErr(false);
 })
 
+
+defineExpose({
+    focus
+})
 </script>

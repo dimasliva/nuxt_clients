@@ -354,7 +354,7 @@ const docsDescr = computedAsync(async () => {
 
   //другие документы
   res = res.concat(otherDocuments.map((item, inx) => {
-    let res= {
+    let res = {
       typeCode: item.modelValue.typeCode,
       modelValue: item.modelValue,
       opened: item.isNew,
@@ -367,13 +367,13 @@ const docsDescr = computedAsync(async () => {
         otherDocuments.splice(inx, 1);
       }
     }
-    item.isNew=null;
-    item.isFocused=null;
+    item.isNew = false;
+    item.isFocused = false;
 
     return res;
   }));
 
-  return res;
+  return res.reverse();
 });
 
 const onAddDoc = (typeCode) => {

@@ -1,14 +1,14 @@
 <template>
-    <v-expansion-panels :model-value="opened ? '1' : null">
+    <v-expansion-panels :model-value="panelOpened ? '1' : null" >
         <v-expansion-panel elevation="0" value="1">
             <v-expansion-panel-title class="text-subtitle-2">{{ docTitle }}</v-expansion-panel-title>
             <v-expansion-panel-text>
-                <v-row >
+                <v-row class="pt-3">
                     <v-col style="max-width:25%">
-                        <InputField :type="EDataType.string" :state="state" label="Серия" :focused="focused"
+                        <InputField :type="EDataType.string" :state="state" label="Серия" :ref="cRefs['selected']"
                             :model-value="CurrModelVal!.getSerial()" ::maska="capLettersNumbersMask"
                             @update:model-value="async (val) => { CurrModelVal!.setSerial(val); onValChanged(); }"
-                            :constraints="{ max: 16 }" />
+                            :constraints="{ max: 16 }"  @vnode-mounted="(f)=>{ nextTick(()=>cRefs['selected'].value.focus()) }" />
                     </v-col>
                     <v-col style="max-width:35%">
                         <InputField :state="state" :type="EDataType.string" label="Номер" :maska="capLettersNumbersMask"
@@ -34,6 +34,7 @@ import { Dictionary } from "~/lib/Dicts/Dictionary";
 import { setupBase } from "~/componentComposables/inputs/base"
 import type PersonalDocumentEntity from "~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity";
 import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
+import * as Helpers from '~~/lib/Helpers';
 
 
 const { t, locale } = useI18n();
@@ -78,6 +79,9 @@ const { OldModelVal, CurrModelVal, onKeydown, onValChanged } = setupBase<Persona
 
 const availablePersDocTypes = ref();
 const docTitle = ref("");
+let cRefs = {selected: ref()};
+let panelOpened=ref(props.opened);
+
 
 const capLettersNumbersMask = {
     mask: "a",
@@ -96,5 +100,14 @@ watch(props, async (rval: any) => {
 }, { immediate: true });
 
 
+
+
+onMounted(()=>{
+    nextTick(()=>{
+     //   debugger;
+   // cRefs.value.focus();
+    })
+
+});
 
 </script>

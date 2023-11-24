@@ -13,6 +13,7 @@ import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate } from '~/componentComposables/list/listTemplate';
 import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
+import { recognizeDataInString } from '~/lib/Utils';
 
 let t: any;
 
@@ -51,17 +52,22 @@ class ClientList extends ListTemplate<TClientFilterVals>
 
     actionsMenu: (item) => [
       { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbClient: "u" } },
-      { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key,  item.index) }, traits: { dbClient: "d" } },
+      { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key, item.index) }, traits: { dbClient: "d" } },
 
     ]
   });
 
-  async del(key:string, index){
-    let res=await useDelQU("Вы действительно хотите удалить запись клиента?");
-    if(res){
+  async del(key: string, index) {
+    let res = await useDelQU("Вы действительно хотите удалить запись клиента?");
+    if (res) {
       let rec = await this.recStore.fetch(ClientRecord, key);
 
     }
+  }
+
+  chkFioRule = (v: string) => {
+    let recdata = recognizeDataInString(v);
+    return (recdata.words.length == 0 && !v) || (recdata.words.length > 0 && recdata.words[0].length >= 2) || "Минимум 2 символа фамилии"
   }
 
   //Настрока формы фильтра
@@ -69,10 +75,10 @@ class ClientList extends ListTemplate<TClientFilterVals>
     fields: {
       fio: {
         type: "string",
-        title: "ФИО",
+        title: "ФИО, Дата рождения",
         hint: null,
-        rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
-        constraints: { min: 2, max: 384 },
+        rules: [(v: string) => this.chkFioRule(v)],
+        constraints: { min: 2, max: 384, check: (v)=> this.chkFioRule(v)==true },
       },
 
       email: {
@@ -111,22 +117,32 @@ class ClientList extends ListTemplate<TClientFilterVals>
   getWhereFromFilter = (filterVals: TClientFilterVals) => {
     let whereArr: string[] = [];
     let fioStr = Utils.normalizeFio(filterVals.fio);
+    let phone = '';
+    let email = '';
 
     if (fioStr) {
-      let fioArr = fioStr.split(' ');
+      let recdata = recognizeDataInString(fioStr);
+
+      let fioArr = recdata.words;
       fioArr[fioArr.length - 1] += '%';
       whereArr.push(`surname like '${fioArr[0]}'`);
       if (fioArr[1]) whereArr.push(`name like '${fioArr[1]}'`);
       if (fioArr[2]) whereArr.push(`patronymic like '${fioArr[2]}'`);
+
+      if (recdata.date)
+        whereArr.push(`birthdate= '${recdata.date.toISOString()}'`);
+
+
+      phone = recdata.phone || '';
+      email = recdata.email || '';
     }
 
-    let tmp = filterVals.phone?.trim();
+    let tmp = filterVals.phone?.trim() || phone;
     if (tmp) whereArr.push(`mainPhone='${tmp}'`);
-    tmp = filterVals.email?.trim();
+    tmp = filterVals.email?.trim() || email;
     if (tmp) whereArr.push(`mainEmail='${tmp}'`);
-    tmp = filterVals.snils?.trim();
+    tmp = filterVals.snils?.trim() || '';
     if (tmp) whereArr.push(`snils='${tmp}'`);
-
 
     if (whereArr.length == 0) return "";
     return whereArr.join(" and ");
@@ -191,8 +207,8 @@ export default {
     const o = new ClientList();
     o.setup();
 
-    const del =()=>{
-      
+    const del = () => {
+
     }
 
     expose({

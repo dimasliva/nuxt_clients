@@ -16,14 +16,6 @@ export class ClientDocumentsRecordData extends ApiRecordChData {
     mainDocumentWhen?: string | null = null;
     mainDocumentWho?: string | null = null;
     mainDocumentWhoCode?: string | null = null;
-    omsType?: number | null = null;
-    omsSeries?: string | null = null;
-    omsNumber?: string | null = null;
-    omsRegionCode?: number | null = null;
-    omsInsuranceCompany?: string | null = null;
-    dmsSeries?: string | null = null;
-    dmsNumber?: string | null = null;
-    dmsInsuranceCompany?: string | null = null;
     otherDocuments?: PersonalDocumentEntity[] | null = null;
     advData?: any | null = null;
 

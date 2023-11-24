@@ -13,7 +13,7 @@
 
 
     <!--Текст-->
-    <v-textarea v-if="type == EDataType.text && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+    <v-textarea v-if="type == EDataType.text && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal" rows="2"
         :clearable="!readonly" :label="<string>label" variant="solo" :readonly="readonly" :maxlength="constraints?.max"
         :rules="StringFieldRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>

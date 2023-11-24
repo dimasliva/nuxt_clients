@@ -22,6 +22,13 @@
                             @update:model-value="async (val) => { CurrModelVal!.setWhen(val); onValChanged(); }" />
                     </v-col>
                 </v-row>
+                <v-row >
+                    <v-col>
+                        <InputField :state="state" :type="EDataType.text" label="Комментарий" 
+                            :model-value="CurrModelVal!.getComment()" :constraints="{  max: 256 }"
+                            @update:model-value="async (val) => { CurrModelVal!.setComment(val); onValChanged(); }" />
+                    </v-col>
+                </v-row>
             </v-expansion-panel-text>
         </v-expansion-panel>
     </v-expansion-panels>

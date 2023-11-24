@@ -57,7 +57,7 @@
           </v-col>
         </v-row>
 
-        <v-expansion-panels model-value="1">
+        <v-expansion-panels model-value="1" class="mt-2">
           <v-expansion-panel elevation="0" value="1">
             <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
             <v-expansion-panel-text>
@@ -143,7 +143,8 @@
                     <v-btn v-bind="props" variant="text" size="small" prepend-icon="mdi-plus">Добавить</v-btn>
                   </template>
                   <v-list max-height="200" width="300" density="compact">
-                    <v-list-item v-for="item in persDocLists" :title="item.title" @click="() => onAddDoc(item.value)" />
+                    <v-list-item v-for="item in persDocLists" :title="item.title"
+                      @click="() => onAddDoc(fieldsOptions, item.value)" />
                   </v-list>
                 </v-menu>
               </v-row>
@@ -156,14 +157,15 @@
 -->
 
 
-              <v-row v-for="item in docsDescr">
+              <v-row v-for="item in docsDescr" :key="item.key">
 
                 <v-col sm-10 class="pt-0">
-                  <CustomPersonalDocumentInput :state="fieldsOptions" v-bind="item"
+                  <CustomPersonalDocumentInput :state="fieldsOptions" v-bind="<any>item"
                     @update:model-value="(val) => item.onChanged(val)" />
                 </v-col>
                 <v-col sm="2" class="d-flex align-center pl-0 pt-0">
-                  <v-btn icon="mdi-delete" variant="plain" size="small" @click="() => item.onDelete()"></v-btn>
+                  <v-btn icon="mdi-delete" variant="plain" size="small"
+                    @click="() => item.onDelete(fieldsOptions)"></v-btn>
                 </v-col>
               </v-row>
             </v-expansion-panel-text>
@@ -223,11 +225,13 @@ import AddressEntity from '~/lib/MoApi/Records/DataEntities/AddressEntity';
 import { Dictionary } from "~/lib/Dicts/Dictionary";
 import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
 import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
+import { getNextSerialKey } from '~/lib/Utils';
 
 const { t, locale } = useI18n();
 
 class VisWrap<T>{
   modelValue: T;
+  key: number = getNextSerialKey();
 
   constructor(data: T, public isNew: boolean, public isFocused = false) {
     this.modelValue = <T>reactive(data as object);
@@ -316,13 +320,8 @@ else {
 
 ///Документы
 
-//особые документы
-const specialDocuments = reactive<PersonalDocumentEntity[]>([]);
-
-
 //получаем  recDoc.value!.MData.otherDocuments как реактивную переменную
 const otherDocuments = reactive(VisWrap.fromArr(recDoc.value!.MData.otherDocuments) || []);
-
 
 
 // изменения otherDocuments автоматически отображаются в recDoc.value!.MData.otherDocuments
@@ -334,27 +333,10 @@ watch(otherDocuments, (val) => {
 
 const docsDescr = computedAsync(async () => {
 
-  var res: any[] = specialDocuments.map((item, inx) => {
-    if (item.typeCode == persDocDictConst.SNILS)
-      return {
-        typeCode: item.typeCode,
-        modelValue: item,
-
-        onChanged: (val) => {
-          recDoc.value!.MData.snils = val.number;
-        },
-
-        onDelete: () => {
-          recDoc.value!.MData.snils = null;
-          specialDocuments.splice(inx, 1);
-        }
-      }
-  });
-
-
   //другие документы
-  res = res.concat(otherDocuments.map((item, inx) => {
-    let res = {
+  let res = otherDocuments.map((item, inx) => {
+    let obj = {
+      key: item.key,
       typeCode: item.modelValue.typeCode,
       modelValue: item.modelValue,
       opened: item.isNew,
@@ -363,34 +345,26 @@ const docsDescr = computedAsync(async () => {
         item.modelValue.fromJsonObj(val.getJsonObj())
       },
 
-      onDelete: () => {
+      onDelete: (fieldsOptions) => {
+        fieldsOptions.changedCnt++;
         otherDocuments.splice(inx, 1);
       }
     }
     item.isNew = false;
     item.isFocused = false;
 
-    return res;
-  }));
+    return obj;
+  });
 
   return res.reverse();
 });
 
-const onAddDoc = (typeCode) => {
-  if (typeCode == persDocDictConst.SNILS)
-    specialDocuments.push(recStore.dataEntityFactory(PersonalDocumentEntity, null, {
-      typeCode: persDocDictConst.SNILS,
-      number: recDoc.value!.MData!.snils
-    }));
-  else
-    otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity, null, {
-      typeCode: typeCode
-    }), true, true));
+const onAddDoc = (fieldsOptions, typeCode) => {
+  fieldsOptions.changedCnt++;
+  otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity, null, {
+    typeCode: typeCode
+  }), true, true));
 }
-
-if (recDoc.value.MData!.snils)
-  onAddDoc(persDocDictConst.SNILS);
-
 
 
 

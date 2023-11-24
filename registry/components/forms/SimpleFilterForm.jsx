@@ -10,7 +10,7 @@ export default defineComponent({
 
     props: {
         filterSettings: {},
-        modelValue:{}
+        modelValue: {}
     },
 
 
@@ -49,7 +49,7 @@ export default defineComponent({
                     if (rules.max && value && value.length > rules.max)
                         return true;
                 }
-                 return Reflect.set(obj, prop, value);
+                return Reflect.set(obj, prop, value);
             }
         }
 
@@ -81,14 +81,18 @@ export default defineComponent({
 
             for (let settingsItem in filterFields) {
                 let constraints = filterFields[settingsItem].constraints;
+                let val = filterValues[settingsItem];
+
                 if (filterFields[settingsItem].type == "string") {
-                    let val = filterValues[settingsItem] || "";
                     if (val) {
                         isAllValsEmpty = false;
                         if (constraints.min && val.length < constraints.min)
                             return false;
                     }
                 }
+
+                if (val != null && constraints.check && !constraints.check(val))
+                    return false;
             }
             return !isAllValsEmpty;
         }
@@ -101,12 +105,12 @@ export default defineComponent({
                 case "onKeydown":
                     findDelay = 3;
                     autoFocus(d);
-                    if (d.key == 'Enter'){
+                    if (d.key == 'Enter') {
                         //обязательно! Иначе может перегружаться страница при нажатии Enter, если фокус был на поле ввода. 
                         //т.к. поля ввода находятся на form, а form посылает данные при нажатии на Enter
                         d.preventDefault()
                     }
-                   
+
                     if (d.key == 'Enter' && !isBtnFindDisabled.value) {
                         filterSettings.onFind(filterValues);
                     }

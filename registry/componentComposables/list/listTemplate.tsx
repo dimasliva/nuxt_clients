@@ -8,6 +8,7 @@ import * as vHelpers from '~~/libVis/Helpers';
 import { DataList } from "~/lib/DataList";
 import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
 import DataTable from "~/components/DataTable.vue";
+import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 
 
 let t: any;
@@ -26,6 +27,7 @@ export abstract class ListTemplate<TFilterVals> {
     pageSettings: any;
 
     abstract PAGE_PATH: string;
+    abstract PAGE_TITLE:string;
     abstract defPageSettings: any;
     abstract dataTableDescr: Ref<IDataTableDescription>;
     abstract filterFieldSetting: any;
@@ -56,7 +58,7 @@ export abstract class ListTemplate<TFilterVals> {
 
     setPageData() {
         let pageMapData: IPageData = reactive({
-            title: "Клиенты", icon: "",
+            title: this.PAGE_TITLE, icon: "",
             mainBtnBar: [
                 {
                     id: "update", title: t("update"), icon: "mdi-autorenew", disabled: false, color: "primary", bkgColor: "blue",
@@ -152,6 +154,18 @@ export abstract class ListTemplate<TFilterVals> {
             this.loadData();
         return true;
     }
+
+
+
+    protected async _onDelModel(qustr:string, type: Class<ApiRecord>, key:string, index) {
+        let res = await useDelQU(qustr);
+        if (res) {
+          let rec = await this.recStore.fetch(type, key);
+          rec.delete();
+          this.dataTableVars.value.rows.splice(index,1);
+        }
+      }
+
 
 
     getRequestFilterFields(tableHeaders: any[], selColumns?: string[]) {

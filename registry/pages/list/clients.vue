@@ -31,6 +31,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
 
   //Указание пути текущей страницы
   PAGE_PATH = "/list/clients";
+  PAGE_TITLE = "Клиенты";
 
   //Настройки по умолчанию
   defPageSettings = { tcols: ["fio", "bd", "mainPhone", "mainEmail"] };
@@ -58,11 +59,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
   });
 
   async del(key: string, index) {
-    let res = await useDelQU("Вы действительно хотите удалить запись клиента?");
-    if (res) {
-      let rec = await this.recStore.fetch(ClientRecord, key);
-
-    }
+    await this._onDelModel("Вы действительно хотите удалить запись клиента?",ClientRecord,key,index);
   }
 
   chkFioRule = (v: string) => {
@@ -78,7 +75,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
         title: "ФИО, Дата рождения",
         hint: null,
         rules: [(v: string) => this.chkFioRule(v)],
-        constraints: { min: 2, max: 384, check: (v)=> this.chkFioRule(v)==true },
+        constraints: { min: 2, max: 384, check: (v) => this.chkFioRule(v) == true },
       },
 
       email: {

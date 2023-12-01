@@ -16,8 +16,8 @@ export abstract class ApiRecordData extends DataEntity {
 
     constructor(protected __MoApiClient: MoApiClient, protected __UserContext: UserContext, __RecordStore: RecordsStore) {
         super(__MoApiClient, __UserContext, __RecordStore);
-        Object.defineProperty(this, "__MoApiClient", {enumerable:false});
-        Object.defineProperty(this, "__UserContext", {enumerable:false});
+        Object.defineProperty(this, "__MoApiClient", { enumerable: false });
+        Object.defineProperty(this, "__UserContext", { enumerable: false });
     }
 
 
@@ -123,6 +123,11 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData>{
     }
 
 
+    protected async _loadDataFromJson(jsonobj: any) {
+        this._Data = <T>new Proxy(this._createDataFromLoaded(jsonobj), this._getProxyHanlders());
+        return this._Data;
+    }
+
 
     protected async _loadOrCreateData() {
         const arr = await this._MoApiClient.send<string[], T[]>(this._getApiRecordPathGet(), [this._Key]);
@@ -157,6 +162,13 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData>{
 
     createAllData(): void {
         this._createNewAllData();
+    }
+
+
+
+    async loadAllDataFromJson(jsonobj: any) {
+        await this._loadDataFromJson(jsonobj);
+        this._isNewData = false;
     }
 
 

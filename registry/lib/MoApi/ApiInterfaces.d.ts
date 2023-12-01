@@ -4,6 +4,15 @@
     recCode:number;
  }
 
+ export interface 	IFullRecordIdT<T> {
+   key:string;
+   type: Class<T>;
+ }
+
+export interface 	IFullRecordId {
+   key:string;
+   code:number;
+}
 
  export interface 	IRelData {
     id:string;

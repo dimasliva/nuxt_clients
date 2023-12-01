@@ -1,160 +1,353 @@
 <template>
-  <v-card width="700">
-   <v-card-title class="mx-2">
-     <v-row class="pa-4">
-       <div class="text-h5 ma-2">{{ props.header }}</div>
-       <v-spacer></v-spacer>
-       <img class="mr-4 mt-2 bg-secondary rounded-circle" height="50" width="50" src="/doctor-test.jpg"/>
-       <v-icon @click="closeDialog(console.log())">mdi-close</v-icon>
-     </v-row>
-    </v-card-title>
-    <v-card-text>
-     <v-form  v-model="form" @submit.prevent="actionEmpl">
-      <v-container>
-        <v-row class="pa-6">
-          <v-col cols="12" sm="6">
-            <v-text-field label="Имя" clearable v-model="empName" v-maska:[fioOptions] :autofocus="updProf" :disabled="!updProf" required maxlength="128" variant="underlined" placeholder="Иван" density="compact" :rules="[(v: string) => !!v || $t('required')]" @input="empName = translit(empName).charAt(0).toUpperCase() + translit(empName).slice(1).toLowerCase()"></v-text-field>
+  <FormsEditWindowDialog title="Профиль сотрудника" :on-save="save" :on-close="close" :readonly="readonly">
+    <template #default="{ fieldsOptions }">
+      <v-card-text>
+        <v-row class="mt-1">
+          <v-col xs="3" sm="3">
+
+            <v-row class="mt-1 justify-start ">
+              <img class="bg-secondary" width="128" :src="foto" />
+
+              <!--Фото-->
+              <FilePicker @onFileSelect="(f) => { setPhoto(f); fieldsOptions.changedCnt++; }" text="Выбор фото"
+                variant="elevated" rounded color="primary"
+                accept="image/png,image/gif,image/jpeg,image/tga,image/tiff,image/bmp,image/pbm,image/webp">
+                <template #default="props">
+
+                  <v-menu>
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-if="!fieldsOptions.readonly" v-bind="props" icon="mdi-dots-vertical"
+                        variant="text"></v-btn>
+                    </template>
+
+                    <template v-slot:default="{ isActive }">
+                      <v-list @mouseleave="(e) => { isActive.value = false }">
+                        <v-list-item v-for="action in PhotoActionsMenu"
+                          @click-once="() => action.action(props, fieldsOptions)">
+                          <v-icon :icon="action.icon" size="x-small" />
+                          {{ action.title }}
+                        </v-list-item>
+                      </v-list>
+                    </template>
+                  </v-menu>
+                </template>
+              </FilePicker>
+            </v-row>
           </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field label="Фамилия" clearable v-model="empSurname" v-maska:[fioOptions] :disabled="!updProf" required maxlength="128" variant="underlined" placeholder="Иванов" density="compact" :rules="[(v: string) => !!v || $t('required')]" @input="empSurname = translit(empSurname).charAt(0).toUpperCase() + translit(empSurname).slice(1).toLowerCase()"></v-text-field>
+          <v-col xs="3" sm="4">
+            <!--Поля ФИО-->
+            <InputField v-bind="fioOptions" :state="fieldsOptions" label="Фамилия" v-model="rec!.MData.surname" required
+              placeholder="Иванов" />
+            <InputField v-bind="fioOptions" :state="fieldsOptions" label="Имя" placeholder="Иван" required
+              v-model="rec!.MData.name" />
+            <InputField v-bind="fioOptions" :state="fieldsOptions" bel="Отчество" v-model="rec!.MData.patronymic"
+              placeholder="Иванович" />
           </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field label="Отчество" clearable v-model="empPatronymic" v-maska:[fioOptions] :disabled="!updProf" maxlength="128" variant="underlined" placeholder="Иванович" density="compact" @input="empPatronymic = translit(empPatronymic).charAt(0).toUpperCase() + translit(empPatronymic).slice(1).toLowerCase()"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field v-model="empEmail" label="Email" :disabled="!updCont" placeholder="ivanov@mail.com" required maxlength="64" variant="underlined" density="compact" :rules="[(v: string) => !!v || $t('required'), (v: string) => (/.+@.+\..+/.test(v)) || $t('vemail')]"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field clearable v-model="empPhone" :disabled="!updCont" placeholder="+7(999) 999-99-99" v-maska:[phoneOptions] required maxlength="24" label="Телефон" variant="underlined" density="compact" :rules="[(v: string) => !!v || $t('required')]"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="6" v-if="crtEmpl&&adding">
-            <v-text-field label="Логин" :disabled="!addAccount" clearable v-model="empLogin" @click:control="empLogin = empEmail" :required="addAccount" maxlength="128" variant="underlined" placeholder="Ivan001" density="compact" :rules="addAccount?[(v: string) => !!v || $t('required')]: undefined"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <VueDatePicker v-model="empBirthdate" :enable-time-picker="false"  model-type="yyyy-MM-dd" locale="ru" auto-apply teleport-center>
-              <template #trigger>
-                <v-text-field v-model="empBirthdate" density="compact" type="date" :disabled="!updProf" variant="underlined" :rules="[(v: string) => !!v || $t('required')]" required clearable>
-                  <template v-slot:label>
-                    <span>
-                      {{ $t('emplBirthdate') }}
-                    </span>
-                  </template>
-                </v-text-field>
-              </template>
-            </VueDatePicker>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-select v-model="empGender" density="compact" label="Пол" :disabled="!updProf" :items="[{gender: 'м', val: 'm'}, {gender: 'ж', val: 'f'}]" item-title="gender" item-value="val" variant="underlined"></v-select>
-          </v-col>
-          <v-col v-if="specEmpl" cols="12" sm="6">
-            <v-select v-model="empRole" density="compact" label="Роль" :disabled="!updProf" :items="roles" variant="underlined" multiple></v-select>
+
+          <v-col sm="1"></v-col>
+
+          <v-col sm="3">
+            <!--Поле даты рождения-->
+            <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
+              :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
+
+            <!--Поле выбора пола-->
+            <InputField :state="fieldsOptions" :type="EDataType.strictstring" style=" max-width: 10dvh; height: 10px;"
+              label="Пол" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="gender" required />
           </v-col>
         </v-row>
-        <v-checkbox class="ml-4" v-if="adding" label="создать аккаунт" v-model="addAccount" color="primary"></v-checkbox>
-      </v-container>
-    </v-form>
-  </v-card-text>
-   <v-card-actions class="mr-4 mb-1">
-     <v-spacer></v-spacer>
-     <v-btn color="primary" variant="text" @click="closeDialog(console.log())">
-       {{ $t('close') }}
-     </v-btn>
-     <v-btn :disabled="!form" v-if="updProf" color="primary" @click="() => {actionEmpl()}" variant="text" type="submit">
-       {{ props.button }}
-     </v-btn>
-   </v-card-actions>
- </v-card>
- </template>
+
+        <v-expansion-panels model-value="1" class="mt-2">
+          <v-expansion-panel elevation="0" value="1">
+            <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <div class="mt-3" />
+              <v-row>
+                <v-col sm="6">
+                  <!--Основной телефон-->
+                  <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.phone"
+                    label="Основной телефон" v-model="recCont!.MData.mainPhone" />
+                </v-col>
+              </v-row>
+              <v-col sm="6">
+                <!--Email-->
+                <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.email" label="Электронная почта"
+                  v-model="recCont!.MData.mainEmail" />
+              </v-col>
+              <v-row>
+
+              </v-row>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <!--Документ, удостоверящий личность-->
+        <v-expansion-panels>
+          <v-expansion-panel elevation="0">
+            <v-expansion-panel-title class="text-subtitle-1">Документ, удостоверящий личность</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-row class="mt-3">
+                <v-col>
+                  <InputField :state="fieldsOptions" :type="EDataType.strictstring" label="Документ"
+                    :items="persIdentDocLists" :item-props="(item) => { return { lines: 'two' } }"
+                    v-model="recDoc!.MData.mainDocument" />
+                </v-col>
+              </v-row>
+
+              <v-row>
+                <v-col sm="2">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Серия" :maska="capLettersNumbersMask"
+                    v-model="recDoc!.MData.mainDocumentSeries" :constraints="{ max: 32 }" />
+                </v-col>
+                <v-col sm="3">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Номер" :maska="capLettersNumbersMask"
+                    v-model="recDoc!.MData.mainDocumentNumber" :constraints="{ max: 32 }" />
+                </v-col>
+
+                <v-col sm="3">
+                  <InputField :state="fieldsOptions" :type="EDataType.date" label="Дата выдачи"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWhen"
+                    :constraints="{ min: '1900-01-01', max: new Date() }" />
+                </v-col>
+
+                <v-col sm="3">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Код подразделения"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWhoCode"
+                    :constraints="{ max: 8 }" />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col sm="12">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Кем выдан"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWho" :constraints="{ max: 256 }" />
+                </v-col>
+              </v-row>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+      </v-card-text>
+    </template>
+  </FormsEditWindowDialog>>
+</template>
  
- <script setup lang="ts">
- import VueDatePicker from '@vuepic/vue-datepicker';
- import '@vuepic/vue-datepicker/dist/main.css'
- 
- interface Employee {
-   name: string;
-   surname: string;
-   patronymic: string;
-   mainPhone: string;
-   mainEmail: string;
-   id: string;
- }
+<script setup lang="ts">
+import '@vuepic/vue-datepicker/dist/main.css'
+import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import { PageMap } from '~/lib/PageMap';
+import { UserContext } from '~/lib/UserContext';
+import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord'
+import { useI18n } from "vue-i18n"
+import { EmployeeDocumentsRecord } from '~/lib/MoApi/Records/EmployeeDocumentsRecord';
+import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsRecord';
+import * as vHelpers from '~~/libVis/Helpers';
+import InputField from '~/components/InputField.vue';
+import AddressInput from '~/components/AddressInput.vue';
+import { EDataType } from '~/lib/globalTypes';
+import { MoApiClient } from '~/lib/MoApi/MoApiClient';
+import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
+import AddressEntity from '~/lib/MoApi/Records/DataEntities/AddressEntity';
+import { Dictionary } from "~/lib/Dicts/Dictionary";
+import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
+import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
+import { getNextSerialKey } from '~/lib/Utils';
 
- interface Rights {
-  empProfRights : string;
-  empContRights : string;
- }
+const { t, locale } = useI18n();
 
- interface ExtraInfo {
-   gender: string;
-   birthdate: any;
-   roles: string;
- }
- 
- interface Props {
-   rights: Rights;
-   empl: Employee;
-   extr: ExtraInfo;
-   action: (name: string, surname: string, patronymic: string, gender: string, birthdate: string, roles: string, mainPhone: string, mainEmail: string, id: string, login?: string) => void;
-   header: string;
-   button: string;
-   adding: boolean;
-   compRoles: Array<string>
- }
- const props = defineProps<Props> ()
+class VisWrap<T>{
+  modelValue: T;
+  key: number = getNextSerialKey();
 
-const phoneOptions = {
-  mask: "+7(###) ###-##-##"
-}
+  constructor(data: T, public isNew: boolean, public isFocused = false) {
+    this.modelValue = <T>reactive(data as object);
+  };
 
-const fioOptions = {
-  mask: "Aa",
-  tokens: {
-    A:{pattern: /[A-я;,.']/},
-    a:{pattern: /[a-я;,.']/, multiple: true}
+  static fromArr<T>(arr: T[] | null | undefined) {
+    if (!arr)
+      return null;
+    return arr.map((item) => new VisWrap(item, false));
+  }
+
+  static toArr<T>(arr: VisWrap<T>[] | null | undefined) {
+    if (!arr)
+      return null;
+
+    return arr.map((item) => item.modelValue);
   }
 }
 
-let addAccount = ref(props.adding? false : true)
-let form = ref(false)
-let show = ref(false)
-let empName = ref(props.empl.name)
-let empSurname = ref(props.empl.surname)
-let empPatronymic = ref(props.empl.patronymic)
-let empPhone = ref(props.empl.mainPhone)
-let empBirthdate = ref(props.extr.birthdate? props.extr.birthdate.slice(0, 10) : props.extr.birthdate)
-let empEmail = ref(props.empl.mainEmail)
-let empId = ref(props.empl.id)
-let empLogin = ref<any>(props.adding?'':null)
-let empGender = ref(props.extr.gender)
-let empRole = ref<any>(typeof props.extr.roles == 'string'?props.extr.roles.split(','):props.extr.roles)
-let updProf = ref(props.rights.empProfRights.includes('u'))
-let updCont = ref(props.rights.empContRights.includes('u'))
-let crtEmpl = ref(props.rights.empContRights.includes('c') && props.rights.empProfRights.includes('c'))
-let specEmpl = ref(props.rights.empContRights.includes('s') && props.rights.empProfRights.includes('s'))
-
-let roles = ref(props.compRoles)
-
-let translit = (word) => {
-   const converter = {
-     'a': 'ф', 'b': 'и', 'v': 'м', 'g': 'п', 'd': 'в',
-     'e': 'у', 'z': 'я', 'i': 'ш', 'y': 'н', 'k': 'л',
-     'l': 'д', 'm': 'ь', 'n': 'т', 'o': 'щ', 'p': 'з',
-     'r': 'к', 's': 'ы', 't': 'е', 'u': 'г', 'f': 'а',
-     'h': 'р', 'c': 'с', 'j': 'о', 'w': 'ц', ';': 'ж',
-     "'": 'э', ',': 'б', "x": "ч", 'q': 'й', '.': 'ю'
-   };
- 
-   for (const [key, value] of Object.entries(converter)) {
-     word = word.replaceAll(key, value);
-   }
- 
-   return word;
+interface IProps {
+  recKey: string | null
 }
 
- 
-const actionEmpl = () =>{
-props.action(empName.value, empSurname.value, empPatronymic.value, empGender.value, new Date(empBirthdate.value).toISOString(), empRole.value.toString(), 
-empPhone.value.replace(/[+() --]/g, '').trim(), empEmail.value, empId.value, empLogin.value);
-closeDialog;
+const props = defineProps<IProps>();
+
+const iocc = useContainer();
+const recStore = iocc.get(RecordsStore);
+const foto = ref("");
+const gender = ref("");
+const isRecLock = ref();
+let readonly = ref(false);
+
+let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
+let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
+const persIdentDocLists = ref(Dictionary.itemsToValueTitle((await dictPersDocs.getItems(0))!));
+const persDocLists = ref(Dictionary.itemsToValueTitle(
+  Object.assign((await dictPersDocs.getItems(1 * Dictionary.DICT_SECTION_K))!, await dictPersDocs.getItems(Dictionary.DICT_USER_SECTION))));
+
+
+const capWordMask = {
+  mask: "Aa",
+  tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я,0-9]/, multiple: true } }
 }
- </script>
+
+const capLettersNumbersMask = {
+  mask: "a",
+  tokens: { a: { pattern: /[A-z,А-я,0-9]/, multiple: true } }
+}
+
+
+
+const fioOptions = reactive({
+  class: "mb-1",
+  type: EDataType.string,
+  constraints: { max: 128, min: 2 },
+  maska: capWordMask
+});
+
+
+const PhotoActionsMenu = [
+  { id: "1", title: "Выбрать фото", icon: "mdi-pencil", disabled: false, action: (props, fieldsOptions) => props.openFileDialog(), traits: { dbEmployee: "u" } },
+  { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: (props, fieldsOptions) => delPhoto(fieldsOptions), traits: { dbEmployee: "d" } },
+]
+
+let rec = ref<EmployeeRecord>();
+let recDoc = ref<EmployeeDocumentsRecord>();
+let recCont = ref<EmployeeContactsRecord>();
+
+
+if (props.recKey) {
+  let recs = await recStore.getRecordsM([
+    { id: { key: props.recKey, type: EmployeeRecord } },
+    { id: { key: props.recKey, type: EmployeeDocumentsRecord }, optional: true },
+    { id: { key: props.recKey, type: EmployeeContactsRecord }, optional: true }
+  ]);
+
+  rec.value = recs[0] as EmployeeRecord;
+  recDoc.value = recs[1] as EmployeeDocumentsRecord;
+  recCont.value = recs[2] as EmployeeContactsRecord;
+}
+else {
+  rec.value = await recStore.createNew(EmployeeRecord, (data) => { });
+  recDoc.value = await recStore.createNew(EmployeeDocumentsRecord, (data) => { });
+  recCont.value = await recStore.createNew(EmployeeContactsRecord, (data) => { });
+}
+
+
+///Документы
+
+
+
+///Блокировка записей
+watch(isRecLock, (val) => {
+  if (!val) {
+    warnToast("Запись заблокирована для изменения. Редакция невозможна");
+    readonly.value = true;
+  }
+  else
+    readonly.value = false;
+});
+
+let pingLockInterval: any = null;
+
+if (!rec.value.IsNew) {
+  isRecLock.value = await rec.value.lock();
+
+  pingLockInterval = setInterval(async () => {
+    isRecLock.value = await rec.value!.lock();
+  }, 150 * 1000)
+}
+
+
+const setPhoto = async (file?: File) => {
+  if (file) {
+    await rec.value?.setMPhoto(file)
+    foto.value = URL.createObjectURL(file);
+  }
+  else {
+    let blob = await rec.value?.getCurrentPhoto();
+    if (blob)
+      foto.value = URL.createObjectURL(blob);
+    else
+      foto.value = "/doctor-test.jpg";
+  }
+}
+
+setPhoto();
+
+const delPhoto = (fieldsOptions) => {
+  rec.value!.delMPhoto();
+  foto.value = "/doctor-test.jpg";
+  fieldsOptions.changedCnt++;
+}
+
+
+if (rec.value.Data!.gender != "u")
+  gender.value = rec.value.Data!.gender;
+
+watch(gender, (val, oldval) => {
+  rec.value!.MData.gender = gender.value = val;
+});
+
+
+
+const save = async () => {
+
+  if (rec.value!.IsNew) {
+    await rec.value!.save();
+    recDoc.value!.Key = rec.value!.Key;
+    recCont.value!.Key = rec.value!.Key;
+  }
+  else
+    await rec.value!.save();
+
+  await recDoc.value!.save();
+  await recCont.value!.save();
+}
+
+
+
+const cancelModifingData = () => {
+  rec.value!.cancelModifingData();
+  recDoc.value!.cancelModifingData();
+  recCont.value!.cancelModifingData();
+}
+
+
+const eventsHandler = (e: string, d: any) => {
+  switch (e) {
+    case "onKeydown": return true;
+  }
+};
+
+
+const close = () => {
+  if (pingLockInterval) {
+    clearInterval(pingLockInterval);
+    rec.value!.unlock();
+  }
+  return rec.value?.Key;
+}
+
+
+defineExpose({ eventsHandler });
+
+</script>
+
+
+<style scoped>
+.v-expansion-panels {
+  z-index: auto;
+  /*необходим что бы выпадающий календарь у полей даты не перекрывался expansion-panels*/
+}
+</style>

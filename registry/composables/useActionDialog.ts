@@ -27,7 +27,6 @@ export async function useDelQU(message) {
         btns: { "y": "Удалить", "n": "Отмена" },
         close: "n"
     };
-
     return await showModal(ActionDialog, props) == "y";
 }
 

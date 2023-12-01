@@ -1,9 +1,11 @@
 import { injectable, inject } from "inversify";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
-import { ApiRecord, type ApiRecordClass } from "./ApiRecord";
+import { ApiRecord, ApiRecordChData, type ApiRecordClass } from "./ApiRecord";
 import { chkRights } from "~/lib/Utils"
 import { DataEntity } from "./DataEntities/DataEntity";
+import type { IFullRecordId, IFullRecordIdT } from "../ApiInterfaces";
+import { Exception } from "~/lib/Exceptions";
 
 
 @injectable()
@@ -41,6 +43,36 @@ export class RecordsStore {
         }
         catch { };
         return null;
+    }
+
+
+    async getRecordsM(recIds: { id: IFullRecordIdT<ApiRecord>, optional?: boolean, fillFunc?: (data: ApiRecordChData) => void }[]) {
+        let ids: IFullRecordId[] = recIds.map(item => <any>{ key: item.id.key, code: (<any>item.id.type).RecCode })
+        const data = await this._MoApiClient.getRecordsApiSection().getRecs(ids);
+
+        let recs: ApiRecord[] = [];
+
+        for (let i = 0; i < recIds.length; i++) {
+            let recid = recIds[i];
+            let jsondata = data[i];
+            let rec = this.get<ApiRecord>(recid.id.type, recid.id.key);
+
+            if (!jsondata) {
+                if (!recid.optional)
+                    Exception.throw("RecNotFound", `Запись ${recid.id.key}  не загружена. Возможно запись с указанным ключем отсутсвует или нет прав на чтение`);
+                else {
+                    rec.createAllData();
+                    if (recid.fillFunc)
+                        recid.fillFunc(rec.Data!);
+                }
+            }
+            else
+                await rec.loadAllDataFromJson(jsondata);
+
+            recs.push(rec);
+        }
+
+        return recs
     }
 
 

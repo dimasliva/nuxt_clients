@@ -63,15 +63,17 @@
             <template v-if="showPriceList">
                 <v-card class="overflow-y-auto w-100" max-height="300">
                     <v-expansion-panels>
-                        <v-expansion-panel v-for="catalog in catalogs" elevation="1">
-                            <v-expansion-panel-title @click="" class="text-h6">{{ catalog.title }}</v-expansion-panel-title>
+                        <v-expansion-panel v-for="catalog in catalogs" elevation="1" :key="catalog.id">
+                            <v-expansion-panel-title @click="getProducts()" class="text-h6">{{ catalog.title
+                            }}</v-expansion-panel-title>
                             <v-expansion-panel-text>
                                 <v-expansion-panels>
                                     <v-expansion-panel v-for="section in catalogSections" elevation="1"
-                                        :title="section.title">
+                                        :title="section.title" :key="section.id">
                                         <v-expansion-panel-text>
                                             <v-list>
-                                                <!-- <v-list-item v-for="product in " :title="product.title"></v-list-item> -->
+                                                <v-list-item v-for="product in sortedProductsList(catalog.id, section.id)"
+                                                    :title="product.title"></v-list-item>
                                             </v-list>
                                         </v-expansion-panel-text>
                                     </v-expansion-panel>
@@ -127,6 +129,7 @@ let items: any = ref([])
 let loading = ref(false)
 let catalogs = ref<any>([])
 let catalogSections = ref<any>([])
+let products = ref<any>([])
 const catalogCookie = useCookie(
     'selectedCatalogs',
     {
@@ -150,23 +153,6 @@ const searchAllCatalogs = () => {
     }
 }
 
-let productsCatalogs = ref([...new Set(catalogs.value.map(item => item.id))].map((i) => `productscatalog = ` + `'` + i + `'`));
-
-const openPrices = async () => {
-    console.log(productsCatalogs.value, catalogs.value)
-    let catalogsSectionKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogSections', productsCatalogs.value.toString(), false);
-    await getCatalogsSectionsList(catalogsSectionKeys);
-    showPriceList.value = true
-}
-
-const getCatalogsSectionsList = async (k) => {
-    let keys = k.map((id) => id.replaceAll(`'`, `"`))
-    for (let i = 0; i < keys.length; i++) {
-        let list = await recStore.fetch(ProductsCatalogSectionRecord, keys[i]);
-        catalogSections.value.push(list.MData);
-    }
-}
-
 const getCatalogList = async (k) => {
     let list = await recStore.fetch(ProductsCatalogRecord, k);
     catalogs.value.push(list.MData);
@@ -177,9 +163,37 @@ const getCatalogs = async () => {
     await getCatalogList(catalogsKeys.toString());
 }
 
-const getProductsList = async () => {
-    let productsKeys = await apiClient.send<any, any>('/Products/FindProducts', productsCatalogs.toString(), false);
+const getCatalogsSectionsList = async (k) => {
+    let keys = k.map((id) => id.replaceAll(`'`, `"`))
+    for (let i = 0; i < keys.length; i++) {
+        let list = await recStore.fetch(ProductsCatalogSectionRecord, keys[i]);
+        catalogSections.value.push(list.MData);
+    }
+}
 
+const openPrices = async () => {
+    let productsCatalogs = [...new Set(catalogs.value.map(item => item.id))].map((i) => `productscatalog = ` + `'` + i + `'`);
+    let catalogsSectionKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogSections', productsCatalogs.toString(), false);
+    await getCatalogsSectionsList(catalogsSectionKeys);
+    showPriceList.value = true
+}
+
+const getProductsList = async (k) => {
+    let keys = k.map((id) => id.replaceAll(`'`, `"`))
+    for (let i = 0; i < keys.length; i++) {
+        let list = await recStore.fetch(ProductRecord, keys[i]);
+        products.value.push(list.MData);
+    }
+}
+
+const getProducts = async () => {
+    let productsCatalogs = [...new Set(catalogs.value.map(item => item.id))].map((i) => `productscatalog = ` + `'` + i + `'`);
+    let productsKeys = await apiClient.send<any, any>('/Products/FindProducts', productsCatalogs.toString(), false);
+    getProductsList(productsKeys)
+}
+
+const sortedProductsList = (catkey, seckey) => {
+    return products.value.filter((product) => product.productsCatalog == catkey && product.productsCatalogSection == seckey);
 }
 
 

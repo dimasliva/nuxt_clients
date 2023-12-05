@@ -560,6 +560,7 @@ A valid view must be one of: ${ee.join(", ")}.`), e = "week"), this.enabledViews
   const t = this.enabledViews[this.enabledViews.indexOf(this.view.id) + 1];
   t && this.switchView(t, e);
 }, switchView(e, t = null, i = !1) {
+  // переключение между видами календаря
   e = this.validateView(e);
   const n = this.utils.date, l = this.view.startDate && this.view.startDate.getTime();
   if (this.transitions && i) {
@@ -579,9 +580,10 @@ A valid view must be one of: ${ee.join(", ")}.`), e = "week"), this.enabledViews
     
     case "month": {
       this.view.startDate = new Date(t.getFullYear(), t.getMonth(), t.getDate() ), 
-      this.view.endDate = new Date(t.getFullYear(), t.getMonth(), 1), this.view.endDate.setSeconds(-1);
+      this.view.endDate = new Date(t.getFullYear(), t.getMonth(), 1), 
+      this.view.endDate.setSeconds(-1);
       let a = new Date(this.view.startDate);
-      if (a.getDay() !== (this.startWeekOnSunday ? 0 : 1) && (a = n.getPreviousFirstDayOfWeek(a, this.startWeekOnSunday)), this.view.firstCellDate = a, this.view.lastCellDate = n.addDays(a, 41), this.view.lastCellDate.setHours(23, 59, 59, 0), this.hideWeekends) {
+      if (a.getDay() !== (this.startWeekOnSunday ? 0 : 1) && (a = n.getPreviousFirstDayOfWeek(a, this.startWeekOnSunday)), this.view.firstCellDate = a, this.view.lastCellDate = n.addDays(a, 34), this.view.lastCellDate.setHours(23, 59, 59, 0), this.hideWeekends) {
         if ([0, 6].includes(this.view.firstCellDate.getDay())) {
           const d = this.view.firstCellDate.getDay() !== 6 || this.startWeekOnSunday ? 1 : 2;
           this.view.firstCellDate = n.addDays(this.view.firstCellDate, d);
@@ -636,7 +638,7 @@ A valid view must be one of: ${ee.join(", ")}.`), e = "week"), this.enabledViews
       break;
       //  переключение вперед/назад
     case "month":
-      n = new Date(l.getFullYear(), l.getMonth() + 1 * i, l.getDate() + 7 * i );
+      n = new Date(l.getFullYear(), l.getMonth() + 1 * i, l.getDate());
       break;
     case "week":
       n = t[e ? "addDays" : "subtractDays"](t.getPreviousFirstDayOfWeek(l, this.startWeekOnSunday), 7);
@@ -901,14 +903,17 @@ A valid view must be one of: ${ee.join(", ")}.`), e = "week"), this.enabledViews
         return d.setSeconds(-1), { startDate: a, formattedDate: e.formatDateLite(a), endDate: d, content: this.xsmall ? this.months[o].label.substr(0, 3) : this.months[o].label, current: o === l.getMonth() && i === l.getFullYear() };
       });
       break;
+      // количество отображаемых ячеек
     case "month": {
       const s = this.view.startDate.getMonth(), o = new Date(this.view.firstCellDate);
-      n = !1, t = Array.apply(null, Array(42)).map((a, d) => {
+      n = !1, 
+      
+      t = Array.apply(null, Array(35)).map((a, d) => {
         const r = e.addDays(o, d), u = new Date(r);
         u.setHours(23, 59, 59, 0);
         const m = !n && e.isToday(r) && !n++;
         // вне диапазона месяца красит серым true или false
-        return { startDate: r, formattedDate: e.formatDateLite(r), endDate: u, content: r.getDate(), today: m, outOfScope: r.getMonth() !== s, class: `vuecal__cell--day${r.getDay() || 7}` };
+        return { startDate: r, formattedDate: e.formatDateLite(r), endDate: u, content: r.getDate(), today: m, outOfScope: this.maxDate? !(r < this.maxDate && r >= this.minDate.setHours(0, 0, 0, 0)) : false, class: `vuecal__cell--day${r.getDay() || 7}` };
       }), (this.hideWeekends || this.hideWeekdays.length) && (t = t.filter((a) => {
         const d = a.startDate.getDay() || 7;
         return !(this.hideWeekends && d >= 6 || this.hideWeekdays.length && this.hideWeekdays.includes(d));

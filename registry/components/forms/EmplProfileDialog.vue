@@ -51,10 +51,33 @@
             <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
               :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
 
-            <!--Поле выбора пола-->
-            <InputField :state="fieldsOptions" :type="EDataType.strictstring" style=" max-width: 10dvh; height: 10px;"
-              label="Пол" :items="[{ value: 'm', title: 'М' }, { value: 'f', title: 'Ж' }]" v-model="gender" required />
+
+            <!--Управление аккаунтом-->
+            <v-menu v-if="chkTrait(['dbEmployee'], 's')">
+              <template v-slot:activator="{ props }">
+                <v-btn v-bind="props"
+                  :disabled="fieldsOptions.readonly || fieldsOptions.changedCnt != 0 || fieldsOptions.errCnt != 0"
+                  variant="tonal">
+                  Аккаунт
+                </v-btn>
+              </template>
+
+              <template v-slot:default="{ isActive }">
+                <v-list @mouseleave="(e) => { isActive.value = false }">
+                  <v-list-item v-for="action in AccountActionsMenu"
+                    @click-once="() => action.action(props, fieldsOptions)">
+                    <v-icon :icon="action.icon" size="x-small" />
+                    {{ action.title }}
+                  </v-list-item>
+                </v-list>
+              </template>
+            </v-menu>
+
           </v-col>
+        </v-row>
+
+        <v-row>
+          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.strictstringarray" />
         </v-row>
 
         <v-expansion-panels model-value="1" class="mt-2">
@@ -64,62 +87,14 @@
               <div class="mt-3" />
               <v-row>
                 <v-col sm="6">
-                  <!--Основной телефон-->
-                  <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.phone"
-                    label="Основной телефон" v-model="recCont!.MData.mainPhone" />
+                  <!--Телефон-->
+                  <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.phone" required
+                    label="Телефон" v-model="recCont!.MData.mainPhone" />
                 </v-col>
-              </v-row>
-              <v-col sm="6">
-                <!--Email-->
-                <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.email" label="Электронная почта"
-                  v-model="recCont!.MData.mainEmail" />
-              </v-col>
-              <v-row>
-
-              </v-row>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-
-        <!--Документ, удостоверящий личность-->
-        <v-expansion-panels>
-          <v-expansion-panel elevation="0">
-            <v-expansion-panel-title class="text-subtitle-1">Документ, удостоверящий личность</v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <v-row class="mt-3">
-                <v-col>
-                  <InputField :state="fieldsOptions" :type="EDataType.strictstring" label="Документ"
-                    :items="persIdentDocLists" :item-props="(item) => { return { lines: 'two' } }"
-                    v-model="recDoc!.MData.mainDocument" />
-                </v-col>
-              </v-row>
-
-              <v-row>
-                <v-col sm="2">
-                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Серия" :maska="capLettersNumbersMask"
-                    v-model="recDoc!.MData.mainDocumentSeries" :constraints="{ max: 32 }" />
-                </v-col>
-                <v-col sm="3">
-                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Номер" :maska="capLettersNumbersMask"
-                    v-model="recDoc!.MData.mainDocumentNumber" :constraints="{ max: 32 }" />
-                </v-col>
-
-                <v-col sm="3">
-                  <InputField :state="fieldsOptions" :type="EDataType.date" label="Дата выдачи"
-                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWhen"
-                    :constraints="{ min: '1900-01-01', max: new Date() }" />
-                </v-col>
-
-                <v-col sm="3">
-                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Код подразделения"
-                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWhoCode"
-                    :constraints="{ max: 8 }" />
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col sm="12">
-                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Кем выдан"
-                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWho" :constraints="{ max: 256 }" />
+                <v-col sm="6">
+                  <!--Email-->
+                  <InputField style="width: 265px;" required :state="fieldsOptions" :type="EDataType.email"
+                    label="Электронная почта" v-model="recCont!.MData.mainEmail" />
                 </v-col>
               </v-row>
             </v-expansion-panel-text>
@@ -136,7 +111,7 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { PageMap } from '~/lib/PageMap';
 import { UserContext } from '~/lib/UserContext';
-import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord'
+import { EEmployeeAccountStatus, EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord'
 import { useI18n } from "vue-i18n"
 import { EmployeeDocumentsRecord } from '~/lib/MoApi/Records/EmployeeDocumentsRecord';
 import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsRecord';
@@ -151,6 +126,9 @@ import { Dictionary } from "~/lib/Dicts/Dictionary";
 import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
 import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
 import { getNextSerialKey } from '~/lib/Utils';
+import { Exception } from '~/lib/Exceptions';
+import { chkTrait } from "~/lib/Utils";
+import { RolesRecord } from '~/lib/MoApi/Records/RolesRecord';
 
 const { t, locale } = useI18n();
 
@@ -187,10 +165,13 @@ const recStore = iocc.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
 const isRecLock = ref();
+const isAccount = ref(false);
 let readonly = ref(false);
+const accountStatus = ref(EEmployeeAccountStatus.NotPresent);
 
 let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
 let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
+let userCtx=iocc.get<UserContext>("UserContext");
 const persIdentDocLists = ref(Dictionary.itemsToValueTitle((await dictPersDocs.getItems(0))!));
 const persDocLists = ref(Dictionary.itemsToValueTitle(
   Object.assign((await dictPersDocs.getItems(1 * Dictionary.DICT_SECTION_K))!, await dictPersDocs.getItems(Dictionary.DICT_USER_SECTION))));
@@ -221,6 +202,9 @@ const PhotoActionsMenu = [
   { id: "2", title: "Удалить фото", icon: "mdi-delete", disabled: false, action: (props, fieldsOptions) => delPhoto(fieldsOptions), traits: { dbEmployee: "d" } },
 ]
 
+let rolesRec: RolesRecord = null!;
+
+
 let rec = ref<EmployeeRecord>();
 let recDoc = ref<EmployeeDocumentsRecord>();
 let recCont = ref<EmployeeContactsRecord>();
@@ -228,16 +212,21 @@ let recCont = ref<EmployeeContactsRecord>();
 
 if (props.recKey) {
   let recs = await recStore.getRecordsM([
+    { id: { key: userCtx.AuthorityData!.companyId!, type: RolesRecord } },
     { id: { key: props.recKey, type: EmployeeRecord } },
     { id: { key: props.recKey, type: EmployeeDocumentsRecord }, optional: true },
     { id: { key: props.recKey, type: EmployeeContactsRecord }, optional: true }
   ]);
 
-  rec.value = recs[0] as EmployeeRecord;
-  recDoc.value = recs[1] as EmployeeDocumentsRecord;
-  recCont.value = recs[2] as EmployeeContactsRecord;
+  rolesRec = recs[0] as RolesRecord;
+  rec.value = recs[1] as EmployeeRecord;
+  recDoc.value = recs[2] as EmployeeDocumentsRecord;
+  recCont.value = recs[3] as EmployeeContactsRecord;
+
+  accountStatus.value = await rec.value.getStatusEmployeeAccount();
 }
 else {
+  rolesRec = await recStore.fetch(RolesRecord, "0");
   rec.value = await recStore.createNew(EmployeeRecord, (data) => { });
   recDoc.value = await recStore.createNew(EmployeeDocumentsRecord, (data) => { });
   recCont.value = await recStore.createNew(EmployeeContactsRecord, (data) => { });
@@ -259,7 +248,6 @@ watch(isRecLock, (val) => {
 });
 
 let pingLockInterval: any = null;
-
 if (!rec.value.IsNew) {
   isRecLock.value = await rec.value.lock();
 
@@ -299,6 +287,71 @@ watch(gender, (val, oldval) => {
   rec.value!.MData.gender = gender.value = val;
 });
 
+
+const AccountActionsMenu = computedAsync(async () => {
+  let res = [] as any;
+  if (accountStatus.value == EEmployeeAccountStatus.NotPresent) {
+    res.push({ id: "1", title: "Создать аккаунт", icon: "mdi-account-plus", disabled: false, action: () => createAccount(), traits: { dbEmployee: "s" } });
+  }
+  else
+    if (accountStatus.value == EEmployeeAccountStatus.isActive) {
+      res.push({ id: "1", title: "Отключить аккаунт", icon: "mdi-account-cancel", disabled: false, action: () => setAccountActivity(false), traits: { dbEmployee: "s" } });
+      res.push({ id: "2", title: "Удалить аккаунт", icon: "mdi-account-remove", disabled: false, action: () => delAccount(), traits: { dbEmployee: "s" } });
+    }
+    else
+      if (accountStatus.value == EEmployeeAccountStatus.isNotActive) {
+        res.push({ id: "1", title: "Включить аккаунт", icon: "mdi-account", disabled: false, action: (props, fieldsOptions) => setAccountActivity(true), traits: { dbEmployee: "s" } });
+        res.push({ id: "2", title: "Удалить аккаунт", icon: "mdi-account-remove", disabled: false, action: () => delAccount(), traits: { dbEmployee: "s" } });
+      }
+
+  return res;
+});
+
+
+const createAccount = async () => {
+
+  if (await rec.value!.isAccountPresent(recCont.value!.MData.mainEmail!)) {
+    errToast(`Логин ${recCont.value!.MData.mainEmail} уже существует`);
+    return;
+  }
+
+  try {
+    await rec.value!.createEmployeeAccount(recCont.value!.Data!.mainEmail!);
+    accountStatus.value = EEmployeeAccountStatus.isActive;
+    infoToast(`Аккаунт создан`);
+  }
+  catch {
+    errToast(`Ошибка создания аккаунта`);
+  }
+}
+
+
+const setAccountActivity = async (active: boolean) => {
+
+  try {
+    await rec.value!.setAccountActivity(active);
+    accountStatus.value = active ? EEmployeeAccountStatus.isActive : EEmployeeAccountStatus.isNotActive;
+    infoToast(active ? `Аккаунт включен` : `Аккаунт отключен`);
+  }
+  catch {
+    errToast(`Ошибка изменения состояния аккаунта`);
+  }
+}
+
+
+const delAccount = async () => {
+
+  try {
+    if (await useDelQU("Удалить аккаунт")) {
+      await rec.value!.deleteEmployeeAccount();
+      accountStatus.value = EEmployeeAccountStatus.NotPresent;
+      infoToast(`Аккаунт удален`);
+    }
+  }
+  catch {
+    errToast(`Ошибка удаления аккаунта`);
+  }
+}
 
 
 const save = async () => {

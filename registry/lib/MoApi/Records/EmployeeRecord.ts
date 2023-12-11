@@ -2,7 +2,7 @@ import { Exception } from "~/lib/Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
-import  { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
+import { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 export class EmployeeRecordData extends ApiRecordChData {
@@ -21,12 +21,21 @@ export class EmployeeRecordData extends ApiRecordChData {
 }
 
 
+
+export enum EEmployeeAccountStatus {
+    NotPresent = 0,
+    isActive,
+    isNotActive
+}
+
+
+
 export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     static RightToken = "dbEmployee";
     static RecCode = 1004;
 
-    
+
     protected _photoFl: FilelinkRecord | null = null;
 
     constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
@@ -35,7 +44,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     get RecCode() { return EmployeeRecord.RecCode; }
 
-    
+
 
     protected _createNewData() {
         return this._RecStore.dataEntityFactory(EmployeeRecordData, this.Key);
@@ -81,7 +90,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
         if (!this.Data!.photo) {
             this._photoFl = await this._RecStore.createNew<FilelinkRecord, FilelinkRecordData>(FilelinkRecord, (data) => { data.title = `#employeePhoto@${this.Key}` });
-            this._photoFl.MData.fileType=1;//персональное фото// FileTypes
+            this._photoFl.MData.fileType = 1;//персональное фото// FileTypes
         }
         else
             await this._getPhotoFilelink()
@@ -138,8 +147,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
                 this.MData.photo = this._photoFl.Key;
             }
             else
-                if (this._photoFl.isDataChanged())
-                {
+                if (this._photoFl.isDataChanged()) {
                     await this._photoFl.save();
                     this.MData.photo = this._photoFl.Key;
                 }
@@ -162,6 +170,34 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
         this._setModData();
     }
 
+
+
+    async setAccountActivity(active: boolean) {
+        return await this._MoApiClient.send("/Employees/setEmployeeAccountActivity", { id: this.Key, isActive: active });
+    }
+
+
+
+    async createEmployeeAccount(login: string) {
+        return await this._MoApiClient.send("/Employees/CreateEmployeeAccount", { login, EmployeeId: this.Key, Email: login });
+    }
+
+    
+
+    async deleteEmployeeAccount() {
+        return await this._MoApiClient.send("/Employees/DeleteEmployeeAccount", this.Key);
+    }
+
+
+    async isAccountPresent(login: string) {
+        return await this._MoApiClient.send("/Employees/IsAccountPresent", login);
+    }
+
+
+
+    async getStatusEmployeeAccount() {
+        return await this._MoApiClient.send<string, EEmployeeAccountStatus>("/Employees/GetStatusEmployeeAccount", this.Key);
+    }
 
 
     protected _getApiRecordPathGet = () => "/Employees/GetEmployees";

@@ -27,9 +27,9 @@
 
     <!--Телефон-->
     <VPhoneInput v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" :label="<string>label"
-        defaultCountry="RU" countryIconMode="svg" type="text" displayFormat="international" clearable density="compact"
-        v-model="CurrModelVal" variant="underlined" countryLabel="" :rules="PhoneRules" @blur="(d) => onValChanged()"
-        @keydown.stop="(k) => onKeydown(k)">
+        :readonly="readonly" defaultCountry="RU" countryIconMode="svg" type="text" displayFormat="international" clearable
+        density="compact" v-model="CurrModelVal" variant="underlined" countryLabel="" :rules="PhoneRules"
+        @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>

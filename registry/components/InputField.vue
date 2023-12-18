@@ -133,7 +133,19 @@
         :readonly="readonly" hide-details :label="<any>label"
         @update:model-value="(val) => { CurrModelVal = val; onValChanged(); }">
     </v-checkbox>
+
+    <!--Словарное значение-->
+    <v-text-field v-if="type == EDataType.reference && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+        :readonly="true" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" @click="()=>openDialog(FinderForm,{title:'Поиск'})">
+        <template v-slot:label>
+            <span>
+                {{ label || "" }} <span v-if="required" class="text-error">*</span>
+            </span>
+        </template>
+    </v-text-field>
 </template>
+
 
 
 <script setup lang="ts" inherit-attrs="true">
@@ -146,6 +158,8 @@ import { useTheme } from 'vuetify/lib/framework.mjs';
 import { VPhoneInput } from 'v-phone-input'; //https://github.com/paul-thebaud/v-phone-input
 import 'flag-icons/css/flag-icons.min.css';
 import 'v-phone-input/dist/v-phone-input.css';
+import { isEqualData } from '~/lib/Helpers';
+import  FinderForm  from '~/components/forms/FinderForm.vue';
 
 
 const { t, locale } = useI18n();
@@ -400,6 +414,13 @@ watch(props, (rval: any) => {
     //а не после того как было введено значение пользователем
 
     if (OldModelVal.value != rval.modelValue) {
+
+        if (props.type == EDataType.strictstringarray) {
+            if (isEqualData(OldModelVal.value, rval.modelValue)) {
+                OldModelVal.value = rval.modelValue;
+                return;
+            }
+        }
         OldModelVal.value = rval.modelValue;
 
         if (props.type == EDataType.float) {

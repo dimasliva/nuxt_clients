@@ -77,7 +77,9 @@
         </v-row>
 
         <v-row>
-          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.strictstringarray" />
+          <!--Роли-->
+          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.strictstringarray" label="Роли" required
+            :items="rolesLst" v-model="rolesVis" />
         </v-row>
 
         <v-expansion-panels model-value="1" class="mt-2">
@@ -171,7 +173,7 @@ const accountStatus = ref(EEmployeeAccountStatus.NotPresent);
 
 let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
 let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
-let userCtx=iocc.get<UserContext>("UserContext");
+let userCtx = iocc.get<UserContext>("UserContext");
 const persIdentDocLists = ref(Dictionary.itemsToValueTitle((await dictPersDocs.getItems(0))!));
 const persDocLists = ref(Dictionary.itemsToValueTitle(
   Object.assign((await dictPersDocs.getItems(1 * Dictionary.DICT_SECTION_K))!, await dictPersDocs.getItems(Dictionary.DICT_USER_SECTION))));
@@ -203,6 +205,7 @@ const PhotoActionsMenu = [
 ]
 
 let rolesRec: RolesRecord = null!;
+const rolesLst = ref<any[]>([]);
 
 
 let rec = ref<EmployeeRecord>();
@@ -232,6 +235,16 @@ else {
   recCont.value = await recStore.createNew(EmployeeContactsRecord, (data) => { });
 }
 
+//роли
+let roles = rolesRec.Data!.roles.getRoles();
+for (let item in roles)
+  rolesLst.value.push({ value: item, title: item });
+
+
+const rolesVis = computed({
+  get: () =>  rec.value!.MData.roles ? rec.value!.MData.roles.split(",") : null,
+  set: (val) =>  rec.value!.MData.roles = (val!.length > 0) ? val!.join(",") : ""
+});
 
 ///Документы
 

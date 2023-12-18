@@ -146,7 +146,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
   }
 
   //Конвертация данных из формата апи в формат для таблицы
-  convertRow = (rawData) => {
+  convertRow = async (rawData) => {
     return {
       id: rawData.id,
       fio: (rawData.surname || "") + " " + (rawData.name || "") + " " + (rawData.patronymic || ""),

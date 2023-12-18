@@ -30,7 +30,8 @@ export const enum EDataType {
     "dtstamparray",
     "strictstringarray", //множественный выбор из ограниченного набора строк
     "phone",
-    "email"
+    "email",
+    "reference"
 }
 
 

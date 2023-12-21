@@ -1,15 +1,15 @@
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
-import  RolesEntity from "./DataEntities/RolesEntity";
+import RolesEntity from "./DataEntities/RolesEntity";
 import type { RecordsStore } from "./RecordsStore";
 
 export class RoleRecordData extends ApiRecordChData {
-    roles: RolesEntity=null!;
+    roles: RolesEntity = null!;
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
-        this.roles =  this.__RecordStore.dataEntityFactory(RolesEntity, null,  obj.roles);
+        this.roles = this.__RecordStore.dataEntityFactory(RolesEntity, null, obj.roles);
     }
 }
 
@@ -24,16 +24,17 @@ export class RolesRecord extends ApiRecord<RoleRecordData>{
 
 
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(RoleRecordData, this.Key);
+        return this._RecStore.dataEntityFactory(RoleRecordData, this.Key);
     }
-    
+
 
     get RecCode() { return RolesRecord.RecCode; }
 
 
     protected async _loadData() {
-        const arr = await this._MoApiClient.send<string[], any>(this._getApiRecordPathGet(), [this._Key]);
+        const arr = await this._MoApiClient.send<string[], any>(this._getApiRecordPathGet());
         this._Data = new Proxy(<RoleRecordData>this._createDataFromLoaded(arr), this._getProxyHanlders());
+        this.Key = this._Data.id!;
         return this._Data;
     }
 

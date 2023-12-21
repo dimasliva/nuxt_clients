@@ -59,6 +59,10 @@ export class ModuleManager {
         if (chkRights(null, { "dbClient": "r" }))
             menuItem.childs!.push({ id: "clients", title: "Клиенты", getPagePath: () => "/list/clients", icon: "mdi-account-circle" })
 
+         if (chkRights(null, { "dbPosition": "r" }))
+            menuItem.childs!.push({ id: "positions", title: "Должности", getPagePath: () => "/list/positions", icon: "mdi-account-circle" })
+
+
         if (menuItem.childs!.length > 0)
             rootMenu.push(menuItem)
     }

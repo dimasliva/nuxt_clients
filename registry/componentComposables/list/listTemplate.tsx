@@ -35,7 +35,7 @@ export abstract class ListTemplate<TFilterVals> {
 
 
     abstract getWhereFromFilter(filterVals: TFilterVals): string;
-    abstract convertRow(rawData): any;
+    abstract convertRow(rawData): Promise<any>;
     abstract onUpdateModel(key, index?): boolean;
     abstract getApiData(queryParams: QueryParams): Promise<DataList>;
 
@@ -216,13 +216,13 @@ export abstract class ListTemplate<TFilterVals> {
         let recArr = await this.getApiData(new QueryParams(select, where, sortedBy, quantity));
 
         const endTime = performance.now();
-        console.debug(`clients count=${recArr.getLength()} for ${endTime - startTime} ms`);
+        console.debug(`rows count=${recArr.getLength()} for ${endTime - startTime} ms`);
 
         const res: any[] = [];
         let row: any | undefined;
 
         while (row = recArr.getNext())
-            res.push(this.convertRow(row));
+            res.push(await this.convertRow(row));
 
         return res;
     }

@@ -16,10 +16,12 @@
         </VCol>
         <VCol style="max-width: 150px;">
             <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса" hide-details="auto" />
-            <v-text-field v-model="productsCatalogSectionQuantity" variant="underlined" label="Кол-во разделов" hide-details="auto" />
-            <v-text-field v-model="priceListLoading.size" variant="underlined" label="Кол-во номенклатурных позиций" hide-details="auto" />
+            <v-text-field v-model="productsCatalogSectionQuantity" variant="underlined" label="Кол-во разделов"
+                hide-details="auto" />
+            <v-text-field v-model="priceListLoading.size" variant="underlined" label="Кол-во номенклатурных позиций"
+                hide-details="auto" />
             <v-btn :loading="priceListLoading.loading" type="submit" @click="addProductsCatalog(productsCatalogName)">
-            <!-- <v-btn :loading="priceListLoading.loading" type="submit" @click="console.log(fullTitles.length)"> -->
+                <!-- <v-btn :loading="priceListLoading.loading" type="submit" @click="console.log(fullTitles.length)"> -->
                 Создать
                 <template v-slot:loader>
                     <v-progress-linear absolute height="7" indeterminate></v-progress-linear>
@@ -43,6 +45,7 @@ import { ProductsCatalogRecord, ProductsCatalogRecordData } from '~~/lib/MoApi/R
 import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
 import { UserContext } from '~~/lib/UserContext';
 import ProductTitles from '~/public/ProductTitles';
+import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
 
 
 const iocc = useContainer();
@@ -104,7 +107,7 @@ const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "
 const patronymicsM = ["Иванович", "Петрович", "Сергеевич", "Андреевич", "Дмитриевич", "Александрович", "Михайлович", "Николаевич", "Владимирович", "Олегович", "Артемович", "Алексеевич", "Константинович", "Викторович", "Геннадьевич", "Григорьевич", "Евгеньевич", "Егорович", "Захарович", "Игоревич", "Кириллович", "Леонидович", "Максимович", "Романович", "Русланович", "Семенович", "Станиславович", "Тимофеевич", "Федорович", "Юрьевич", "Ярославович"];
 const patronymicsF = ["Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"]
 
-const pricesA = ['100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000', '2500', '3000', '3500', '4000', '4500', '5000', '6000', '7000', '8000', '10000', ];
+const pricesA = ['100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000', '2500', '3000', '3500', '4000', '4500', '5000', '6000', '7000', '8000', '10000',];
 
 const fullTitles = ProductTitles;
 const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
@@ -125,6 +128,7 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
     emplcont.MData!.mainEmail = mail || null;
     emplcont.MData!.mainPhone = phone || null;
     await emplcont.save();
+    return rec.Key;
 }
 
 
@@ -149,9 +153,21 @@ const emplCreateTask = async (size: number) => {
         const day = Math.floor(Math.random() * 28) + 1;
         const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
         //console.log(name, surname, patronymic, gender, birthdate);
-        await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress());
+        let emplkey = await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress());
+
+        await addPosition(emplkey);
     }
 }
+
+
+const addPosition = async (emplkey) => {
+    let rec = await recStore.createNew<PositionRecord, PositionRecordData>(PositionRecord, (data) => {
+        data.employee = emplkey;
+        data.position = positionDictCodes[Math.floor(Math.random() * positionDictCodes.length-1)]!;
+    });
+    await rec.save();
+    return rec.Key;
+};
 
 
 const addClient = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
@@ -196,7 +212,7 @@ const clientsCreateTask = async (size: number) => {
     }
 }
 
-const addProducts = async(title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
+const addProducts = async (title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
     let rec = await recStore.createNew<ProductRecord, ProductRecordData>(ProductRecord, (data) => {
         data.title = title;
         data.fullTitle = fullTitle;
@@ -226,14 +242,14 @@ const addProductsCatalog = async (title) => {
     catalogKey.value = rec.Key;
     for (let i = 0; i < productsCatalogSectionQuantity.value; i++) {
         await addProductsCatalogSection(i, catalogKey.value);
-    } 
+    }
     priceListLoading.loading = false;
     console.log('creating end')
 }
 
 const addProductsCatalogSection = async (quantity, prodCat) => {
     let recSection = await recStore.createNew<ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData>(ProductsCatalogSectionRecord, (data) => {
-        data.title = 'Раздел'+ (quantity + 1).toString();
+        data.title = 'Раздел' + (quantity + 1).toString();
         data.code = null;
         data.comments = null;
         data.productsCatalog = prodCat;
@@ -245,9 +261,9 @@ const addProductsCatalogSection = async (quantity, prodCat) => {
     productsCreateTask(priceListLoading.size, recSection.Key);
 }
 
-const productsCreateTask = async(size: number, key) => {
+const productsCreateTask = async (size: number, key) => {
     for (let i = 0; i < size; i++) {
-        currElement.value == fullTitles.length? currElement.value = 0 : currElement.value++;
+        currElement.value == fullTitles.length ? currElement.value = 0 : currElement.value++;
         let title: any = fullTitles[currElement.value];
         let fullTitle: any = title;
         let code: any = generateUniqueStrings(1, 1);
@@ -300,22 +316,26 @@ function generateRandomDate(): string {
 
 // Генерация случайного символа
 function getRandomChar() {
-  const characters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЪЭЬЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя';
-  const randomIndex = Math.floor(Math.random() * characters.length);
-  return characters[randomIndex];
+    const characters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЪЭЬЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    return characters[randomIndex];
 }
 
 // Генерация неповторяющейся строки
 function generateUniqueStrings(count, length) {
-  const uniqueStrings = new Set();
-  while (uniqueStrings.size < count) {
-    let string = '';
-    while (string.length < length) {
-      string += getRandomChar();
+    const uniqueStrings = new Set();
+    while (uniqueStrings.size < count) {
+        let string = '';
+        while (string.length < length) {
+            string += getRandomChar();
+        }
+        uniqueStrings.add(string);
     }
-    uniqueStrings.add(string);
-  }
-  return Array.from(uniqueStrings)[0];
+    return Array.from(uniqueStrings)[0];
 }
 
+
+const positionDictCodes = [
+    1048910, 1048911, 1049003, 1049004, 1048912, 1048913, 1049005, 1049006, 1049007, 1049008, 1049009, 1049010, 1049011, 1049012, 1049013, 1049014, 1049098, 1049099, 1049100, 1049091, 1049090,
+    1049089, 1049096, 1049097, 1049101, 1048916, 1048917, 1048918, 1048919, 1048920, 1048921, 1048587, 1048589, 1048590, 1048591, 1048592];
 </script>

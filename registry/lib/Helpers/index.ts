@@ -16,6 +16,13 @@ export function CloneData<T>(obj: T): T {
 }
 
 
+/**Полное сравнение значений*/
+export function isEqualData(o1: any, o2: any) {
+  return JSON.stringify(o1) == JSON.stringify(o2);
+}
+
+
+
 /**Вывод данных исключения в консоль*/
 export function excToLog(excIn: string, exc: any) {
   if (exc instanceof Exception)

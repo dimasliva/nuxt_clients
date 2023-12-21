@@ -346,12 +346,12 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData>{
 
 
     async lock() {
-        return await this._MoApiClient.send<any, boolean>('/Records/LockRecord', { id: this.Key, code: this.RecCode });
+        return await this._MoApiClient.send<any, boolean>('/Records/LockRecord', { key: this.Key, code: this.RecCode });
     }
 
 
     async unlock() {
-        return await this._MoApiClient.send<any, boolean>('/Records/UnlockRecord', { id: this.Key, code: this.RecCode });
+        return await this._MoApiClient.send<any, boolean>('/Records/UnlockRecord', { key: this.Key, code: this.RecCode });
     }
 
 }

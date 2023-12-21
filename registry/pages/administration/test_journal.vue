@@ -6,9 +6,8 @@
       locale="ru" :special-hours="specialHours"
       :editable-events="{ title: false, drag: true, resize: true, delete: true, create: true }"
       :events="currView === 'month' ? monthView : events" :split-days="employeesArr" :sticky-split-labels="true"
-      events-on-month-view="short" :disable-views="['week', 'year', 'years']" :drag-to-create-event="false"
-      :time-from="6 * 60" @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate"
-      :max-date="monthViewMaxDate">
+      events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false" :time-from="6 * 60"
+      @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate" :max-date="monthViewMaxDate">
       <template #title="{ title, view }">
         <span v-if="view.id === 'month'">{{ view.firstCellDate.format('DD.MM.YYYY') }}-{{
           view.lastCellDate.format('DD.MM.YYYY') }}
@@ -61,7 +60,7 @@
               :items="['терапевты', 'кардиологи', 'гастроэнтерологи', 'узи', 'анализы']"
               variant="underlined"></v-combobox>
 
-            <v-combobox chips closable-chips readonly multiple v-model="products" density="compact" label="Услуга"
+            <v-combobox chips closable-chips multiple v-model="products" density="compact" label="Услуга"
               :items="productsArr" variant="underlined" @click="schedulerItemGroup || employees ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск товаров и услуг', full: 'Выбрать из прайс-лсита', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action:
                   setProds
@@ -209,16 +208,13 @@ const changeDate = (date) => {
 
 const monthViewDates = (b: boolean) => {
   if (b) {
-    let days = maxDate.value.getDate() - minDate.value.getDate();
-    let month = maxDate.value.getMonth() - minDate.value.getMonth();
-    if (days <= 31 && days >= -31) {
-      monthViewMinDate.value = minDate.value;
-      monthViewMaxDate.value = maxDate.value;
-      selDate.value = minDate.value;
-      dateRange.value = `${minDate.value.format('DD.MM.YYYY')}-${maxDate.value.format('DD.MM.YYYY')}`;
-    } else {
-      console.log('вы выбрали больше 31 дня')
-    }
+    // let days = maxDate.value.getDate() - minDate.value.getDate();
+    // let month = maxDate.value.getMonth() - minDate.value.getMonth();
+
+    monthViewMinDate.value = minDate.value;
+    monthViewMaxDate.value = maxDate.value;
+    selDate.value = minDate.value;
+    dateRange.value = `${minDate.value.format('DD.MM.YYYY')}-${maxDate.value.format('DD.MM.YYYY')}`;
   } else {
     monthViewMinDate.value = new Date();
     monthViewMaxDate.value = '';
@@ -256,7 +252,7 @@ const searchEmployee = async (txt: string) => {
 }
 
 const searchProds = async (txt, cats) => {
-  let prodsArr = await productsView.getProductFtsListView(new QueryProductFtsList('id, title, fullTitle, catalogTitle, sectionTitle', txt, 20, 1, false, cats, false))
+  let prodsArr = await productsView.getProductFtsListView(new QueryProductFtsList("id, title, fullTitle, catalogTitle, sectionTitle", txt, 20, 1, false, cats, false))
   const prods: IProductFtsListView[] = [];
   let row: IProductFtsListView | undefined;
   while (row = prodsArr.getNext()) {
@@ -284,10 +280,11 @@ const editEvent = (event) => {
 
 // сброс фильтров поиска бокового меню
 const clearFilters = () => {
-  employeesArr.value = employees.value;
+  employeesArr.value = [];
+  productsArr.value = [];
   schedulerItemGroup.value = [];
-  employees.value = [];
-  products.value = [];
+  employees.value = null;
+  products.value = null;
   division.value = [];
   monthViewDates(false)
 }
@@ -331,6 +328,7 @@ const onViewChange = ({ view }) => {
 let pageMapData: IPageData = reactive({
   title: "Журнал предварительной записи", icon: "", mainBtnBar: [
     { id: "day", title: "День", icon: "", disabled: false, color: "secondary", bkgColor: "red", action: () => currView.value = 'day' },
+    { id: "month", title: "Неделя", icon: "", disabled: false, color: "secondary", bkgColor: "red", action: () => currView.value = 'week' },
     { id: "month", title: "Месяц", icon: "", disabled: false, color: "secondary", bkgColor: "red", action: () => currView.value = 'month' },
     { id: "filterBtn", title: "", icon: "mdi-filter", disabled: false, color: "secondary", bkgColor: "red", action: () => drawer.value = !drawer.value },
   ]
@@ -342,31 +340,6 @@ defineExpose({ eventsHandler });
 
 </script>
 <style >
-/* Ширина скрола */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-/* Настройка полосы прокрутки */
-::-webkit-scrollbar-track {
-  background: rgb(189, 196, 197);
-  border-radius: 5px;
-}
-
-/* Бегунок */
-::-webkit-scrollbar-thumb {
-  background: rgb(57, 122, 235);
-  border-radius: 5px;
-
-}
-
-/* Бегунок при наведении */
-::-webkit-scrollbar-thumb:hover {
-  background: #014568;
-  border-radius: 5px;
-}
-
 .date-picker-month {
   background-color: rgba(150 255 194 / 35%) !important;
 }

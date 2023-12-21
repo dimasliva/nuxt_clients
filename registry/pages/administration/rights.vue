@@ -1,6 +1,6 @@
 <template>
   <v-card v-if="nright" max-width="400" class="mx-auto" elevation="0" loading>
-    <v-card-text class="text-h6">У вас нет доступа к этой странице, сейчас мы вас бережно перенесем на домашнюю
+    <v-card-text class="text-h6">У вас нет доступа к этой странице, сейчас вы будете перенаправлены на домашнюю
       страницу.</v-card-text>
     <img src="../../public/cat-laptop-rights.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto">
   </v-card>
@@ -13,12 +13,12 @@
   <v-card v-if="emptyRoles" max-width="400" class="mx-auto" elevation="0">
     <v-card-text class="text-h6">Ничего не найдено.</v-card-text>
   </v-card>
-  <div id="roleContainer" class="ma-4" v-if="upd" style="height: 75vh; overflow-y: auto;">
-    <v-expansion-panels>
-      <v-expansion-panel v-for="(value, index) in role" :key="index" elevation="0">
+  <div id="roleContainer" class="ma-4 overflow-y-auto">
+    <v-expansion-panels v-model="panels">
+      <v-expansion-panel v-for="(value, index) in role" :key="index" elevation="0" class=" h-75">
         <v-expansion-panel-title class="text-h6">{{ roleName[index] }}</v-expansion-panel-title>
         <v-expansion-panel-text>
-          <FormsRoleGrid :rights-set="value" :role-name="roleName[index]" @updated="completeEdit()"
+          <FormsRoleGrid v-if="upd" :rights-set="value" :role-name="roleName[index]" @updated="completeEdit()"
             :user-rights="userRights" :all-rights="allRights"></FormsRoleGrid>
         </v-expansion-panel-text>
       </v-expansion-panel>
@@ -55,6 +55,7 @@ const recStore = iocc.get(RecordsStore);
 const pageMap = iocc.get<PageMap>("PageMap");
 const allRec = api.getRecordsApiSection();
 let pageMapData: IPageData = reactive({ title: "Роли & права", icon: "mdi-account-circle", mainBtnBar: [] });
+let panels = ref<any>([])
 
 pageMap.setPageData("/administration/rights", pageMapData);
 
@@ -146,24 +147,24 @@ const closeAfterCreation = () => {
   setTimeout(() => {
     reqRole();
     message.value = 'Роль успешно создана!';
-    result.value = true;
     updFunc();
+    result.value = true;
   }, 300)
 }
 
-const updFunc = async () => {
+const updFunc = () => {
   upd.value = false;
-  await nextTick();
+  nextTick();
   upd.value = true;
 }
 
 const completeEdit = () => {
   setTimeout(() => {
     reqRole();
-    updFunc();
     message.value = 'Роль успешно обновлена!';
+    updFunc();
     result.value = true;
-  }, 300)
+  }, 700)
 }
 
 let allRights = ref();

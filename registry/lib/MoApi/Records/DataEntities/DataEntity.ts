@@ -6,7 +6,9 @@ import type { RecordsStore } from "../RecordsStore";
 export abstract class DataEntity {
 
 
-    constructor(__MoApiClient: MoApiClient, __UserContext: UserContext, protected __RecordStore: RecordsStore) { };
+    constructor(__MoApiClient: MoApiClient, __UserContext: UserContext, protected __RecordStore: RecordsStore) {
+        Object.defineProperty(this, "__RecordStore", { enumerable: false });
+    };
 
     init(id: string | null, jsonObj: any | null) {
         if (jsonObj)
@@ -22,7 +24,11 @@ export abstract class DataEntity {
                 if (val instanceof DataEntity)
                     obj[item] = val.getJsonObj();
                 else
-                    obj[item] = this[item];
+                    if (val instanceof Array) {
+                        obj[item] = val.map(item => item.getJsonObj());
+                    }
+                    else
+                        obj[item] = this[item];
 
             }
         return obj;
@@ -65,11 +71,46 @@ export abstract class DataEntity {
         newInst.fromJson(this.toJson());
         return newInst;
     }
-
-
-
+    
+    
+    
     protected _getSelfNewInst() {
         return this.__RecordStore.dataEntityFactory((<any>this).constructor);
     }
+}
+
+
+
+export abstract class DataEntityA extends DataEntity {
+
+    getJsonObj() {
+        let obj: any = {}
+        for (let item in this)
+            if (item.charAt(0) == '_' && !item.startsWith("__") && typeof item != "function") {
+                let val = this[item];
+                let propName = item.substring(1);
+                if (val instanceof DataEntity)
+                    obj[propName] = val.getJsonObj();
+                else
+                    if (val instanceof Array) {
+                        obj[propName] = val.map(item => item.getJsonObj());
+                    }
+                    else
+                        obj[propName] = this[item];
+            }
+        return obj;
+    }
+
+
+    fromJsonObj(jsonObj: any) {
+        for (let item in jsonObj) {
+            let propName = "_" + item;
+            if (typeof jsonObj[item] != "object")
+                this[propName] = jsonObj[item];
+            else
+                this[propName] = null;
+        }
+    }
+
 }
 

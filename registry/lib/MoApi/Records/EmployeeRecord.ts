@@ -1,6 +1,8 @@
+import { Exception } from "~/lib/Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
+import  { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 export class EmployeeRecordData extends ApiRecordChData {
@@ -24,15 +26,142 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
     static RightToken = "dbEmployee";
     static RecCode = 1004;
 
+    
+    protected _photoFl: FilelinkRecord | null = null;
+
     constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, _UserContext, _RecStore, EmployeeRecord, Key);
     }
 
     get RecCode() { return EmployeeRecord.RecCode; }
 
+    
+
     protected _createNewData() {
         return this._RecStore.dataEntityFactory(EmployeeRecordData, this.Key);
     }
+
+
+
+    protected async _getPhotoFilelink() {
+        if (this._photoFl)
+            return this._photoFl;
+
+        if (!this.Data!.photo)
+            return null;
+
+        return this._photoFl = await this._RecStore.fetch(FilelinkRecord, this.Data!.photo);
+    }
+
+
+
+    async GetFoto() {
+        let pfl = await this._getPhotoFilelink();
+        if (!pfl)
+            return null;
+
+        return pfl.GetBlob();
+    }
+
+
+    getMPhoto() {
+        if (this._photoFl)
+            return this._photoFl.MBlob
+
+        return null;
+    }
+
+
+
+    async setMPhoto(blob: Blob) {
+        if (this._photoFl) {
+            this._photoFl.MBlob = blob;
+            return;
+        }
+
+        if (!this.Data!.photo) {
+            this._photoFl = await this._RecStore.createNew<FilelinkRecord, FilelinkRecordData>(FilelinkRecord, (data) => { data.title = `#employeePhoto@${this.Key}` });
+            this._photoFl.MData.fileType=1;//персональное фото// FileTypes
+        }
+        else
+            await this._getPhotoFilelink()
+
+        if (!this._photoFl)
+            Exception.throw("FileLinkCreateErr", "Ошибка создания записи filelink");
+
+        this._photoFl!.MBlob = blob;
+    }
+
+
+
+    delMPhoto() {
+        if (this._photoFl)
+
+            if (!this._photoFl.Key)
+                this._photoFl = null;
+            else
+                this._photoFl.cancelModifingData();
+
+        this.MData!.photo = null;
+    }
+
+
+
+    async getCurrentPhoto() {
+        let pfl = await this._getPhotoFilelink();
+        if (!pfl) return null;
+        return pfl.getCurrentBlob();
+    }
+
+
+    cancelModifingData() {
+        this._ModifiedData = null;
+        if (this._photoFl)
+            this._photoFl.cancelModifingData();
+    }
+
+
+
+    isDataChanged() {
+        if (this._photoFl && this._photoFl.isDataChanged())
+            return true;
+
+        return super.isDataChanged();
+    }
+
+
+    async save() {
+        if (this._photoFl) {
+            if (!this.Data!.photo) {
+                //новое фото
+                await this._photoFl.save();
+                this.MData.photo = this._photoFl.Key;
+            }
+            else
+                if (this._photoFl.isDataChanged())
+                {
+                    await this._photoFl.save();
+                    this.MData.photo = this._photoFl.Key;
+                }
+        }
+
+
+        if (!super.isDataChanged()) {
+            this.cancelModifingData();
+            return;
+        }
+
+        if (this._isNewData) {
+            this._isNewData = false;
+            await this._addAllData();
+        }
+        else {
+            await this._updateAllData();
+        }
+
+        this._setModData();
+    }
+
 
 
     protected _getApiRecordPathGet = () => "/Employees/GetEmployees";

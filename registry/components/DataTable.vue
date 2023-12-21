@@ -5,7 +5,7 @@
             fixed-header height="72dvh" disable-pagination>
 
             <!-- настройка колонок-->
-            <template v-slot:column.actions="{ column }">
+            <template v-slot:header.actions="{ column }">
 
                 <v-menu :close-on-content-click="false">
 
@@ -40,12 +40,11 @@
 
 
             <template v-slot:item="{ internalItem, index }">
-                <VDataTableRow :index="index" :item="internalItem"
-                    :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
+                <VDataTableRow :index="index" :item="internalItem" :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
                     @click="(e) => { onRowClick(internalItem) }">
 
                     <template v-slot:item.actions="{ item }">
-                        <v-menu scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
+                        <v-menu  scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
                             <template v-slot:activator="{ props }">
                                 <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
                                     @click="() => lineSelected = internalItem.raw.id"></v-btn>
@@ -90,7 +89,7 @@
 
 <script setup lang="ts">
 import { UserContext } from '~~/lib/UserContext';
-// import { VDataTable, VDataTableRow } from 'vuetify/labs/VDataTable'
+import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
 
@@ -132,13 +131,14 @@ const pagesCount = computed(() => {
 
 const notAccessibleCols = ref<string[]>([]);
 const accessibleCols = ref<string[]>([]);
-const accessibleColItems = ref<any[]>([]);
+const accessibleColItems=ref<any[]>([]);
 
 
 props.tableDescr.headers.forEach((item) => {
     if (!chkRights(null, item.traits))
         notAccessibleCols.value.push(item.key)
-    else {
+    else
+    {
         accessibleCols.value.push(item.key);
         accessibleColItems.value.push(item);
     }
@@ -150,8 +150,8 @@ const _headers = computed(() => {
 
     props.columns.forEach((item) => {
         let headerItem = accessibleColItems.value.find((el) => el.key == item)
-        if (headerItem)
-            res.push(headerItem);
+         if(headerItem)
+           res.push(headerItem);
     });
 
     res.push({ key: "_space", sortable: false, title: "" })

@@ -119,11 +119,12 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
         data.birthdate = "2023-05-25T05:12:08.774Z";
         data.roles = "admin";
     })
+    await rec.save();
 
     let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
-    emplcont.Data!.mainEmail = mail || null;
-    emplcont.Data!.mainPhone = phone || null;
-    emplcont.save();
+    emplcont.MData!.mainEmail = mail || null;
+    emplcont.MData!.mainPhone = phone || null;
+    await emplcont.save();
 }
 
 

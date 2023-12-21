@@ -36,21 +36,22 @@
                 </v-card>
             </v-row>
             <template v-if="listDone">
-                <v-row v-if="props.prices" align="center" justify="start" class=" ma-0">
+                <!-- <v-row v-if="props.prices" align="center" justify="start" class=" ma-0">
                     <v-col v-for="(selection, i) in catalogSections" :key="selection.text" cols="auto" density="compact"
                         class="pa-1">
                         <v-chip :disabled="loading" closable @click:close="catalogSections.splice(i, 1)">
                             {{ selection }}
                         </v-chip>
                     </v-col>
-                </v-row>
+                </v-row> -->
                 <v-row>
                     <v-card class="overflow-y-auto w-100" height="300" flat>
                         <v-list lines="one" density="compact" class="ma-0 pa-0 ">
                             <v-list-item v-for="item in items" density="compact" class="py-0 my-1 overflow-visible"
                                 :value="item" :active="false" @click="selectedItems.push(item)">
                                 <v-list-item-title v-if="props.prices">
-                                    {{ item.title + ' ' + '(' + item.catalogTitle + ',' + item.sectionTitle + ')' }}
+                                    {{ item.title + ' (' + item.prices + 'руб.)' + ' ' + '(' + item.catalogTitle + ',' +
+                                        item.sectionTitle + ')' }}
                                 </v-list-item-title>
                                 <v-list-item-title v-else>
                                     {{ item.surname + ' ' + item.name + ' ' + item.patronymic }}
@@ -60,29 +61,51 @@
                     </v-card>
                 </v-row>
             </template>
-            <template v-if="showPriceList">
-                <v-card class="overflow-y-auto w-100" max-height="300">
-                    <v-expansion-panels>
-                        <v-expansion-panel v-for="catalog in catalogs" elevation="1" :key="catalog.id">
-                            <v-expansion-panel-title @click="getProducts()" class="text-h6">{{ catalog.title
-                            }}</v-expansion-panel-title>
-                            <v-expansion-panel-text>
-                                <v-expansion-panels>
-                                    <v-expansion-panel v-for="section in catalogSections" elevation="1"
-                                        :title="section.title" :key="section.id">
-                                        <v-expansion-panel-text>
-                                            <v-list>
-                                                <v-list-item v-for="product in sortedProductsList(catalog.id, section.id)"
-                                                    :title="product.title"></v-list-item>
-                                            </v-list>
-                                        </v-expansion-panel-text>
-                                    </v-expansion-panel>
-                                </v-expansion-panels>
-                            </v-expansion-panel-text>
-                        </v-expansion-panel>
-                    </v-expansion-panels>
+            <v-dialog v-model="showPriceList" fullscreen :scrim="false" transition="dialog-bottom-transition">
+                <v-card>
+                    <v-card-title class="px-2 bg-primary">
+                        <v-row class="pa-4">
+                            <div class="text-h5 ma-2">Прайс-листы</div>
+                            <v-spacer></v-spacer>
+                            <v-icon class="mt-2" @click="showPriceList = false">mdi-close</v-icon>
+                        </v-row>
+                    </v-card-title>
+                    <v-card-text class="h-75 overflow-y-auto">
+                        <v-expansion-panels>
+                            <v-expansion-panel v-for="catalog in catalogs" elevation="1" :key="catalog.id">
+                                <v-expansion-panel-title class="text-h6">{{ catalog.title
+                                }}</v-expansion-panel-title>
+                                <v-expansion-panel-text>
+                                    <v-expansion-panels>
+                                        <v-expansion-panel v-for="section in catalogSections" elevation="1"
+                                            :key="section.id">
+                                            <v-expansion-panel-title @click="getProducts(catalog.id, section.id)"
+                                                class="text-h6">{{ section.title
+                                                }}</v-expansion-panel-title>
+                                            <v-expansion-panel-text>
+                                                <v-list>
+                                                    <v-list-item v-for="product in products"
+                                                        @click="selectedItems.push(product)"
+                                                        :title="product.title + ' (' + product.prices + 'руб.)'"></v-list-item>
+                                                </v-list>
+                                            </v-expansion-panel-text>
+                                        </v-expansion-panel>
+                                    </v-expansion-panels>
+                                </v-expansion-panel-text>
+                            </v-expansion-panel>
+                        </v-expansion-panels>
+                    </v-card-text>
+                    <v-text-field name="name" label="label"></v-text-field>
+                    <v-card-actions>
+                        <v-combobox hide-details chips closable-chips v-model="selectedItems" readonly label="Вы выбрали"
+                            item-title="title" multiple variant="underlined" density="comfortable" class="ma-6"
+                            :items="selectedItems"></v-combobox>
+                        <v-btn color="primary" variant="text" @click="closeDialog">Отмена</v-btn>
+                        <v-btn :disabled="!selectedItems.length" color="primary" @click="addSelectedProdutcs()"
+                            variant="text">Добавить</v-btn>
+                    </v-card-actions>
                 </v-card>
-            </template>
+            </v-dialog>
             <v-divider v-if="listDone" :thickness="3" class="mb-10 mt-3"></v-divider>
             <v-select hide-details chips closable-chips v-if="listDone || selectedItems.length" v-model="selectedItems"
                 readonly label="Вы выбрали" item-title="title" multiple variant="underlined" density="compact"
@@ -93,7 +116,7 @@
             }}</v-btn>
             <v-spacer></v-spacer>
             <v-btn color="primary" variant="text" @click="closeDialog">Отмена</v-btn>
-            <v-btn :disabled="!listDone" color="primary" @click="addSelectedProdutcs()" variant="text">Готово</v-btn>
+            <v-btn :disabled="!selectedItems" color="primary" @click="addSelectedProdutcs()" variant="text">Добавить</v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -119,6 +142,7 @@ interface Props {
 }
 const props = defineProps<Props>()
 
+let prodsReq = ref(false)
 let showPriceList = ref(false)
 let selectAllCatalogs = ref(false)
 let notFound = ref(false)
@@ -165,13 +189,15 @@ const getCatalogs = async () => {
 
 const getCatalogsSectionsList = async (k) => {
     let keys = k.map((id) => id.replaceAll(`'`, `"`))
-    for (let i = 0; i < keys.length; i++) {
-        let list = await recStore.fetch(ProductsCatalogSectionRecord, keys[i]);
-        catalogSections.value.push(list.MData);
-    }
+    let list = await recStore.fetch(ProductsCatalogSectionRecord, keys);
+    catalogSections.value = list.MData;
 }
 
 const openPrices = async () => {
+    items.value = [];
+    catalogSections.value = [];
+    searchValue.value = '';
+    listDone.value = false;
     let productsCatalogs = [...new Set(catalogs.value.map(item => item.id))].map((i) => `productscatalog = ` + `'` + i + `'`);
     let catalogsSectionKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogSections', productsCatalogs.toString(), false);
     await getCatalogsSectionsList(catalogsSectionKeys);
@@ -180,21 +206,21 @@ const openPrices = async () => {
 
 const getProductsList = async (k) => {
     let keys = k.map((id) => id.replaceAll(`'`, `"`))
-    for (let i = 0; i < keys.length; i++) {
-        let list = await recStore.fetch(ProductRecord, keys[i]);
-        products.value.push(list.MData);
-    }
+    let list = await recStore.fetch(ProductRecord, keys);
+    products.value = list.MData;
 }
 
-const getProducts = async () => {
-    let productsCatalogs = [...new Set(catalogs.value.map(item => item.id))].map((i) => `productscatalog = ` + `'` + i + `'`);
+const getProducts = async (catkey, seckey) => {
+    let productsCatalogs = `productscatalog = ` + `'` + catkey + `' AND productscatalogsection = ` + `'` + seckey + `'`;
     let productsKeys = await apiClient.send<any, any>('/Products/FindProducts', productsCatalogs.toString(), false);
     getProductsList(productsKeys)
 }
 
-const sortedProductsList = (catkey, seckey) => {
-    return products.value.filter((product) => product.productsCatalog == catkey && product.productsCatalogSection == seckey);
-}
+// const sortedProductsList = (catkey, seckey) => {
+//     console.log('sort func')
+//     let sorted = products.value.filter((product) => product.productsCatalog == catkey && product.productsCatalogSection == seckey)
+//     return sorted;
+// }
 
 
 const getProductsListView = async () => {
@@ -213,6 +239,7 @@ const getProductsListView = async () => {
         notFound.value = true;
         loading.value = false;
     }
+    console.log(items.value)
 }
 
 let req: any = ref(null);
@@ -256,31 +283,6 @@ if (props.prices) {
 </script>
 
 <style scoped>
-/* width */
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-/* Настройка полосы прокрутки */
-::-webkit-scrollbar-track {
-    background: rgb(189, 196, 197);
-    border-radius: 5px;
-}
-
-/* Бегунок */
-::-webkit-scrollbar-thumb {
-    background: rgb(57, 122, 235);
-    border-radius: 5px;
-
-}
-
-/* Бегунок при наведении */
-::-webkit-scrollbar-thumb:hover {
-    background: #014568;
-    border-radius: 5px;
-}
-
 .v-expansion-panel-text__wrapper {
     padding: 0;
 }

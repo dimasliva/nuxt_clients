@@ -2,7 +2,7 @@
   <FormsEditWindowDialog title="Профиль клиента" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
-        <v-row class="mt-1 ">
+        <v-row class="mt-1">
           <v-col xs="3" sm="3">
 
             <v-row class="mt-1 justify-start ">
@@ -57,7 +57,7 @@
           </v-col>
         </v-row>
 
-        <v-expansion-panels model-value="1">
+        <v-expansion-panels model-value="1" class="mt-2">
           <v-expansion-panel elevation="0" value="1">
             <v-expansion-panel-title class="text-subtitle-1">Контакты</v-expansion-panel-title>
             <v-expansion-panel-text>
@@ -86,21 +86,88 @@
           </v-expansion-panel>
         </v-expansion-panels>
 
+        <!--Документ, удостоверящий личность-->
         <v-expansion-panels>
           <v-expansion-panel elevation="0">
             <v-expansion-panel-title class="text-subtitle-1">Документ, удостоверящий личность</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+              <v-row class="mt-3">
+                <v-col>
+                  <InputField :state="fieldsOptions" :type="EDataType.strictstring" label="Документ"
+                    :items="persIdentDocLists" :item-props="(item) => { return { lines: 'two' } }"
+                    v-model="recDoc!.MData.mainDocument" />
+                </v-col>
+              </v-row>
+
+              <v-row>
+                <v-col sm="2">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Серия" :maska="capLettersNumbersMask"
+                    v-model="recDoc!.MData.mainDocumentSeries" :constraints="{ max: 32 }" />
+                </v-col>
+                <v-col sm="3">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Номер" :maska="capLettersNumbersMask"
+                    v-model="recDoc!.MData.mainDocumentNumber" :constraints="{ max: 32 }" />
+                </v-col>
+
+                <v-col sm="3">
+                  <InputField :state="fieldsOptions" :type="EDataType.date" label="Дата выдачи"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWhen"
+                    :constraints="{ min: '1900-01-01', max: new Date() }" />
+                </v-col>
+
+                <v-col sm="3">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Код подразделения"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWhoCode"
+                    :constraints="{ max: 8 }" />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col sm="12">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Кем выдан"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWho" :constraints="{ max: 256 }" />
+                </v-col>
+              </v-row>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
 
-
+        <!--Другие документы-->
         <v-expansion-panels>
           <v-expansion-panel elevation="0">
             <v-expansion-panel-title class="text-subtitle-1">Другие документы</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <InputField :state="fieldsOptions" :type="EDataType.string" label="Плавающее2" v-model="Int" />
+
+              <v-row class="mt-3 justify-start">
+                <v-menu scrollStrategy="close">
+                  <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" variant="text" size="small" prepend-icon="mdi-plus">Добавить</v-btn>
+                  </template>
+                  <v-list max-height="200" width="300" density="compact">
+                    <v-list-item v-for="item in persDocLists" :title="item.title"
+                      @click="() => onAddDoc(fieldsOptions, item.value)" />
+                  </v-list>
+                </v-menu>
+              </v-row>
+
+              <!--
+                <v-col sm="4">
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="СНИЛС"
+                    :maska="{ mask: '###-###-### ##' }" :constraints="{ max: 32 }" :model-value="recDoc!.MData.snils" />
+                </v-col>
+-->
+
+
+              <v-row v-for="item in docsDescr" :key="item.key">
+
+                <v-col sm-10 class="pt-0">
+                  <CustomPersonalDocumentInput :state="fieldsOptions" v-bind="<any>item"
+                    @update:model-value="(val) => item.onChanged(val)" />
+                </v-col>
+                <v-col sm="2" class="d-flex align-center pl-0 pt-0">
+                  <v-btn icon="mdi-delete" variant="plain" size="small"
+                    @click="() => item.onDelete(fieldsOptions)"></v-btn>
+                </v-col>
+              </v-row>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -155,8 +222,34 @@ import { EDataType } from '~/lib/globalTypes';
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import AddressEntity from '~/lib/MoApi/Records/DataEntities/AddressEntity';
+import { Dictionary } from "~/lib/Dicts/Dictionary";
+import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
+import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
+import { getNextSerialKey } from '~/lib/Utils';
 
 const { t, locale } = useI18n();
+
+class VisWrap<T>{
+  modelValue: T;
+  key: number = getNextSerialKey();
+
+  constructor(data: T, public isNew: boolean, public isFocused = false) {
+    this.modelValue = <T>reactive(data as object);
+  };
+
+  static fromArr<T>(arr: T[] | null | undefined) {
+    if (!arr)
+      return null;
+    return arr.map((item) => new VisWrap(item, false));
+  }
+
+  static toArr<T>(arr: VisWrap<T>[] | null | undefined) {
+    if (!arr)
+      return null;
+
+    return arr.map((item) => item.modelValue);
+  }
+}
 
 interface IProps {
   recKey: string | null
@@ -170,11 +263,23 @@ const foto = ref("");
 const gender = ref("");
 const isRecLock = ref();
 let readonly = ref(false);
-const isAddressesEqual = ref(true);
 
-const list = ref([]);
-const Int = ref(45.000);
+let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
+let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
+const persIdentDocLists = ref(Dictionary.itemsToValueTitle((await dictPersDocs.getItems(0))!));
+const persDocLists = ref(Dictionary.itemsToValueTitle(
+  Object.assign((await dictPersDocs.getItems(1 * Dictionary.DICT_SECTION_K))!, await dictPersDocs.getItems(Dictionary.DICT_USER_SECTION))));
 
+
+const capWordMask = {
+  mask: "Aa",
+  tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я,0-9]/, multiple: true } }
+}
+
+const capLettersNumbersMask = {
+  mask: "a",
+  tokens: { a: { pattern: /[A-z,А-я,0-9]/, multiple: true } }
+}
 
 
 
@@ -182,10 +287,7 @@ const fioOptions = reactive({
   class: "mb-1",
   type: EDataType.string,
   constraints: { max: 128, min: 2 },
-  maska: {
-    mask: "Aa",
-    tokens: { A: { pattern: /[A-я]/, transform: (chr: string) => chr.toUpperCase() }, a: { pattern: /[a-я]/, multiple: true } }
-  }
+  maska: capWordMask
 });
 
 
@@ -216,6 +318,57 @@ else {
 }
 
 
+///Документы
+
+//получаем  recDoc.value!.MData.otherDocuments как реактивную переменную
+const otherDocuments = reactive(VisWrap.fromArr(recDoc.value!.MData.otherDocuments) || []);
+
+
+// изменения otherDocuments автоматически отображаются в recDoc.value!.MData.otherDocuments
+watch(otherDocuments, (val) => {
+  var res = VisWrap.toArr(val) || [];
+  recDoc.value!.MData.otherDocuments = (res.length > 0) ? <any>res : null;
+});
+
+
+const docsDescr = computedAsync(async () => {
+
+  //другие документы
+  let res = otherDocuments.map((item, inx) => {
+    let obj = {
+      key: item.key,
+      typeCode: item.modelValue.typeCode,
+      modelValue: item.modelValue,
+      opened: item.isNew,
+      focused: item.isFocused,
+      onChanged: (val) => {
+        item.modelValue.fromJsonObj(val.getJsonObj())
+      },
+
+      onDelete: (fieldsOptions) => {
+        fieldsOptions.changedCnt++;
+        otherDocuments.splice(inx, 1);
+      }
+    }
+    item.isNew = false;
+    item.isFocused = false;
+
+    return obj;
+  });
+
+  return res.reverse();
+});
+
+const onAddDoc = (fieldsOptions, typeCode) => {
+  fieldsOptions.changedCnt++;
+  otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity, null, {
+    typeCode: typeCode
+  }), true, true));
+}
+
+
+
+///Блокировка записей
 watch(isRecLock, (val) => {
   if (!val) {
     warnToast("Запись заблокирована для изменения. Редакция невозможна");
@@ -334,3 +487,11 @@ await t1.sendRtm("onDictionaryChanged", "1212", 2);
 //await t1.sendRtm("testAsync");
 */
 </script>
+
+
+<style scoped>
+.v-expansion-panels {
+  z-index: auto;
+  /*необходим что бы выпадающий календарь у полей даты не перекрывался expansion-panels*/
+}
+</style>

@@ -1,16 +1,16 @@
 <template>
-  <FormsEditWindowDialog title="Профиль сотрудника" :on-save="save" :on-close="close" :readonly="readonly">
+  <FormsEditWindowDialog title="Профиль должности" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
-          
 
-    
-            <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.reference" v-model="rec!.MData.changedAt"
-              label="Должность" :constraints="{ reference: '' }" />
-</v-row>
 
-       
+
+          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.reference" v-model="rec!.MData.changedAt"
+            label="Должность" :finderDataProvider="finderDataProvider" />
+        </v-row>
+
+
 
       </v-card-text>
     </template>
@@ -42,6 +42,9 @@ import { chkTrait } from "~/lib/Utils";
 import { RolesRecord } from '~/lib/MoApi/Records/RolesRecord';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 import { PositionRecord } from '~/lib/MoApi/Records/PositionRecord';
+import { QueryDictsFFParams } from '~/lib/MoApi/RequestArgs';
+import { DictsFinderDataProvider } from '~/libVis/DictsFinderDataProvider';
+import FinderForm from '~/components/forms/FinderForm.vue';
 
 const { t, locale } = useI18n();
 
@@ -103,8 +106,8 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-
-
+const finderDataProvider= iocc.get(DictsFinderDataProvider);
+finderDataProvider.init("serachPositions",FinderForm,EDictionaries.CompanyPositions);
 
 defineExpose({ eventsHandler });
 

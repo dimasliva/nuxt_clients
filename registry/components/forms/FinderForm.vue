@@ -1,7 +1,7 @@
 
 <script lang="ts">
 import { useI18n } from "vue-i18n"
-import { FinderFormTemplate } from "~/componentComposables/forms/finderFormTemplate"
+import { FinderFormTemplate, type IFinderFormProps } from "~/componentComposables/forms/finderFormTemplate"
 
 class FinderForm extends FinderFormTemplate {
 
@@ -10,13 +10,28 @@ class FinderForm extends FinderFormTemplate {
 
 
 export default {
-    setup(props, { expose }) {
+
+    inheritAttrs: false,
+    props: {
+        title: {
+            type: String,
+            required: true
+        },
+        label: String,
+
+        getList: {
+            type: Function,
+            required: true
+        }
+    },
+
+    async setup(props, ctx) {
 
         let t = useI18n().t;
         const o = new FinderForm();
-        o.setup();
+        o.setup(props as IFinderFormProps);
 
-        expose({
+        ctx.expose({
             eventsHandler: (e, d) => o.eventsHandler(e, d)
         });
 

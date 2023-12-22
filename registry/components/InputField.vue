@@ -135,15 +135,15 @@
     </v-checkbox>
 
     <!--Словарное значение-->
-    <v-text-field v-if="type == EDataType.reference && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
+    <v-select v-if="type == EDataType.reference && visible" ref="refField" v-bind="$attrs" :modelValue="referVal"
         :readonly="true" type="text" variant="underlined" :clearable="!readonly" density="compact"
-        @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" @click="()=>openDialog(FinderForm,{title:'Поиск'})">
+        @keydown.stop="(k) => onKeydown(k)" @click="() => onReferEdit()">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
             </span>
         </template>
-    </v-text-field>
+    </v-select>
 </template>
 
 
@@ -159,7 +159,7 @@ import { VPhoneInput } from 'v-phone-input'; //https://github.com/paul-thebaud/v
 import 'flag-icons/css/flag-icons.min.css';
 import 'v-phone-input/dist/v-phone-input.css';
 import { isEqualData } from '~/lib/Helpers';
-import  FinderForm  from '~/components/forms/FinderForm.vue';
+import type { FinderDataProvider } from '~/libVis/FinderDataProvider';
 
 
 const { t, locale } = useI18n();
@@ -183,6 +183,7 @@ interface IProps {
     label?: string | null;
     rules?: any[] | null;
     tokens?: string[] | null,
+    finderDataProvider?: FinderDataProvider | null,
 
     state?: {
         errCnt: number,
@@ -478,6 +479,19 @@ if (props.type == EDataType.float) {
 }
 
 
+const referVal = computedAsync(() => {
+    return CurrModelVal.value ? props.finderDataProvider?.getTitle(CurrModelVal.value) : "";
+});
+
+
+const onReferEdit = async () => {
+    let res = await props.finderDataProvider?.edit();
+    if (res != null) {
+        CurrModelVal.value = res[0];
+        onValChanged(true);
+    }
+}
+
 
 let currErr = false;
 
@@ -500,6 +514,7 @@ const resetErr = (res: any) => {
 }
 
 const focus = () => {
+    debugger;
     if (refField.value.focus)
         refField.value.focus();
 }

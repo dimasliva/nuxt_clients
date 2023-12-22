@@ -1,5 +1,7 @@
 import type { ICouplingData, IRelData } from "../ApiInterfaces";
 import type { MoApiClient } from "../MoApiClient";
+import type { QueryDictsFFParams } from "../RequestArgs";
+import type { IApiDataListResult } from "../RequestResults";
 
 const _apiPath = "/Dictionaries";
 
@@ -92,5 +94,10 @@ export class DictionariesApiSection {
 
     async DeleteForeignDictionaryItem(dictFItem: IForeignDictionaryItem) {
         return await this._apiClient.send<IForeignDictionaryItem, boolean>(`${_apiPath}/DeleteForeignDictionaryItem`, dictFItem, false);
+    }
+
+
+    async FFDictItemsListView(query: QueryDictsFFParams) {
+        return await this._apiClient.send<QueryDictsFFParams, IApiDataListResult>(`${_apiPath}/FFDictItemsListView`, query, false);
     }
 }

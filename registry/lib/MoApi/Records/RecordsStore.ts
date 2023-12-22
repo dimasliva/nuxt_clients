@@ -2,10 +2,10 @@ import { injectable, inject } from "inversify";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, type ApiRecordClass } from "./ApiRecord";
-import { chkRights } from "~/lib/Utils"
+import { chkRights } from "../../Utils"
 import { DataEntity } from "./DataEntities/DataEntity";
 import type { IFullRecordId, IFullRecordIdT } from "../ApiInterfaces";
-import { Exception } from "~/lib/Exceptions";
+import { Exception } from "../../Exceptions";
 
 
 @injectable()

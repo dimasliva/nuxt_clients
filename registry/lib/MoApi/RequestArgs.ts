@@ -2,17 +2,40 @@
 export class QueryParams {
     select: string;
     where: string;
-    orderBy?: string|null;
+    orderBy?: string | null;
     limit: number = -1;
 
 
-    constructor(_select: string, _where: string, orderBy:string|null=null, _limit = -1) {
+    constructor(_select: string, _where: string, orderBy: string | null = null, _limit = -1) {
         this.select = _select;
         this.where = _where;
         this.limit = _limit;
-        this.orderBy=orderBy;
+        this.orderBy = orderBy;
     }
 }
+
+
+export class QueryDictsFFParams {
+
+    dictId: string;
+    text: string;
+    limit: number;
+    section?: number;
+    select: string;
+    includeObsolete: boolean;
+
+
+    constructor(_dictId: string, _text: string, _select: string, _limit: number, _includeObsolete: boolean=false, _section?: number) {
+        this.dictId = _dictId;
+        this.text = _text;
+        this.limit = _limit;
+        this.select = _select;
+        this.includeObsolete = _includeObsolete;
+        this.section = _section;
+    }
+}
+
+
 
 export class QueryProductFtsList {
     select: string;
@@ -24,7 +47,7 @@ export class QueryProductFtsList {
     temporaryNotActive: boolean;
 
 
-    constructor(_select: string, _text: string, _limit: number, _minRank: number, _notActive: boolean, _productCatalogs: string[], _temporaryNotActive: boolean){
+    constructor(_select: string, _text: string, _limit: number, _minRank: number, _notActive: boolean, _productCatalogs: string[], _temporaryNotActive: boolean) {
         this.select = _select;
         this.text = _text;
         this.limit = _limit;
@@ -34,4 +57,3 @@ export class QueryProductFtsList {
         this.temporaryNotActive = _temporaryNotActive;
     }
 }
-    

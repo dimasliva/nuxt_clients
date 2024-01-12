@@ -3,7 +3,10 @@ $tooltip-background-color: rgb(212, 209, 209),
 $tooltip-text-color: rgb(var(--v-theme-secondary)),
 $tooltip-border-radius: 50px,
 $tooltip-padding: 3px 6px,
+$table-font-size: 1rem,
+$card-prepend-padding-inline-end: 0.5rem
 );
+
 
 html{
     scrollbar-width:thin;

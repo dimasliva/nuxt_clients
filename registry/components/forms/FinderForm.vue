@@ -2,11 +2,9 @@
 <script lang="ts">
 import { useI18n } from "vue-i18n"
 import { FinderFormTemplate, type IFinderFormProps } from "~/componentComposables/forms/finderFormTemplate"
+import { FinderDataProvider } from "~/libVis/FinderDataProvider";
 
-class FinderForm extends FinderFormTemplate {
-
-}
-
+class FinderForm extends FinderFormTemplate {}
 
 
 export default {
@@ -19,17 +17,18 @@ export default {
         },
         label: String,
 
-        getList: {
-            type: Function,
+        finderDataProvider: {
+            type: Object,
             required: true
         }
     },
 
+    
     async setup(props, ctx) {
 
         let t = useI18n().t;
         const o = new FinderForm();
-        o.setup(props as IFinderFormProps);
+        await o.setup(props as IFinderFormProps, ctx);
 
         ctx.expose({
             eventsHandler: (e, d) => o.eventsHandler(e, d)

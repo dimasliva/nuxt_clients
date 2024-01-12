@@ -35,7 +35,7 @@ export abstract class FinderDataProvider {
     async edit(): Promise<string | number | null> {
 
         return new Promise(resolve => {
-            openDialog(this._editFormComponent, { title: 'Поиск', getList: (text) => this.getList(text) }, true, (e, d) => {
+            openDialog(this._editFormComponent, { title: 'Поиск', finderDataProvider: this }, true, (e, d) => {
                 if (e == "onBeforeClose")
                     resolve(d);
                 return true;

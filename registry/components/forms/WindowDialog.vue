@@ -21,7 +21,7 @@
 
             <slot name="buttons" :props="buttonsSlotProps">
 
-                <v-btn color="primary" variant="text" @click="() => ok(onOk?.() || null)">
+                <v-btn v-if="okTitle!==null" color="primary" variant="text" @click="() => ok(onOk?.() || null)">
                     {{ okTitle || 'Ок' }}
                 </v-btn>
 

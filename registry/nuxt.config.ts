@@ -64,7 +64,6 @@ export default defineNuxtConfig({
   },
 
   proxy: {
-    enableProxy:true,
     proxies: {
       '^/swagger/.*': {
         target: `https://${mainApiServer}:${mainApiServerPort}`,

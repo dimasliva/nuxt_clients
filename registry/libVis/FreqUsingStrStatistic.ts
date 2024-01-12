@@ -9,7 +9,7 @@ interface IFreqUsingStringStatisticOptions {
 
 
 @injectable()
-export class FreqUsingStringStatistic {
+export class FreqUsingStrStatistic {
 
     protected _keyPref: string = null!;
     protected _instName: string = null!
@@ -45,8 +45,7 @@ export class FreqUsingStringStatistic {
         this._storage.forEach((item) => {
             map[item.v] ? map[item.v]++ : map[item.v] = 1;
         });
-        debugger;
-        var res = Object.keys(map).sort((k1, k2) => map[k1] - map[k2]);
+        var res = Object.keys(map).sort((k1, k2) => map[k2] - map[k1]);
         return res.slice(0, limit);
     }
 
@@ -66,6 +65,7 @@ export class FreqUsingStringStatistic {
             });
             this._storage[minInx] = { v: val, t: Date.now() }
         }
+        this._save();
     }
 
 

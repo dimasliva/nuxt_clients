@@ -514,7 +514,6 @@ const resetErr = (res: any) => {
 }
 
 const focus = () => {
-    debugger;
     if (refField.value.focus)
         refField.value.focus();
 }

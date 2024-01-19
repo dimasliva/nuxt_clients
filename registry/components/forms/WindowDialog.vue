@@ -9,7 +9,7 @@
             </v-row>
         </v-card-title>
 
-        <v-card-text class="overflow-y-auto">
+        <v-card-text class="overflow-y-auto pb-0">
             <slot>
 
             </slot>

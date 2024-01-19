@@ -135,9 +135,11 @@
     </v-checkbox>
 
     <!--Словарное значение-->
-    <v-select v-if="type == EDataType.reference && visible" ref="refField" v-bind="$attrs" :modelValue="referVal"
-        :readonly="true" type="text" variant="underlined" :clearable="!readonly" density="compact"
-        @keydown.stop="(k) => onKeydown(k)" @click="() => onReferEdit()">
+    <v-select v-if="(type == EDataType.reference || type == EDataType.referenceMultiple) && visible" ref="refField"
+        :chips="type == EDataType.referenceMultiple"  v-bind="$attrs" :modelValue="referVal" :readonly="true"
+        type="text" variant="underlined" :clearable="!readonly" density="compact" @keydown.stop="(k) => onKeydown(k)"
+        @click="() => onReferEdit()"
+        >
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -160,6 +162,7 @@ import 'flag-icons/css/flag-icons.min.css';
 import 'v-phone-input/dist/v-phone-input.css';
 import { isEqualData } from '~/lib/Helpers';
 import type { FinderDataProvider } from '~/libVis/FinderDataProvider';
+import * as Utils from '~/lib/Utils';
 
 
 const { t, locale } = useI18n();
@@ -480,14 +483,28 @@ if (props.type == EDataType.float) {
 
 
 const referVal = computedAsync(() => {
-    return CurrModelVal.value ? props.finderDataProvider?.getTitle(CurrModelVal.value) : "";
+    if (CurrModelVal.value != null) {
+        if (CurrModelVal.value instanceof Array) {
+            return new Promise(async resolve=> {
+                resolve(await Utils.mapAsync(CurrModelVal.value, async item => {
+                    let t=await props.finderDataProvider!.getTitle(item);
+                    return {value:item, title:t}
+                }));
+            });
+        }
+        else
+            return props.finderDataProvider?.getTitle(CurrModelVal.value)
+    }
+    else
+        return null;
+
 });
 
 
 const onReferEdit = async () => {
     let res = await props.finderDataProvider?.edit();
     if (res != null) {
-        CurrModelVal.value = res[0];
+        CurrModelVal.value = res;
         onValChanged(true);
     }
 }

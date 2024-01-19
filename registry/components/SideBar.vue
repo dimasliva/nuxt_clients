@@ -107,11 +107,10 @@
   <!--Всплывающие сообщения-->
   <Toaster position="bottom-right" :expand="true" closeButton richColors />
   <!--Поддержка диалоговых окон-->
-  <v-dialog v-model="showDialog" :persistent="dialogForm.modal" width="auto">
-    <component ref="compObj" :is="dialogForm.comp" v-bind="dialogForm.props" />
-  </v-dialog>
-  <v-dialog v-model="showDialog2" :persistent="dialogForm2.modal" width="auto">
-    <component ref="compObj2" :is="dialogForm2.comp" v-bind="dialogForm2.props" />
+
+  <v-dialog v-for="(item, index) in dialogForms" :key="index" :modelValue="item.showDialog" :persistent="item.modal"
+    width="auto">
+    <component :ref="item.refComp" :is="item.comp" v-bind="item.props" />
   </v-dialog>
 </template>
 
@@ -133,8 +132,13 @@ interface DialogForm {
   comp: any;
   props: any;
   modal: boolean;
-  eventsHandler: ((eventName: string, eventData: any) => boolean) | null
+  eventsHandler: ((eventName: string, eventData: any) => boolean) | null;
+
+  refComp: any | null;
+  showDialog: boolean;
 }
+
+const DIALOG_FORM_LEVELS_NUMBER = 3;
 
 const { name } = useDisplay();
 let drawerWidth = computed(() => {
@@ -184,21 +188,21 @@ let currPageTitle = ref<IMenu | string>('');
 let currPageButtons = ref<IBtnMenu[] | null>();
 let currPageMenu = ref<IMenu | null>();
 let currPin = ref<boolean>(true);
-let showDialog = ref<boolean>(false);
 let pages = ref<Page[]>([]);
-let dialogForm: DialogForm = {
-  comp: null,
-  props: null,
-  modal: true,
-  eventsHandler: null
-};
-let showDialog2 = ref<boolean>(false);
-let dialogForm2: DialogForm = {
-  comp: null,
-  props: null,
-  modal: true,
-  eventsHandler: null
-};
+
+
+let dialogFormsInx = 0;
+let dialogForms = ref<DialogForm[]>(Array(DIALOG_FORM_LEVELS_NUMBER).fill(
+  {
+    comp: null,
+    props: null,
+    modal: true,
+    eventsHandler: null,
+    refComp: null,
+    showDialog: false
+  }));
+
+
 
 let createToast = (type: EMessageType, message: string, title?: string | null) => {
   toast.custom(markRaw(h<any>(ToastComponent, { type, message, title })));
@@ -247,46 +251,45 @@ onBeforeUnmount(() => {
 })
 
 let addDiag = (val: { component: any; props: any; modal: boolean; eventsHandler: ((eventName: string, eventData: any) => boolean) | null }) => {
-  if (!showDialog.value) {
-    dialogForm.comp = val.component;
-    dialogForm.props = val.props;
-    dialogForm.modal = val.modal;
-    dialogForm.eventsHandler = val.eventsHandler;
-    showDialog.value = true;
-  } else {
-    if (!showDialog2.value) {
-      dialogForm2.comp = val.component;
-      dialogForm2.props = val.props;
-      dialogForm2.modal = val.modal;
-      dialogForm2.eventsHandler = val.eventsHandler;
-      showDialog2.value = true;
-    }
-  }
+
+  if (dialogFormsInx >= DIALOG_FORM_LEVELS_NUMBER)
+    return;
+
+  dialogForms.value[dialogFormsInx++] = markRaw({
+    comp: val.component,
+    props: val.props,
+    modal: val.modal,
+    eventsHandler: val.eventsHandler,
+    showDialog: true,
+    refComp: ref(),
+  });
 };
 
 let closeDiag = (result: any, noEmit = false) => {
-  if (showDialog2.value) {
-    if (noEmit || (!dialogForm2.eventsHandler || dialogForm2.eventsHandler("onBeforeClose", result))) {
-      dialogForm2.comp = null;
-      dialogForm2.props = null;
-      dialogForm2.eventsHandler = null;
-      dialogForm2.modal = true;
-      showDialog2.value = false;
-    }
-  } else if (showDialog.value) {
-    if (noEmit || (!dialogForm.eventsHandler || dialogForm.eventsHandler("onBeforeClose", result))) {
-      dialogForm.comp = null;
-      dialogForm.props = null;
-      dialogForm.eventsHandler = null;
-      dialogForm.modal = true;
-      showDialog.value = false;
-    }
-  }
+
+  if (dialogFormsInx <= 0)
+    return;
+
+  if (noEmit || (!dialogForms.value[dialogFormsInx - 1].eventsHandler || dialogForms.value[dialogFormsInx - 1].eventsHandler!("onBeforeClose", result)))
+    dialogForms.value[--dialogFormsInx] = {
+      comp: null,
+      props: null,
+      modal: false,
+      eventsHandler: null,
+      showDialog: false,
+      refComp: null
+    };
 };
 
+
 const onDialogEvents = (e: string, eData: any) => {
-  if (dialogForm.eventsHandler)
-    return dialogForm.eventsHandler(e, eData);
+  if (dialogFormsInx <= 0)
+    return;
+
+  const eventsHandler = dialogForms.value[dialogFormsInx - 1].eventsHandler;
+
+  if (eventsHandler)
+    return eventsHandler(e, eData);
   return false;
 }
 
@@ -369,22 +372,21 @@ let currUserName = userData.name;
 let userInitials = userData.surname + ' ' + (userData.name[0].toUpperCase()) + '.' + (userData.patronymic ? userData.patronymic[0] + '.' : '');
 
 const getEventsHandler = () => {
-  if (showDialog2.value)
-    return compObj2.value?.eventsHandler || null;
+  if (dialogFormsInx > 0) {
+    const eventsHandler = dialogForms.value[dialogFormsInx - 1].eventsHandler;
+    return eventsHandler;
+  }
   else
-    if (showDialog.value)
-      return compObj.value?.eventsHandler || null;
-    else
-      if (pageData) {
-        return pageObj.value.pageRef.eventsHandler || null;
-      }
+    if (pageData) {
+      return pageObj.value.pageRef.eventsHandler || null;
+    }
   return null;
 }
 
 
 
 const onKeydown = (e: KeyboardEvent) => {
-  if (!showDialog.value && pInput.value.focused) return;
+  if (dialogFormsInx == 0 && pInput.value.focused) return;
   let handled = false;
   const handler = getEventsHandler();
   if (handler)

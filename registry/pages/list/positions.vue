@@ -13,6 +13,10 @@ import { recognizeDataInString } from '~/lib/Utils';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { Dictionary } from "~/lib/Dicts/Dictionary";
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
+import { EDataType } from '~/lib/globalTypes';
+import { DictsFinderDataProvider } from '~/libVis/DictsFinderDataProvider';
+import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+
 
 let t: any;
 
@@ -25,6 +29,14 @@ type TPositionFilterVals = {
 class PositionList extends ListTemplate<TPositionFilterVals>
 {
   positionsViews = this.iocc.get(PositionsViews);
+  finderDataProvider= this.iocc.get(DictsFinderDataProvider);
+  
+
+  async setup(){
+    await super.setup();
+    this.finderDataProvider.init("serachPositions",FinderFormMultiple,EDictionaries.CompanyPositions);
+  }
+
 
   //Указание пути текущей страницы
   PAGE_PATH = "/list/positions";
@@ -65,20 +77,21 @@ class PositionList extends ListTemplate<TPositionFilterVals>
   filterFieldSetting = {
     fields: {
       fio: {
-        type: "string",
+        type: EDataType.string,
         title: "ФИО",
         hint: null,
         rules: [(v: string) => this.chkFioRule(v)],
         constraints: { min: 2, max: 384, check: (v) => this.chkFioRule(v) == true },
       },
 
-      email: {
-        type: "string",
+      position: {
+        type: EDataType.referenceMultiple,
         title: "Должность",
         hint: "Введите минимум 2 символа",
         rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
         constraints: { min: 2, max: 64 },
-        traits: { dbPosition: "r" }
+        traits: { dbPosition: "r" },
+        finderDataProvider: this.finderDataProvider
       }
     },
 
@@ -153,10 +166,11 @@ class PositionList extends ListTemplate<TPositionFilterVals>
 
 
 export default {
-  setup(props, { expose }) {
+  async setup(props, { expose }) {
     t = useI18n().t;
+
     const o = new PositionList();
-    o.setup();
+    await o.setup();
 
     const del = () => {
 

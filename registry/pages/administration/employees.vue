@@ -11,6 +11,7 @@ import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsReco
 import { ListTemplate } from '~/componentComposables/list/listTemplate';
 import { EmployeesViews } from '~/lib/MoApi/Views/EmployeesViews';
 import { recognizeDataInString } from '~/lib/Utils';
+import { EDataType } from '~/lib/globalTypes';
 
 let t: any;
 
@@ -68,7 +69,7 @@ class EmployeeList extends ListTemplate<TEmployeeFilterVals>
   filterFieldSetting = {
     fields: {
       fio: {
-        type: "string",
+        type: EDataType.string,
         title: "ФИО",
         hint: null,
         rules: [(v: string) => this.chkFioRule(v)],
@@ -76,7 +77,7 @@ class EmployeeList extends ListTemplate<TEmployeeFilterVals>
       },
 
       email: {
-        type: "string",
+        type: EDataType.string,
         title: "Электронная почта",
         hint: "Введите минимум 2 символа",
         rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа"],
@@ -85,7 +86,7 @@ class EmployeeList extends ListTemplate<TEmployeeFilterVals>
       },
 
       phone: {
-        type: "string",
+        type: EDataType.string,
         title: "Телефон",
         hint: "Введите минимум 6 символов",
         rules: [],

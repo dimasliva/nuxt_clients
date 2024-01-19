@@ -31,8 +31,10 @@ export const enum EDataType {
     "strictstringarray", //множественный выбор из ограниченного набора строк
     "phone",
     "email",
-    "reference"
+    /**Выбор из справочника*/
+    "reference",
+    /**Множественный выбор из справочника */
+    "referenceMultiple"
 }
-
 
 

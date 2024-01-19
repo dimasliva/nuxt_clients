@@ -80,7 +80,7 @@ export abstract class ListTemplate<TFilterVals> {
 
 
 
-    setup() {
+    async setup() {
         this.setPageData();
         this.pageSettings = this.userCtx.EmployeeAppProfile?.getPageSettings(this.PAGE_PATH) || this.defPageSettings;
         this.dataTableVars.value.columns = this.pageSettings.tcols;

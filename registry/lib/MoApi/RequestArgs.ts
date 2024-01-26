@@ -34,4 +34,17 @@ export class QueryProductFtsList {
         this.temporaryNotActive = _temporaryNotActive;
     }
 }
+
+export class QueryParamsScheduler {
+    fromDate: string;
+    toDate: string;
+    groupId: string;
+
+
+    constructor(_fromDate: string, _toDate: string, _groupId:string) {
+        this.fromDate = _fromDate;
+        this.toDate = _toDate;
+        this.groupId= _groupId;
+    }
+}
     

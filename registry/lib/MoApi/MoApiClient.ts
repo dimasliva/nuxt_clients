@@ -55,7 +55,7 @@ export class MoApiClient {
     }
 
     async send<inT, outT>(path: string, data?: inT, inParam: boolean = false) {
-
+        
         if (inParam)
             var res = await this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null, null);
         else
@@ -65,6 +65,7 @@ export class MoApiClient {
 
         if (res.bodyData && typeof res.bodyData == "object") {
             const answ = <IApiResult>res.bodyData;
+            
             if (answ.resultCode == "OK")
                 return <outT>answ.result;
             else

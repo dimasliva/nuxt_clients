@@ -22,17 +22,17 @@ export abstract class DataEntity {
             if (!item.startsWith("__") && typeof item != "function") {
                 let val = this[item];
                 if (val instanceof DataEntity)
-                    obj[item] = val.getJsonObj();
-                else
-                    if (val instanceof Array) {
+                obj[item] = val.getJsonObj();
+            else
+            if (val instanceof Array) {
                         obj[item] = val.map(item => item.getJsonObj());
                     }
                     else
                         obj[item] = this[item];
-
             }
         return obj;
     }
+
 
 
 

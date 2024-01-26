@@ -21,8 +21,8 @@
                         v-model="selectAllCatalogs"></v-checkbox>
                 </v-col>
             </v-row>
-            <v-text-field @input="autoReq()" clearable v-model="searchValue" label="Поиск" :placeholder="props.text_field"
-                variant="underlined" density="compact" append-inner-icon="mdi-magnify"
+            <v-text-field @input="autoReq()" autofocus clearable v-model="searchValue" label="Поиск"
+                :placeholder="props.text_field" variant="underlined" density="compact" append-inner-icon="mdi-magnify"
                 :disabled="!selectedCatalogs"></v-text-field>
             <v-progress-linear color="primary" class="ma-1" v-if="loading" indeterminate></v-progress-linear>
             <v-row v-if="notFound">
@@ -122,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+import { UserContext } from '~/lib/UserContext';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { ProductRecord } from '~/lib/MoApi/Records/ProductRecord';
@@ -130,6 +131,7 @@ import { ProductsCatalogSectionRecord } from '~/lib/MoApi/Records/ProductsCatalo
 
 
 const iocc = useContainer();
+const usCntx = iocc.get(UserContext);
 const recStore = iocc.get(RecordsStore);
 const apiClient = iocc.get<MoApiClient>('MoApiClient');
 interface Props {
@@ -141,7 +143,7 @@ interface Props {
     action: (p: any) => void,
 }
 const props = defineProps<Props>()
-
+console.log(usCntx)
 let prodsReq = ref(false)
 let showPriceList = ref(false)
 let selectAllCatalogs = ref(false)

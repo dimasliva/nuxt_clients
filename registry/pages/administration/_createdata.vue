@@ -4,6 +4,9 @@
             <v-text-field v-model="emplLoading.size" variant="underlined" label="Сотрудники" hide-details="auto" />
             <v-btn :loading="emplLoading.loading" type="submit" @click="createRecs(emplLoading)">Создать</v-btn>
         </VCol>
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Разделы расписания" hide-details="auto" />
+        </VCol>
 
         <VCol style="max-width: 150px;">
             <v-text-field v-model="clientsLoading.size" variant="underlined" label="Клиенты" hide-details="auto" />
@@ -21,7 +24,6 @@
             <v-text-field v-model="priceListLoading.size" variant="underlined" label="Кол-во номенклатурных позиций"
                 hide-details="auto" />
             <v-btn :loading="priceListLoading.loading" type="submit" @click="addProductsCatalog(productsCatalogName)">
-                <!-- <v-btn :loading="priceListLoading.loading" type="submit" @click="console.log(fullTitles.length)"> -->
                 Создать
                 <template v-slot:loader>
                     <v-progress-linear absolute height="7" indeterminate></v-progress-linear>
@@ -34,32 +36,26 @@
 <script setup lang="ts">
 import { EmployeeRecord, EmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
 import { EmployeeContactsRecord } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
-import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
-import { QueryParams } from '~~/lib/MoApi/RequestArgs';
-import { PageMap } from '~~/lib/PageMap';
 import { ClientRecord, ClientRecordData } from '~~/lib/MoApi/Records/ClientRecord';
 import { ClientContactsRecord } from '~~/lib/MoApi/Records/ClientContactsRecord';
 import { ProductRecord, ProductRecordData } from '~~/lib/MoApi/Records/ProductRecord';
 import { ProductsCatalogRecord, ProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
-import { UserContext } from '~~/lib/UserContext';
+import { ScheduleItemRecord, ScheduleItemData } from '~/lib/MoApi/Records/ScheduleItemRecord';
+import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
 import ProductTitles from '~/public/ProductTitles';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
 
 
 const iocc = useContainer();
-const apiClient = iocc.get<MoApiClient>("MoApiClient");
-const pageMap = iocc.get<PageMap>("PageMap");
 const recStore = iocc.get(RecordsStore);
-const usData = iocc.get(UserContext);
 
-
-const numClients = ref(0);
-const numEmployees = ref(0);
 
 let productsCatalogSectionQuantity = ref(0)
 let productsCatalogName = ref('')
+let scheduleItemGroup = ref('')
+let scheduleItemGroupLoader = ref(false)
 
 
 
@@ -67,6 +63,7 @@ const createRecs = async (recLoading: typeof emplLoading) => {
 
     const size = recLoading.size;
     const recCreateTask = recLoading.createTask;
+    if (scheduleItemGroup.value) { addScheduleItemGroup() };
 
     if (size != 0) {
         recLoading.loading = true;
@@ -111,7 +108,7 @@ const pricesA = ['100', '200', '300', '400', '500', '600', '700', '800', '900', 
 
 const fullTitles = ProductTitles;
 const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
-
+let scheduleGroupRec = ref();
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
     let rec = await recStore.createNew<EmployeeRecord, EmployeeRecordData>(EmployeeRecord, (data) => {
@@ -152,7 +149,6 @@ const emplCreateTask = async (size: number) => {
         const month = Math.floor(Math.random() * 12) + 1;
         const day = Math.floor(Math.random() * 28) + 1;
         const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
-        //console.log(name, surname, patronymic, gender, birthdate);
         let emplkey = await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress());
 
         await addPosition(emplkey);
@@ -163,11 +159,56 @@ const emplCreateTask = async (size: number) => {
 const addPosition = async (emplkey) => {
     let rec = await recStore.createNew<PositionRecord, PositionRecordData>(PositionRecord, (data) => {
         data.employee = emplkey;
-        data.position = positionDictCodes[Math.floor(Math.random() * positionDictCodes.length-1)]!;
+        data.position = positionDictCodes[Math.floor(Math.random() * positionDictCodes.length - 1)]!;
     });
     await rec.save();
+    await addScheduleItem(rec.Key);
     return rec.Key;
 };
+const currentDate = new Date();
+
+const timeSpansCrtr = () => {
+    let a: any = [];
+    for (let i = 0; i < Math.floor(Math.random() * (20 - 2) + 2); i++) {
+        a.push({
+            "time": Math.floor(Math.random() * (144 - 36) + 1) * 10,
+            "duration": Math.floor(Math.random() * (12 - 1) + 1) * 10,
+            "type": 0,
+        })
+    }
+    return a
+}
+
+const addScheduleItem = async (positionKey) => {
+    let rec = await recStore.createNew<ScheduleItemRecord, ScheduleItemData>(ScheduleItemRecord, (data) => {
+        data.position = positionKey;
+        data.beginDate = currentDate.toJSON().slice(0, 10);
+        data.endDate = new Date(currentDate.setFullYear(currentDate.getFullYear() + 1)).toJSON().slice(0, 10);
+        data.activityDays = Math.floor(Math.random() * (8 - 3) + 3);
+        data.pauseDays = Math.floor(Math.random() * (4 - 1) + 1);
+        data.exceptions = new Date(currentDate.setDate(currentDate.getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
+        data.workExceptions = new Date(currentDate.setDate(currentDate.getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
+        data.timespans = timeSpansCrtr();
+    });
+    await rec.save();
+    let recCode = rec.RecCode;
+    let key = rec.Key;
+    scheduleGroupRec.value.addCoupling(key, recCode)
+}
+
+
+const addScheduleItemGroup = async () => {
+    let rec = await recStore.createNew<ScheduleItemGroupRecord, ScheduleItemGroupData>(ScheduleItemGroupRecord, (data) => {
+        data.title = scheduleItemGroup.value;
+        data.code = null;
+        data.description = null;
+        data.notActive = false;
+        data.temporaryNotActive = false;
+        data.advData = null;
+    })
+    await rec.save();
+    scheduleGroupRec.value = rec;
+}
 
 
 const addClient = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
@@ -178,7 +219,6 @@ const addClient = async (name: string, surname: string, patronymic: string, gend
         data.gender = gender;
         data.birthdate = generateRandomDate();
     })
-    //console.log(rec)
     await rec.save();
 
     let reccont = await recStore.getOrCreate(ClientContactsRecord, rec.Key);
@@ -207,7 +247,6 @@ const clientsCreateTask = async (size: number) => {
         const month = Math.floor(Math.random() * 12) + 1;
         const day = Math.floor(Math.random() * 28) + 1;
         const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
-        //console.log(name, surname, patronymic, gender, birthdate);
         await addClient(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress());
     }
 }

@@ -4,7 +4,7 @@
       :on-event-click="currView === 'month' ? openCurrDay : editEvent" :cell-click-hold="false" :time-to="21 * 60"
       :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded" v-model:active-view="currView" hide-view-selector
       locale="ru" :special-hours="specialHours"
-      :editable-events="{ title: false, drag: true, resize: true, delete: true, create: true }"
+      :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
       :events="currView === 'month' ? monthView : events" :split-days="employeesArr" :sticky-split-labels="true"
       events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false" :time-from="6 * 60"
       @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate" :max-date="monthViewMaxDate">
@@ -47,8 +47,8 @@
                     </vue-cal>
                   </v-card-text>
                   <v-card-actions class="pa-1">
-                    <v-btn @click="monthViewDates(true)" density="compact" variant="text" class="ml-2 mt-2">{{ $t('ok')
-                    }}</v-btn>
+                    <v-btn @click="monthViewDates(true)" density="compact" variant="text"
+                      class="ml-2 mt-2">Применить</v-btn>
                     <v-btn @click="monthViewDates(false)" density="compact" variant="text" class="ml-2 mt-2">{{
                       $t('cancel')
                     }}</v-btn>
@@ -56,18 +56,17 @@
                 </v-card>
               </v-menu></v-text-field>
 
-            <v-combobox v-model="schedulerItemGroup" density="compact" label="Раздел расписания" multiple
-              :items="['терапевты', 'кардиологи', 'гастроэнтерологи', 'узи', 'анализы']"
-              variant="underlined"></v-combobox>
+            <v-combobox v-model="selectedSchedulerItemGroup" density="compact" label="Раздел расписания"
+              :items="schedulerItemGroups" item-title="title" variant="underlined"></v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="products" density="compact" label="Услуга"
-              :items="productsArr" variant="underlined" @click="schedulerItemGroup || employees ? false : openDialog(SearchProductDilaog, {
+              :items="productsArr" variant="underlined" @click="selectedSchedulerItemGroup || employees ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск товаров и услуг', full: 'Выбрать из прайс-лсита', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action:
                   setProds
               })"></v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="employees" density="compact" label="Сотрудник"
-              :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click="schedulerItemGroup || products ? false : openDialog(SearchProductDilaog, {
+              :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click="selectedSchedulerItemGroup || products ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск сотрудника', full: 'Выбрать из списка сотрудников', text_field: 'Иванов Иван Иванович', reqAction: searchEmployee, prices:
                   false, action: setEmployees
               })"></v-combobox>
@@ -76,7 +75,7 @@
               item-value="id" variant="underlined"></v-combobox>
 
             <v-card-actions style="min-width: 200pt;">
-              <VBtn variant="text" @click="">Поиск</VBtn>
+              <VBtn variant="text" @click="getScheduleByItemGroup()">Поиск</VBtn>
               <VBtn variant="text" @click="clearFilters()">Сбросить</VBtn>
             </v-card-actions>
           </VCol>
@@ -93,9 +92,14 @@ import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css';
 import wt from '~~/components/customMonthView/vue-cal-m';
 import type { IPageData, PageMap } from '~~/lib/PageMap';
-import { QueryParams, QueryProductFtsList } from '~~/lib/MoApi/RequestArgs';
+import { QueryParams, QueryParamsScheduler, QueryProductFtsList } from '~~/lib/MoApi/RequestArgs';
 import { ProductFtsViews, type IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
 import { EmployeesViews, type IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
+import { ScheduleItemGroupData, ScheduleItemGroupRecord, ScheduleTimespanItem } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
+import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import type { MoApiClient } from '~/lib/MoApi/MoApiClient';
+import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
+import { ScheduleEvent } from '~/lib/SchedulerTypes';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -108,27 +112,16 @@ let status = ref([
 //__________________________^^^ Статичные данные, удалить при работе с API ^^^
 
 const iocc = useContainer();
+const recStore = iocc.get(RecordsStore);
+const apiClient = iocc.get<MoApiClient>('MoApiClient');
 const pageMap = iocc.get<PageMap>("PageMap");
 let currView = ref('month');
-let dataPickerMenu = ref(false)
+let dataPickerMenu = ref(false);
+let schedulerItemGroups = ref<any>([])
 
 let specialHours = ref({ 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: '' } })
 let divisions = ref([])
-let monthView = ref([{
-  start: '2023-11-28 08:00',
-  end: '2023-11-28 12:00',
-  title: 'Утро',
-},
-{
-  start: '2023-11-28 12:00',
-  end: '2023-11-28 17:00',
-  title: 'День',
-},
-{
-  start: '2023-11-28 17:00',
-  end: '2023-11-28 21:00',
-  title: 'Вечер',
-},])
+let monthView = ref<ScheduleEvent[]>([])
 let events = []
 let titleOnMonth = ref()
 let vuecal = ref<any>(null);
@@ -136,12 +129,12 @@ let products = ref()
 let productsArr = ref([])
 let employees = ref()
 let employeesArr = ref<any>([])
-// employeesArr = ref([
-//     { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.",},
-//     { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Александров Б.Ю.",},
-//     { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", title: "Рязанцев М.В.", },
-//     { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Арсеньтьев Н.В.", }
-// ])
+employeesArr = ref([
+  { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.", },
+  { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Александров Б.Ю.", },
+  { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", title: "Рязанцев М.В.", },
+  { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Арсеньтьев Н.В.", }
+])
 let quantum = ref(60)
 let currEvent = ref<any>(null)
 let division = ref<any>()
@@ -149,11 +142,9 @@ let drawer = ref(true)
 let selectedCurrDate = ref()
 let startSelectedCell = ref()
 let endSelectedCell = ref()
-let schedulerItemGroup = ref()
+let selectedSchedulerItemGroup = ref<ScheduleItemGroupData>()
 const employeesViews = iocc.get(EmployeesViews);
 const productsView = iocc.get(ProductFtsViews);
-let schedItemGroupCookie = useCookie('schedulerItemGroup', { default: () => ([]), watch: true });
-let divisionCookie = useCookie('division', { default: () => ([]), watch: true });
 let isStartDate = ref(true)
 let minDate = ref<any>('')
 let maxDate = ref<any>('')
@@ -208,11 +199,6 @@ const changeDate = (date) => {
 
 const monthViewDates = (b: boolean) => {
   if (b) {
-    // let days = maxDate.value.getDate() - minDate.value.getDate();
-    // let month = maxDate.value.getMonth() - minDate.value.getMonth();
-
-    monthViewMinDate.value = minDate.value;
-    monthViewMaxDate.value = maxDate.value;
     selDate.value = minDate.value;
     dateRange.value = `${minDate.value.format('DD.MM.YYYY')}-${maxDate.value.format('DD.MM.YYYY')}`;
   } else {
@@ -268,21 +254,89 @@ const cumstomEventCreator = (ev) => {
 const onEventCreate = (event, deleteEventFunction) => {
   currEvent.value = event;
   event.deleteEventFunction = deleteEventFunction;
-  openDialog(EventDialog, { event: currEvent.value, employees: employees.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
+  openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
   return event
 }
 
 const editEvent = (event) => {
   currEvent.value = event;
-  openDialog(EventDialog, { event: currEvent.value, employees: employees.value, status: status.value, creation: false, mainAction: eventAlteration, delFunc: event.deleteEventFunction });
+  openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, status: status.value, creation: false, mainAction: eventAlteration, delFunc: event.deleteEventFunction });
   return event
+}
+
+const getScheduleItemGroupIds = async () => {
+  let recIds = await apiClient.send<string, IApiResult>("/Schedule/FindScheduleItemGroups", "title !=''");
+  getScheduleItemGroup(recIds);
+}
+
+const getScheduleItemGroup = async (ids) => {
+  let rec = await recStore.fetch(ScheduleItemGroupRecord, ids);
+  schedulerItemGroups.value = rec.MData
+}
+
+const getScheduleByItemGroup = async () => {
+  monthViewMinDate.value = minDate.value;
+  monthViewMaxDate.value = maxDate.value;
+  if (selectedSchedulerItemGroup.value) {
+    //   const res = await apiClient.send<QueryParamsScheduler, ScheduleItemGroupData>(
+    //     "/Schedule/GetScheduleByItemGroup",
+    //     new QueryParamsScheduler(minDate.value.format('MM-DD-YYYY'), maxDate.value.format('MM-DD-YYYY'), selectedSchedulerItemGroup.value.id!),
+    //     true);
+
+    let res = await apiClient.sendRequest("GET",
+      `/api/v1/Schedule/GetScheduleByItemGroup?${apiClient._convertToURLParams(new QueryParamsScheduler(minDate.value.format('MM-DD-YYYY'), maxDate.value.format('MM-DD-YYYY'), selectedSchedulerItemGroup.value.id!))}`,
+      null,
+      null);
+    buildMonthScheduler(res.bodyData);
+  }
+
+}
+
+const buildMonthScheduler = (ts) => {
+  let dates: string[] = Object.keys(ts);
+  let times: ScheduleTimespanItem[][] = Object.values(ts);
+  monthView.value = [];
+
+  for (let i = 0; i < dates.length; i++) {
+
+    if (times[i].length > 0) {
+
+      let quantity = 0;
+      times[i].map((item, ind) => {
+        let dayTimeSpan = timeOfDay(item.timespan.time);
+        let dayTimeSpanNext;
+        if (times[i][ind + 1]) {
+          dayTimeSpanNext = timeOfDay(times[i][ind + 1].timespan.time)
+        }
+        if (dayTimeSpan == dayTimeSpanNext) {
+          quantity++
+        } else {
+          quantity++
+          monthView.value.push(new ScheduleEvent(dates[i], dates[i], dayTimeSpan + ': ' + quantity))
+          quantity = 0
+        }
+      })
+    }
+  }
+}
+
+const timeOfDay = (mins: number) => {
+  if (mins < 720) {
+    return 'Утро'
+  };
+  if (mins < 1080) {
+    return 'День'
+  };
+  if (mins < 1440) {
+    return 'Вечер'
+  };
 }
 
 // сброс фильтров поиска бокового меню
 const clearFilters = () => {
   employeesArr.value = [];
   productsArr.value = [];
-  schedulerItemGroup.value = [];
+  selectedSchedulerItemGroup.value = undefined;
   employees.value = null;
   products.value = null;
   division.value = [];
@@ -334,12 +388,25 @@ let pageMapData: IPageData = reactive({
   ]
 });
 
+getScheduleItemGroupIds();
+
 pageMap.setPageData("/administration/test_journal", pageMapData);
 
 defineExpose({ eventsHandler });
 
 </script>
 <style >
+.vuecal--short-events .vuecal__event-title {
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 5px;
+  border-radius: 10px;
+  background-color: #c9c9c2;
+  margin: 2px;
+}
+
 .date-picker-month {
   background-color: rgba(150 255 194 / 35%) !important;
 }

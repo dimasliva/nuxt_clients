@@ -7,7 +7,7 @@ import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { PositionRecord } from '~/lib/MoApi/Records/PositionRecord';
-import { ListTemplate } from '~/componentComposables/list/listTemplate';
+import { ListTemplate } from '~/componentTemplates/listTemplate';
 import { PositionsViews } from '~/lib/MoApi/Views/PositionsViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
@@ -16,25 +16,26 @@ import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDataType } from '~/lib/globalTypes';
 import { DictsFinderDataProvider } from '~/libVis/DictsFinderDataProvider';
 import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+import type { TDictViewVal } from '~/libVis/FinderDataProvider';
 
 
 let t: any;
 
 type TPositionFilterVals = {
   fio?: string | null;
-  position?: string | null;
+  position?: TDictViewVal[] | null;
 }
 
 
 class PositionList extends ListTemplate<TPositionFilterVals>
 {
   positionsViews = this.iocc.get(PositionsViews);
-  finderDataProvider= this.iocc.get(DictsFinderDataProvider);
-  
+  finderDataProvider = this.iocc.get(DictsFinderDataProvider);
 
-  async setup(){
+
+  async setup() {
     await super.setup();
-    this.finderDataProvider.init("serachPositions",FinderFormMultiple,EDictionaries.CompanyPositions);
+    this.finderDataProvider.init(null, "serachPositions", FinderFormMultiple, EDictionaries.CompanyPositions);
   }
 
 
@@ -52,8 +53,10 @@ class PositionList extends ListTemplate<TPositionFilterVals>
   //Настрока таблицы
   dataTableDescr = ref<IDataTableDescription>({
     headers: [
-      { key: 'fio', title: 'ФИО сотрудника', align: 'center', alignData: "start", width: "400", sortable: true, 
-      requestNames: ["employeeName", "employeeSurname", "employeePatronymic"], traits:   { "dbEmployee": "r" } },
+      {
+        key: 'fio', title: 'ФИО сотрудника', align: 'center', alignData: "start", width: "400", sortable: true,
+        requestNames: ["employeeName", "employeeSurname", "employeePatronymic"], traits: { "dbEmployee": "r" }
+      },
 
       { key: 'position', title: 'Должность', align: 'center', alignData: "start", width: "900", sortable: true, requestNames: ["position"] }
     ],
@@ -65,7 +68,7 @@ class PositionList extends ListTemplate<TPositionFilterVals>
   });
 
   async del(key: string, index) {
-    await this._onDelModel("Вы действительно хотите удалить запись должности?",PositionRecord,key,index);
+    await this._onDelModel("Вы действительно хотите удалить запись должности?", PositionRecord, key, index);
   }
 
   chkFioRule = (v: string) => {
@@ -115,7 +118,10 @@ class PositionList extends ListTemplate<TPositionFilterVals>
     }
 
     let tmp = filterVals.position;
-    if (tmp) whereArr.push(`position='${tmp}'`);
+    if (tmp) {
+      let keys = tmp.map(item => item.value);
+      whereArr.push(`position in (${keys.join(",")})`)
+    }
 
 
     if (whereArr.length == 0) return "";
@@ -124,11 +130,11 @@ class PositionList extends ListTemplate<TPositionFilterVals>
 
   //Конвертация данных из формата апи в формат для таблицы
   convertRow = async (rawData) => {
-    let dictstore=this.iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
+    let dictstore = this.iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
     return {
       id: rawData.id,
       fio: (rawData.employeeSurname || "") + " " + (rawData.employeeName || "") + " " + (rawData.employeePatronymic || ""),
-      position: await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) ||""
+      position: await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) || ""
     }
   };
 
@@ -137,18 +143,15 @@ class PositionList extends ListTemplate<TPositionFilterVals>
 
     (async () => {
       var row;
-
       if (index != null)
         row = this.dataTableVars.value.rows[index]
       else
         row = this.dataTableVars.value.rows.find((i) => i.id == key);
 
       if (row) {
+        let dictstore = this.iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
         let rec = await this.recStore.fetch(PositionRecord, key);
-
-
-       // row.fio = (rec.Data!.surname || "") + " " + (rec.Data!.name || "") + " " + (rec.Data!.patronymic || "");
-
+        row.position = await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rec.Data!.position) || ""
       }
     })();
 
@@ -172,9 +175,7 @@ export default {
     const o = new PositionList();
     await o.setup();
 
-    const del = () => {
-
-    }
+    const del = () => { }
 
     expose({
       eventsHandler: (e, d) => o.eventsHandler(e, d)

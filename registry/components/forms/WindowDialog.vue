@@ -1,11 +1,35 @@
 <template>
-    <v-card :width="width||800" :style="windowStyle">
+    <v-card :width="width || 800" :style="windowStyle">
         <v-card-title class="mx-2">
-            <v-row class="pt-4">
-                <div class="text-h5 ma-2">{{ title }}</div>
-
+            <v-row class="pt-4 align-center">
+                <div class="text-h5 ma-2">{{ frameHeaderData.title }}</div>
                 <v-spacer></v-spacer>
-                <v-icon @click="close()">mdi-close</v-icon>
+                <!--Пользовательские кнопки окна-->
+                <template v-for="(buttons, index) in frameHeaderData.mainBtnBar" :key="buttons.id">
+                    <v-btn :disabled="buttons.disabled" elevation="0" class="mx-2" rounded="xl" :id="buttons.id"
+                        :index="index" :icon="(buttons.title.length) ? false : buttons.icon"
+                        :prepend-icon="(buttons.title.length >= 1) ? buttons.icon : undefined" variant="text"
+                        :color="buttons.color" :background-color="buttons.bkgColor"
+                        :text="(buttons.title.length) ? buttons.title : undefined"
+                        :density="(buttons.title.length) ? `default` : `comfortable`" @click="() => buttons.action()" />
+                </template>
+                <!--Пользовательское меню окна-->
+                <v-menu>
+                    <template v-slot:activator="{ props }">
+                        <v-btn v-if="frameHeaderData.mainMenu" v-bind="props" variant="outlined" color="secondary"
+                            size="small" class="mx-4" :icon="frameHeaderData.mainMenu.icon" />
+                    </template>
+                    <v-list>
+                        <v-list-item v-for="child in frameHeaderData.mainMenu?.childs" :key="child.id"
+                            :disabled="child.disabled" @click="() => child.action()">
+                            <v-list-item-title>{{ child.title }}<v-icon end :icon="child.icon"
+                                    size="x-small" /></v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+
+                <!--Иконка закрытия окна-->
+                <v-icon class="mt-n5 ml-3" @click="close()">mdi-close</v-icon>
             </v-row>
         </v-card-title>
 
@@ -21,7 +45,7 @@
 
             <slot name="buttons" :props="buttonsSlotProps">
 
-                <v-btn v-if="okTitle!==null" color="primary" variant="text" @click="() => ok(onOk?.() || null)">
+                <v-btn v-if="okTitle !== null" color="primary" variant="text" @click="() => ok(onOk?.() || null)">
                     {{ okTitle || 'Ок' }}
                 </v-btn>
 
@@ -38,6 +62,9 @@
 
 
 <script setup lang="ts">
+import type { Container } from 'inversify/lib/container/container';
+import type { IFrameHeaderData } from '~/lib/PageMap';
+
 
 defineOptions({
     inheritAttrs: false,
@@ -46,14 +73,15 @@ defineOptions({
 
 
 interface IProps {
+    diC?: Container | null;
     onOk?: () => any;
+    onClose?: () => Promise<boolean>;
     onEvent?: (ev, data) => Promise<void>;
-    title: string,
-    icon?: string
     height?: string;
     width?: string;
     okTitle?: string;
     closeTitle?: string;
+    frameHeaderData: IFrameHeaderData;
 }
 const props = defineProps<IProps>();
 
@@ -66,8 +94,13 @@ const windowStyle = {
     height: props.height || "90dvh"
 }
 
-const close = async () => closeDialog(null);
+const close = async () => {
+    if (props.onClose && await props.onClose())
+        closeDialog(null);
+}
+
 const ok = async (res) => closeDialog(res);
+
 
 const buttonsSlotProps = {
     close,

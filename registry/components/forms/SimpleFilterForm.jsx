@@ -90,12 +90,22 @@ export default defineComponent({
             for (let settingsItem in filterFields) {
                 let constraints = filterFields[settingsItem].constraints;
                 let val = filterValues[settingsItem];
+                const partype = filterFields[settingsItem].type;
 
-                if (filterFields[settingsItem].type == EDataType.string) {
-                    if (val) {
+                if (partype == EDataType.reference || partype == EDataType.referenceMultiple) {
+                    if ( ( !(val instanceof Array) && val != null ) || (val instanceof Array && val.length > 0))
                         isAllValsEmpty = false;
-                        if (constraints.min && val.length < constraints.min)
-                            return false;
+
+                    if (fieldsOptions.errCnt)
+                        return false;
+                }
+                else {
+                    if (filterFields[settingsItem].type == EDataType.string) {
+                        if (val) {
+                            isAllValsEmpty = false;
+                            if (constraints.min && val.length < constraints.min)
+                                return false;
+                        }
                     }
                 }
 
@@ -189,7 +199,7 @@ export default defineComponent({
                 switch (val.type) {
                     case EDataType.referenceMultiple:
                     case EDataType.reference:
-                        node = <InputField state={fieldsOptions} class="pb-4" type={val.type} key={item} v-model={filterValues[item]}
+                        node = <InputField state={fieldsOptions} class="pb-4" type={val.type} key={item} v-model={filterValues[item]} style="min-width:200pt;"
                             label={val.title} finderDataProvider={val.finderDataProvider} />
                         res.push(node);
                         break;
@@ -227,7 +237,9 @@ export default defineComponent({
                         <VCol>
                             <v-row key={updateKey.value} class="text-body-1 ma-2" style="min-width: 200pt;">Поиск <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon></v-row>
 
-                            {createFileds()}
+                            <v-sheet class="overflow-y-auto overflow-x-hidden" style="max-height:70dvh !important;">
+                                {createFileds()}
+                            </v-sheet>
 
                             <v-row class="ma-1" style="min-width: 200pt;" justify="center">
 

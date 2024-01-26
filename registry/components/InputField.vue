@@ -134,12 +134,12 @@
         @update:model-value="(val) => { CurrModelVal = val; onValChanged(); }">
     </v-checkbox>
 
-    <!--Словарное значение-->
+    <!--Словарное значение. modelValue в виде {value:string, title?:string} или его массива -->
     <v-select v-if="(type == EDataType.reference || type == EDataType.referenceMultiple) && visible" ref="refField"
-        :chips="type == EDataType.referenceMultiple"  v-bind="$attrs" :modelValue="referVal" :readonly="true"
-        type="text" variant="underlined" :clearable="!readonly" density="compact" @keydown.stop="(k) => onKeydown(k)"
-        @click="() => onReferEdit()"
-        >
+        :chips="type == EDataType.referenceMultiple" v-bind="$attrs" :modelValue="referVal" :readonly="true" type="text"
+        variant="underlined" :clearable="!readonly" density="compact" :rules="SingleStrSelectRules"
+        @keydown.stop="(k) => onKeydown(k)" @click="() => onReferEdit()"
+        @click:clear="() => { CurrModelVal = null; onValChanged(true); }">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -485,15 +485,26 @@ if (props.type == EDataType.float) {
 const referVal = computedAsync(() => {
     if (CurrModelVal.value != null) {
         if (CurrModelVal.value instanceof Array) {
-            return new Promise(async resolve=> {
+            //множественный выбор
+            return new Promise(async resolve => {
                 resolve(await Utils.mapAsync(CurrModelVal.value, async item => {
-                    let t=await props.finderDataProvider!.getTitle(item);
-                    return {value:item, title:t}
+                    if (item.title)
+                        return { value: item, title: item.title }
+                    else {
+                        let t = await props.finderDataProvider!.getTitle(item.value);
+                        return { value: item, title: t }
+                    }
                 }));
             });
         }
-        else
-            return props.finderDataProvider?.getTitle(CurrModelVal.value)
+        else {
+            //одиночный выбор
+            if (CurrModelVal.value)
+                if (CurrModelVal.value.title != null)
+                    return CurrModelVal.value.title;
+                else
+                    return props.finderDataProvider?.getTitle(CurrModelVal.value.value)
+        }
     }
     else
         return null;
@@ -502,7 +513,7 @@ const referVal = computedAsync(() => {
 
 
 const onReferEdit = async () => {
-    let res = await props.finderDataProvider?.edit();
+    let res = await props.finderDataProvider?.edit(CurrModelVal.value);
     if (res != null) {
         CurrModelVal.value = res;
         onValChanged(true);

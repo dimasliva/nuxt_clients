@@ -1,7 +1,7 @@
 import type{ IDataTableDescription } from "~/componentComposables/dataTables/useDataTable";
 import { QueryParams } from "~/lib/MoApi/RequestArgs";
 import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
-import { type IPageData, PageMap } from "~/lib/PageMap";
+import { type IFrameHeaderData, PageMap } from "~/lib/PageMap";
 import { UserContext } from "~/lib/UserContext";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
@@ -57,7 +57,7 @@ export abstract class ListTemplate<TFilterVals> {
     }
 
     setPageData() {
-        let pageMapData: IPageData = reactive({
+        let pageMapData: IFrameHeaderData = reactive({
             title: this.PAGE_TITLE, icon: "",
             mainBtnBar: [
                 {

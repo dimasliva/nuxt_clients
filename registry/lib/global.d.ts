@@ -75,6 +75,13 @@ declare global {
         async save();
     }
 
+
+    interface ICache {
+        getValue(key: string): any | null | undefined;
+        setValue(key: string, value: any, ttl?: number | null);
+        removeValue(key: string);
+        getOrCreate(key: string, func: (key, settingObj: { ttl: number | null }) => Promise<any | null>)
+    }
 }
 
 

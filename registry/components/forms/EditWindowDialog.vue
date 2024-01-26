@@ -1,24 +1,13 @@
 <template>
-    <v-card width="800" style="height: 90dvh;">
-        <v-card-title class="mx-2">
-            <v-row class="pt-4">
-                <div class="text-h5 ma-2">{{ title+(props.readonly? ' (только чтение)':'') }}</div>
+    <WindowDialog :frameHeaderData="{ title: title + (props.readonly ? ' (только чтение)' : '') }" width="800"
+        :onClose="() => close(true)" height="90dvh">
 
-                <v-spacer></v-spacer>
-                <v-icon @click="close()">mdi-close</v-icon>
-            </v-row>
-        </v-card-title>
+        <slot :fieldsOptions="fieldsOptions">
 
-        <v-card-text class="overflow-y-auto">
-            <slot :fieldsOptions="fieldsOptions">
-
-            </slot>
-        </v-card-text>
+        </slot>
 
 
-        <v-card-actions class="mr-4 mb-1">
-            <v-spacer></v-spacer>
-
+        <template v-slot:buttons="{ props }">
             <v-btn color="primary" variant="text" :disabled="fieldsOptions.changedCnt == 0 || fieldsOptions.errCnt > 0"
                 @click="() => save()">
                 Сохранить
@@ -32,8 +21,8 @@
             <v-btn color="primary" variant="text" @click="() => close()">
                 {{ $t('close') }}
             </v-btn>
-        </v-card-actions>
-    </v-card>
+        </template>
+    </WindowDialog>
 </template>
 
 
@@ -41,6 +30,7 @@
 <script setup lang="ts">
 
 import * as vHelpers from '~~/libVis/Helpers';
+import WindowDialog from "~/components/forms/WindowDialog.vue"
 
 
 defineOptions({
@@ -92,15 +82,18 @@ const saveAndClose = async () => {
 
 
 
-const close = async () => {
+const close = async (notCloseSelf = false) => {
     let res = null;
 
     if (fieldsOptions.changedCnt == 0 || await useCloseQU("Изменения не были сохранены. Закрыть?")) {
-
         if (props.onClose)
             res = props.onClose(fieldsOptions.changedCnt > 0);
-        closeDialog(res);
+        
+        if (!notCloseSelf)
+            closeDialog(res);
+        return true;
     }
+    return false;
 }
 
 

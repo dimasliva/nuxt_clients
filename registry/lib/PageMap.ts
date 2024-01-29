@@ -1,21 +1,21 @@
 import { injectable } from "inversify";
 
-export interface IPageData {
+export interface IFrameHeaderData {
     title: string;
-    icon: string;
+    icon?: string;
     mainMenu?: IMenu
     mainBtnBar?:IBtnMenu[]
 }
 
 @injectable()
 export class PageMap {
-    protected _map: { [path: string]: IPageData | null } = {};
+    protected _map: { [path: string]: IFrameHeaderData | null } = {};
 
-    getPageData(path: string) {
+    getFrameHeaderData(path: string) {
         return this._map[path];
     }
 
-    setPageData(path: string, pageData: IPageData) {
-        this._map[path] = pageData;
+    setPageData(path: string, frameHeaderData: IFrameHeaderData) {
+        this._map[path] = frameHeaderData;
     }
 }

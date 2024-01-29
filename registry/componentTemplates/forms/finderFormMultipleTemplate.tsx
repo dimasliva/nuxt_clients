@@ -1,8 +1,13 @@
 
 import WindowDialog from "~/components/forms/WindowDialog.vue"
 import { FinderFormTemplate, type IFinderFormProps } from "./finderFormTemplate";
+import * as Utils from '~~/lib/Utils';
+import type { IFrameHeaderData } from "~/lib/PageMap";
 
 
+export interface IFinderFormMultipleProps extends IFinderFormProps {
+    choosedValues?: any[];
+}
 
 let t: any;
 
@@ -15,6 +20,16 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
 
 
+    async setup(props: IFinderFormMultipleProps, ctx?) {
+        await super.setup(props, ctx);
+        if (!t) t = useNuxtApp().$i18n.t;
+        if (props.choosedValues) {
+            this.selected.value = await Utils.mapAsync(props.choosedValues, async (val, inx) => { return { value: val.value, title: val.title || await this.getTitleItemByVal(val) || "" } });
+        }
+    }
+
+
+
     async onSelect(e: any[]) {
         if (this.lastSearchStrForStat != this.searchingText.value && this.searchingText.value) {
             this.lastSearchStrForStat = this.searchingText.value
@@ -22,8 +37,8 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
         }
 
         let val = e[0];
-        if (val != null && this.selected.value.find(item => item.value == val) == null) {
-            this.selected.value.push({ value: val, title: await this.getTitleItemByVal(val) || "" });
+        if (val != null && this.selected.value.find(item => item.value == val.value) == null) {
+            this.selected.value.push({ value: val.value, title: val.title || await this.getTitleItemByVal(val) || "" });
         }
     }
 
@@ -31,8 +46,8 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
     onOk() {
         let res = this.selected.value.map(item => {
-            this.resultHistoryStatistic.addItem(item.value.toString());
-            return item.value
+            this.resultHistoryStatistic.addItem(item.value);
+            return item
         });
         closeDialog(res);
     }
@@ -62,7 +77,7 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
     render() {
         return (createElement, context) =>
-            <WindowDialog title={this.props.title} width="700" height="85dvh" onOk={() => this.onOk()}>
+            <WindowDialog diC={this.props.diC} frameHeaderData={{ title: this.props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
                 {this.getMainSearchField()}
 
                 <v-row style="height:60%;" class="overflow-y-auto" >

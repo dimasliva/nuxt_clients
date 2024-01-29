@@ -107,7 +107,6 @@
   <!--Всплывающие сообщения-->
   <Toaster position="bottom-right" :expand="true" closeButton richColors />
   <!--Поддержка диалоговых окон-->
-
   <v-dialog v-for="(item, index) in dialogForms" :key="index" :modelValue="item.showDialog" :persistent="item.modal"
     width="auto">
     <component :ref="item.refComp" :is="item.comp" v-bind="item.props" />
@@ -117,7 +116,7 @@
 <script setup lang="ts">
 import type { ModuleManager, IModuleItemsMenu } from '~~/libVis/ModuleManager';
 import { EnumArray } from "@/lib/EnumArray";
-import { type IPageData, PageMap } from '~~/lib/PageMap';
+import { type IFrameHeaderData, PageMap } from '~~/lib/PageMap';
 import type { UserContext } from '~~/lib/UserContext';
 import { useDisplay } from 'vuetify/lib/framework.mjs';
 import { Toaster, toast } from 'vue-sonner'
@@ -209,7 +208,7 @@ let createToast = (type: EMessageType, message: string, title?: string | null) =
 }
 
 interface Page {
-  icon: string;
+  icon?: string;
   title: string;
   link: string;
 }
@@ -222,15 +221,15 @@ const modManager = iocc.get<ModuleManager>('ModuleManager');
 const pageMap = iocc.get<PageMap>('PageMap');
 const chapters = modManager.getModuleItemsMenu();
 const route = useRoute();
-let pageData: IPageData | null;
+let frameHeaderData: IFrameHeaderData | null;
 
 
 const loadPageData = () => {
   currPageButtons.value = [];
-  pageData = pageMap.getPageData(route.path);
-  currPageButtons.value = pageData?.mainBtnBar;
-  currPageTitle.value = pageData?.title || '';
-  currPageMenu.value = pageData?.mainMenu || null;
+  frameHeaderData = pageMap.getFrameHeaderData(route.path);
+  currPageButtons.value = frameHeaderData?.mainBtnBar;
+  currPageTitle.value = frameHeaderData?.title || '';
+  currPageMenu.value = frameHeaderData?.mainMenu || null;
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
   onPageActivate(route);
 };
@@ -298,10 +297,10 @@ regToastHandler(createToast);
 
 
 const onPinPageBtnClick = (e: any) => {
-  const pageData = pageMap.getPageData(route.path);
-  if (!pageData) return;
+  const frameHeaderData = pageMap.getFrameHeaderData(route.path);
+  if (!frameHeaderData) return;
   if (pages.value.find((v, i, o) => v.link == route.path)) return;
-  pages.value.push({ icon: pageData.icon, title: pageData.title, link: route.path });
+  pages.value.push({ icon: frameHeaderData.icon, title: frameHeaderData.title, link: route.path });
   pages.value.find(e => e.title == currPageTitle.value) ? currPin.value = false : currPin.value = true;
 };
 
@@ -377,7 +376,7 @@ const getEventsHandler = () => {
     return eventsHandler;
   }
   else
-    if (pageData) {
+    if (frameHeaderData) {
       return pageObj.value.pageRef.eventsHandler || null;
     }
   return null;

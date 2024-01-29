@@ -2,6 +2,7 @@ import { Container } from "inversify";
 import "reflect-metadata";
 import ioccSetup from "~~/ioccInitConfig";
 import { RecordsStore } from "@/lib/MoApi/Records/RecordsStore";
+import MemoryCache from "~/lib/MemoryCache";
 
 export const useContainer = () => {
   const app = useNuxtApp();
@@ -20,5 +21,6 @@ export const useSessionContainer = () => {
   const scont = iocc.createChild();
   
   scont.bind("RecordsStore").to(RecordsStore).inSingletonScope();
+  scont.bind("Cache").to(MemoryCache).inSingletonScope();
   return scont;
 }

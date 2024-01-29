@@ -3,14 +3,14 @@
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
-
-
-
-          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.reference" v-model="rec!.MData.changedAt"
-            label="Должность" :finderDataProvider="finderDataProvider" />
+          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.reference" v-model="fioEmployee"
+            label="Сотрудник" :finderDataProvider="finderDataProvider" />
         </v-row>
 
-
+        <v-row>
+          <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.reference" v-model="positionPosition"
+            label="Должность" :finderDataProvider="finderDataProvider" />
+        </v-row>
 
       </v-card-text>
     </template>
@@ -55,8 +55,8 @@ interface IProps {
 
 const props = defineProps<IProps>();
 
-const iocc = useContainer();
-const recStore = iocc.get(RecordsStore);
+const iocc = useSessionContainer();
+const recStore = iocc.get<RecordsStore>("RecordsStore");
 
 
 let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
@@ -65,6 +65,7 @@ let userCtx = iocc.get<UserContext>("UserContext");
 
 
 let rec = ref<PositionRecord>();
+let emplRec = ref<EmployeeRecord>();
 
 
 if (props.recKey) {
@@ -73,10 +74,12 @@ if (props.recKey) {
   ]);
 
   rec.value = recs[0] as PositionRecord;
+  emplRec.value = await recStore.fetch(EmployeeRecord, rec.value.Data!.employee);
 }
 else {
   rec.value = await recStore.createNew(PositionRecord, (data) => { });
 }
+
 
 
 const { isRecLock, readonly, close } = await useEditForm(rec);
@@ -98,6 +101,25 @@ const cancelModifingData = () => {
   rec.value!.cancelModifingData();
 }
 
+const fioEmployee = computed({
+  get() {
+    return emplRec.value?.Data?.name
+  },
+  // setter
+  set(newValue) {
+
+  }
+})
+
+
+const positionPosition = computed({
+  get() {
+    return { value: rec.value!.MData!.position }
+  },
+  set(newValue) {
+    rec.value!.MData!.position = newValue.value || 0;
+  }
+})
 
 const eventsHandler = (e: string, d: any) => {
   switch (e) {
@@ -106,8 +128,8 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-const finderDataProvider= iocc.get(DictsFinderDataProvider);
-finderDataProvider.init("serachPositions",FinderForm,EDictionaries.CompanyPositions);
+const finderDataProvider = iocc.get(DictsFinderDataProvider);
+finderDataProvider.init(iocc,"serachPositions", FinderForm, EDictionaries.CompanyPositions);
 
 defineExpose({ eventsHandler });
 

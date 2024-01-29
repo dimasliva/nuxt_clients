@@ -6,6 +6,7 @@ import { ModuleManager } from "./libVis/ModuleManager";
 import { PageMap } from "./lib/PageMap";
 import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { EventBus } from "~/lib/EventBus";
+import MemoryCache from "./lib/MemoryCache";
 
 
 export default (container: Container) => {
@@ -23,6 +24,7 @@ export default (container: Container) => {
         container.bind('PageMap').to(PageMap).inSingletonScope();
         container.bind("RecordsStore").to(RecordsStore);
         container.bind("SysEventBus").toConstantValue(new EventBus());
+        container.bind('Cache').to(MemoryCache).inSingletonScope();
 
         console.debug("iocc init");
     }

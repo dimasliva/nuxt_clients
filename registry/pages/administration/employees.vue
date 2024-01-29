@@ -8,7 +8,7 @@ import { useI18n } from "vue-i18n"
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsRecord';
-import { ListTemplate } from '~/componentComposables/list/listTemplate';
+import { ListTemplate } from '~/componentTemplates/listTemplate';
 import { EmployeesViews } from '~/lib/MoApi/Views/EmployeesViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDataType } from '~/lib/globalTypes';

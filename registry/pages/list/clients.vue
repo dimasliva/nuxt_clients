@@ -11,7 +11,7 @@ import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord
 import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
 import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
-import { ListTemplate } from '~/componentComposables/list/listTemplate';
+import { ListTemplate } from '~/componentTemplates/listTemplate';
 import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDataType } from '~/lib/globalTypes';

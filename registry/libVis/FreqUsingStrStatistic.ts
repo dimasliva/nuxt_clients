@@ -14,7 +14,7 @@ export class FreqUsingStrStatistic {
     protected _keyPref: string = null!;
     protected _instName: string = null!
     protected _strsLimit: number = 100
-    protected _storage: { v: string, t: number }[] = [];
+    protected _storage: { v: string | number, n?: string, t: number }[] = [];
 
 
     constructor(
@@ -41,19 +41,24 @@ export class FreqUsingStrStatistic {
 
 
     getMostFreq(limit = 20) {
-        const map: { [str: string]: number } = {};
+        const map: { [str: string]: { value: string | number, title?: string, cnt: number } } = {};
         this._storage.forEach((item) => {
-            map[item.v] ? map[item.v]++ : map[item.v] = 1;
+            map[item.v] ? map[item.v].cnt++ : map[item.v] = { value:item.v, title: item.n, cnt: 1 };
         });
-        var res = Object.keys(map).sort((k1, k2) => map[k2] - map[k1]);
-        return res.slice(0, limit);
+        const sorted = Object.keys(map).sort((k1, k2) => map[k2].cnt - map[k1].cnt);
+        const limited = sorted.slice(0, limit);
+        return limited.map(item => { return { value: map[item].value, title: map[item].title } });
     }
 
 
 
-    addItem(val: string) {
+    addItem(val: string | number, title?: string) {
+        const obj: any = { v: val, t: Date.now() };
+        if (title != null)
+            obj.n = title;
+
         if (this._storage.length < this._strsLimit)
-            this._storage.push({ v: val, t: Date.now() });
+            this._storage.push(obj);
         else {
             let minVal = this._storage[0].t, minInx = 0;
 
@@ -63,7 +68,7 @@ export class FreqUsingStrStatistic {
                     minInx = inx;
                 }
             });
-            this._storage[minInx] = { v: val, t: Date.now() }
+            this._storage[minInx] = obj
         }
         this._save();
     }

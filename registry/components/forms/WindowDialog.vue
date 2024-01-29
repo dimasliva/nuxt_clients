@@ -9,7 +9,7 @@
             </v-row>
         </v-card-title>
 
-        <v-card-text class="overflow-y-auto">
+        <v-card-text class="overflow-y-auto pb-0">
             <slot>
 
             </slot>
@@ -21,7 +21,7 @@
 
             <slot name="buttons" :props="buttonsSlotProps">
 
-                <v-btn color="primary" variant="text" @click="() => ok(onOk?.() || null)">
+                <v-btn v-if="okTitle!==null" color="primary" variant="text" @click="() => ok(onOk?.() || null)">
                     {{ okTitle || 'Ок' }}
                 </v-btn>
 

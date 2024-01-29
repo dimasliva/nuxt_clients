@@ -1,10 +1,11 @@
 
 <script lang="ts">
 import { useI18n } from "vue-i18n"
-import { FinderFormTemplate, type IFinderFormProps } from "~/componentComposables/forms/finderFormTemplate"
-import { FinderDataProvider } from "~/libVis/FinderDataProvider";
+import { FinderFormMultipleTemplate} from "~/componentComposables/forms/finderFormMultipleTemplate"
+import type { IFinderFormProps } from "~/componentComposables/forms/finderFormTemplate";
 
-class FinderForm extends FinderFormTemplate {}
+
+class FinderMultipleForm extends FinderFormMultipleTemplate {}
 
 
 export default {
@@ -27,7 +28,7 @@ export default {
     async setup(props, ctx) {
 
         let t = useI18n().t;
-        const o = new FinderForm();
+        const o = new FinderMultipleForm();
         await o.setup(props as IFinderFormProps, ctx);
 
         ctx.expose({

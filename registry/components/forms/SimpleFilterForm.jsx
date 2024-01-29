@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { VBtn, VCard, VCol, VForm, VTextField } from 'vuetify/lib/components/index.mjs'
 import { vMaska } from "maska"
 import * as Utils from '~~/lib/Utils';
+import { EDataType } from '~/lib/globalTypes';
 
 export default defineComponent({
 
@@ -16,6 +17,7 @@ export default defineComponent({
 
     setup(props, ctx) {
 
+        const iocc = useContainer();
         const visiblity = ref(false);
         const rId = Math.random();
         const filterSettings = props.filterSettings;
@@ -25,6 +27,11 @@ export default defineComponent({
         const cRefs = {};
         const updateKey = ref(0);
 
+        const fieldsOptions = reactive({
+            errCnt: 0,
+            changedCnt: 0,
+            readonly: props.readonly ? true : false
+        })
 
         let findDelay = -1;
 
@@ -67,6 +74,7 @@ export default defineComponent({
             updateKey.value += 1;
         };
 
+
         const autoFocus = (e) => {
             const key = e.key;
             if (!lastField)
@@ -83,7 +91,7 @@ export default defineComponent({
                 let constraints = filterFields[settingsItem].constraints;
                 let val = filterValues[settingsItem];
 
-                if (filterFields[settingsItem].type == "string") {
+                if (filterFields[settingsItem].type == EDataType.string) {
                     if (val) {
                         isAllValsEmpty = false;
                         if (constraints.min && val.length < constraints.min)
@@ -176,16 +184,30 @@ export default defineComponent({
                 let isFucused = lastField == item;
 
                 let node = null;
-                if (val.constraints["mask"]) {
-                    node = <VTextField v-model={maskaValues[item]} key={item} variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                        clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules}
-                        onMaska={(e) => { filterValues[item] = e.detail.unmasked }} />
-                    res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
-                }
-                else {
-                    node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                        clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
-                    res.push(node);
+
+
+                switch (val.type) {
+                    case EDataType.referenceMultiple:
+                    case EDataType.reference:
+                        node = <InputField state={fieldsOptions} class="pb-4" type={val.type} key={item} v-model={filterValues[item]}
+                            label={val.title} finderDataProvider={val.finderDataProvider} />
+                        res.push(node);
+                        break;
+
+
+                    default:
+                        if (val.constraints["mask"]) {
+                            node = <VTextField v-model={maskaValues[item]} key={item} variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
+                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules}
+                                onMaska={(e) => { filterValues[item] = e.detail.unmasked }} />
+                            res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
+                        }
+                        else {
+                            node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
+                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
+                            res.push(node);
+                        }
+                        break;
                 }
 
             }

@@ -115,3 +115,11 @@ export const recognizeDataInString = (str: string) => {
 }
 
 
+
+export async function mapAsync(arr: any[], handler: (val, inx) => Promise<any>) {
+    const res: any[] = [];
+    for (let i = 0; i < arr.length; i++)
+        res.push(await handler(arr[i], i));
+    return res;
+}
+

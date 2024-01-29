@@ -3,6 +3,7 @@ import type { IDictItemValueView } from "~/lib/MoApi/ApiSectionsV1/DictionariesA
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import type { EventBus } from "../EventBus";
 import { Exception } from "../Exceptions";
+import { QueryDictsFFParams } from "../MoApi/RequestArgs";
 
 
 interface IDictIdArg {
@@ -188,5 +189,12 @@ export class Dictionary {
         await DictionariesApiSection.DeleteForeignDictionaryItem({ dictKey: this.id, code: parseInt(<any>code, 10), foreignSystem });
     }
 
+
+
+    async ffDictItemsListView(text:string, limit=20, select="code,value", includeObsolete: boolean=false, section?: number){
+        return await this._apiClient.getDictionariesApiSection().FFDictItemsListView(new QueryDictsFFParams(this.id, text, select, limit, includeObsolete,section));
+    }
+    
+    
 
 }

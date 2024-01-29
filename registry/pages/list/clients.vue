@@ -14,6 +14,7 @@ import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate } from '~/componentComposables/list/listTemplate';
 import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
 import { recognizeDataInString } from '~/lib/Utils';
+import { EDataType } from '~/lib/globalTypes';
 
 let t: any;
 
@@ -71,7 +72,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
   filterFieldSetting = {
     fields: {
       fio: {
-        type: "string",
+        type: EDataType.string,
         title: "ФИО, Дата рождения",
         hint: null,
         rules: [(v: string) => this.chkFioRule(v)],
@@ -88,7 +89,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
       },
 
       phone: {
-        type: "string",
+        type: EDataType.string,
         title: "Телефон",
         hint: "Введите минимум 6 символов",
         rules: [],
@@ -97,7 +98,7 @@ class ClientList extends ListTemplate<TClientFilterVals>
       },
 
       snils: {
-        type: "string",
+        type: EDataType.string,
         title: "СНИЛС",
         hint: "Введите минимум 2 символа",
         rules: [],

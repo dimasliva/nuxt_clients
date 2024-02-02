@@ -80,8 +80,11 @@ declare global {
         getValue(key: string): any | null | undefined;
         setValue(key: string, value: any, ttl?: number | null);
         removeValue(key: string);
-        getOrCreate(key: string, func: (key, settingObj: { ttl: number | null }) => Promise<any | null>)
+        getOrCreate(key: string, func: (key, settingObj: { ttl: number | null }) => Promise<any | null>): Promise<any>
     }
+
+
+    const EmptyGuid= "00000000-0000-0000-0000-000000000000";
 }
 
 

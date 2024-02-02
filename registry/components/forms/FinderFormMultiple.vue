@@ -3,7 +3,7 @@
 import type { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { FinderFormMultipleTemplate, type IFinderFormMultipleProps } from "~/componentTemplates/forms/finderFormMultipleTemplate"
-import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProvider";
+import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
 
 
 class FinderMultipleForm extends FinderFormMultipleTemplate { }
@@ -30,10 +30,16 @@ export default {
             required: true
         },
 
+        apiRequestTimeout: {
+            type: Number,
+            required: false
+        },
+
         choosedValues: {
             type: Array as  PropType<TDictViewVal[]>,
             required: false
-        }
+        },
+        
     },
 
 

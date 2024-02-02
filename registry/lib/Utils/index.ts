@@ -52,6 +52,17 @@ export function chkTrait(tokens: string[] | null, trait: string) {
 export const normalizeFio = (fio?: string | null): string => Helpers.toTitleCase(Helpers.removeSpaces(fio));
 
 
+/**Строка фио из 3 частей */
+export const makeFioStr = (surname: string | null | undefined, name: string | null | undefined, patronymic: string | null | undefined, bd?: string): string => {
+    let res = (surname || "") + " " + (name || "") + " " + (patronymic || "");
+    if (bd)
+        res = " (" + new Intl.DateTimeFormat().format(new Date(bd)) + ")"
+    return res;
+}
+
+
+
+
 let numberForKeys = 0;
 /*Генерация последовательного числа для использования в качестве ключей компонентов*/
 export const getNextSerialKey = () => numberForKeys++;

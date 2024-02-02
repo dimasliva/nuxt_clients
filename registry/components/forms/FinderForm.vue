@@ -3,7 +3,7 @@
 import { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { EFinderFormHistoryResultTypeStorage, FinderFormTemplate, type IFinderFormProps } from "~/componentTemplates/forms/finderFormTemplate"
-import type { FinderDataProvider } from "~/libVis/FinderDataProvider";
+import type { FinderDataProvider } from "~/libVis/FinderDataProviders/FinderDataProvider";
 
 class FinderForm extends FinderFormTemplate { }
 
@@ -30,6 +30,11 @@ export default {
         },
 
         historyResultTypeStorage: {
+            type: Number,
+            required: false
+        },
+
+        apiRequestTimeout: {
             type: Number,
             required: false
         }

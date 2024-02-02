@@ -3,7 +3,7 @@ import { UserContext } from "~/lib/UserContext";
 import WindowDialog from "~/components/forms/WindowDialog.vue"
 import { sleep } from "~/lib/Helpers";
 import { FreqUsingStrStatistic } from "~/libVis/FreqUsingStrStatistic";
-import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProvider";
+import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
 import type { Container } from "inversify/lib/container/container";
 
 
@@ -15,7 +15,8 @@ export interface IFinderFormProps {
     label?: string,
     title: string,
     finderDataProvider: FinderDataProvider
-    historyResultTypeStorage?: EFinderFormHistoryResultTypeStorage
+    historyResultTypeStorage?: EFinderFormHistoryResultTypeStorage,
+    apiRequestTimeout?: number;
 }
 
 
@@ -45,6 +46,7 @@ export abstract class FinderFormTemplate {
 
     lastFindRequestDate: number | null = null;
     searchTimeout: any | null = null;
+    apiRequestTimeout = 1000;
     //testprop:Ref<any>;
 
 
@@ -61,6 +63,7 @@ export abstract class FinderFormTemplate {
         this.searchStrStatistic.init(this.props.finderDataProvider.getInstName() || "default");
         this.resultHistoryStatistic.init((this.props.finderDataProvider.getInstName() + "hist_res") || "default_hist_res");
         this.historyResultTypeStorage = props.historyResultTypeStorage || EFinderFormHistoryResultTypeStorage.none;
+        this.apiRequestTimeout = props.apiRequestTimeout || 1000;
 
         onMounted(() => {
             nextTick((() => setTimeout(() => { this.searchFieldRef.value.focus(); }, 10)));
@@ -84,7 +87,6 @@ export abstract class FinderFormTemplate {
     }
 
 
-
     _onfindSingleExec = false;
 
     async onFind() {
@@ -94,9 +96,9 @@ export abstract class FinderFormTemplate {
         this._onfindSingleExec = true;
         try {
             if (this.searchingText.value) {
-                let diff = this.lastFindRequestDate ? Date.now() - this.lastFindRequestDate : 1000;
-                if (diff < 1000)
-                    await sleep(1000 - diff);
+                let diff = this.lastFindRequestDate ? Date.now() - this.lastFindRequestDate : this.apiRequestTimeout;
+                if (diff < this.apiRequestTimeout)
+                    await sleep(this.apiRequestTimeout - diff);
                 this.valueList.value = await this.props.finderDataProvider.getList(this.searchingText.value);
                 this.lastFindRequestDate = Date.now();
             }

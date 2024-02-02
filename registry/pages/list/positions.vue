@@ -14,9 +14,8 @@ import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { Dictionary } from "~/lib/Dicts/Dictionary";
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDataType } from '~/lib/globalTypes';
-import { DictsFinderDataProvider } from '~/libVis/DictsFinderDataProvider';
-import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
-import type { TDictViewVal } from '~/libVis/FinderDataProvider';
+import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
+import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 
 
 let t: any;
@@ -35,7 +34,7 @@ class PositionList extends ListTemplate<TPositionFilterVals>
 
   async setup() {
     await super.setup();
-    this.finderDataProvider.init(null, "serachPositions", FinderFormMultiple, EDictionaries.CompanyPositions);
+    this.finderDataProvider.init("serachPositions", true, EDictionaries.CompanyPositions);
   }
 
 

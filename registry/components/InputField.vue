@@ -161,7 +161,7 @@ import { VPhoneInput } from 'v-phone-input'; //https://github.com/paul-thebaud/v
 import 'flag-icons/css/flag-icons.min.css';
 import 'v-phone-input/dist/v-phone-input.css';
 import { isEqualData } from '~/lib/Helpers';
-import type { FinderDataProvider } from '~/libVis/FinderDataProvider';
+import type { FinderDataProvider } from '~/libVis/FinderDataProviders/FinderDataProvider';
 import * as Utils from '~/lib/Utils';
 
 
@@ -187,6 +187,7 @@ interface IProps {
     rules?: any[] | null;
     tokens?: string[] | null,
     finderDataProvider?: FinderDataProvider | null,
+    readonly?: boolean | null;
 
     state?: {
         errCnt: number,
@@ -198,7 +199,7 @@ interface IProps {
 const props = defineProps<IProps>();
 
 const visible = ref(props.tokens ? chkTrait(props.tokens, "r") : true);
-const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.state?.readonly);
+const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.state?.readonly || props.readonly);
 const refField = ref();
 
 let OldModelVal = ref();
@@ -513,10 +514,12 @@ const referVal = computedAsync(() => {
 
 
 const onReferEdit = async () => {
-    let res = await props.finderDataProvider?.edit(CurrModelVal.value);
-    if (res != null) {
-        CurrModelVal.value = res;
-        onValChanged(true);
+    if (!readonly.value) {
+        let res = await props.finderDataProvider?.edit(CurrModelVal.value);
+        if (res != null) {
+            CurrModelVal.value = res;
+            onValChanged(true);
+        }
     }
 }
 

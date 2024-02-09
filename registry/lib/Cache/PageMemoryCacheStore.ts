@@ -2,10 +2,12 @@ import { injectable, inject, Container } from "inversify";
 import { EventBus } from "../EventBus";
 import { PageMemoryCache } from "./PageMemoryCache";
 import { ProductCatalogSectionCache } from "./ProductCatalogSectionCache";
+import { ProductCache } from "./ProductCache";
 
 
 
 export const enum EWellKnownPageCaches {
+    Products,
     ProductCatalogSections
 }
 
@@ -28,6 +30,11 @@ export class PageMemoryCacheStore {
                     if (this._wellKnownCacheStore[EWellKnownPageCaches.ProductCatalogSections])
                         this._wellKnownCacheStore[EWellKnownPageCaches.ProductCatalogSections].clearPage(dictArg.productCatalogSection);
                     break;
+
+                case 'product':
+                    if (this._wellKnownCacheStore[EWellKnownPageCaches.Products])
+                        this._wellKnownCacheStore[EWellKnownPageCaches.Products].clearPage(dictArg.productCatalogSection);
+                    break;
             }
 
         });
@@ -39,8 +46,13 @@ export class PageMemoryCacheStore {
     getWellKnownCache(cacheId: EWellKnownPageCaches) {
         switch (cacheId) {
             case EWellKnownPageCaches.ProductCatalogSections:
-                return this._wellKnownCacheStore[cacheId] || 
-                (this._wellKnownCacheStore[EWellKnownPageCaches.ProductCatalogSections] = this._diC.get(ProductCatalogSectionCache).init());
+                return this._wellKnownCacheStore[cacheId] ||
+                    (this._wellKnownCacheStore[EWellKnownPageCaches.ProductCatalogSections] = this._diC.get(ProductCatalogSectionCache).init());
+
+            case EWellKnownPageCaches.Products:
+                return this._wellKnownCacheStore[cacheId] ||
+                    (this._wellKnownCacheStore[EWellKnownPageCaches.Products] = this._diC.get(ProductCache).init());
+
         }
     }
 

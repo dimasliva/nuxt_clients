@@ -5,7 +5,29 @@ import type { MoApiClient } from "../MoApi/MoApiClient";
 import type { UserContext } from "../UserContext";
 import type { RecordsStore } from "../MoApi/Records/RecordsStore";
 import { ProductRecord } from "../MoApi/Records/ProductRecord";
-import { ProductsViews } from "../MoApi/Views/ProductsListView";
+import { ProductsViews, type IProductListView } from "../MoApi/Views/ProductsListView";
+import { QueryParams } from "../MoApi/RequestArgs";
+import type PricesEntity from "../MoApi/Records/DataEntities/PricesEntity";
+import { Exception } from "../Exceptions";
+
+
+export class ProductCacheValue {
+
+    title?: string | null;
+    fullTitle?: string | null;
+    code?: string | null;
+    comments?: string | null;
+    prices?: PricesEntity | null;
+
+    constructor(val: IProductListView) {
+        this.title = val.title;
+        this.code = val.code;
+        this.comments = val.comments;
+        this.fullTitle = val.fullTitle;
+        this.prices = val.prices;
+    }
+}
+
 
 
 /**
@@ -19,7 +41,7 @@ export class ProductCache extends PageMemoryCache {
         @inject("MoApiClient") protected _MoApiClient: MoApiClient,
         @inject("UserContext") protected _UserContext: UserContext,
         @inject("RecordsStore") protected _RecordsStore: RecordsStore,
-        @inject(ProductsViews) protected _ProductsViews: RecordsStore,
+        @inject(ProductsViews) protected _ProductsViews: ProductsViews,
 
     ) {
         super();
@@ -33,30 +55,33 @@ export class ProductCache extends PageMemoryCache {
             return null;
 
         const sectionKey = prodRec.Data!.productsCatalogSection || EmptyGuid;
+        const select = "id,title,fullTitle,code,comments,prices";
+        const where = `productsCatalog='${prodRec.Data!.productsCatalog}' and  productCatalogSection='${prodRec.Data!.productsCatalogSection}'`;
 
+        const queryParams = new QueryParams(select, where);
+        const dl = await this._ProductsViews.getProductsListView(queryParams);
+
+        let row: IProductListView | undefined;
+        while (row = dl.getNext())
+            super.setValue(row.id!, row.productCatalogSection!, new ProductCacheValue(row));
     }
 
-
-
-    getValue(key: string) {
-        const inxval = this._checkBeforeGetVal(key);
-        if (!inxval) {
-            return undefined;
-        }
-
-        return inxval.value;
-    }
 
 
 
     setValue(key: string, pagekey: string, value: any) {
-        const page = this._checkBeforeSetVal(key, pagekey, value);
-        if (!page)
-            return;
+        Exception.throw("MethodNotImplemented", "Функция не реализована");
+    }
 
 
-        page.set(key);
-        this._index.set(key, new IndexVal(page, value));
+
+    async getOrCreate(key: string): Promise<any> {
+        const inxval = this._checkBeforeGetVal(key);
+        if (!inxval) {
+            await this._loadPage(key);
+        }
+
+        return this._index.get(key)?.value as ProductCacheValue;
     }
 }
 

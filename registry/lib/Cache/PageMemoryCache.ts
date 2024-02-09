@@ -1,6 +1,7 @@
+import { injectable } from "inversify";
 
 
-
+@injectable()
 export class PageMemoryCache {
 
     protected _ttl: number = null!;
@@ -76,11 +77,12 @@ export class PageMemoryCache {
 
 
 
-    async getOrCreate(key: string, pagekey: string, func: (key: string) => Promise<{ pagekey: string, value: any }>) {
+    async getOrCreate(key: string, pagekey?: string, func?: (key: string) => Promise<{ pagekey: string, value: any }>) {
         let val = this.getValue(key);
         if (val !== undefined)
             return val;
 
+        if (!func) return undefined;
         const iv = await func(key);
         this.setValue(key, iv.pagekey, iv.value);
     }
@@ -119,7 +121,7 @@ export class PageMemoryCache {
 
 
 
-    getPage(pagekey:string){
+    getPage(pagekey: string) {
         return this._pages.get(pagekey);
     }
 

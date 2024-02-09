@@ -4,7 +4,9 @@ import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
 import { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
 import type { RecordsStore } from "./RecordsStore";
+import { injectable } from "inversify";
 
+@injectable()
 export class EmployeeRecordData extends ApiRecordChData {
     name: string = "";
     surname: string = "";
@@ -47,7 +49,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
 
     protected _createNewData() {
-        return this._RecStore.dataEntityFactory(EmployeeRecordData, this.Key);
+        return this._RecStore.dataEntityFactory(EmployeeRecordData, null, this.Key);
     }
 
 

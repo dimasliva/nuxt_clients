@@ -1,3 +1,4 @@
+import { injectable } from "inversify";
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
@@ -6,7 +7,7 @@ import { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
-
+@injectable()
 export class ClientSdRecordData extends ApiRecordChData {
     citizenship?: number | null=null;
     kinship?: any | null=null;
@@ -34,7 +35,7 @@ export class ClientSdRecord extends ApiRecord<ClientSdRecordData>{
 
 
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(ClientSdRecordData, this.Key);
+        return   this._RecStore.dataEntityFactory(ClientSdRecordData, null, this.Key);
     }
 
 

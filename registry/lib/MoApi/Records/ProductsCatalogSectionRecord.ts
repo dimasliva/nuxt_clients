@@ -1,8 +1,10 @@
+import { injectable } from "inversify";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
+@injectable()
 export class ProductsCatalogSectionRecordData extends ApiRecordChData {
     title: string = "";
     code: string | null = null;
@@ -25,7 +27,7 @@ export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSecti
     get RecCode() { return ProductsCatalogSectionRecord.RecCode; }
 
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(ProductsCatalogSectionRecordData, this.Key);
+        return   this._RecStore.dataEntityFactory(ProductsCatalogSectionRecordData, null, this.Key);
     }
 
     protected async _loadData() {

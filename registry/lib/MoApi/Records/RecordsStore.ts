@@ -1,4 +1,4 @@
-import { injectable, inject } from "inversify";
+import { injectable, inject, Container } from "inversify";
 import { UserContext } from "../../UserContext";
 import { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, type ApiRecordClass } from "./ApiRecord";
@@ -13,7 +13,10 @@ export class RecordsStore {
 
     protected _store: { [typename: string]: { [key: string]: ApiRecord<any> } } = {};
 
-    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("UserContext") protected _UserContext: UserContext) {
+    constructor(
+        @inject("MoApiClient") protected _MoApiClient: MoApiClient, 
+        @inject("UserContext") protected _UserContext: UserContext,
+        @inject("diC") protected _diC: Container) {
     }
 
     get<T extends ApiRecord>(type: Class<T>, Key: string) {
@@ -147,9 +150,9 @@ export class RecordsStore {
 
 
 
-    dataEntityFactory<T extends DataEntity>(dEntity: Class<T>, id: string | null = null, jsonObj: any = null) {
-        let inst = new dEntity(this._MoApiClient, this._UserContext, this, id);
-        inst.init(id, jsonObj);
+    dataEntityFactory<T extends DataEntity>(dEntity: Class<T>, jsonObj: any = null, ...params) {
+        let inst =  this._diC.get(dEntity);
+        inst.init(jsonObj, ...params);
         return inst;
     }
 }

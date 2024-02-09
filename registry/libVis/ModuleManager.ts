@@ -53,6 +53,7 @@ export class ModuleManager {
             icon: "mdi-account-tie",
             childs: [
                 { id: "price_list", title: "Прайс-листы", getPagePath: () => "/list/price_list", icon: "mdi-list-box" },
+                { id: "product_catalogs", title: "Прайс - тест", getPagePath: () => "/list/product_catalogs", icon: "mdi-list-box" },
             ]
         };
 

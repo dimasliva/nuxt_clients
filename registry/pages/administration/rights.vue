@@ -29,7 +29,7 @@
   
 <script setup lang="ts">
 import { useDisplay } from 'vuetify/lib/framework.mjs';
-import { PageMap, type IPageData } from '~~/lib/PageMap';
+import { PageMap, type IFrameHeaderData } from '~~/lib/PageMap';
 import { UserContext } from '~~/lib/UserContext';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { EmployeeRecord } from '~~/lib/MoApi/Records/EmployeeRecord';
@@ -54,7 +54,7 @@ const empAuth = iocc.get(UserContext);
 const recStore = iocc.get(RecordsStore);
 const pageMap = iocc.get<PageMap>("PageMap");
 const allRec = api.getRecordsApiSection();
-let pageMapData: IPageData = reactive({ title: "Роли & права", icon: "mdi-account-circle", mainBtnBar: [] });
+let pageMapData: IFrameHeaderData = reactive({ title: "Роли & права", icon: "mdi-account-circle", mainBtnBar: [] });
 let panels = ref<any>([])
 
 pageMap.setPageData("/administration/rights", pageMapData);

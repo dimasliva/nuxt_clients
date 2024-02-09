@@ -8,20 +8,25 @@ import { Exception } from "../../Exceptions";
 import { RecordsStore } from "./RecordsStore";
 import { DataEntity } from "./DataEntities/DataEntity";
 import { DictionaryStore } from "~/lib/Dicts/DictionaryStore";
+import { injectable, inject, Container } from "inversify";
 
-
+@injectable()
 export abstract class ApiRecordData extends DataEntity {
 
     id: string | null = null;
 
-    constructor(protected __MoApiClient: MoApiClient, protected __UserContext: UserContext, __RecordStore: RecordsStore) {
-        super(__MoApiClient, __UserContext, __RecordStore);
+    constructor(
+        @inject("MoApiClient") protected __MoApiClient: MoApiClient,
+        @inject("UserContext") protected __UserContext: UserContext,
+        @inject("RecordsStore") RecordsStore: RecordsStore) {
+        super(RecordsStore);
         Object.defineProperty(this, "__MoApiClient", { enumerable: false });
         Object.defineProperty(this, "__UserContext", { enumerable: false });
     }
 
 
-    override init(id: string | null, jsonObj: any | null) {
+    override init(jsonObj: any | null, id: string | null, ...params) {
+        super.init(jsonObj)
         this.id = id;
     }
 }

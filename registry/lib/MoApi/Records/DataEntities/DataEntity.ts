@@ -1,19 +1,25 @@
+import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "../../../UserContext";
 import type { MoApiClient } from "../../MoApiClient";
 import type { RecordsStore } from "../RecordsStore";
 
 
+@injectable()
 export abstract class DataEntity {
 
+    protected __RecordStore: RecordsStore = null!;
 
-    constructor(__MoApiClient: MoApiClient, __UserContext: UserContext, protected __RecordStore: RecordsStore) {
+    constructor(@inject("RecordsStore") RecordStore: RecordsStore) {
+        this.__RecordStore = RecordStore;
         Object.defineProperty(this, "__RecordStore", { enumerable: false });
     };
 
-    init(id: string | null, jsonObj: any | null) {
+
+    init(jsonObj: any | null, ...params) {
         if (jsonObj)
             this.fromJsonObj(jsonObj);
     }
+
 
 
     getJsonObj() {
@@ -22,9 +28,9 @@ export abstract class DataEntity {
             if (!item.startsWith("__") && typeof item != "function") {
                 let val = this[item];
                 if (val instanceof DataEntity)
-                obj[item] = val.getJsonObj();
-            else
-            if (val instanceof Array) {
+                    obj[item] = val.getJsonObj();
+                else
+                    if (val instanceof Array) {
                         obj[item] = val.map(item => item.getJsonObj());
                     }
                     else
@@ -71,9 +77,9 @@ export abstract class DataEntity {
         newInst.fromJson(this.toJson());
         return newInst;
     }
-    
-    
-    
+
+
+
     protected _getSelfNewInst() {
         return this.__RecordStore.dataEntityFactory((<any>this).constructor);
     }

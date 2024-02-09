@@ -1,7 +1,8 @@
 
 import { DataEntity } from "./DataEntity";
+import { injectable, inject } from "inversify";
 
-
+@injectable()
 export default class RolesEntity extends DataEntity {
 
     roles: { [roleName: string]: { [recName: string]: string } } = null!

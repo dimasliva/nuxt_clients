@@ -3,9 +3,12 @@ import { UserContext } from "~/lib/UserContext";
 import { EDictionaries } from "../../../Dicts/DictionaryStore";
 import { MoApiClient } from "../../MoApiClient";
 import { DataEntity } from "./DataEntity";
-import { RecordsStore } from "../RecordsStore";
 import { RUSSIA } from "~/lib/Dicts/DictCountriesConst";
+import { injectable, inject } from "inversify";
+import type { RecordsStore } from "../RecordsStore";
 
+
+@injectable()
 export default class AddressEntity extends DataEntity {
 
     country: number = RUSSIA;          //dict Countries
@@ -30,8 +33,11 @@ export default class AddressEntity extends DataEntity {
     zip?: string | null;
 
 
-    constructor(protected __MoApiClient: MoApiClient, __UserContext: UserContext, __RecordStore: RecordsStore) {
-        super(__MoApiClient, __UserContext, __RecordStore);
+    constructor(
+        @inject("MoApiClient") protected __MoApiClient: MoApiClient,
+        @inject("RecordsStore") RecordStore: RecordsStore,
+    ) {
+        super(RecordStore);
         Object.defineProperty(this, "__MoApiClient", { enumerable: false });
     }
 

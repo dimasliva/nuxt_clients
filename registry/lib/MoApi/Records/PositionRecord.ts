@@ -1,10 +1,11 @@
+import { injectable } from "inversify";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
-
+@injectable()
 export class PositionRecordData extends ApiRecordChData {
     employee: string = null!;
     position: number = 0;
@@ -29,7 +30,7 @@ export class PositionRecord extends ApiRecord<PositionRecordData>{
 
  
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(PositionRecordData, this.Key);
+        return   this._RecStore.dataEntityFactory(PositionRecordData, null,this.Key);
     }
 
 

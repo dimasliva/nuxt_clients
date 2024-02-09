@@ -1,3 +1,4 @@
+import { injectable } from "inversify";
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
@@ -5,7 +6,7 @@ import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
-
+@injectable()
 export class FilelinkRecordData extends ApiRecordChData {
     position?: string;
     createDate?: string;
@@ -45,7 +46,7 @@ export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
 
 
     protected _createNewData() {
-        return this._RecStore.dataEntityFactory(FilelinkRecordData, this.Key);
+        return this._RecStore.dataEntityFactory(FilelinkRecordData, null, this.Key);
     }
 
 

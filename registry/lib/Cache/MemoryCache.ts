@@ -1,3 +1,5 @@
+import { injectable } from "inversify";
+
 
 class CacheNode {
   key: string;
@@ -16,8 +18,8 @@ class CacheNode {
 }
 
 
-
-export default class MemoryCache implements ICache{
+@injectable()
+export default class MemoryCache implements ICache {
   protected _maxSize;
   protected _size;
   protected _expire;

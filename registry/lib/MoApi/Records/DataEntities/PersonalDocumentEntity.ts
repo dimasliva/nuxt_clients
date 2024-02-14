@@ -1,11 +1,12 @@
 import type { UserContext } from "~/lib/UserContext";
-import type { RecordsStore } from "../RecordsStore";
 import type { MoApiClient } from "../../MoApiClient";
 import { EDictionaries } from "../../../Dicts/DictionaryStore";
 import { DataEntity } from "./DataEntity";
 import { Dictionary } from "~/lib/Dicts/Dictionary";
+import { injectable, inject } from "inversify";
+import type { RecordsStore } from "../RecordsStore";
 
-
+@injectable()
 export default class PersonalDocumentEntity extends DataEntity {
 
     typeCode?: number | null = 1;          //dict PersonalDocumentTypes
@@ -22,8 +23,10 @@ export default class PersonalDocumentEntity extends DataEntity {
 
 
 
-    constructor(protected __MoApiClient: MoApiClient, __UserContext: UserContext, __RecordStore: RecordsStore) {
-        super(__MoApiClient, __UserContext, __RecordStore);
+    constructor(
+        @inject("MoApiClient") protected __MoApiClient: MoApiClient,
+        @inject("RecordsStore") RecordStore: RecordsStore,) {
+        super(RecordStore);
         Object.defineProperty(this, "__MoApiClient", { enumerable: false });
     }
 
@@ -133,18 +136,18 @@ export default class PersonalDocumentEntity extends DataEntity {
     }
 
 
-    
 
-    async getAvailableIdentityDocumentTypes(){
+
+    async getAvailableIdentityDocumentTypes() {
         var dicts = this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PersonalDocumentTypes);
-        let list=  await dicts.getItems(0);
+        let list = await dicts.getItems(0);
         return list;
-}
+    }
 
-    async getAvailablePersonalDocumentTypes(){
-            var dicts = this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PersonalDocumentTypes);
-            let list=  Object.assign((await dicts.getItems(1*Dictionary.DICT_SECTION_K))!, await dicts.getItems(Dictionary.DICT_USER_SECTION)) ;
-            return list;
+    async getAvailablePersonalDocumentTypes() {
+        var dicts = this.__MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PersonalDocumentTypes);
+        let list = Object.assign((await dicts.getItems(1 * Dictionary.DICT_SECTION_K))!, await dicts.getItems(Dictionary.DICT_USER_SECTION));
+        return list;
     }
 
 

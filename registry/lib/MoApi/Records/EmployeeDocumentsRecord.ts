@@ -4,9 +4,10 @@ import type { UserContext } from "../../UserContext";
 import type { MoApiClient  } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
+import { injectable } from "inversify";
 
 
-
+@injectable()
 export class EmployeeDocumentsRecordData extends ApiRecordChData {
     snils?: string | null = null;
     mainDocument?: number | null = RUSSIAN_PASSPORT;
@@ -33,7 +34,7 @@ export class EmployeeDocumentsRecord extends ApiRecord<EmployeeDocumentsRecordDa
 
 
     protected _createNewData() {
-        return this._RecStore.dataEntityFactory(EmployeeDocumentsRecordData, this.Key);
+        return this._RecStore.dataEntityFactory(EmployeeDocumentsRecordData, null, this.Key);
     }
 
 

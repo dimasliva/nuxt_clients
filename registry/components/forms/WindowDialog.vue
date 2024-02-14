@@ -95,7 +95,7 @@ const windowStyle = {
 }
 
 const close = async () => {
-    if (props.onClose && await props.onClose())
+    if (!props.onClose || props.onClose && await props.onClose())
         closeDialog(null);
 }
 

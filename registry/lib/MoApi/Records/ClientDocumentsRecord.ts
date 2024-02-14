@@ -5,9 +5,10 @@ import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 import PersonalDocumentEntity from "./DataEntities/PersonalDocumentEntity";
+import { injectable } from "inversify";
 
 
-
+@injectable()
 export class ClientDocumentsRecordData extends ApiRecordChData {
     snils?: string | null = null;
     mainDocument?: number | null = RUSSIAN_PASSPORT;
@@ -22,7 +23,7 @@ export class ClientDocumentsRecordData extends ApiRecordChData {
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
-        this.otherDocuments = obj.otherDocuments ? obj.otherDocuments.map(item => this.__RecordStore.dataEntityFactory(PersonalDocumentEntity, null, item)) : null;
+        this.otherDocuments = obj.otherDocuments ? obj.otherDocuments.map(item => this.__RecordStore.dataEntityFactory(PersonalDocumentEntity, item)) : null;
     }
 }
 
@@ -41,7 +42,7 @@ export class ClientDocumentsRecord extends ApiRecord<ClientDocumentsRecordData>{
 
 
     protected _createNewData() {
-        return this._RecStore.dataEntityFactory(ClientDocumentsRecordData, this.Key);
+        return this._RecStore.dataEntityFactory(ClientDocumentsRecordData, null, this.Key);
     }
 
 

@@ -1,3 +1,4 @@
+import { injectable } from "inversify";
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
@@ -5,7 +6,7 @@ import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 
 
-
+@injectable()
 export class EmployeeContactsRecordData extends ApiRecordChData {
     mainPhone?: string | null=null;
     mainEmail?: string | null=null;
@@ -26,7 +27,7 @@ export class EmployeeContactsRecord extends ApiRecord<EmployeeContactsRecordData
 
 
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(EmployeeContactsRecordData, this.Key);
+        return   this._RecStore.dataEntityFactory(EmployeeContactsRecordData, null, this.Key);
     }
     
 

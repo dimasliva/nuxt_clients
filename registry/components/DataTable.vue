@@ -81,7 +81,7 @@
                 @update:modelValue="() => scrollTo(0, 0)" />
             <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
                 :items="[10, 12, 25, 50, 100]" variant="solo"
-                @update:model-value="itemsPerPage = parseInt($event, 10)"></v-select>
+                @update:model-value="itemsPerPage = parseInt(<string><unknown>$event, 10)"></v-select>
         </v-row>
     </div>
 </template>

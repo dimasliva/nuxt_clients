@@ -13,20 +13,22 @@ export abstract class FinderDataProvider {
     protected _instName: string | null = null;
     protected _editFormComponent: any = null!;
     protected _historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.none;
-    protected _diC?: Container | null;
+    protected _apiRequestTimeout = 1000;
 
-    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("UserContext") protected _UserContext: UserContext) { }
+
+    constructor(
+        @inject("MoApiClient") protected _MoApiClient: MoApiClient,
+        @inject("UserContext") protected _UserContext: UserContext,
+        @inject("diC") protected _diC: Container) { }
 
 
     abstract getList(text: string, ...args): Promise<TDictViewVal[]>;
     abstract getTitle(value: any, ...args): Promise<string | undefined>;
-    abstract getTitles(value: any[], ...args): Promise<string[] | undefined>;
 
 
-    init(diC: Container | null | undefined, instName: string | null, editFormComponent: any, ...args) {
+    init(instName: string | null, editFormComponent: any, ...args) {
         this._instName = instName;
         this._editFormComponent = editFormComponent;
-        this._diC = diC;
     }
 
 
@@ -39,7 +41,14 @@ export abstract class FinderDataProvider {
 
         return new Promise(resolve => {
             openDialog(this._editFormComponent,
-                { diC: this._diC, title: 'Поиск', finderDataProvider: this, choosedValues: choosedValues, historyResultTypeStorage: this._historyResultTypeStorage },
+                {
+                    diC: this._diC,
+                    title: 'Поиск',
+                    finderDataProvider: this,
+                    apiRequestTimeout: this._apiRequestTimeout,
+                    choosedValues: choosedValues,
+                    historyResultTypeStorage: this._historyResultTypeStorage
+                },
                 true,
                 (e, d) => {
                     if (e == "onBeforeClose")

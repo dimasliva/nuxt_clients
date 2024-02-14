@@ -1,3 +1,4 @@
+import { injectable } from "inversify";
 import { Exception } from "../../Exceptions";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
@@ -6,7 +7,7 @@ import AddressEntity from "./DataEntities/AddressEntity";
 import type { RecordsStore } from "./RecordsStore";
 
 
-
+@injectable()
 export class ClientAddressesRecordData extends ApiRecordChData {
     mainAddress: AddressEntity | null = null;
     permanentRegistration: AddressEntity | null = null;
@@ -16,8 +17,8 @@ export class ClientAddressesRecordData extends ApiRecordChData {
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
-        this.mainAddress = obj.mainAddress ? this.__RecordStore.dataEntityFactory(AddressEntity, null, obj.mainAddress) : null;
-        this.permanentRegistration = obj.permanentRegistration ? this.__RecordStore.dataEntityFactory(AddressEntity, null, obj.permanentRegistration) : null;
+        this.mainAddress = obj.mainAddress ? this.__RecordStore.dataEntityFactory(AddressEntity, obj.mainAddress) : null;
+        this.permanentRegistration = obj.permanentRegistration ? this.__RecordStore.dataEntityFactory(AddressEntity, obj.permanentRegistration) : null;
     }
 }
 
@@ -36,7 +37,7 @@ export class ClientAddressesRecord extends ApiRecord<ClientAddressesRecordData>{
 
 
     protected _createNewData() {
-        return this._RecStore.dataEntityFactory(ClientAddressesRecordData, this.Key);
+        return this._RecStore.dataEntityFactory(ClientAddressesRecordData, null, this.Key);
     }
 
 

@@ -16,6 +16,8 @@ import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDataType } from '~/lib/globalTypes';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
 import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
+import { NavigatorTemplate } from '~/componentTemplates/navigatorTemplate';
+import { EWellKnownPageCaches, PageMemoryCacheStore } from '~/lib/Cache/PageMemoryCacheStore';
 
 
 let t: any;
@@ -26,7 +28,7 @@ type TPositionFilterVals = {
 }
 
 
-class PositionList extends ListTemplate<TPositionFilterVals>
+class PositionList extends NavigatorTemplate<TPositionFilterVals>
 {
   positionsViews = this.iocc.get(PositionsViews);
   finderDataProvider = this.iocc.get(DictsFinderDataProvider);
@@ -39,8 +41,8 @@ class PositionList extends ListTemplate<TPositionFilterVals>
 
 
   //Указание пути текущей страницы
-  PAGE_PATH = "/list/positions";
-  PAGE_TITLE = "Должности";
+  PAGE_PATH = "/list/product_catalogs";
+  PAGE_TITLE = "Прайс-тест";
 
   //Настройки по умолчанию
   defPageSettings = { tcols: ["fio", "position"] };
@@ -53,7 +55,7 @@ class PositionList extends ListTemplate<TPositionFilterVals>
   dataTableDescr = ref<IDataTableDescription>({
     headers: [
       {
-        key: 'fio', title: 'ФИО сотрудника', align: 'center', alignData: "start", width: "400", sortable: true,
+        key: 'title', title: 'Имя', align: 'center', alignData: "start", width: "400", sortable: true,
         requestNames: ["employeeName", "employeeSurname", "employeePatronymic"], traits: { "dbEmployee": "r" }
       },
 
@@ -132,7 +134,7 @@ class PositionList extends ListTemplate<TPositionFilterVals>
     let dictstore = this.iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
     return {
       id: rawData.id,
-      fio: (rawData.employeeSurname || "") + " " + (rawData.employeeName || "") + " " + (rawData.employeePatronymic || ""),
+      title: (rawData.employeeSurname || "") + " " + (rawData.employeeName || "") + " " + (rawData.employeePatronymic || ""),
       position: await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) || ""
     }
   };
@@ -171,9 +173,17 @@ export default {
   async setup(props, { expose }) {
     t = useI18n().t;
 
+   
     const o = new PositionList();
     await o.setup();
 
+
+    const cacheStore = useContainer().get<PageMemoryCacheStore>("PageCacheStore");
+    const prodcache = cacheStore.getWellKnownCache(EWellKnownPageCaches.Products);
+
+    let prod=await prodcache.getOrCreate("3b2f727c-f849-4334-a160-f74ae86b63a9");
+
+    
     const del = () => { }
 
     expose({

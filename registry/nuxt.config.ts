@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 // nuxt.config.ts
 import { defineNuxtConfig } from "nuxt/config"
-import type { Nitro } from "nitropack/types";
+import type { Nitro } from "nitropack";
 import { createResolver } from '@nuxt/kit'
 import vuetify from 'vite-plugin-vuetify'
 

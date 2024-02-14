@@ -92,6 +92,7 @@ export class PageMemoryCache {
     clearPage(pagekey: string) {
         const page = this._pages.get(pagekey);
         if (page) {
+            console.debug(`clear cacche page: ${pagekey}`)
             this.removeFromIndex(page);
             page.clear();
         }

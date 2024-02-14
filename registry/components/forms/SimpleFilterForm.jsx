@@ -93,7 +93,7 @@ export default defineComponent({
                 const partype = filterFields[settingsItem].type;
 
                 if (partype == EDataType.reference || partype == EDataType.referenceMultiple) {
-                    if ( ( !(val instanceof Array) && val != null ) || (val instanceof Array && val.length > 0))
+                    if ((!(val instanceof Array) && val != null) || (val instanceof Array && val.length > 0))
                         isAllValsEmpty = false;
 
                     if (fieldsOptions.errCnt)
@@ -235,7 +235,7 @@ export default defineComponent({
                 return <VCard class="mx-auto mb-auto" width="300">
                     <VForm>
                         <VCol>
-                            <v-row key={updateKey.value} class="text-body-1 ma-2" style="min-width: 200pt;">Поиск <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon></v-row>
+                            <v-row key={updateKey.value} class="text-body-1 ma-2" style="min-width: 200pt;">{filterSettings.title || "Поиск"} <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon></v-row>
 
                             <v-sheet class="overflow-y-auto overflow-x-hidden" style="max-height:70dvh !important;">
                                 {createFileds()}

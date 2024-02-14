@@ -1,6 +1,6 @@
 import type { IAuthorityData, IUserCredentials } from "@/lib/Security";
 import { injectable, inject } from "inversify";
-import type { NuxtApp } from "nuxt/dist/app";
+import type { NuxtApp } from "nuxt/app";
 import { Container } from "inversify";
 import type { MoApiClient } from "./MoApi/MoApiClient";
 import type { EmployeeRecordData } from "./MoApi/Records/EmployeeRecord";

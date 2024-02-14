@@ -4,14 +4,22 @@ import * as vHelpers from '~~/libVis/Helpers';
 import { AppProfile } from "./AppProfile";
 
 
+export enum EEmployeeAppProfileSections {
+    PageSettings = "pageSettings",
+    ComponentSettings = "compSettings"
+}
+
+
+
 @injectable()
 export class EmployeeAppProfile extends AppProfile {
 
 
-    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient,  _profile: any) {
-       super(_profile || {
-        pageSettings:{}
-       });
+    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, _profile: any) {
+        super(_profile || {
+            pageSettings: {},
+            compSettings: {}
+        });
     }
 
 
@@ -23,7 +31,21 @@ export class EmployeeAppProfile extends AppProfile {
 
 
     setSection<T = any>(sectionName: string, val: T) {
-         this._profile[sectionName]=val;
+        this._profile[sectionName] = val;
+    }
+
+
+
+    getPropOfSection(sectionName: EEmployeeAppProfileSections, propName: string) {
+        const sect = this.getSection(sectionName);
+        return sect[propName];
+    }
+
+
+
+    setPropOfSection(sectionName: EEmployeeAppProfileSections, propName: string, val: any) {
+        const sect = this.getSection(sectionName);
+        sect[propName] = val;
     }
 
 
@@ -33,21 +55,22 @@ export class EmployeeAppProfile extends AppProfile {
     }
 
 
-    setPageSettings<T = any>(pagePath: string, val:T) {
-        
-         this._profile["pageSettings"][pagePath]=val;
+    setPageSettings<T = any>(pagePath: string, val: T) {
+
+        this._profile["pageSettings"][pagePath] = val;
     }
 
 
+
     async load() {
-        this._profile =  this._MoApiClient.send("/Employees/GetAppProfile");
+        this._profile = this._MoApiClient.send("/Employees/GetAppProfile");
     }
 
 
 
     async save() {
         vHelpers.action(async () => {
-             await this._MoApiClient.send("/Employees/UpdateAppProfile", this._profile);
+            await this._MoApiClient.send("/Employees/UpdateAppProfile", this._profile);
         })
     }
 

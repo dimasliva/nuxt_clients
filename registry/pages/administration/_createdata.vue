@@ -1,14 +1,6 @@
 <template>
     <VRow class="ml-4">
         <VCol style="max-width: 150px;">
-            <v-text-field v-model="emplLoading.size" variant="underlined" label="Сотрудники" hide-details="auto" />
-            <v-btn :loading="emplLoading.loading" type="submit" @click="createRecs(emplLoading)">Создать</v-btn>
-        </VCol>
-        <VCol style="max-width: 150px;">
-            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Разделы расписания" hide-details="auto" />
-        </VCol>
-
-        <VCol style="max-width: 150px;">
             <v-text-field v-model="clientsLoading.size" variant="underlined" label="Клиенты" hide-details="auto" />
             <v-btn :loading="clientsLoading.loading" type="submit" @click="createRecs(clientsLoading)">
                 Создать
@@ -17,14 +9,20 @@
                 </template>
             </v-btn>
         </VCol>
-        <VCol style="max-width: 150px;">
+        <VCol style="max-width: 300px;">
+            <v-text-field v-model="emplLoading.size" variant="underlined" label="Сотрудники" hide-details="auto" />
+            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Название раздела расписания"
+                hide-details="auto" />
+            <v-btn :loading="emplLoading.loading" type="submit" @click="createRecs(emplLoading)">Создать</v-btn>
+        </VCol>
+        <VCol style="max-width: 300px;">
             <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса" hide-details="auto" />
-            <v-text-field v-model="productsCatalogSectionQuantity" variant="underlined" label="Кол-во разделов"
+            <v-text-field v-model="productsCatalogSectionQuantity" variant="underlined" label="Кол-во разделов прайса"
                 hide-details="auto" />
             <v-text-field v-model="priceListLoading.size" variant="underlined" label="Кол-во номенклатурных позиций"
                 hide-details="auto" />
             <v-btn :loading="priceListLoading.loading" type="submit" @click="addProductsCatalog(productsCatalogName)">
-                Создать
+                Создать прайс-лист
                 <template v-slot:loader>
                     <v-progress-linear absolute height="7" indeterminate></v-progress-linear>
                 </template>
@@ -63,7 +61,8 @@ const createRecs = async (recLoading: typeof emplLoading) => {
 
     const size = recLoading.size;
     const recCreateTask = recLoading.createTask;
-    if (scheduleItemGroup.value) { addScheduleItemGroup() };
+    if (productsCatalogName.value && productsCatalogSectionQuantity.value && priceListLoading.size) { await addProductsCatalog(productsCatalogName.value) };
+    if (scheduleItemGroup.value) { await addScheduleItemGroup() };
 
     if (size != 0) {
         recLoading.loading = true;
@@ -109,6 +108,7 @@ const pricesA = ['100', '200', '300', '400', '500', '600', '700', '800', '900', 
 const fullTitles = ProductTitles;
 const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
 let scheduleGroupRec = ref();
+let tempProdRecArr = ref<any>([])
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
     let rec = await recStore.createNew<EmployeeRecord, EmployeeRecordData>(EmployeeRecord, (data) => {
@@ -149,23 +149,21 @@ const emplCreateTask = async (size: number) => {
         const month = Math.floor(Math.random() * 12) + 1;
         const day = Math.floor(Math.random() * 28) + 1;
         const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
-        let emplkey = await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress());
+        let emplkey = await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress()); //1
 
-        await addPosition(emplkey);
+        await addPosition(emplkey, i); //2
     }
 }
 
 
-const addPosition = async (emplkey) => {
+const addPosition = async (emplkey, i) => {
     let rec = await recStore.createNew<PositionRecord, PositionRecordData>(PositionRecord, (data) => {
         data.employee = emplkey;
         data.position = positionDictCodes[Math.floor(Math.random() * positionDictCodes.length - 1)]!;
     });
     await rec.save();
-    await addScheduleItem(rec.Key);
-    return rec.Key;
+    await addScheduleItem(rec.Key, i); //3
 };
-const currentDate = new Date();
 
 const timeSpansCrtr = () => {
     let a: any = [];
@@ -173,28 +171,32 @@ const timeSpansCrtr = () => {
         a.push({
             "time": Math.floor(Math.random() * (144 - 36) + 1) * 10,
             "duration": Math.floor(Math.random() * (12 - 1) + 1) * 10,
-            "type": 0,
+            "type": 1,
         })
     }
     return a
 }
 
-const addScheduleItem = async (positionKey) => {
+let recCode = ref(0);
+let key = ref('')
+const addScheduleItem = async (positionKey, i) => {
     let rec = await recStore.createNew<ScheduleItemRecord, ScheduleItemData>(ScheduleItemRecord, (data) => {
         data.position = positionKey;
-        data.beginDate = currentDate.toJSON().slice(0, 10);
-        data.endDate = new Date(currentDate.setFullYear(currentDate.getFullYear() + 1)).toJSON().slice(0, 10);
+        data.beginDate = new Date().toJSON().slice(0, 10);
+        data.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toJSON().slice(0, 10);
         data.activityDays = Math.floor(Math.random() * (8 - 3) + 3);
         data.pauseDays = Math.floor(Math.random() * (4 - 1) + 1);
-        data.exceptions = new Date(currentDate.setDate(currentDate.getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
-        data.workExceptions = new Date(currentDate.setDate(currentDate.getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
+        data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
+        data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
         data.timespans = timeSpansCrtr();
     });
     await rec.save();
-    let recCode = rec.RecCode;
-    let key = rec.Key;
-    scheduleGroupRec.value.addCoupling(key, recCode)
+    recCode.value = rec.RecCode;
+    key.value = rec.Key;
+    scheduleGroupRec.value.addCoupling(key.value, recCode.value)
+    rec.addChild(tempProdRecArr.value[i], 1024, 0)
 }
+
 
 
 const addScheduleItemGroup = async () => {
@@ -251,23 +253,11 @@ const clientsCreateTask = async (size: number) => {
     }
 }
 
-const addProducts = async (title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
-    let rec = await recStore.createNew<ProductRecord, ProductRecordData>(ProductRecord, (data) => {
-        data.title = title;
-        data.fullTitle = fullTitle;
-        data.code = code;
-        data.productsCatalog = productsCatalog;
-        data.productsCatalogSection = productsCatalogSection;
-        data.prices = prices;
-        data.comments = comments;
-    })
-    await rec.save();
-}
 let currElement = ref(0)
 let catalogKey = ref('')
 const addProductsCatalog = async (title) => {
     priceListLoading.loading = true;
-    console.log('start creating')
+    console.log('start creating products and catalogs')
     let rec = await recStore.createNew<ProductsCatalogRecord, ProductsCatalogRecordData>(ProductsCatalogRecord, (data) => {
         data.title = title;
         data.code = null;
@@ -283,7 +273,7 @@ const addProductsCatalog = async (title) => {
         await addProductsCatalogSection(i, catalogKey.value);
     }
     priceListLoading.loading = false;
-    console.log('creating end')
+    console.log('products and catalogs creating end')
 }
 
 const addProductsCatalogSection = async (quantity, prodCat) => {
@@ -311,8 +301,24 @@ const productsCreateTask = async (size: number, key) => {
         let prices = pricesA[Math.floor(Math.random() * pricesA.length)];
         let duration = durations[Math.floor(Math.random() * durations.length)];
         let comments: any = generateUniqueStrings(1, 3);
-        await addProducts(title, fullTitle, code, productsCatalog, productsCatalogSection, prices, duration, comments)
+        await addProducts(title, fullTitle, code, productsCatalog, productsCatalogSection, prices, duration, comments);
     }
+}
+
+const addProducts = async (title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
+    let rec = await recStore.createNew<ProductRecord, ProductRecordData>(ProductRecord, (data) => {
+        data.title = title;
+        data.fullTitle = fullTitle;
+        data.code = code;
+        data.productsCatalog = productsCatalog;
+        data.productsCatalogSection = productsCatalogSection;
+        data.duration = duration;
+        data.prices = prices;
+        data.comments = comments;
+    })
+    await rec.save();
+    tempProdRecArr.value.push(rec.MData.id)
+    // почему не работает родительство
 }
 
 const emplLoading = reactive({ size: 0, loading: false, recName: "employees", createTask: emplCreateTask });

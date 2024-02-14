@@ -1,38 +1,36 @@
-@forward 'vuetify/settings' with (
-$tooltip-background-color: rgb(212, 209, 209),
-$tooltip-text-color: rgb(var(--v-theme-secondary)),
-$tooltip-border-radius: 50px,
-$tooltip-padding: 3px 6px,
-$table-font-size: 1rem,
-$card-prepend-padding-inline-end: 0.5rem
+@forward "vuetify/settings" with (
+  $tooltip-background-color: rgb(212, 209, 209),
+  $tooltip-text-color: rgb(var(--v-theme-secondary)),
+  $tooltip-border-radius: 50px,
+  $tooltip-padding: 3px 6px,
+  $table-font-size: 1rem,
+  $card-prepend-padding-inline-end: 0.5rem
 );
 
-
-html{
-    scrollbar-width:thin;
+html {
+  scrollbar-width: thin;
 }
 
 /* Ширина скрола */
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  
-  /* Настройка полосы прокрутки */
-  ::-webkit-scrollbar-track {
-    background: rgb(189, 196, 197);
-    border-radius: 5px;
-  }
-  
-  /* Бегунок */
-  ::-webkit-scrollbar-thumb {
-    background: #5E35B1;
-    border-radius: 5px;
-  
-  }
-  
-  /* Бегунок при наведении */
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3d2274;
-    border-radius: 5px;
-  }
+  width: 10px;
+  height: 10px;
+}
+
+/* Настройка полосы прокрутки */
+::-webkit-scrollbar-track {
+  background: rgb(189, 196, 197);
+  border-radius: 5px;
+}
+
+/* Бегунок */
+::-webkit-scrollbar-thumb {
+  background: #5e35b1;
+  border-radius: 5px;
+}
+
+/* Бегунок при наведении */
+::-webkit-scrollbar-thumb:hover {
+  background: #3d2274;
+  border-radius: 5px;
+}

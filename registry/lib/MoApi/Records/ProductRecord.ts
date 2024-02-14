@@ -8,7 +8,6 @@ import { injectable } from "inversify";
 
 @injectable()
 export class ProductRecordData extends ApiRecordChData {
-<<<<<<< HEAD
   title: string = "";
   fullTitle: string | null = null;
   code: string | null = null;
@@ -20,24 +19,11 @@ export class ProductRecordData extends ApiRecordChData {
   temporaryNotActive: boolean | null = null;
   notActive: boolean | null = null;
   advData: any | null = null;
-=======
-    title: string = "";
-    fullTitle: string | null = null;
-    code: string | null = null;
-    productsCatalog: string = "";
-    productsCatalogSection: string | null = null;
-    prices: PricesEntity | null = null;
-    duration: number = 0;
-    comments: string | null = null;
-    temporaryNotActive: boolean | null = null;
-    notActive: boolean | null = null;
-    advData: any | null = null;
 
-    override fromJsonObj(obj: any) {
-        super.fromJsonObj(obj)
-        this.prices = obj.prices ? this.__RecordStore.dataEntityFactory(PricesEntity, obj.prices) : null;
-    }
->>>>>>> 8c2063822d6ae94448ba24448ee2babb7983ceb6
+  override fromJsonObj(obj: any) {
+    super.fromJsonObj(obj);
+    this.prices = obj.prices ? this.__RecordStore.dataEntityFactory(PricesEntity, obj.prices) : null;
+  }
 }
 
 export class ProductRecord extends ApiRecord<ProductRecordData> {
@@ -53,10 +39,9 @@ export class ProductRecord extends ApiRecord<ProductRecordData> {
   }
 
   protected _createNewData() {
-    return this._RecStore.dataEntityFactory(ProductRecordData, this.Key);
+    return this._RecStore.dataEntityFactory(ProductRecordData, null, this.Key);
   }
 
-<<<<<<< HEAD
   protected async _loadData() {
     const arr = await this._MoApiClient.send<any, any>(this._getApiRecordPathGet(), this._Key);
     this._Data = new Proxy(<ProductRecordData>arr, this._getProxyHanlders());
@@ -65,52 +50,28 @@ export class ProductRecord extends ApiRecord<ProductRecordData> {
   }
 
   protected _getApiRecordPathGet = () => "/Products/GetProducts";
-=======
-    protected _createNewData() {
-        return this._RecStore.dataEntityFactory(ProductRecordData, null,this.Key);
-    }
-
->>>>>>> 8c2063822d6ae94448ba24448ee2babb7983ceb6
 
   protected _getApiRecordPathAdd = () => "/Products/AddProduct";
 
   protected _getApiRecordPathUpdate = () => "/Products/UpdateProduct";
 
-<<<<<<< HEAD
   protected _getApiRecordPathDelete = () => "/Products/DeleteProduct";
+
+  getPrice(priceId: string | number) {
+    return this.Data!.prices?.getPrice(priceId);
+  }
+
+  async setPrice(priceId: string | number, val: number) {
+    const ptsdict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PriceTypes);
+
+    ptsdict.getValByCode(priceId); //проверка существовния в словаре priceId
+
+    if (!this.MData!.prices) this.MData!.prices = this._RecStore.dataEntityFactory(PricesEntity, { priceId: val });
+    else this.MData!.prices.setPrice(priceId, val);
+  }
+
+  async setPriceTitle(priceId: string) {
+    const ptsdict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PriceTypes);
+    return ptsdict.getValByCode(priceId);
+  }
 }
-=======
-    protected _getApiRecordPathAdd = () => "/Products/AddProduct";
-
-
-    protected _getApiRecordPathUpdate = () => "/Products/UpdateProduct";
-
-
-    protected _getApiRecordPathDelete = () => "/Products/DeleteProduct";
-
-
-
-    getPrice(priceId: string | number) {
-        return this.Data!.prices?.getPrice(priceId);
-    }
-
-
-
-    async setPrice(priceId: string | number, val: number) {
-        const ptsdict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PriceTypes);
-
-        ptsdict.getValByCode(priceId);//проверка существовния в словаре priceId
-
-        if (!this.MData!.prices)
-            this.MData!.prices = this._RecStore.dataEntityFactory(PricesEntity, { priceId: val });
-        else
-            this.MData!.prices.setPrice(priceId, val);
-    }
-
-
-    async setPriceTitle(priceId: string) {
-        const ptsdict = await this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.PriceTypes);
-        return ptsdict.getValByCode(priceId);
-    }
-}
->>>>>>> 8c2063822d6ae94448ba24448ee2babb7983ceb6

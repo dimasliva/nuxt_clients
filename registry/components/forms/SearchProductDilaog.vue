@@ -95,7 +95,6 @@
                             </v-expansion-panel>
                         </v-expansion-panels>
                     </v-card-text>
-                    <v-text-field name="name" label="label"></v-text-field>
                     <v-card-actions>
                         <v-combobox hide-details chips closable-chips v-model="selectedItems" readonly label="Вы выбрали"
                             item-title="title" multiple variant="underlined" density="comfortable" class="ma-6"
@@ -181,12 +180,12 @@ const searchAllCatalogs = () => {
 
 const getCatalogList = async (k) => {
     let list = await recStore.fetch(ProductsCatalogRecord, k);
-    catalogs.value.push(list.MData);
+    catalogs.value = list.MData;
 }
 
 const getCatalogs = async () => {
     let catalogsKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogs', 'notactive != true', false);
-    await getCatalogList(catalogsKeys.toString());
+    await getCatalogList(catalogsKeys);
 }
 
 const getCatalogsSectionsList = async (k) => {

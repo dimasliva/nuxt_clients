@@ -60,10 +60,11 @@
               :items="schedulerItemGroups" item-title="title" variant="underlined"></v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="products" density="compact" label="Услуга"
-              :items="productsArr" variant="underlined" @click="selectedSchedulerItemGroup || employees ? false : openDialog(SearchProductDilaog, {
+              :items="productsArr" variant="underlined" @update:menu="filterDays($event)" @click="selectedSchedulerItemGroup || employees ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск товаров и услуг', full: 'Выбрать из прайс-лсита', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action:
                   setProds
-              })"></v-combobox>
+              })">
+            </v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="employees" density="compact" label="Сотрудник"
               :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click="selectedSchedulerItemGroup || products ? false : openDialog(SearchProductDilaog, {
@@ -91,7 +92,7 @@ import EventDialog from '~~/components/forms/EventDialog.vue';
 import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css';
 import wt from '~~/components/customMonthView/vue-cal-m';
-import type { IPageData, PageMap } from '~~/lib/PageMap';
+import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
 import { QueryParams, QueryParamsScheduler, QueryProductFtsList } from '~~/lib/MoApi/RequestArgs';
 import { ProductFtsViews, type IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
 import { EmployeesViews, type IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
@@ -100,6 +101,7 @@ import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
 import { ScheduleEvent } from '~/lib/SchedulerTypes';
+import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -123,11 +125,10 @@ let specialHours = ref({ 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hou
 let divisions = ref([])
 let monthView = ref<ScheduleEvent[]>([])
 let events = []
-let titleOnMonth = ref()
 let vuecal = ref<any>(null);
-let products = ref()
-let productsArr = ref([])
-let employees = ref()
+let products = ref<ProductRecordData[]>([])
+let productsArr = ref<any>([])
+let employees = ref<any>([])
 let employeesArr = ref<any>([])
 employeesArr = ref([
   { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.", },
@@ -152,6 +153,8 @@ let monthViewMinDate = ref<any>(new Date())
 let monthViewMaxDate = ref<any>('')
 let selDate = ref(monthViewMinDate.value)
 let dateRange = ref('')
+let timespans = ref<any>([])
+let currRangeData = ref<any>()
 
 const setProds = (p) => {
   products.value = p;
@@ -278,47 +281,66 @@ const getScheduleByItemGroup = async () => {
   monthViewMinDate.value = minDate.value;
   monthViewMaxDate.value = maxDate.value;
   if (selectedSchedulerItemGroup.value) {
-    //   const res = await apiClient.send<QueryParamsScheduler, ScheduleItemGroupData>(
-    //     "/Schedule/GetScheduleByItemGroup",
-    //     new QueryParamsScheduler(minDate.value.format('MM-DD-YYYY'), maxDate.value.format('MM-DD-YYYY'), selectedSchedulerItemGroup.value.id!),
-    //     true);
-
     let res = await apiClient.sendRequest("GET",
       `/api/v1/Schedule/GetScheduleByItemGroup?${apiClient._convertToURLParams(new QueryParamsScheduler(minDate.value.format('MM-DD-YYYY'), maxDate.value.format('MM-DD-YYYY'), selectedSchedulerItemGroup.value.id!))}`,
       null,
       null);
-    buildMonthScheduler(res.bodyData);
+    let sch: any = res.bodyData
+    currRangeData.value = res.bodyData
+    buildMonthScheduler(sch);
+    let prods: any = [];
+    Object.values(sch).flat().map((el: any) => {
+      prods.push(el.products)
+      timespans.value.push(el.timespan)
+    });
+    prods = Array.from(new Set(prods.flat()))
+    productsArr.value = await getProductsList(prods)
   }
+}
 
+const getProductsList = async (k) => {
+  let keys = k.map((id) => id.replaceAll(`'`, `"`))
+  let list = await recStore.fetch(ProductRecord, keys);
+  return list.MData
 }
 
 const buildMonthScheduler = (ts) => {
   let dates: string[] = Object.keys(ts);
   let times: ScheduleTimespanItem[][] = Object.values(ts);
   monthView.value = [];
-
-  for (let i = 0; i < dates.length; i++) {
-
+  const monthViewSet = new Set<ScheduleEvent>();
+  dates.map((date, i) => {
     if (times[i].length > 0) {
-
       let quantity = 0;
+
       times[i].map((item, ind) => {
+        let nextItem = times[i][ind + 1];
         let dayTimeSpan = timeOfDay(item.timespan.time);
-        let dayTimeSpanNext;
-        if (times[i][ind + 1]) {
-          dayTimeSpanNext = timeOfDay(times[i][ind + 1].timespan.time)
-        }
-        if (dayTimeSpan == dayTimeSpanNext) {
-          quantity++
+        let dayTimeSpanNext = nextItem ? timeOfDay(nextItem.timespan.time) : null;
+        let isSameDayTime = dayTimeSpan == dayTimeSpanNext
+
+        if (products.value.length > 0) {
+          if (hasProdInTimes(item)) {
+            quantity++
+          }
+          if (!isSameDayTime) {
+            monthViewSet.add(new ScheduleEvent(date, date, dayTimeSpan + ': ' + quantity))
+            quantity = 0
+          }
         } else {
           quantity++
-          monthView.value.push(new ScheduleEvent(dates[i], dates[i], dayTimeSpan + ': ' + quantity))
-          quantity = 0
+          if (!isSameDayTime) {
+            monthViewSet.add(new ScheduleEvent(date, date, dayTimeSpan + ': ' + quantity))
+            quantity = 0
+          }
         }
       })
     }
-  }
+  })
+  monthView.value = Array.from(monthViewSet);
 }
+
+const hasProdInTimes = (i) => products.value.some(prod => i.products?.includes(prod.id!) && (prod.duration <= i.timespan.duration));
 
 const timeOfDay = (mins: number) => {
   if (mins < 720) {
@@ -332,13 +354,19 @@ const timeOfDay = (mins: number) => {
   };
 }
 
+const filterDays = (opened: boolean) => {
+  if (!opened) {
+    buildMonthScheduler(currRangeData.value)
+  }
+}
+
 // сброс фильтров поиска бокового меню
 const clearFilters = () => {
   employeesArr.value = [];
   productsArr.value = [];
   selectedSchedulerItemGroup.value = undefined;
   employees.value = null;
-  products.value = null;
+  products.value = [];
   division.value = [];
   monthViewDates(false)
 }
@@ -379,7 +407,7 @@ const onViewChange = ({ view }) => {
   }
 }
 
-let pageMapData: IPageData = reactive({
+let pageMapData: IFrameHeaderData = reactive({
   title: "Журнал предварительной записи", icon: "", mainBtnBar: [
     { id: "day", title: "День", icon: "", disabled: false, color: "secondary", bkgColor: "red", action: () => currView.value = 'day' },
     { id: "month", title: "Неделя", icon: "", disabled: false, color: "secondary", bkgColor: "red", action: () => currView.value = 'week' },
@@ -395,7 +423,11 @@ pageMap.setPageData("/administration/test_journal", pageMapData);
 defineExpose({ eventsHandler });
 
 </script>
-<style >
+<style>
+/* .v-menu {
+  width: 10%;
+} */
+
 .vuecal--short-events .vuecal__event-title {
   text-align: center;
   overflow: hidden;

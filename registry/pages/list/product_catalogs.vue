@@ -34,15 +34,14 @@ export default {
 
   async setup(props:IProductNavigatorTemplateProps, ctx) {
     t = useI18n().t;
+
     const diC= props.diC || useContainer();
    
     diC.get<PageMap>("PageMap").setPageData("/list/product_catalogs", {title:"Прайс-тест"});
 
-    const o = diC.get(ProductCatalogNav);
+
+    const o = new ProductCatalogNav();
     await o.setup(props,ctx);
-
-
-  
 
     const del = () => { }
 

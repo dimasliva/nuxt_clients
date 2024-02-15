@@ -8,7 +8,7 @@ import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
 import Navigator from "~/components/navigators/Navigator.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { INavPathItem, IСoncreteNavigatorProps, TNavRow } from "~/components/navigators/NavigatorTypes";
-import { Container, injectable, inject } from "inversify";
+import type { Container } from "inversify";
 import type { PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { EDataType } from "~/lib/globalTypes";
@@ -18,7 +18,7 @@ import { EEmployeeAppProfileSections } from "~/lib/EmployeeAppProfile";
 let t: any;
 
 export interface IProductNavigatorTemplateProps {
-    diC?: Container;
+    diC?: Container
 }
 
 
@@ -27,8 +27,14 @@ type TFilterVals = {
 }
 
 
-@injectable()
 export class ProductNavigatorTemplate {
+
+
+    protected _diC: Container = null!;
+    protected _MoApiClient: MoApiClient = null!;
+    protected _UserContext: UserContext = null!;
+    protected _RecordsStore: RecordsStore = null!;
+    protected _PageCacheStore: PageMemoryCacheStore = null!;
 
     protected _FilterVals = ref({}) as Ref<TFilterVals>;
     protected _RefDataTable = ref();
@@ -46,33 +52,41 @@ export class ProductNavigatorTemplate {
     //Настрока формы фильтра
     protected _FilterSetting = {
         title: "Фильтр",
-        fields: {
-            title: {
-                type: EDataType.string,
-                title: "Название товара или услуги",
-                hint: null,
-                rules: [(v: string) => v.length >= 2 || "Минимум 2 символа фамилии"],
-                constraints: { min: 2, max: 384 },
+
+        getFields: () => {
+            return {
+                title: {
+                    type: EDataType.string,
+                    title: "Название товара или услуги",
+                    hint: null,
+                    rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа фамилии"],
+                    constraints: { min: 2, max: 384 },
+                }
             }
         },
-        defaultFocus: "title"
+
+        defaultFocus: "title",
+
+        onFind: (inputData: any) => {
+            return true;
+        }
     };
 
 
-    constructor(
-        @inject("diC") protected _diC: Container,
-        @inject("MoApiClient") protected _MoApiClient: MoApiClient,
-        @inject("UserContext") protected _UserContext: UserContext,
-        @inject("RecordsStore") protected _RecordsStore: RecordsStore,
-        @inject("PageCacheStore") protected _PageCacheStore: PageMemoryCacheStore,
-    ) {
-
+    constructor() {
         if (!t) t = useNuxtApp().$i18n.t;
     }
 
 
 
     async setup(props: IProductNavigatorTemplateProps, ctx?) {
+
+        const diC = this._diC = props.diC || useContainer();
+        this._MoApiClient = diC.get("MoApiClient");
+        this._UserContext = diC.get("UserContext");
+        this._RecordsStore = diC.get("RecordsStore");
+        this._PageCacheStore = diC.get("PageCacheStore");
+
 
         onMounted(() => {
             this._RefFilterForm.value.show();

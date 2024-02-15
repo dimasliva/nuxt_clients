@@ -19,6 +19,7 @@ export class RecordsStore {
         @inject("diC") protected _diC: Container) {
     }
 
+     /**Получение записи без загрузки данных */
     get<T extends ApiRecord>(type: Class<T>, Key: string) {
         if (!this._store[type.name])
             this._store[type.name] = {};
@@ -31,6 +32,7 @@ export class RecordsStore {
     }
 
 
+    /**Получение записи с загрузкой основных данных */
     async fetch<T extends ApiRecord>(type: Class<T>, Key: string) {
         const rec = this.get<ApiRecord>(type, Key);
         await rec.loadAllData();

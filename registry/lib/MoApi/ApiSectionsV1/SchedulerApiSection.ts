@@ -1,13 +1,31 @@
+import * as Utils from '~/lib/Utils';
 import { MoApiClient } from "../MoApiClient";
-import type { QueryParamsScheduler } from "../RequestArgs";
 import type { IApiDataListResult } from "../RequestResults";
+import { injectable, inject } from 'inversify';
+import type { RecordsStore } from '../Records/RecordsStore';
+import ScheduleTimeSpanEntity from '../Records/DataEntities/ScheduleTimeSpanEntity';
 
+@injectable()
 export class ScheduleApiSection {
 
 
-    constructor(protected _apiClient: MoApiClient) { }
+    constructor(
+        @inject("MoApiClient") protected _MoApiClient: MoApiClient,
+        @inject("RecordsStore") protected _RecordsStore: RecordsStore,
+    ) { }
 
-    async getScheduleByItemGroup(args: QueryParamsScheduler){
-        const apires = await this._apiClient.send<QueryParamsScheduler, IApiDataListResult>("/Employees/EmployeesListView", args);
+
+
+    async getScheduleByItemGroup(fromDate: Date, toDate: Date, groupId: string) {
+
+        const queryObj = {
+            fromDate: Utils.getDateStr(fromDate),
+            toDate: Utils.getDateStr(toDate),
+            groupId
+        }
+        const raw = await this._MoApiClient.send<any, any>("/Schedule/GetScheduleByItemGroup", queryObj, true);
+        for (const item in raw) {
+            raw[item].timespan = this._RecordsStore.dataEntityFactory(ScheduleTimeSpanEntity, raw[item].timespan);
+        }
     }
 }

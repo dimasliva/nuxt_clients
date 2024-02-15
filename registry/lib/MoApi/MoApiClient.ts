@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { Container, inject, injectable } from 'inversify';
 import type { MoApiClientSettings } from "~/lib/MoApi/MoApiClientSettings";
 import { type HTTPMethod } from 'h3';
 import type { IAuthorityData, IUserCredentials, IUserCredentialsServer } from '~/lib/Security';
@@ -12,12 +12,16 @@ import { LogLevel } from '@microsoft/signalr';
 import { RtmService } from './SignalR/RtmService';
 import type { EventBus } from '../EventBus';
 import { DictionaryStore } from '../Dicts/DictionaryStore';
+import { ScheduleApiSection } from './ApiSectionsV1/SchedulerApiSection';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
 
 @injectable()
 export class MoApiClient {
+
+    @inject("diC")
+    protected _diC: Container = null!;
 
     @inject("MoApiClientSettings")
     protected _MoApiClientSettings: MoApiClientSettings = null!;
@@ -37,6 +41,7 @@ export class MoApiClient {
     protected _RecordsApiSection: RecordsApiSection = new RecordsApiSection(this);
     protected _DictionariesApiSection: DictionariesApiSection = new DictionariesApiSection(this);
     protected _DictionaryStore: DictionaryStore = null!;
+    protected _ScheduleApiSection: ScheduleApiSection = null!
 
 
     init(_MoApiClientSettings: MoApiClientSettings) {
@@ -55,7 +60,7 @@ export class MoApiClient {
     }
 
     async send<inT, outT>(path: string, data?: inT, inParam: boolean = false) {
-        
+
         if (inParam)
             var res = await this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null, null);
         else
@@ -65,7 +70,7 @@ export class MoApiClient {
 
         if (res.bodyData && typeof res.bodyData == "object") {
             const answ = <IApiResult>res.bodyData;
-            
+
             if (answ.resultCode == "OK")
                 return <outT>answ.result;
             else
@@ -400,6 +405,9 @@ export class MoApiClient {
     getDictionariesApiSection = () => this._DictionariesApiSection;
 
     getDictionaryStore = () => this._DictionaryStore || (this._DictionaryStore = new DictionaryStore(this, this._SysEventBus));
+
+    getScheduleApiSection = () => this._ScheduleApiSection || (this._ScheduleApiSection = this._diC.get(ScheduleApiSection));
+
 
 
 

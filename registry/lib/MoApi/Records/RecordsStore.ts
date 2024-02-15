@@ -32,7 +32,7 @@ export class RecordsStore {
     }
 
 
-    /**Получение записи с загрузкой основных данных */
+    /**Получение записи с загрузкой основных данных. Если данные не удалось загрузить - исключение */
     async fetch<T extends ApiRecord>(type: Class<T>, Key: string) {
         const rec = this.get<ApiRecord>(type, Key);
         await rec.loadAllData();

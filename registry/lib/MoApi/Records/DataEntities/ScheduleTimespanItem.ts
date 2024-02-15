@@ -24,7 +24,7 @@ export default class ScheduleTimespanItem extends DataEntity {
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
-        this.timespan = obj.mainAddress ? this.__RecordStore.dataEntityFactory(ScheduleTimeSpanEntity, obj.timespan) : null;
+        this.timespan = obj.timespan ? this.__RecordStore.dataEntityFactory(ScheduleTimeSpanEntity, obj.timespan) : null;
     }
 
 

@@ -137,6 +137,7 @@ const objTransform = () => {
 }
 
 const selectAllRow = async (r, i, k) => {
+    changes.value = true
     if (r[i][k].length !== 5) {
         allRightsSelected.value = true
         r[i][k] = ['c', 'r', 'u', 'd', 's'];

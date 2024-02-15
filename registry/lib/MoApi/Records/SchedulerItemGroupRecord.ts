@@ -36,13 +36,6 @@ export class ScheduleItemGroupRecord extends ApiRecord<ScheduleItemGroupData> {
     return ScheduleItemGroupRecord.RecCode;
   }
 
-  protected async _loadData() {
-    const arr = await this._MoApiClient.send<any, any>(this._getApiRecordPathGet(), this._Key);
-    this._Data = new Proxy(<ScheduleItemGroupData>arr, this._getProxyHanlders());
-    this._ModifiedData = new Proxy(<ScheduleItemGroupData>arr, this._getModifingProxyHanlders());
-    return this._Data;
-  }
-
   protected _createNewData() {
     return this._RecStore.dataEntityFactory(ScheduleItemGroupData, this.Key);
   }

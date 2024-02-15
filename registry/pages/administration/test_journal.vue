@@ -273,8 +273,10 @@ const getScheduleItemGroupIds = async () => {
 }
 
 const getScheduleItemGroup = async (ids) => {
-  let rec = await recStore.fetch(ScheduleItemGroupRecord, ids);
-  schedulerItemGroups.value = rec.MData
+  let recs = await recStore.getRecordsM(ids.map((i) => {
+    return { id: { key: i, type: ScheduleItemGroupRecord } }
+  }));
+  schedulerItemGroups.value = recs.map((i) => i.MData)
 }
 
 const getScheduleByItemGroup = async () => {
@@ -300,8 +302,12 @@ const getScheduleByItemGroup = async () => {
 
 const getProductsList = async (k) => {
   let keys = k.map((id) => id.replaceAll(`'`, `"`))
-  let list = await recStore.fetch(ProductRecord, keys);
-  return list.MData
+  // let recs = await recStore.fetch(ProductRecord, keys);
+  // return recs.MData
+  let recs = await recStore.getRecordsM(keys.map((i) => {
+    return { id: { key: i, type: ProductRecord } }
+  }));
+  return recs.map((i) => i.MData)
 }
 
 const buildMonthScheduler = (ts) => {

@@ -37,7 +37,10 @@
                             <v-icon>mdi-alpha-s</v-icon>
                             <v-tooltip activator="parent" location="top">Специальное право</v-tooltip>
                         </th>
-                        <th class="text-center w-0"></th>
+                        <th class="text-center">
+                            <v-icon>mdi-checkbox-multiple-marked</v-icon>
+                            <v-tooltip activator="parent" location="top">Все права роли</v-tooltip>
+                        </th>
                     </tr>
                 </thead>
                 <tbody v-if="upd">

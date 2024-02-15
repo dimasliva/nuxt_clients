@@ -182,12 +182,12 @@ let key = ref('')
 const addScheduleItem = async (positionKey, i) => {
     let rec = await recStore.createNew<ScheduleItemRecord, ScheduleItemData>(ScheduleItemRecord, (data) => {
         data.position = positionKey;
-        data.beginDate = new Date().toJSON().slice(0, 10);
-        data.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toJSON().slice(0, 10);
+        data.beginDate = new Date().toISOString().slice(0, 10);
+        data.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10);
         data.activityDays = Math.floor(Math.random() * (8 - 3) + 3);
-        data.pauseDays = Math.floor(Math.random() * (4 - 1) + 1);
-        data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
-        data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toJSON().slice(0, 10);
+        data.pauseDays = 7 - data.activityDays;
+        data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
+        data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
         data.timespans = timeSpansCrtr();
     });
     await rec.save();
@@ -197,7 +197,9 @@ const addScheduleItem = async (positionKey, i) => {
     rec.addChild(tempProdRecArr.value[i], 1024, 0)
 }
 
-
+//варианты дат: число каждого месяца- 12, число в определенном месяце каждого года- 12.03, конкретная дата-12.03.2023
+//диапазон например: 01.05-03.05 
+//пример строки исключения: 01.05-05.05;09.05; = исключение действует с 1 по 5 мая и 9 мая
 
 const addScheduleItemGroup = async () => {
     let rec = await recStore.createNew<ScheduleItemGroupRecord, ScheduleItemGroupData>(ScheduleItemGroupRecord, (data) => {

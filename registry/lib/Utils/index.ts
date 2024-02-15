@@ -134,3 +134,9 @@ export async function mapAsync(arr: any[], handler: (val, inx) => Promise<any>) 
     return res;
 }
 
+
+
+export function getDateStr(date:Date){
+    return date.toISOString().substring(0,9);
+}
+

@@ -4,7 +4,9 @@ import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 import ScheduleTimeSpanEntity from "./DataEntities/ScheduleTimeSpanEntity";
 import { DataEntity } from "./DataEntities/DataEntity";
+import { injectable } from "inversify";
 
+@injectable()
 export class ScheduleItemData extends ApiRecordChData {
   position: string = "";
   division: string | null = null;
@@ -38,7 +40,7 @@ export class ScheduleItemRecord extends ApiRecord<ScheduleItemData> {
   }
 
   protected _createNewData() {
-    return this._RecStore.dataEntityFactory(ScheduleItemData, this.Key);
+    return this._RecStore.dataEntityFactory(ScheduleItemData, null, this.Key);
   }
 
   protected _getApiRecordPathGet = () => "/Schedule/GetScheduleItems";

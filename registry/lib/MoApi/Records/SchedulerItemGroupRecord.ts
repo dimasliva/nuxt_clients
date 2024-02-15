@@ -6,7 +6,9 @@ import type { IApiDataListResult, IApiResult } from "../RequestResults";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type ScheduleTimeSpanEntity from "./DataEntities/ScheduleTimeSpanEntity";
 import type { RecordsStore } from "./RecordsStore";
+import { injectable } from "inversify";
 
+@injectable()
 export class ScheduleItemGroupData extends ApiRecordChData {
   title: string = "";
   code: string | null = null;
@@ -14,14 +16,6 @@ export class ScheduleItemGroupData extends ApiRecordChData {
   temporaryNotActive: boolean | null = false;
   notActive: boolean | null = false;
   advData: string | null = null;
-}
-
-export class ScheduleTimespanItem {
-  timespan!: ScheduleTimeSpanEntity;
-  position?: string;
-  division?: string;
-  placement?: string;
-  products?: string[] | null;
 }
 
 export class ScheduleItemGroupRecord extends ApiRecord<ScheduleItemGroupData> {
@@ -37,7 +31,7 @@ export class ScheduleItemGroupRecord extends ApiRecord<ScheduleItemGroupData> {
   }
 
   protected _createNewData() {
-    return this._RecStore.dataEntityFactory(ScheduleItemGroupData, this.Key);
+    return this._RecStore.dataEntityFactory(ScheduleItemGroupData, null, this.Key);
   }
 
   protected _getApiRecordPathGet = () => "/Schedule/GetScheduleItemGroups";

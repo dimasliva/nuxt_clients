@@ -1,3 +1,4 @@
+import type { Container } from "inversify";
 
 
 export interface INavRowMetadata {
@@ -59,4 +60,9 @@ export interface INavigatorContent {
 
 export interface INavigatorProps {
     onNavigate: (currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: TNavRow | null) => Promise<INavigatorContent>,
+}
+
+
+export interface IСoncreteNavigatorProps {
+    diC?: Container | null;
 }

@@ -18,6 +18,7 @@ export class ProductCacheValue {
     code?: string | null;
     comments?: string | null;
     prices?: PricesEntity | null;
+    temporaryNotActive?: boolean | null;
 
     constructor(val: IProductListView) {
         this.title = val.title;
@@ -25,13 +26,14 @@ export class ProductCacheValue {
         this.comments = val.comments;
         this.fullTitle = val.fullTitle;
         this.prices = val.prices;
+        this.temporaryNotActive = val.temporaryNotActive;
     }
 }
 
 
 
 /**
- * Кеш продуктов. Страница кеша == секции каталога. Ид страницы == ключу секции каталога или дефолтному guid если продукт находится в корне каталога
+ * Кеш продуктов. Страница кеша == секции каталога. Ид страницы == ключу секции каталога или ключу каталога, если продукт находится в корне каталога
  */
 @injectable()
 export class ProductCache extends PageMemoryCache {
@@ -48,22 +50,23 @@ export class ProductCache extends PageMemoryCache {
     };
 
 
-
+    /**Загрузка секции каталога по одному из продуктов из этой секции*/
     protected async _loadPage(productkey: string) {
         const prodRec = await this._RecordsStore.tryFetch(ProductRecord, productkey);
         if (!prodRec)
             return null;
 
-        const sectionKey = prodRec.Data!.productsCatalogSection || EmptyGuid;
-        const select = "id,title,fullTitle,code,comments,prices";
-        const where = `productsCatalog='${prodRec.Data!.productsCatalog}' and  productCatalogSection='${prodRec.Data!.productsCatalogSection}'`;
+        const cachePageKey = prodRec.Data!.productsCatalogSection || prodRec.Data!.productsCatalog;
+        const select = "id,title,fullTitle,code,comments,prices,temporaryNotActive";
+        let where = prodRec.Data!.productsCatalogSection ? `productCatalogSection='${prodRec.Data!.productsCatalogSection}'` : "productCatalogSection is null";
+        where += ` and productsCatalog='${prodRec.Data!.productsCatalog}'`;
 
         const queryParams = new QueryParams(select, where);
         const dl = await this._ProductsViews.getProductsListView(queryParams);
-
+        console.debug(`load product cache page: ${cachePageKey} `)
         let row: IProductListView | undefined;
         while (row = dl.getNext())
-            super.setValue(row.id!, row.productCatalogSection!, new ProductCacheValue(row));
+            super.setValue(row.id!, cachePageKey, new ProductCacheValue(row));
     }
 
 

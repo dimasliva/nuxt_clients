@@ -96,12 +96,13 @@ import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
 import { QueryParams, QueryParamsScheduler, QueryProductFtsList } from '~~/lib/MoApi/RequestArgs';
 import { ProductFtsViews, type IProductFtsListView } from '~/lib/MoApi/Views/ProductFtsListView';
 import { EmployeesViews, type IEmployeeListView } from '~~/lib/MoApi/Views/EmployeesViews';
-import { ScheduleItemGroupData, ScheduleItemGroupRecord, ScheduleTimespanItem } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
+import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
 import { ScheduleEvent } from '~/lib/SchedulerTypes';
 import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
+import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 

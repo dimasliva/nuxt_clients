@@ -9,6 +9,7 @@ export class ProductsCatalogSectionRecordData extends ApiRecordChData {
     title: string = "";
     code: string | null = null;
     productsCatalog: string = "";
+    parent?: string | null = null;
     comments: string | null = null;
     temporaryNotActive: boolean | null = null;
     notActive: boolean | null = null;
@@ -27,7 +28,7 @@ export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSecti
     get RecCode() { return ProductsCatalogSectionRecord.RecCode; }
 
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(ProductsCatalogSectionRecordData, null, this.Key);
+        return this._RecStore.dataEntityFactory(ProductsCatalogSectionRecordData, null, this.Key);
     }
 
     protected async _loadData() {

@@ -7,9 +7,9 @@ import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
 import { DataList } from "~/lib/DataList";
 import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
-import Navigator from "~/components/Navigator.vue";
+import Navigator from "~/components/navigators/Navigator.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
-import type { INavPathItem, TNavRow } from "~/components/NavigatorTypes";
+import type { INavPathItem, TNavRow } from "~/components/navigators/NavigatorTypes";
 
 
 let t: any;

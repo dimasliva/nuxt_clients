@@ -36,6 +36,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     static RightToken = "dbEmployee";
     static RecCode = 1004;
+    static BatchGetRecDataPath="/Employees/GetEmployees";
 
 
     protected _photoFl: FilelinkRecord | null = null;

@@ -484,7 +484,7 @@ if (props.type == EDataType.float) {
 
 
 const referVal = computedAsync(() => {
-    if (CurrModelVal.value != null) {
+    if (props.finderDataProvider && CurrModelVal.value != null) {
         if (CurrModelVal.value instanceof Array) {
             //множественный выбор
             return new Promise(async resolve => {
@@ -509,7 +509,6 @@ const referVal = computedAsync(() => {
     }
     else
         return null;
-
 });
 
 

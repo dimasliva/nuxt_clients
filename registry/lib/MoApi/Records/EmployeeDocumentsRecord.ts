@@ -24,6 +24,7 @@ export class EmployeeDocumentsRecord extends ApiRecord<EmployeeDocumentsRecordDa
 
     static RightToken = "dbEmployeeDocuments";
     static RecCode = 1005;
+    static BatchGetRecDataPath="/Employees/GetEmployeeDocuments";
 
     constructor(protected _MoApiEmployee: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiEmployee, _UserContext, _RecStore, EmployeeDocumentsRecord, Key);

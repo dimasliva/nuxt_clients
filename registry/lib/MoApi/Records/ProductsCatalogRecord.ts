@@ -17,6 +17,8 @@ export class ProductsCatalogRecordData extends ApiRecordChData {
 export class ProductsCatalogRecord extends ApiRecord<ProductsCatalogRecordData> {
   static RightToken = "dbProductsCatalog";
   static RecCode = 1022;
+  static BatchGetRecDataPath="/Products/GetProductsCatalogs";
+
 
   constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
     super(_MoApiClient, _UserContext, _RecStore, ProductsCatalogRecord, Key);

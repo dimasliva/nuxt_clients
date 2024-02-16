@@ -21,6 +21,7 @@ export class ClientRecord extends ApiRecord<ClientRecordData>{
 
     static RightToken = "dbClient";
     static RecCode = 1010;
+    static BatchGetRecDataPath="/Clients/GetClients";
 
 
     constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {

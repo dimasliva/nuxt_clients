@@ -13,7 +13,7 @@ export class ProductRecordData extends ApiRecordChData {
   code: string | null = null;
   productsCatalog: string = "";
   productsCatalogSection: string | null = null;
-  prices: any | null = null;
+  prices: PricesEntity | null = null;
   duration: number = 10;
   comments: string | null = null;
   temporaryNotActive: boolean | null = null;
@@ -29,6 +29,9 @@ export class ProductRecordData extends ApiRecordChData {
 export class ProductRecord extends ApiRecord<ProductRecordData> {
   static RightToken = "dbProduct";
   static RecCode = 1024;
+  static BatchGetRecDataPath="/Products/GetProducts";
+
+
 
   constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
     super(_MoApiClient, _UserContext, _RecStore, ProductRecord, Key);

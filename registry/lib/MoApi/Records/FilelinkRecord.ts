@@ -31,6 +31,7 @@ export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
 
     static RightToken = "dbFilelink";
     static RecCode = 1019;
+    static BatchGetRecDataPath="/Files/GetFilelinks";
 
     protected _blob: Blob | null = null;
 

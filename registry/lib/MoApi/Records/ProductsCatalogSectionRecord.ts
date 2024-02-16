@@ -20,6 +20,7 @@ export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSecti
 
     static RightToken = "dbProductsCatalogSection";
     static RecCode = 1023;
+    static BatchGetRecDataPath="/Products/GetProductsCatalogSections";
 
     constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
         super(_MoApiClient, _UserContext, _RecStore, ProductsCatalogSectionRecord, Key);

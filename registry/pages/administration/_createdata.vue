@@ -44,6 +44,7 @@ import { ScheduleItemRecord, ScheduleItemData } from '~/lib/MoApi/Records/Schedu
 import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
 import ProductTitles from '~/public/ProductTitles';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
+import ScheduleTimeSpanEntity from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
 
 
 const iocc = useContainer();
@@ -103,7 +104,7 @@ const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "
 const patronymicsM = ["Иванович", "Петрович", "Сергеевич", "Андреевич", "Дмитриевич", "Александрович", "Михайлович", "Николаевич", "Владимирович", "Олегович", "Артемович", "Алексеевич", "Константинович", "Викторович", "Геннадьевич", "Григорьевич", "Евгеньевич", "Егорович", "Захарович", "Игоревич", "Кириллович", "Леонидович", "Максимович", "Романович", "Русланович", "Семенович", "Станиславович", "Тимофеевич", "Федорович", "Юрьевич", "Ярославович"];
 const patronymicsF = ["Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"]
 
-const pricesA = ['100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000', '2500', '3000', '3500', '4000', '4500', '5000', '6000', '7000', '8000', '10000',];
+const pricesA = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 10000,];
 
 const fullTitles = ProductTitles;
 const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
@@ -166,13 +167,14 @@ const addPosition = async (emplkey, i) => {
 };
 
 const timeSpansCrtr = () => {
-    let a: any = [];
+    let a: ScheduleTimeSpanEntity[] = [];
+
     for (let i = 0; i < Math.floor(Math.random() * (20 - 2) + 2); i++) {
-        a.push({
+        a.push( recStore.dataEntityFactory(ScheduleTimeSpanEntity, {
             "time": Math.floor(Math.random() * (144 - 36) + 1) * 10,
             "duration": Math.floor(Math.random() * (12 - 1) + 1) * 10,
             "type": 1,
-        })
+        }))
     }
     return a
 }
@@ -300,14 +302,14 @@ const productsCreateTask = async (size: number, key) => {
         let code: any = generateUniqueStrings(1, 1);
         let productsCatalog = catalogKey.value;
         let productsCatalogSection = key;
-        let prices = pricesA[Math.floor(Math.random() * pricesA.length)];
+        let prices = generateRandomPrices(pricesA);
         let duration = durations[Math.floor(Math.random() * durations.length)];
         let comments: any = generateUniqueStrings(1, 3);
         await addProducts(title, fullTitle, code, productsCatalog, productsCatalogSection, prices, duration, comments);
     }
 }
 
-const addProducts = async (title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: string, duration: number, comments: string) => {
+const addProducts = async (title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: any, duration: number, comments: string) => {
     let rec = await recStore.createNew<ProductRecord, ProductRecordData>(ProductRecord, (data) => {
         data.title = title;
         data.fullTitle = fullTitle;
@@ -320,12 +322,34 @@ const addProducts = async (title: string, fullTitle: string, code: string, produ
     })
     await rec.save();
     tempProdRecArr.value.push(rec.MData.id)
-    // почему не работает родительство
 }
 
 const emplLoading = reactive({ size: 0, loading: false, recName: "employees", createTask: emplCreateTask });
 const clientsLoading = reactive({ size: 0, loading: false, recName: "clients", createTask: clientsCreateTask });
 const priceListLoading = reactive({ size: 0, loading: false, recName: "products", createTask: productsCreateTask });
+
+const generateRandomPrices = (prices: number[]) => {
+    const randomPrices: { [key: string]: number } = {};
+
+    // Генерация случайного количества объектов (1-2)
+    const count = Math.floor(Math.random() * 2) + 1;
+
+    // Генерация случайных индексов из массива цен
+    const randomIndexes: any = [];
+    while (randomIndexes.length < count) {
+        const randomIndex = Math.floor(Math.random() * prices.length);
+        if (!randomIndexes.includes(randomIndex)) {
+            randomIndexes.push(randomIndex);
+        }
+    }
+
+    // Создание JSON объекта с случайными значениями
+    randomIndexes.forEach((index, i) => {
+        randomPrices[(i + 1).toString()] = prices[index];
+    });
+
+    return randomPrices;
+};
 
 function generatePhoneNumber() {
     let phoneNumber = "7"; // Assuming the country code is +1 for the United States

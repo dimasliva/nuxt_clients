@@ -22,6 +22,7 @@ export class ClientSdRecord extends ApiRecord<ClientSdRecordData>{
 
     static RightToken = "dbClientSd";
     static RecCode = 1011;
+    static BatchGetRecDataPath="/Clients/GetClientsSd";
 
 
     protected _photoFl: FilelinkRecord | null = null;

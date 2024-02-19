@@ -20,6 +20,7 @@ export class PositionRecord extends ApiRecord<PositionRecordData>{
 
     static RightToken = "dbPosition";
     static RecCode = 1017;
+    static BatchGetRecDataPath="/Positions/GetPositions";
 
 
     constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {

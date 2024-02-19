@@ -14,12 +14,12 @@ export class RecordsStore {
     protected _store: { [typename: string]: { [key: string]: ApiRecord<any> } } = {};
 
     constructor(
-        @inject("MoApiClient") protected _MoApiClient: MoApiClient, 
+        @inject("MoApiClient") protected _MoApiClient: MoApiClient,
         @inject("UserContext") protected _UserContext: UserContext,
         @inject("diC") protected _diC: Container) {
     }
 
-     /**Получение записи без загрузки данных */
+    /**Получение записи без загрузки данных */
     get<T extends ApiRecord>(type: Class<T>, Key: string) {
         if (!this._store[type.name])
             this._store[type.name] = {};
@@ -51,34 +51,116 @@ export class RecordsStore {
     }
 
 
-    async getRecordsM(recIds: { id: IFullRecordIdT<ApiRecord>, optional?: boolean, fillFunc?: (data: ApiRecordChData) => void }[]) {
+    /**Пакетная загрузка записей разных типов. Используется для небольших массивов */
+    async getRecordsM(recIds: { id: IFullRecordIdT<ApiRecord>, optional?: boolean | null, fillFunc?: ((data: ApiRecordChData) => void) | null }[], forceUpdate?: boolean) {
         let ids: IFullRecordId[] = recIds.map(item => <any>{ key: item.id.key, code: (<any>item.id.type).RecCode })
-        const data = await this._MoApiClient.getRecordsApiSection().getRecs(ids);
 
         let recs: ApiRecord[] = [];
+        let idsForLoad: IFullRecordId[] = [];
+        let inx = 0;
+        
+        if (!forceUpdate) {
+
+            for (let i = 0; i < ids.length; i++) {
+                const ido = recIds[i];
+                const store = this._store[ido.id.type.name] || (this._store[ido.id.type.name] = {});
+                const rec = store[ido.id.key];
+
+                if (rec)
+                    recs.push(rec);
+                else {
+                    recs.push(<any>inx++);
+                    idsForLoad.push(ids[i]);
+                }
+            }
+        }
+        else {
+            recs = <any>ids.map((v, i) => i);
+            idsForLoad = ids;
+        }
+
+
+        const data = await this._MoApiClient.getRecordsApiSection().getRecs(idsForLoad);
 
         for (let i = 0; i < recIds.length; i++) {
-            let recid = recIds[i];
-            let jsondata = data[i];
-            let rec = this.get<ApiRecord>(recid.id.type, recid.id.key);
+            let recval = recs[i];
+            if (typeof recval == "number") {
+                let recid = recIds[i];
+                let jsondata = data[recval];
+                let rec = this.get<ApiRecord>(recid.id.type, recid.id.key);
+
+                if (!jsondata) {
+                    if (!recid.optional)
+                        Exception.throw("RecNotFound", `Запись ${recid.id.key}  не загружена. Возможно запись с указанным ключем отсутсвует или нет прав на чтение`);
+                    else {
+                        rec.createAllData();
+                        if (recid.fillFunc)
+                            recid.fillFunc(rec.Data!);
+                    }
+                }
+                else
+                    await rec.loadAllDataFromJson(jsondata);
+
+                recs[i] = rec;
+                const store = this._store[recid.id.type.name] || (this._store[recid.id.type.name] = {});
+                store[rec.Key] = rec;
+            }
+        }
+
+        return recs;
+    }
+
+
+    /**Пакетная загрузка записей одного типа. Используется для небольших массивов */
+    async getRecords<T extends ApiRecord>(type: Class<T>, recIds: string[], optional?: boolean | null, fillFunc?: ((data: ApiRecordChData) => void) | null, forceUpdate?: boolean) {
+
+        const apiPath = (<any>type).BatchGetRecDataPath;
+        if (!apiPath)
+            Exception.throw("PathNotFound", `Отсутствует путь api для загрузки записей. Тип: ${type.name}`);
+
+        const data: any[] = await this._MoApiClient.send(apiPath, recIds, false);
+
+        const recs: T[] = [];
+        let idsForLoad: string[] = [];
+        const store = this._store[type.name] || (this._store[type.name] = {});
+        debugger;
+        if (!forceUpdate) {
+            for (let i = 0; i < recIds.length; i++) {
+                const rec = <T>store[recIds[i]];
+                if (rec)
+                    recs.push(rec);
+                else
+                    idsForLoad.push(recIds[i]);
+            }
+        }
+        else
+            idsForLoad = recIds;
+
+
+        for (let i = 0; i < idsForLoad.length; i++) {
+            const key = idsForLoad[i];
+            let jsondata = data.find(item => item.id == key);
+            let rec = <T>this.get(<Class<ApiRecord>>type, key);
 
             if (!jsondata) {
-                if (!recid.optional)
-                    Exception.throw("RecNotFound", `Запись ${recid.id.key}  не загружена. Возможно запись с указанным ключем отсутсвует или нет прав на чтение`);
+                if (!optional)
+                    Exception.throw("RecNotFound", `Запись ${key}  не загружена. Возможно запись с указанным ключем отсутсвует или нет прав на чтение`);
                 else {
                     rec.createAllData();
-                    if (recid.fillFunc)
-                        recid.fillFunc(rec.Data!);
+                    if (fillFunc)
+                        fillFunc(rec.Data!);
                 }
             }
             else
                 await rec.loadAllDataFromJson(jsondata);
 
             recs.push(rec);
+            store[rec.Key] = rec;
         }
 
-        return recs
+        return recs;
     }
+
 
 
     async createNew<T extends ApiRecord, Tdata>(type: Class<T>, fillFunc: (data: Tdata) => void) {
@@ -153,8 +235,9 @@ export class RecordsStore {
 
 
     dataEntityFactory<T extends DataEntity>(dEntity: Class<T>, jsonObj: any = null, ...params) {
-        let inst =  this._diC.get(dEntity);
+        let inst = this._diC.get(dEntity);
         inst.init(jsonObj, ...params);
         return inst;
     }
+
 }

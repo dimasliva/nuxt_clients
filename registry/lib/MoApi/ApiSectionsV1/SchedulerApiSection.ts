@@ -4,6 +4,7 @@ import type { IApiDataListResult } from "../RequestResults";
 import { injectable, inject } from 'inversify';
 import type { RecordsStore } from '../Records/RecordsStore';
 import ScheduleTimeSpanEntity from '../Records/DataEntities/ScheduleTimeSpanEntity';
+import ScheduleTimespanItem from '../Records/DataEntities/ScheduleTimespanItem';
 
 @injectable()
 export class ScheduleApiSection {
@@ -24,8 +25,9 @@ export class ScheduleApiSection {
             groupId
         }
         const raw = await this._MoApiClient.send<any, any>("/Schedule/GetScheduleByItemGroup", queryObj, true);
-        for (const item in raw) {
-            raw[item].timespan = this._RecordsStore.dataEntityFactory(ScheduleTimeSpanEntity, raw[item].timespan);
-        }
+        const res: ScheduleTimespanItem[] = [];
+        for (const item in raw)
+            res.push(this._RecordsStore.dataEntityFactory(ScheduleTimespanItem, raw[item]));
+        return res;
     }
 }

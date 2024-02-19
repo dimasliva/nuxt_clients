@@ -13,6 +13,8 @@ import type { PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { EDataType } from "~/lib/globalTypes";
 import { EEmployeeAppProfileSections } from "~/lib/EmployeeAppProfile";
+import { ClientRecord } from "~/lib/MoApi/Records/ClientRecord";
+import type { ProductsCatalogRecord } from "~/lib/MoApi/Records/ProductsCatalogRecord";
 
 
 let t: any;
@@ -40,6 +42,7 @@ export class ProductNavigatorTemplate {
     protected _RefDataTable = ref();
     protected _RefFilterForm = ref();
     protected _Loading = ref(false);
+    protected _productCatalogRecs = ref<ProductsCatalogRecord[]>();
 
     /*
         abstract modelEditDialog: any;
@@ -87,12 +90,10 @@ export class ProductNavigatorTemplate {
         this._RecordsStore = diC.get("RecordsStore");
         this._PageCacheStore = diC.get("PageCacheStore");
 
-
         onMounted(() => {
             this._RefFilterForm.value.show();
             this.loadData();
         })
-
     }
 
 
@@ -146,6 +147,9 @@ export class ProductNavigatorTemplate {
     }
 
 
+    loadProductCatalogList(){
+
+    }
 
     loadData() {
         /*

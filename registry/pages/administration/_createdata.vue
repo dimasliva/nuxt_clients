@@ -171,7 +171,7 @@ const timeSpansCrtr = () => {
 
     for (let i = 0; i < Math.floor(Math.random() * (20 - 2) + 2); i++) {
         a.push( recStore.dataEntityFactory(ScheduleTimeSpanEntity, {
-            "time": Math.floor(Math.random() * (144 - 36) + 1) * 10,
+            "time": Math.floor(Math.random() * (144 - 36) + 36) * 10,
             "duration": Math.floor(Math.random() * (12 - 1) + 1) * 10,
             "type": 1,
         }))

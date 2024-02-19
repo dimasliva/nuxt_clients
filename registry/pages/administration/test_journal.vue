@@ -35,7 +35,7 @@
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon
                 @click="drawer = false">mdi-close</v-icon></v-row>
             <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined" density="compact"
-              append-inner-icon="mdi-calendar-month">
+              :loading="schdLoad" append-inner-icon="mdi-calendar-month">
               <v-menu v-model="dataPickerMenu" :close-on-content-click="false" activator="parent">
                 <v-card>
                   <v-card-text class="pa-1">
@@ -57,17 +57,17 @@
               </v-menu></v-text-field>
 
             <v-combobox v-model="selectedSchedulerItemGroup" density="compact" label="Раздел расписания"
-              :items="schedulerItemGroups" item-title="title" variant="underlined"></v-combobox>
+              :loading="schdLoad" :items="schedulerItemGroups" item-title="title" variant="underlined"></v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="products" density="compact" label="Услуга"
-              :items="productsArr" variant="underlined" @update:menu="filterDays($event)" @click="selectedSchedulerItemGroup || employees ? false : openDialog(SearchProductDilaog, {
-                title: 'Поиск товаров и услуг', full: 'Выбрать из прайс-лсита', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action:
+              :loading="prodsLoad" :items="productsArr" variant="underlined" @update:menu="filterDays($event)" @click="employees.length || selectedSchedulerItemGroup ? false : openDialog(SearchProductDilaog, {
+                title: 'Поиск товаров и услуг', full: 'Выбрать из прайс-листа', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action:
                   setProds
               })">
             </v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="employees" density="compact" label="Сотрудник"
-              :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click="selectedSchedulerItemGroup || products ? false : openDialog(SearchProductDilaog, {
+              :loading="empLoad" :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click=" products.length || selectedSchedulerItemGroup ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск сотрудника', full: 'Выбрать из списка сотрудников', text_field: 'Иванов Иван Иванович', reqAction: searchEmployee, prices:
                   false, action: setEmployees
               })"></v-combobox>
@@ -131,12 +131,12 @@ let products = ref<ProductRecordData[]>([])
 let productsArr = ref<any>([])
 let employees = ref<any>([])
 let employeesArr = ref<any>([])
-employeesArr = ref([
-  { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.", },
-  { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Александров Б.Ю.", },
-  { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", title: "Рязанцев М.В.", },
-  { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Арсеньтьев Н.В.", }
-])
+// employeesArr = ref([
+//   { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.", },
+//   { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Александров Б.Ю.", },
+//   { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", title: "Рязанцев М.В.", },
+//   { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Арсеньтьев Н.В.", }
+// ])
 let quantum = ref(60)
 let currEvent = ref<any>(null)
 let division = ref<any>()
@@ -156,6 +156,9 @@ let selDate = ref(monthViewMinDate.value)
 let dateRange = ref('')
 let timespans = ref<any>([])
 let currRangeData = ref<any>()
+let prodsLoad = ref(false)
+let schdLoad = ref(false)
+let empLoad = ref(false)
 
 const setProds = (p) => {
   products.value = p;
@@ -372,10 +375,11 @@ const clearFilters = () => {
   employeesArr.value = [];
   productsArr.value = [];
   selectedSchedulerItemGroup.value = undefined;
-  employees.value = null;
+  employees.value = [];
   products.value = [];
   division.value = [];
   monthViewDates(false)
+  monthView.value = [];
 }
 // css стилизация для отображения выбранного диапазона
 const onDatePicker = () => {
@@ -423,6 +427,9 @@ let pageMapData: IFrameHeaderData = reactive({
   ]
 });
 
+console.log(employees.value, products.value, selectedSchedulerItemGroup.value)
+
+
 getScheduleItemGroupIds();
 
 pageMap.setPageData("/administration/test_journal", pageMapData);
@@ -442,7 +449,7 @@ defineExpose({ eventsHandler });
   text-overflow: ellipsis;
   padding: 0 5px;
   border-radius: 10px;
-  background-color: #c9c9c2;
+  background-color: rgb(231, 231, 231);
   margin: 2px;
 }
 

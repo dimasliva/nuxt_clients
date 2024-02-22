@@ -40,18 +40,24 @@ export class PageMemoryCache {
 
 
 
-    protected _checkBeforeSetVal(key: string, pagekey: string, value: any) {
-        if (value == null) {
-            this.removeValue(key);
-            return null;
-        };
-
+    protected _getPage(pagekey: string) {
         if (!this._pages.has(pagekey))
             this._pages.set(pagekey, new Page(pagekey, this._ttl));
 
         const page = this._pages.get(pagekey)!;
         this.checkPageExpiration(page);
         return page;
+    }
+
+
+
+    protected _checkBeforeSetVal(key: string, pagekey: string, value: any) {
+        if (value == null) {
+            this.removeValue(key);
+            return null;
+        };
+
+        return this._getPage(pagekey);
     }
 
 
@@ -122,8 +128,8 @@ export class PageMemoryCache {
 
 
 
-    getPage(pagekey: string) {
-        return this._pages.get(pagekey);
+    async getKeysIteratorInPage(pagekey: string) {
+        return await this._pages.get(pagekey)?.getKeysIterator();
     }
 
 }
@@ -181,8 +187,14 @@ export class Page {
 
 
 
-    isEmpty() {
+    isLoaded() {
         return this._lastUpdate == null;
+    }
+
+
+    setLoaded() {
+        if (!this._lastUpdate)
+            this._lastUpdate = new Date();
     }
 }
 

@@ -28,12 +28,6 @@ export class ProductsCatalogRecord extends ApiRecord<ProductsCatalogRecordData> 
     return ProductsCatalogRecord.RecCode;
   }
 
-  protected async _loadData() {
-    const arr = await this._MoApiClient.send<any, any>(this._getApiRecordPathGet(), this._Key);
-    this._Data = new Proxy(<ProductsCatalogRecordData>arr, this._getProxyHanlders());
-    this._ModifiedData = new Proxy(<ProductsCatalogRecordData>arr, this._getModifingProxyHanlders());
-    return this._Data;
-  }
 
   protected _createNewData() {
     return this._RecStore.dataEntityFactory(ProductsCatalogRecordData, null, this.Key);

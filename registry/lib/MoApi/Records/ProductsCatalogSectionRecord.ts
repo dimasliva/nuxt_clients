@@ -32,13 +32,7 @@ export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSecti
         return this._RecStore.dataEntityFactory(ProductsCatalogSectionRecordData, null, this.Key);
     }
 
-    protected async _loadData() {
-        const arr = await this._MoApiClient.send<any, any>(this._getApiRecordPathGet(), this._Key);
-        this._Data = new Proxy(<ProductsCatalogSectionRecordData>arr, this._getProxyHanlders());
-        this._ModifiedData = new Proxy(<ProductsCatalogSectionRecordData>arr, this._getModifingProxyHanlders())
-        return this._Data;
-    }
-
+ 
     protected _getApiRecordPathGet = () => "/Products/GetProductsCatalogSections";
 
 

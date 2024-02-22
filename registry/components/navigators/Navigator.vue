@@ -4,35 +4,45 @@
             :headers="_columns" hide-default-footer v-model:page="currentPage" :items="content.rows" class="elevation-1"
             fixed-header height="68dvh" disable-pagination>
 
-
+            <!--Верхняя строка перед основной таблицей-->
             <template v-slot:top="props">
-                <!--Строка пути-->
-                <v-breadcrumbs class="pb-0 pt-0" bg-color="" :items="path">
-                    <!--кнопка перехода на верхний уровень-->
-                    <template v-slot:prepend>
-                        <v-btn color="primary" variant="text" icon="mdi-folder-upload" :disabled="path.length <= 1" @click="async () => {
-                            content = await onNavigate(path.length, path.length - 1, path, null);
-                            path.pop();
-                            path[path.length - 1] = content.pathInfo;
-                        }" />
-                    </template>
+                <v-row no-gutters>
+                    <!--Кнопка Обновить-->
+                    <v-btn color="primary" variant="text" icon="mdi-refresh" @click="async () => onUpdate()">
+                        <v-icon>mdi-refresh</v-icon>
+                        <v-tooltip activator="parent" location="top">Обновить</v-tooltip>
+                    </v-btn>
 
-                    <template v-slot:item="props">
-                        <li class="v-breadcrumbs-item"><a class="v-breadcrumbs-item--link" href="#" @click.prevent="async () => {
-                            if (path.length != props.index + 1) {
-                                content = await onNavigate(path.length, props.index + 1, path, null);
-                                path.splice(props.index + 1);
-                                path[path.length - 1] = content.pathInfo;
-                            }
-                        }">
-                                {{ props.item.title }}</a></li>
-                    </template>
+                    <!--Строка пути-->
+                    <v-breadcrumbs class="pb-0 pt-0" bg-color="" :items="path">
+                        <!--кнопка перехода на верхний уровень-->
+                        <template v-slot:prepend>
+                            <v-btn color="primary" variant="text" icon="mdi-folder-upload" :disabled="path.length <= 1"
+                                @click="async () => {
+                                    content = await onNavigate(path.length, path.length - 1, path, null);
+                                    path.pop();
+                                    path[path.length - 1] = content.pathInfo;
+                                }" />
+                        </template>
 
-                </v-breadcrumbs>
+                        <!--Строка пути-->
+                        <template v-slot:item="props">
+                            <li class="v-breadcrumbs-item"><a class="v-breadcrumbs-item--link" href="#" @click.prevent="async () => {
+                                if (path.length != props.index + 1) {
+                                    content = await onNavigate(path.length, props.index + 1, path, null);
+                                    path.splice(props.index + 1);
+                                    path[path.length - 1] = content.pathInfo;
+                                }
+                            }">
+                                    {{ props.item.title }}</a></li>
+                        </template>
+
+                    </v-breadcrumbs>
+                </v-row>
             </template>
 
 
-            <!-- кнопка настройки колонок-->
+            <!-- кнопка(меню) настройки колонок-->
             <template v-slot:header.icons="{ column }">
 
                 <v-menu :close-on-content-click="false">
@@ -43,28 +53,30 @@
                     </template>
 
                     <template v-slot:default="{ isActive }">
-                        <v-card class="mx-auto" max-width="400">
-                            <v-list>
-                                <v-list-item v-for="val in content.columns">
-                                    <template v-slot:prepend="{ isActive }">
-                                        <v-list-item-action start>
-                                            <v-checkbox-btn
-                                                :model-value="content.visibleCols!.includes(val.key) ? true : false"
-                                                @update:modelValue="(e) => toggleSelectColumn(e, val.key)">
-                                            </v-checkbox-btn>
-                                        </v-list-item-action>
-                                    </template>
-                                    <v-list-item-title>{{ val.title || ""
-                                    }}</v-list-item-title>
-                                </v-list-item>
-                            </v-list>
-                            <VBtn class="ml-5 mb-5" color="primary" variant="text"
-                                @click="()=>onUpdate()">Обновить</VBtn>
-                            <VBtn class="mr-5 mb-5" color="primary" variant="text"
-                                @click="() => { if (content!.visibleCols) content!.visibleCols.length = 0 }">
-                                Сбросить
-                            </VBtn>
-                        </v-card>
+                        <v-row class="mb-1" @mouseleave="(e) => { isActive.value = false }">
+                            <v-card class="mx-auto" max-width="400">
+                                <v-list>
+                                    <v-list-item v-for="val in content.columns">
+                                        <template v-slot:prepend="{ isActive }">
+                                            <v-list-item-action start>
+                                                <v-checkbox-btn
+                                                    :model-value="content.visibleCols!.includes(val.key) ? true : false"
+                                                    @update:modelValue="(e) => toggleSelectColumn(e, val.key)">
+                                                </v-checkbox-btn>
+                                            </v-list-item-action>
+                                        </template>
+                                        <v-list-item-title>{{ val.title || ""
+                                        }}</v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                                <v-row justify="center" no-gutters>
+                                    <VBtn class="mt-1 mb-3" color="primary" variant="text"
+                                        @click="() => { if (content!.visibleCols) content!.visibleCols.length = 0 }">
+                                        Сбросить
+                                    </VBtn>
+                                </v-row>
+                            </v-card>
+                        </v-row>
                     </template>
                 </v-menu>
             </template>
@@ -82,7 +94,7 @@
                     <template v-slot:default="{ isActive }">
                         <v-list @mouseleave="(e) => { isActive.value = false }">
                             <v-list-item v-for="action in content.actionsMenu" @click-once="() => action.action(props)">
-                                <v-icon :icon="action.icon" size="x-small" />
+                                <v-icon v-if="action.icon" :icon="action.icon" size="x-small" />
                                 {{ action.title }}
                             </v-list-item>
                         </v-list>
@@ -129,42 +141,60 @@
             <template v-slot:bottom />
         </v-data-table>
 
+
+        <!--Нижняя строка-->
         <v-row class="text-center pt-5" justify="center">
-            <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
-                @update:modelValue="() => scrollTo(0, 0)" />
-            <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
-                :items="[10, 12, 25, 50, 100]" variant="solo"
-                @update:model-value="itemsPerPage = parseInt(<string><unknown>$event, 10)"></v-select>
+            <v-col></v-col>
+            <v-col md="6">
+                <v-row justify="center">
+                    <!--Номера Страниц-->
+                    <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
+                        @update:modelValue="() => scrollTo(0, 0)" />
+                    <!--Количество строк на странице-->
+                    <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
+                        :items="[10, 12, 25, 50, 100]" variant="solo"
+                        @update:model-value="itemsPerPage = parseInt(<string><unknown>$event, 10)"></v-select>
+                </v-row>
+            </v-col>
+            <v-col>
+                <!--Строка Фильтра-->
+                <v-text-field v-if="content.filterTitle" :modelValue="filterValue"
+                    @update:modelValue="(d) => { onFilterTextInput(); emit('update:filterValue', d); }" ref="refFilter"
+                    type="text" variant="underlined" clearable density="compact" :maxlength="100"
+                    :label="content.filterTitle" />
+            </v-col>
         </v-row>
     </div>
 </template>
 
 
-<script setup lang="ts">
+<script async setup lang="ts">
 import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
-import type { INavColumn, INavPathItem, TNavRow, INavigatorContent, INavigatorProps } from "./NavigatorTypes"
+import type { INavColumn, INavPathItem, INavRow, INavigatorContent, INavigatorProps } from "./NavigatorTypes"
 
 
 
-const emit = defineEmits(["onColumnsChangedDelayed"])
+const emit = defineEmits(["onColumnsChangedDelayed", "update:filterValue"])
 
 
 const props = defineProps<INavigatorProps>();
 
 
-let itemsPerPage = ref(12);
+let itemsPerPage = ref(10);
 let currentPage = ref(1);
 let selected = ref([]);
 let refDt = ref(null);
 let refPag = ref();
+let refFilter = ref();
+let filterVal = ref("");
 const classMap = { "start": "d-flex justify-start", "center": "d-flex justify-center mr-5", "end": "d-flex justify-end" }
 
 let clckInterval: any = null;
 let lineSelected = ref();
-const content = ref<INavigatorContent>(await props.onNavigate(0, 1, null, null));
-let path = ref<INavPathItem[]>([content.value.pathInfo]);
-
+const content = ref<INavigatorContent>();
+let path = ref<INavPathItem[]>([]);
+let filterInputTextTimeout: any | null = null;
 //const iocc = useContainer();
 const { scrollTo } = useScroll(refDt);
 
@@ -188,7 +218,7 @@ const _columns = computed(() => {
     if (titlecol)
         res.push(titlecol);
     else
-        res.push({ key: "title", align: 'start', cellProps: { align: 'start' }, width: "400", sortable: true, title: "Название" });
+        res.push({ key: "title", align: 'start', cellProps: { align: 'start' }, width: "500", sortable: true, title: "Название" });
 
     content.value!.columns?.forEach((item) => {
         if (item.key == 'title' || content.value!.visibleCols && !content.value!.visibleCols.includes(item.key))
@@ -236,14 +266,14 @@ const onUpdate = async () => {
 
 
 const onRowClickAction = async (DataTableItemINavRow: any) => {
-    const row: TNavRow = DataTableItemINavRow.raw;
+    const row: INavRow = DataTableItemINavRow.raw;
 
     if (row.$mdata.isFolder) {
         content.value = await props.onNavigate(path.value.length, path.value.length + 1, path.value, row);
         path.value.push(content.value.pathInfo);
     }
     else
-        content.value.onRowClick?.(path.value.length, path.value[path.value.length - 1], row);
+        content.value!.onRowClick?.(path.value.length, path.value[path.value.length - 1], row);
 }
 
 
@@ -276,6 +306,10 @@ const reset = () => {
 }
 
 
+const update = () => onUpdate();
+
+
+
 const getDataAlignClass = (val: string) => {
     return classMap[_headersMap.value[val].alignData] || ''
 }
@@ -302,8 +336,58 @@ const toggleSelectColumn = (e, colName: string) => {
     }
 }
 
+const onFilterTextInput = () => {
+    if (filterInputTextTimeout)
+        clearTimeout(filterInputTextTimeout);
 
-defineExpose({ addCurrPage, reset });
+    filterInputTextTimeout = setTimeout(() => {
+        update();
+    }, 800);
+}
+
+
+const eventsHandler = (e: string, d: any) => {
+    switch (e) {
+        case "onKeydown":
+            let inc = (d.key == 'ArrowLeft') ? -1 : (d.key == 'ArrowRight') ? 1 : 0;
+
+            if (inc != 0) {
+                addCurrPage(inc);
+                break;
+            }
+            /*
+            if (!this._RefFilterForm.value.isVisible() && d.keyCode >= 32) {
+                this._RefFilterForm.value.clear();
+            }
+            */
+            if (d.key != 'ArrowUp' && d.key != 'ArrowDown' && d.keyCode >= 32 || ['Enter', 'Delete', 'Backspace'].includes(d.key)) {
+                if (d.key == "Delete") {
+                    onFilterTextInput();
+                    emit('update:filterValue', '');
+                }
+                else
+                    if (d.key == "Enter" && refFilter.value && refFilter.value.focused) {
+                        if (filterInputTextTimeout)
+                            clearTimeout(filterInputTextTimeout);
+                        filterInputTextTimeout = null;
+                        update();
+                        return;
+                    }
+
+                return refFilter.value.focus();
+            }
+
+            break;
+    }
+    return false;
+};
+
+
+defineExpose({ addCurrPage, reset, update, eventsHandler });
+
+//методы с await должны идти после специальных функций vue
+content.value = await props.onNavigate(0, 1, null, null);
+path.value = [content.value.pathInfo];
 
 </script>
 

@@ -35,20 +35,19 @@ export default {
   async setup(props:IProductNavigatorTemplateProps, ctx) {
     t = useI18n().t;
 
-    const diC= props.diC || useContainer();
+    const diC= props.diC || useSessionContainer();
    
     diC.get<PageMap>("PageMap").setPageData("/list/product_catalogs", {title:"Прайс-тест"});
 
-
     const o = new ProductCatalogNav();
-    await o.setup(props,ctx);
 
-    const del = () => { }
-
+    //в асинхорнном setup vue функции должны идти перед первым await
     ctx.expose({
-      eventsHandler: (e, d) => o.eventsHandler(e, d)
+      eventsHandler: (e, d) =>  o.eventsHandler(e, d)
     });
 
+    await o.setup(props,ctx);
+    const del = () => { }
     return o.render();
   }
 }

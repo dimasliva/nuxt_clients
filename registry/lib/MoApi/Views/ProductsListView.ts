@@ -26,6 +26,7 @@ export interface IProductListView {
     catalogNotActive?: boolean | null;
     sectionTitle?: string | null;
     sectionCode?: string | null;
+    sectionParent?: string | null;
     sectionTemporaryNotActive?: boolean | null;
     sectionNotActive?: boolean | null;
 }

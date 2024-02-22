@@ -24,6 +24,18 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
     }
 
 
+
+    renameCol(oldname: string, newname: string) {
+        const inx = this._map.findIndex(item => item == oldname);
+        if (inx != -1) {
+            this._map[inx] = newname;
+            this._indexMap[newname] = this._indexMap[oldname];
+            delete this._indexMap[oldname];
+        }
+    }
+
+    
+
     setData(data: string[][]) {
         this._data = data;
     }

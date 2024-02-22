@@ -58,7 +58,7 @@ export class RecordsStore {
         let recs: ApiRecord[] = [];
         let idsForLoad: IFullRecordId[] = [];
         let inx = 0;
-        
+
         if (!forceUpdate) {
 
             for (let i = 0; i < ids.length; i++) {
@@ -99,7 +99,7 @@ export class RecordsStore {
                     }
                 }
                 else
-                    await rec.loadAllDataFromJson(jsondata);
+                     rec.loadAllDataFromJson(jsondata);
 
                 recs[i] = rec;
                 const store = this._store[recid.id.type.name] || (this._store[recid.id.type.name] = {});
@@ -118,12 +118,11 @@ export class RecordsStore {
         if (!apiPath)
             Exception.throw("PathNotFound", `Отсутствует путь api для загрузки записей. Тип: ${type.name}`);
 
-        const data: any[] = await this._MoApiClient.send(apiPath, recIds, false);
 
         const recs: T[] = [];
         let idsForLoad: string[] = [];
         const store = this._store[type.name] || (this._store[type.name] = {});
-        debugger;
+
         if (!forceUpdate) {
             for (let i = 0; i < recIds.length; i++) {
                 const rec = <T>store[recIds[i]];
@@ -136,6 +135,7 @@ export class RecordsStore {
         else
             idsForLoad = recIds;
 
+        const data: any[] = await this._MoApiClient.send(apiPath, idsForLoad, false);
 
         for (let i = 0; i < idsForLoad.length; i++) {
             const key = idsForLoad[i];
@@ -152,7 +152,7 @@ export class RecordsStore {
                 }
             }
             else
-                await rec.loadAllDataFromJson(jsondata);
+                 rec.loadAllDataFromJson(jsondata);
 
             recs.push(rec);
             store[rec.Key] = rec;

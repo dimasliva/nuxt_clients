@@ -7,14 +7,18 @@ import { DataList } from "~/lib/DataList";
 import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
 import Navigator from "~/components/navigators/Navigator.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
-import type { INavPathItem, IСoncreteNavigatorProps, TNavRow } from "~/components/navigators/NavigatorTypes";
+import type { INavPathItem, INavigatorContent, IСoncreteNavigatorProps, INavRow } from "~/components/navigators/NavigatorTypes";
 import type { Container } from "inversify";
-import type { PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
+import { EWellKnownPageCaches, type PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { EDataType } from "~/lib/globalTypes";
 import { EEmployeeAppProfileSections } from "~/lib/EmployeeAppProfile";
 import { ClientRecord } from "~/lib/MoApi/Records/ClientRecord";
-import type { ProductsCatalogRecord } from "~/lib/MoApi/Records/ProductsCatalogRecord";
+import { ProductsCatalogRecord } from "~/lib/MoApi/Records/ProductsCatalogRecord";
+import { ProductsApiSection } from "~/lib/MoApi/ApiSectionsV1/ProductsApiSection";
+import { debug } from "console";
+import type { ProductCatalogSectionCache } from "~/lib/Cache/ProductCatalogSectionCache";
+import type { ProductCache } from "~/lib/Cache/ProductCache";
 
 
 let t: any;
@@ -29,6 +33,11 @@ type TFilterVals = {
 }
 
 
+interface IProductNavRow extends INavRow {
+    comments?: string | null | undefined;
+}
+
+
 export class ProductNavigatorTemplate {
 
 
@@ -37,10 +46,10 @@ export class ProductNavigatorTemplate {
     protected _UserContext: UserContext = null!;
     protected _RecordsStore: RecordsStore = null!;
     protected _PageCacheStore: PageMemoryCacheStore = null!;
+    protected _ProductsApiSection: ProductsApiSection = null!;
 
-    protected _FilterVals = ref({}) as Ref<TFilterVals>;
-    protected _RefDataTable = ref();
-    protected _RefFilterForm = ref();
+    protected _titleFilter = ref('');
+    protected _RefNavigator = ref();
     protected _Loading = ref(false);
     protected _productCatalogRecs = ref<ProductsCatalogRecord[]>();
 
@@ -52,29 +61,6 @@ export class ProductNavigatorTemplate {
         abstract getApiData(queryParams: QueryParams): Promise<DataList>;
     */
 
-    //Настрока формы фильтра
-    protected _FilterSetting = {
-        title: "Фильтр",
-
-        getFields: () => {
-            return {
-                title: {
-                    type: EDataType.string,
-                    title: "Название товара или услуги",
-                    hint: null,
-                    rules: [(v: string) => !v || v.length >= 2 || "Минимум 2 символа фамилии"],
-                    constraints: { min: 2, max: 384 },
-                }
-            }
-        },
-
-        defaultFocus: "title",
-
-        onFind: (inputData: any) => {
-            return true;
-        }
-    };
-
 
     constructor() {
         if (!t) t = useNuxtApp().$i18n.t;
@@ -84,16 +70,14 @@ export class ProductNavigatorTemplate {
 
     async setup(props: IProductNavigatorTemplateProps, ctx?) {
 
-        const diC = this._diC = props.diC || useContainer();
+        const diC = this._diC = props.diC || useSessionContainer();
         this._MoApiClient = diC.get("MoApiClient");
         this._UserContext = diC.get("UserContext");
         this._RecordsStore = diC.get("RecordsStore");
         this._PageCacheStore = diC.get("PageCacheStore");
+        this._ProductsApiSection = diC.get(ProductsApiSection);
 
-        onMounted(() => {
-            this._RefFilterForm.value.show();
-            this.loadData();
-        })
+        await this.loadData();
     }
 
 
@@ -101,26 +85,7 @@ export class ProductNavigatorTemplate {
         switch (e) {
             case "onKeydown":
                 if (!this._Loading.value) {
-                    if (this._RefDataTable.value) {
-                        let inc = (d.key == 'ArrowLeft') ? -1 : (d.key == 'ArrowRight') ? 1 : 0;
-
-                        if (inc != 0) {
-                            if (this._RefFilterForm.value.isVisible())
-                                this._RefFilterForm.value.blur();
-                            this._RefDataTable.value.addCurrPage(inc);
-                            break;
-                        }
-                    }
-
-                    if (!this._RefFilterForm.value.isVisible() && d.keyCode >= 32) {
-                        this._RefFilterForm.value.clear();
-                        this._RefFilterForm.value.show()
-                    }
-
-
-                    if (this._RefFilterForm.value.isVisible() && (d.keyCode >= 32 || ['Enter', 'Delete', 'Backspace'].includes(d.key)))
-                        return this._RefFilterForm.value.eventsHandler(e, d);
-
+                    return this._RefNavigator.value.eventsHandler(e, d);
                 }
                 break;
         }
@@ -147,11 +112,16 @@ export class ProductNavigatorTemplate {
     }
 
 
-    loadProductCatalogList(){
 
+    async loadProductCatalogList() {
+        const ids = await vHelpers.action(() => this._ProductsApiSection.findProductsCatalogs(null));
+        this._productCatalogRecs.value = await this._RecordsStore.getRecords(ProductsCatalogRecord, ids);
     }
 
-    loadData() {
+
+
+    async loadData() {
+        await this.loadProductCatalogList()
         /*
         vHelpers.action(async () => {
             this._Loading.value = true;
@@ -217,83 +187,130 @@ export class ProductNavigatorTemplate {
     }
 
 
+    async onUpdate() {
 
-    async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: TNavRow | null) {
+    }
 
-        if (nextlevel <= 1)
+    async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) {
+
+        if (nextlevel <= 1) {
             return {
-                pathInfo: { key: "dfdf", title: "Прайсы", tag: "prices" } as INavPathItem,
+                pathInfo: { key: "0", title: "Прайсы", tag: "catalogs" } as INavPathItem,
                 columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" }],
                 visibleCols: ["comments"],
-                actionsMenu: {},
-                rows: [
-                    {
+                actionsMenu: [{
+                    id: "update",
+                    title: "Обновить",
+                    action: internalRowItem => this.onUpdate()
+                }],
+                rows: this._productCatalogRecs.value?.map((prodCatRec) => {
+                    return {
                         $mdata: {
                             isFolder: true,
-                            tag: "price",
+                            tag: "catalog",
                         },
-                        id: "we445",
-                        title: "Прайс 1",
-                        comments: "gggg"
-                    },
-                    {
-                        $mdata: {
-                            isFolder: true,
-                            tag: "price",
-                        },
-                        id: "we44523",
-                        title: "Прайс 2",
-                        comments: "gggg"
-                    },
-                    {
-                        $mdata: {
-                            isFolder: false,
-                            tag: "section",
-                            getRowActionsMenu: () => { },
-                        },
-                        id: "we4453343",
-                        title: "Общий анализ",
-                        comments: "gggg"
+                        id: prodCatRec.Key,
+                        title: prodCatRec.Data!.title,
+                        comments: prodCatRec.Data!.comments || ""
                     }
-                ]
+                }) || []
             }
-        else
-            return {
-                pathInfo: { key: "dfdf2", title: row?.title, tag: "price" } as INavPathItem,
-                columns: [],
-                visibleCols: [],
-                actionsMenu: {},
-                rows: [
-                    {
-                        $mdata: {
-                            isFolder: false,
-                            tag: "section",
-                            getRowActionsMenu: () => { },
-                        },
-                        id: "we4453343345",
-                        title: "Общий анализ мочи",
-                        comment: "gggg"
-                    },
+        }
+        else {
 
+
+
+            const sectCache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.ProductCatalogSections) as ProductCatalogSectionCache;
+            const prodCache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.Products) as ProductCache;
+
+
+            let pathInfo: INavPathItem;
+            let nextId: string;
+
+            if (row) {
+                nextId = row.id;
+                if (row.$mdata.tag == "catalog") {
+                    pathInfo = {
+                        key: row!.id,
+                        title: (await this._RecordsStore.fetch(ProductsCatalogRecord, row!.id)).Data!.title,
+                        tag: row.$mdata.tag
+                    }
+                }
+                else {
+                    pathInfo = {
+                        key: row!.id,
+                        title: (await sectCache.getOrCreate(row!.id)).title || "",
+                        tag: row!.$mdata.tag
+                    }
+                }
+            }
+            else {
+                pathInfo = currPath![nextlevel - 1];
+                nextId = pathInfo.key;
+            }
+
+
+            const res: INavigatorContent = {
+                filterTitle: "Фильтр по наименованию товара или услуги",
+                pathInfo,
+                columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" }],
+                visibleCols: ["comments"],
+                actionsMenu: [],
+                rows: []
+            }
+
+
+            const sectIter = await sectCache.getKeysIteratorInPage(nextId);
+
+            if (sectIter)
+                for (let item of sectIter) {
+                    const sectData = await sectCache.getOrCreate(item);
+
+                    const row: IProductNavRow =
+                    {
+                        $mdata: {
+                            isFolder: true,
+                            tag: "catalogSection",
+                            getRowActionsMenu: () => [],
+                        },
+                        id: item,
+                        title: sectData.title || ""
+                    }
+                    res.rows.push(row);
+                }
+
+
+            const prodIter = await prodCache.getKeysIteratorInPage(nextId);
+
+            if (prodIter)
+                for (let item of prodIter) {
+                    const prodData = await prodCache.getOrCreate(item);
+
+                    if (this._titleFilter.value && prodData.title && !prodData.title.toLowerCase().includes(this._titleFilter.value.toLowerCase()))
+                        continue;
+
+                    const row: IProductNavRow =
                     {
                         $mdata: {
                             isFolder: false,
-                            tag: "section",
-                            getRowActionsMenu: () => { },
+                            tag: "product",
+                            getRowActionsMenu: () => [],
                         },
-                        id: "324234",
-                        title: "Общий анализ крови",
-                        comment: "gggg"
+                        id: item,
+                        title: prodData.title || "",
+                        comments: prodData.comments
                     }
-                ]
-            }
+                    res.rows.push(row);
+                }
+
+            return res;
+        }
 
     }
 
 
 
     render() {
-
         return () => <div style="height: 100%;">
             <v-row class="ma-1 bg-background">
                 <v-col class="w-50" style="min-width: 400; ">
@@ -305,19 +322,15 @@ export class ProductNavigatorTemplate {
                     }
                     {
                         (() => {
-                            const dt = <Navigator onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[], row: TNavRow) =>
-                                this.onNavigate(level, nextlevel, currPath, row)} />;
+                            const dt = <Navigator ref={this._RefNavigator} v-model:filterValue={this._titleFilter.value}
+                                onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[], row: INavRow) =>
+                                    this.onNavigate(level, nextlevel, currPath, row)} />;
 
                             //return h(KeepAlive, dt);
                             return dt;
                         })()
                     }
                 </v-col>
-
-                <v-expand-x-transition>
-                    <SimpleFilterForm v-model={this._FilterVals} ref={this._RefFilterForm} filterSettings={this._FilterSetting} />
-                </v-expand-x-transition>
-
             </v-row>
         </div>
     }

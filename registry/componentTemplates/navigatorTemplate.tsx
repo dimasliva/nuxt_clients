@@ -9,7 +9,7 @@ import { DataList } from "~/lib/DataList";
 import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
 import Navigator from "~/components/navigators/Navigator.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
-import type { INavPathItem, TNavRow } from "~/components/navigators/NavigatorTypes";
+import type { INavPathItem, INavRow } from "~/components/navigators/NavigatorTypes";
 
 
 let t: any;
@@ -246,7 +246,7 @@ export abstract class NavigatorTemplate<TFilterVals> {
 
 
 
-    async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: TNavRow | null) {
+    async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) {
 
         if (nextlevel <= 1)
             return {
@@ -339,7 +339,7 @@ export abstract class NavigatorTemplate<TFilterVals> {
                     }
                     {
                         (() => {
-                            const dt = <Navigator onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[], row: TNavRow) =>
+                            const dt = <Navigator onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[], row: INavRow) =>
                                 this.onNavigate(level, nextlevel, currPath, row)} />;
 
                             //return h(KeepAlive, dt);

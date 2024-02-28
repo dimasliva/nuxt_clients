@@ -4,12 +4,12 @@ import { errToast, warnToast } from "~/composables/useToast";
 
 
 
-export async function action(func: () => Promise<void>) {
+export async function action<T=void>(func: () => Promise<T>) {
 
     const t = useNuxtApp().$i18n.t;
 
     try {
-        await func();
+        return await func();
     }
     catch (exc: any) {
         if (exc.statusCode == '429')

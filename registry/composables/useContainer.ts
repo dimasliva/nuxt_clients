@@ -16,12 +16,17 @@ export const useContainer = () => {
 }
 
 
-export const useSessionContainer = () => {
+export const useSessionContainer = (...singletonTypes) => {
   const iocc = useContainer();
   const scont = iocc.createChild();
-  
+
   scont.bind('diC').toConstantValue(scont);
   scont.bind("RecordsStore").to(RecordsStore).inSingletonScope();
   scont.bind("Cache").to(MemoryCache).inSingletonScope();
+
+  singletonTypes.forEach(item => {
+    scont.bind(item).to(item).inSingletonScope();
+  })
+
   return scont;
 }

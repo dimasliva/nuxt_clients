@@ -142,7 +142,6 @@ interface Props {
     action: (p: any) => void,
 }
 const props = defineProps<Props>()
-console.log(usCntx)
 let prodsReq = ref(false)
 let showPriceList = ref(false)
 let selectAllCatalogs = ref(false)
@@ -200,7 +199,8 @@ const openPrices = async () => {
     searchValue.value = '';
     listDone.value = false;
     let productsCatalogs = [...new Set(catalogs.value.map(item => item.id))].map((i) => `productscatalog = ` + `'` + i + `'`);
-    let catalogsSectionKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogSections', productsCatalogs.toString(), false);
+
+    let catalogsSectionKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogSections', productsCatalogs.toString().replaceAll(',', ' AND '), false);
     await getCatalogsSectionsList(catalogsSectionKeys);
     showPriceList.value = true
 }
@@ -240,7 +240,6 @@ const getProductsListView = async () => {
         notFound.value = true;
         loading.value = false;
     }
-    console.log(items.value)
 }
 
 let req: any = ref(null);

@@ -1,7 +1,8 @@
 export class ScheduleEvent {
   start: string = ""; // Начало события, если вид месяц то формат "ГГГГ-ММ-ДД", если виды неделя и день, то формат "ГГГГ-ММ-ДД ЧЧ:ММ"
   end: string = ""; // Конец события, если вид месяц то формат "ГГГГ-ММ-ДД", если виды неделя и день, то формат "ГГГГ-ММ-ДД ЧЧ:ММ"
-  title?: string; // Не желательно оставлять это поле пустым, если вид месяц, то значения "Утро, День, Вечер"
+  products: { id: string; title: string; quantity: number }[] = [];
+  title: string; // Если вид месяц, то значения "Утро, День, Вечер"
   content?: string; // Размещение доп конетнта, например иконки
   class?: string; // Стилизация событий, для добавления статусов
   background?: boolean; // Делает событие "фоновым", можно перекрывать другими событиями, при этом отключает возможность изменения размера и удаления события (не имеет ничего общего с CSS-свойством background)
@@ -10,12 +11,13 @@ export class ScheduleEvent {
   deletable?: boolean; // Если есть параметр editable в компоненте расписания, делает событие удаляемым/не удаляемым
   resizable?: boolean; // Если есть параметр editable в компоненте расписания, делает событие изменяемым по размеру/не изменяемым по размеру
 
-  constructor(start, end, title?, content?, clss?, background?, split?, allDay?, deletable?, resizable?) {
+  constructor(start, end, products, title, clss?, content?, background?, split?, allDay?, deletable?, resizable?) {
     this.start = start;
     this.end = end;
+    this.products = products;
     this.title = title;
-    this.content = content;
     this.class = clss;
+    this.content = content;
     this.background = background;
     this.split = split;
     this.allDay = allDay;

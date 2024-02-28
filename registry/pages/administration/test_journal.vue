@@ -1,9 +1,9 @@
 <template>
   <v-row style="height: 75vh; overflow-y: auto;" class="ma-1 flex-nowrap">
     <wt :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)"
-      :on-event-click="currView === 'month' ? openCurrDay : editEvent" :cell-click-hold="false" :time-to="21 * 60"
-      :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded" v-model:active-view="currView" hide-view-selector
-      locale="ru" :special-hours="specialHours"
+      @event-mouse-enter="openPopUp($event)" :on-event-click="currView === 'month' ? openCurrDay : editEvent"
+      :cell-click-hold="false" :time-to="21 * 60" :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded"
+      v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
       :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
       :events="currView === 'month' ? monthView : events" :split-days="employeesArr" :sticky-split-labels="true"
       events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false" :time-from="6 * 60"
@@ -26,6 +26,13 @@
             </vue-cal>
           </v-card>
         </v-menu>
+        <v-tooltip location="end" activator="parent">
+          <v-list density="compact" variant="text" bg-color="#FFFFFF00">
+            <v-list-item v-for="(item) in prodsList">
+              <v-list-item-title>{{ item.title }}: {{ item.quantity }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-tooltip>
       </template>
     </wt>
     <v-expand-x-transition>
@@ -55,25 +62,34 @@
                   </v-card-actions>
                 </v-card>
               </v-menu></v-text-field>
+            <!-- @click="openDialog(FinderFormMultipleTemplate, { diC: null, title: 'Поиск', finderDataProvider: finderDataProvider, historyResultTypeStorage: 1, apiRequestTimeout: 1000 })" -->
 
             <v-combobox v-model="selectedSchedulerItemGroup" density="compact" label="Раздел расписания"
-              :loading="schdLoad" :items="schedulerItemGroups" item-title="title" variant="underlined"></v-combobox>
+              :loading="schdLoad" :items="schedulerItemGroups" item-title="title" variant="underlined"
+              :disabled="(!!employees.length && !selectedSchedulerItemGroup?.title) || (!!products.length && !selectedSchedulerItemGroup?.title)"></v-combobox>
 
             <v-combobox chips closable-chips multiple v-model="products" density="compact" label="Услуга"
               :loading="prodsLoad" :items="productsArr" variant="underlined" @update:menu="filterDays($event)" @click="employees.length || selectedSchedulerItemGroup ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск товаров и услуг', full: 'Выбрать из прайс-листа', text_field: 'Товар или услуга', reqAction: searchProds, prices: true, action:
-                  setProds
+                  (p) => { products = p }
               })">
             </v-combobox>
+
+            <v-expand-transition>
+              <v-select v-if="products.length" :items="kindOfDuration" item-title="title" item-value="time"
+                v-model="productsDuration" @update:menu="filterProducts($event)" density="compact" variant="underlined"
+                label="Искать по:"></v-select>
+            </v-expand-transition>
 
             <v-combobox chips closable-chips multiple v-model="employees" density="compact" label="Сотрудник"
               :loading="empLoad" :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click=" products.length || selectedSchedulerItemGroup ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск сотрудника', full: 'Выбрать из списка сотрудников', text_field: 'Иванов Иван Иванович', reqAction: searchEmployee, prices:
-                  false, action: setEmployees
+                  false, action: (e) => { employees = e }
               })"></v-combobox>
 
             <v-combobox v-model="division" density="compact" label="Филиал" :items="divisions" item-title="label"
-              item-value="id" variant="underlined"></v-combobox>
+              item-value="id" variant="underlined"
+              :disabled="!employees.length && !products.length && !selectedSchedulerItemGroup"></v-combobox>
 
             <v-card-actions style="min-width: 200pt;">
               <VBtn variant="text" @click="getScheduleByItemGroup()">Поиск</VBtn>
@@ -103,6 +119,9 @@ import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults'
 import { ScheduleEvent } from '~/lib/SchedulerTypes';
 import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
 import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
+import FinderFormMultipleTemplate from '~/components/forms/FinderFormMultiple.vue';
+import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
+import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -111,6 +130,12 @@ let status = ref([
   { icon: 'mdi-pencil', title: 'Предварительная запись' },
   { icon: 'mdi-email', title: 'Напоминание' },
   { icon: 'mdi-phone', title: 'Лид' },
+])
+
+let kindOfDuration = ref([
+  { time: 'short', title: 'Самой короткой' },
+  { time: 'long', title: 'Самой длинной' },
+  { time: 'sum', title: 'Сумме длительностей' },
 ])
 //__________________________^^^ Статичные данные, удалить при работе с API ^^^
 
@@ -147,6 +172,7 @@ let endSelectedCell = ref()
 let selectedSchedulerItemGroup = ref<ScheduleItemGroupData>()
 const employeesViews = iocc.get(EmployeesViews);
 const productsView = iocc.get(ProductFtsViews);
+const finderDataProvider = iocc.get(DictsFinderDataProvider)
 let isStartDate = ref(true)
 let minDate = ref<any>('')
 let maxDate = ref<any>('')
@@ -159,16 +185,11 @@ let currRangeData = ref<any>()
 let prodsLoad = ref(false)
 let schdLoad = ref(false)
 let empLoad = ref(false)
+let productsDuration = ref()
+let isProdsList = ref(false)
+let prodsList = ref<any>([])
 
-const setProds = (p) => {
-  products.value = p;
-  productsArr.value = p;
-}
-
-const setEmployees = (e) => {
-  employees.value = e;
-  employeesArr.value = e;
-}
+finderDataProvider.init("serachSchedulerItemGroups", true, EDictionaries.CompanyPositions)
 
 const eventsHandler = (e) => {
 
@@ -187,6 +208,13 @@ const openCurrDay = (ev) => {
   selectedCurrDate.value = ev.start.format('MM/DD/YYYY');
   startSelectedCell.value = ev.start.formatTime('H');
   endSelectedCell.value = ev.end.formatTime('H');
+}
+
+const openPopUp = (day_time: ScheduleEvent) => {
+  day_time.products.map((product) => {
+    product.title = productsArr.value.find((prod) => prod.id === product.id).title
+  })
+  prodsList.value = day_time.products
 }
 
 const changeDate = (date) => {
@@ -306,8 +334,6 @@ const getScheduleByItemGroup = async () => {
 
 const getProductsList = async (k) => {
   let keys = k.map((id) => id.replaceAll(`'`, `"`))
-  // let recs = await recStore.fetch(ProductRecord, keys);
-  // return recs.MData
   let recs = await recStore.getRecordsM(keys.map((i) => {
     return { id: { key: i, type: ProductRecord } }
   }));
@@ -319,9 +345,11 @@ const buildMonthScheduler = (ts) => {
   let times: ScheduleTimespanItem[][] = Object.values(ts);
   monthView.value = [];
   const monthViewSet = new Set<ScheduleEvent>();
+
   dates.map((date, i) => {
     if (times[i].length > 0) {
       let quantity = 0;
+      let list: { id: string, title: string, quantity: number }[] = [];
 
       times[i].map((item, ind) => {
         let nextItem = times[i][ind + 1];
@@ -330,18 +358,22 @@ const buildMonthScheduler = (ts) => {
         let isSameDayTime = dayTimeSpan == dayTimeSpanNext
 
         if (products.value.length > 0) {
-          if (hasProdInTimes(item)) {
+          if (hasProdInTimes(products.value, item)) {
             quantity++
+            list = listOfProds(list, item);
           }
           if (!isSameDayTime) {
-            monthViewSet.add(new ScheduleEvent(date, date, dayTimeSpan + ': ' + quantity))
+            monthViewSet.add(new ScheduleEvent(date, date, item.products, dayTimeSpan + ': ' + quantity))
             quantity = 0
+            list = []
           }
         } else {
           quantity++
+          list = listOfProds(list, item);
           if (!isSameDayTime) {
-            monthViewSet.add(new ScheduleEvent(date, date, dayTimeSpan + ': ' + quantity))
+            monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan + ': ' + quantity))
             quantity = 0
+            list = []
           }
         }
       })
@@ -350,7 +382,21 @@ const buildMonthScheduler = (ts) => {
   monthView.value = Array.from(monthViewSet);
 }
 
-const hasProdInTimes = (i) => products.value.some(prod => i.products?.includes(prod.id!) && (prod.duration <= i.timespan.duration));
+const listOfProds = (arr, i) => {
+  i.products?.forEach((product) => {
+    const existingProduct = arr.find((prod) => prod.id === product);
+    if (existingProduct) {
+      existingProduct.quantity++;
+    } else {
+      arr.push({ id: product, title: '', quantity: 1 });
+    }
+  });
+  return arr;
+}
+
+let durationCondition = ref<number | null>(null)
+
+const hasProdInTimes = (arr, i) => arr.some(prod => i.products?.includes(prod.id!) && (prod.duration <= (durationCondition.value ? durationCondition.value : i.timespan.duration)));
 
 const timeOfDay = (mins: number) => {
   if (mins < 720) {
@@ -366,6 +412,40 @@ const timeOfDay = (mins: number) => {
 
 const filterDays = (opened: boolean) => {
   if (!opened) {
+    buildMonthScheduler(currRangeData.value)
+  }
+}
+
+const filterProducts = (opened: boolean) => {
+  if (!opened) {
+    if (productsDuration.value == 'short') {
+      // products.value.reduce((x, y) => Math.min(x.duration, y.duration));
+      // const minDuration = products.value.reduce((min, item) => item.duration < min ? item.duration : min, products.value[0].duration);
+      let min = products.value[0].duration;
+      for (const item of products.value) {
+        if (item.duration < min) {
+          min = item.duration;
+        }
+      }
+      durationCondition.value = min;
+    }
+    if (productsDuration.value == 'long') {
+      let max = products.value[0].duration;
+      for (const item of products.value) {
+        if (item.duration > max) {
+          max = item.duration;
+        }
+      }
+      durationCondition.value = max;
+    }
+    if (productsDuration.value == 'sum') {
+      let sum = 0;
+      for (const item of products.value) {
+        sum += item.duration
+      }
+      durationCondition.value = sum;
+    }
+
     buildMonthScheduler(currRangeData.value)
   }
 }
@@ -427,7 +507,6 @@ let pageMapData: IFrameHeaderData = reactive({
   ]
 });
 
-console.log(employees.value, products.value, selectedSchedulerItemGroup.value)
 
 
 getScheduleItemGroupIds();

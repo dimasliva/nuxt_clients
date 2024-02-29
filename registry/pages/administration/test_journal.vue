@@ -42,15 +42,14 @@
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon
                 @click="drawer = false">mdi-close</v-icon></v-row>
             <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined" density="compact"
-              :loading="schdLoad" append-inner-icon="mdi-calendar-month">
+              :loading="schdLoad" append-inner-icon="mdi-calendar-month" @click="monthViewDates(false)">
               <v-menu v-model="dataPickerMenu" :close-on-content-click="false" activator="parent">
                 <v-card>
                   <v-card-text class="pa-1">
                     <vue-cal id="datapicker" class="vuecal--date-picker" xsmall hide-view-selector :time="false"
                       active-view="month" :disable-views="['day', 'week', 'years']" locale="ru" :min-date="minDate"
-                      :max-date="maxDate" @cell-click="changeDate($event)" @cell-focus="onDatePicker"
-                      @view-change="onDatePicker"
-                      style="width: 300px;min-height: 230px; background-color: white; border-radius: 10px; text-align: center;">
+                      :max-date="maxDate" @cell-click="changeDate($event)" @view-change="onDatePicker()"
+                      style="width: 300px; min-height: 230px; background-color: white; border-radius: 10px; text-align: center;">
                     </vue-cal>
                   </v-card-text>
                   <v-card-actions class="pa-1">
@@ -173,7 +172,7 @@ let selectedSchedulerItemGroup = ref<ScheduleItemGroupData>()
 const employeesViews = iocc.get(EmployeesViews);
 const productsView = iocc.get(ProductFtsViews);
 const finderDataProvider = iocc.get(DictsFinderDataProvider)
-let isStartDate = ref(true)
+let rangeSelected = ref(false)
 let minDate = ref<any>('')
 let maxDate = ref<any>('')
 let monthViewMinDate = ref<any>(new Date())
@@ -217,20 +216,6 @@ const openPopUp = (day_time: ScheduleEvent) => {
   prodsList.value = day_time.products
 }
 
-const changeDate = (date) => {
-  if (isStartDate.value) {
-    if (maxDate.value) {
-      maxDate.value = ''
-      minDate.value = ''
-    } else {
-      minDate.value = date;
-      isStartDate.value = false;
-    }
-  } else {
-    maxDate.value = date;
-    isStartDate.value = true;
-  };
-}
 
 const monthViewDates = (b: boolean) => {
   if (b) {
@@ -242,9 +227,74 @@ const monthViewDates = (b: boolean) => {
     minDate.value = '';
     maxDate.value = '';
     dateRange.value = '';
+    rangeSelected.value = false;
     selDate.value = monthViewMinDate.value;
   }
   dataPickerMenu.value = false
+}
+
+const changeDate = (date) => {
+  if (rangeSelected.value) {
+    if (minDate.value && maxDate.value) {
+      rangeSelected.value = false;
+      minDate.value = '';
+      maxDate.value = '';
+      onDatePicker();
+    }
+  } else {
+    if (!minDate.value) {
+      minDate.value = date;
+      onDatePicker();
+    } else {
+      maxDate.value = date;
+      rangeSelected.value = true;
+      onDatePicker();
+    }
+  };
+}
+
+// css стилизация для отображения выбранного диапазона
+const onDatePicker = () => {
+  let cells: HTMLElement[] = []
+  setTimeout(() => {
+    let datapicker = document.getElementById('datapicker');
+    let selectedRange: HTMLElement[];
+    cells = Array.from(datapicker!.querySelectorAll('.vuecal__cell'));
+
+    if (minDate.value) {
+      cells.forEach((day: HTMLElement) => {
+        if (!day.className.includes('before-min')) {
+          day.classList.add('date-picker-month');
+        } else {
+          day.classList.remove('date-picker-month');
+        }
+      })
+      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
+      selectedRange[0].classList.add('first-day-pick');
+    }
+    if (maxDate.value) {
+      cells.forEach((day: HTMLElement) => {
+        if (!day.className.includes('before-min') && !day.className.includes('after-max')) {
+          day.classList.add('date-picker-month');
+        } else {
+          day.classList.remove('date-picker-month');
+        }
+      })
+      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
+      selectedRange[selectedRange.length - 1].classList.add('last-day-pick')
+    }
+    if (!minDate.value && !maxDate.value && rangeSelected.value) {
+
+      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
+      selectedRange[0].classList.remove('first-day-pick');
+      selectedRange[selectedRange.length - 1].classList.remove('last-day-pick');
+
+      cells.forEach((day: HTMLElement) => {
+        day.classList.remove('date-picker-month');
+      })
+    }
+  }, 100)
+
 }
 
 const searchEmployee = async (txt: string) => {
@@ -461,27 +511,7 @@ const clearFilters = () => {
   monthViewDates(false)
   monthView.value = [];
 }
-// css стилизация для отображения выбранного диапазона
-const onDatePicker = () => {
-  let cells: any = []
-  setTimeout(() => {
-    let datapicker = document.getElementById('datapicker');
-    if (minDate.value) {
-      cells = Array.from(datapicker!.querySelectorAll('.vuecal__cell'))
-      cells.forEach((day: any) => {
-        if (!day.className.includes('before-min') && !day.className.includes('after-max')) {
-          day.classList.add('date-picker-month');
-        } else {
-          day.classList.remove('date-picker-month');
-        }
-      })
-    }
-    let selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-    selectedRange[0].classList.add('first-day-pick');
-    selectedRange[selectedRange.length - 1].classList.add('last-day-pick')
-  }, 100)
 
-}
 
 const onViewChange = ({ view }) => {
   if (view === 'month' && !maxDate.value) {
@@ -534,6 +564,7 @@ defineExpose({ eventsHandler });
 
 .date-picker-month {
   background-color: rgba(150 255 194 / 35%) !important;
+  margin-top: 1px;
 }
 
 .first-day-pick {
@@ -550,8 +581,8 @@ defineExpose({ eventsHandler });
 }
 
 .vuecal--date-picker:not(.vuecal--day-view) .vuecal__cell--selected .vuecal__cell-content {
-  background-color: #72e996;
-  color: #fff;
+  background-color: #ffff0000;
+  color: black;
 }
 
 .vuecal__title-bar {

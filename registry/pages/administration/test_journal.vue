@@ -42,7 +42,7 @@
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon
                 @click="drawer = false">mdi-close</v-icon></v-row>
             <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined" density="compact"
-              :loading="schdLoad" append-inner-icon="mdi-calendar-month" @click="monthViewDates(false)">
+              :loading="schdLoad" append-inner-icon="mdi-calendar-month" @click:control="clearCurrrange()">
               <v-menu v-model="dataPickerMenu" :close-on-content-click="false" activator="parent">
                 <v-card>
                   <v-card-text class="pa-1">
@@ -216,6 +216,11 @@ const openPopUp = (day_time: ScheduleEvent) => {
   prodsList.value = day_time.products
 }
 
+const clearCurrrange = () => {
+  console.log('work')
+  minDate.value = '';
+  maxDate.value = '';
+}
 
 const monthViewDates = (b: boolean) => {
   if (b) {

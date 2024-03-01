@@ -15,14 +15,11 @@ export class RoleRecordData extends ApiRecordChData {
     }
 }
 
+@injectable()
 export class RolesRecord extends ApiRecord<RoleRecordData>{
 
     static RightToken = "DbRoles";
     static RecCode = 1008;
-
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, RolesRecord, Key);
-    }
 
 
     protected _createNewData() {

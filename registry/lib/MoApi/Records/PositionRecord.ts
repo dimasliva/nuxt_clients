@@ -16,16 +16,13 @@ export class PositionRecordData extends ApiRecordChData {
 }
 
 
+@injectable()
 export class PositionRecord extends ApiRecord<PositionRecordData>{
 
     static RightToken = "dbPosition";
     static RecCode = 1017;
     static BatchGetRecDataPath="/Positions/GetPositions";
 
-
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, PositionRecord, Key);
-    }
 
     get RecCode() { return PositionRecord.RecCode; }
 

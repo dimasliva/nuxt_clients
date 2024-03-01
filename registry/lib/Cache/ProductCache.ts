@@ -22,13 +22,28 @@ export class ProductCacheValue {
     prices?: PricesEntity | null;
     temporaryNotActive?: boolean | null;
 
-    constructor(val: IProductListView) {
-        this.title = val.title;
-        this.code = val.code;
-        this.comments = val.comments;
-        this.fullTitle = val.fullTitle;
-        this.prices = val.prices;
-        this.temporaryNotActive = val.temporaryNotActive;
+
+    static initFromProductListView(val: IProductListView) {
+        const obj = new ProductCacheValue();
+        obj.title = val.title;
+        obj.code = val.code;
+        obj.comments = val.comments;
+        obj.fullTitle = val.fullTitle;
+        obj.prices = val.prices;
+        obj.temporaryNotActive = val.temporaryNotActive;
+        return obj;
+    }
+
+
+    static initFromRec(rec: ProductRecord) {
+        const obj = new ProductCacheValue();
+        obj.title = rec.Data!.title;
+        obj.code = rec.Data!.code;
+        obj.comments = rec.Data!.comments;
+        obj.fullTitle = rec.Data!.fullTitle;
+        obj.prices = rec.Data!.prices;
+        obj.temporaryNotActive = rec.Data!.temporaryNotActive;
+        return obj;
     }
 }
 
@@ -88,7 +103,7 @@ export class ProductCache extends PageMemoryCache {
         const page = this._getPage(key);
         while (row = dl.getNext()) {
             page.set(row.id!);
-            this._index.set(row.id!, new IndexVal(page, new ProductCacheValue(row)));
+            this._index.set(row.id!, new IndexVal(page,  ProductCacheValue.initFromProductListView(row)));
         }
         page.setLoaded();// на случай, если страница пустая, то нужно указать что она была загружена. Иначе при каждом последующем обращении к ней будет попытка загрузки
     }
@@ -97,6 +112,32 @@ export class ProductCache extends PageMemoryCache {
 
     setValue(key: string, pagekey: string, value: any) {
         Exception.throw("MethodNotImplemented", "Функция не реализована");
+    }
+
+
+
+    setValueByRec(rec: ProductRecord) {
+        if (!rec)
+            return;
+
+        var cacheVal = this._index.get(rec.Key);
+        if (cacheVal) {
+            let pageKey = cacheVal.page.getKey();
+
+            if (pageKey != rec.Data!.productsCatalogSection && pageKey != rec.Data!.productsCatalog) {
+                cacheVal.page.removeValue(rec.Key);
+            }
+        }
+
+        let page = this._getPage(rec.Data!.productsCatalogSection || rec.Data!.productsCatalog);
+        if (page.isLoaded()) {
+            page.set(rec.Key);
+            this._index.set(rec.Key, new IndexVal(page,  ProductCacheValue.initFromRec(rec)))
+        }
+        else
+            if (cacheVal) {
+                this._index.delete(rec.Key);
+            }
     }
 
 
@@ -115,7 +156,7 @@ export class ProductCache extends PageMemoryCache {
 
     async getKeysIteratorInPage(pagekey: string) {
         let page = this._getPage(pagekey);
-        if (!page || page.isLoaded()) {
+        if (!page || !page.isLoaded()) {
             await this._loadPage(pagekey);
             return this._pages.get(pagekey)?.getKeysIterator();
         }

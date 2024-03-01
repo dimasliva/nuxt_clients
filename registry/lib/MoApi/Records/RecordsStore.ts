@@ -25,7 +25,9 @@ export class RecordsStore {
             this._store[type.name] = {};
 
         if (!this._store[type.name][Key]) {
-            this._store[type.name][Key] = new type(this._MoApiClient, this._UserContext, this, Key);
+            var newrec = this._diC.get(type);
+            newrec.init(this, type, Key);
+            this._store[type.name][Key] = newrec;
         }
 
         return <T>this._store[type.name][Key];
@@ -99,7 +101,7 @@ export class RecordsStore {
                     }
                 }
                 else
-                     rec.loadAllDataFromJson(jsondata);
+                    rec.loadAllDataFromJson(jsondata);
 
                 recs[i] = rec;
                 const store = this._store[recid.id.type.name] || (this._store[recid.id.type.name] = {});
@@ -140,7 +142,7 @@ export class RecordsStore {
         for (let i = 0; i < idsForLoad.length; i++) {
             const key = idsForLoad[i];
             let jsondata = data.find(item => item.id == key);
-            let rec = <T>this.get(<Class<ApiRecord>>type, key);
+            let rec = <T>this.get(type, key);
 
             if (!jsondata) {
                 if (!optional)
@@ -152,7 +154,7 @@ export class RecordsStore {
                 }
             }
             else
-                 rec.loadAllDataFromJson(jsondata);
+                rec.loadAllDataFromJson(jsondata);
 
             recs.push(rec);
             store[rec.Key] = rec;

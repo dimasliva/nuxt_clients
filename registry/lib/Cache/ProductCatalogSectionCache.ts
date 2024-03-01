@@ -77,7 +77,7 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
         const ids = await this._ProductsApiSection.findProductsCatalogSections(where);
         const recs = await this._RecordsStore.getRecords(ProductsCatalogSectionRecord, ids, null,null,true);
 
-        console.debug(`load product section cache page: ${key} `)
+        console.debug(`load product section for section cache page: ${key} `)
         const page = this._getPage(key);
         recs.forEach(item => {
             page.set(item.Key);
@@ -108,7 +108,7 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
 
     async getKeysIteratorInPage(pagekey: string) {
         let page = this._getPage(pagekey);
-        if (!page || page.isLoaded()) {
+        if (!page || !page.isLoaded()) {
             await this._loadPage(pagekey);
             return this._pages.get(pagekey)?.getKeysIterator();
         }

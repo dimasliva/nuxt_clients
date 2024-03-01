@@ -26,7 +26,7 @@ export class FilelinkRecordData extends ApiRecordChData {
     advData?: any | null;
 }
 
-
+@injectable()
 export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
 
     static RightToken = "dbFilelink";
@@ -39,9 +39,6 @@ export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
     get MBlob(): Blob | null { return this._mblob; }
     set MBlob(file: Blob) { this._mblob = file }
 
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, FilelinkRecord, Key);
-    }
 
     get RecCode() { return FilelinkRecord.RecCode; }
 

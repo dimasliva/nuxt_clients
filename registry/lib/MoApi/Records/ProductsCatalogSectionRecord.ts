@@ -16,15 +16,13 @@ export class ProductsCatalogSectionRecordData extends ApiRecordChData {
     advData: string | null = null;
 }
 
+@injectable()
 export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSectionRecordData>{
 
     static RightToken = "dbProductsCatalogSection";
     static RecCode = 1023;
     static BatchGetRecDataPath="/Products/GetProductsCatalogSections";
 
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, ProductsCatalogSectionRecord, Key);
-    }
 
     get RecCode() { return ProductsCatalogSectionRecord.RecCode; }
 

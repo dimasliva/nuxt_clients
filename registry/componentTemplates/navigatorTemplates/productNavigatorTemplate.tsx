@@ -19,6 +19,8 @@ import { ProductsApiSection } from "~/lib/MoApi/ApiSectionsV1/ProductsApiSection
 import { debug } from "console";
 import type { ProductCatalogSectionCache } from "~/lib/Cache/ProductCatalogSectionCache";
 import type { ProductCache } from "~/lib/Cache/ProductCache";
+import   ProductProfileDialog  from "~/components/forms/ProductProfileDialog.vue";
+import { ProductRecord } from "~/lib/MoApi/Records/ProductRecord";
 
 
 let t: any;
@@ -88,6 +90,9 @@ export class ProductNavigatorTemplate {
                     return this._RefNavigator.value.eventsHandler(e, d);
                 }
                 break;
+
+                case "onBeforePageDeactivate":
+                    return this._RefNavigator.value.eventsHandler(e, d);
         }
         return false;
     };
@@ -171,14 +176,17 @@ export class ProductNavigatorTemplate {
     }
 
 
+
     async add() {
         // openDialog(this.modelEditDialog, { recKey: null }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
     }
 
 
+
     async edit(key, index?) {
         //   openDialog(this.modelEditDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
     }
+
 
 
     saveSettings() {
@@ -187,9 +195,30 @@ export class ProductNavigatorTemplate {
     }
 
 
+
     async onUpdate() {
 
     }
+
+
+    onUpdateProductModel(row: any, index?: number) {
+        (async () => {
+            if (row) {
+              let rec = await this._RecordsStore.fetch(ProductRecord, row.id);
+              row.title=rec.Data!.title;
+              row.comments=rec.Data!.comments;
+            }
+          })();
+
+        return true;
+    }
+
+
+    async onRowClick(level: number, currPathItem: INavPathItem, row: INavRow, index?: number) {
+        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.onUpdateProductModel(row, index) : true : true)
+    }
+
+
 
     async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) {
 
@@ -217,12 +246,8 @@ export class ProductNavigatorTemplate {
             }
         }
         else {
-
-
-
             const sectCache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.ProductCatalogSections) as ProductCatalogSectionCache;
             const prodCache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.Products) as ProductCache;
-
 
             let pathInfo: INavPathItem;
             let nextId: string;
@@ -249,14 +274,14 @@ export class ProductNavigatorTemplate {
                 nextId = pathInfo.key;
             }
 
-
             const res: INavigatorContent = {
                 filterTitle: "Фильтр по наименованию товара или услуги",
                 pathInfo,
                 columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" }],
                 visibleCols: ["comments"],
                 actionsMenu: [],
-                rows: []
+                rows: [],
+                onRowClick: (...args)=>this.onRowClick(...args)
             }
 
 
@@ -278,7 +303,6 @@ export class ProductNavigatorTemplate {
                     }
                     res.rows.push(row);
                 }
-
 
             const prodIter = await prodCache.getKeysIteratorInPage(nextId);
 
@@ -302,10 +326,8 @@ export class ProductNavigatorTemplate {
                     }
                     res.rows.push(row);
                 }
-
             return res;
         }
-
     }
 
 

@@ -1,8 +1,8 @@
 <template>
     <div v-if="content">
-        <v-data-table ref="refDt" v-model="selected" show-select item-value="id" v-model:items-per-page="itemsPerPage" hover
-            :headers="_columns" hide-default-footer v-model:page="currentPage" :items="content.rows" class="elevation-1"
-            fixed-header height="68dvh" disable-pagination>
+        <v-data-table ref="refDt" v-model:sortBy="sortBy" v-model="selected" show-select item-value="id"
+            v-model:items-per-page="itemsPerPage" hover :headers="_columns" hide-default-footer v-model:page="currentPage"
+            :items="content.rows" class="elevation-1" fixed-header height="68dvh" disable-pagination>
 
             <!--Верхняя строка перед основной таблицей-->
             <template v-slot:top="props">
@@ -22,6 +22,7 @@
                                     content = await onNavigate(path.length, path.length - 1, path, null);
                                     path.pop();
                                     path[path.length - 1] = content.pathInfo;
+                                    setPageStateInfo(content.pathInfo.innerData);
                                 }" />
                         </template>
 
@@ -32,6 +33,7 @@
                                     content = await onNavigate(path.length, props.index + 1, path, null);
                                     path.splice(props.index + 1);
                                     path[path.length - 1] = content.pathInfo;
+                                    setPageStateInfo(content.pathInfo.innerData);
                                 }
                             }">
                                     {{ props.item.title }}</a></li>
@@ -82,7 +84,6 @@
             </template>
 
 
-
             <!-- кнопка общего меню в загаловке-->
             <template v-slot:header.actions="{ column }">
 
@@ -102,11 +103,12 @@
                 </v-menu>
             </template>
 
+
             <!--строки-->
             <template v-slot:item="{ internalItem, index }">
-                <VDataTableRow :index="index" :item="internalItem"
+                <VDataTableRow :id="getUniqueId(internalItem.raw.id)" :index="index" :item="internalItem"
                     :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
-                    @click="(e) => { onRowClick(internalItem) }">
+                    @click="(e) => { onRowClick(internalItem, index) }">
 
 
                     <!-- колонка меню действий-->
@@ -172,14 +174,22 @@
 import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
 import type { INavColumn, INavPathItem, INavRow, INavigatorContent, INavigatorProps } from "./NavigatorTypes"
+import * as Helpers from '~/lib/Helpers';
+import { v4 as uuidv4 } from 'uuid';
 
+type TPageStateInfo = { page: number, pageCount: number, itemsPerPage: number, selectedId?: string | null, sortBy: any | null, sx?: number, sy?: number };
+
+
+interface INavColumnInternal extends INavColumn {
+    sortRaw?: ((a, b) => number) | undefined;
+    sort?: ((a, b) => number) | undefined;
+}
 
 
 const emit = defineEmits(["onColumnsChangedDelayed", "update:filterValue"])
 
 
 const props = defineProps<INavigatorProps>();
-
 
 let itemsPerPage = ref(10);
 let currentPage = ref(1);
@@ -189,14 +199,16 @@ let refPag = ref();
 let refFilter = ref();
 let filterVal = ref("");
 const classMap = { "start": "d-flex justify-start", "center": "d-flex justify-center mr-5", "end": "d-flex justify-end" }
+const compuuid = uuidv4();
 
 let clckInterval: any = null;
 let lineSelected = ref();
 const content = ref<INavigatorContent>();
 let path = ref<INavPathItem[]>([]);
 let filterInputTextTimeout: any | null = null;
+let sortBy = ref<any[]>([]);
 //const iocc = useContainer();
-const { scrollTo } = useScroll(refDt);
+const { scrollTo, getCurrScrollPos } = useScroll(refDt);
 
 
 const pagesCount = computed(() => {
@@ -207,22 +219,53 @@ const pagesCount = computed(() => {
 });
 
 
+const getSortComparer = (colname: string) => {
+
+    return (a: INavRow, b: INavRow) => {
+
+        const direct = (sortBy.value[0]?.order == "asc") ? 1 : -1;
+
+        if (a.$mdata.isFolder == b.$mdata.isFolder) {
+            const as = a[colname] || "";
+            const bs = b[colname] || "";
+            return as.localeCompare(bs, undefined, { numeric: true });
+        }
+        else
+            return direct * (a.$mdata.isFolder ? -1 : 1);
+    }
+}
+
+
+
 const _columns = computed(() => {
-    const res: INavColumn[] = [
+    const res: INavColumnInternal[] = [
         { key: "actions", align: 'start', minWidth: "24", width: "24", sortable: false, title: "" },
         { key: "icons", align: 'center', width: "8", sortable: false, title: "" }
     ];
 
-    let titlecol = content.value!.columns?.find((item) => item.key == "title");
+    const cols = Helpers.CloneData(content.value!.columns || []) as INavColumnInternal[];
 
-    if (titlecol)
+    let titlecol = cols.find((item) => item.key == "title");
+
+    if (titlecol) {
+        titlecol.sortRaw = getSortComparer("title");
         res.push(titlecol);
+    }
     else
-        res.push({ key: "title", align: 'start', cellProps: { align: 'start' }, width: "500", sortable: true, title: "Название" });
+        res.push({
+            key: "title",
+            align: 'start',
+            cellProps: { align: 'start' },
+            width: "500",
+            sortable: true,
+            title: "Название",
+            sortRaw: getSortComparer("title")
+        });
 
-    content.value!.columns?.forEach((item) => {
+    cols.forEach((item) => {
         if (item.key == 'title' || content.value!.visibleCols && !content.value!.visibleCols.includes(item.key))
             return;
+        item.sortRaw = getSortComparer(item.key);
         res.push(item);
     });
 
@@ -259,25 +302,73 @@ const addCurrPage = (step: number) => {
             currentPage.value = 1;
 }
 
+
+
 const onUpdate = async () => {
     content.value = await props.onNavigate(path.value.length, path.value.length, path.value, null);
     path.value[path.value.length - 1] = content.value.pathInfo;
 }
 
 
+const update = () => onUpdate();
+
+
 const onRowClickAction = async (DataTableItemINavRow: any) => {
     const row: INavRow = DataTableItemINavRow.raw;
-
     if (row.$mdata.isFolder) {
+        //переход в подпапку
+        savePageStateInfo();
         content.value = await props.onNavigate(path.value.length, path.value.length + 1, path.value, row);
         path.value.push(content.value.pathInfo);
+        scrollTo(0, 0);
     }
     else
-        content.value!.onRowClick?.(path.value.length, path.value[path.value.length - 1], row);
+        content.value!.onRowClick?.(path.value.length, path.value[path.value.length - 1], row, DataTableItemINavRow.index);   //пользовательское действие
 }
 
 
-const onRowClick = (DataTableItemINavRow: any) => {
+const savePageStateInfo = () => {
+    const pathdata = path.value[path.value.length - 1];
+    const scrollPos = getCurrScrollPos();
+    pathdata.innerData = {
+        page: currentPage.value,
+        pageCount: pagesCount.value,
+        itemsPerPage: itemsPerPage.value,
+        selectedId: lineSelected.value,
+        sortBy: sortBy.value,
+        sx: scrollPos?.scrollLeft,
+        sy: scrollPos?.scrollTop
+    } as TPageStateInfo;
+
+    return undefined;
+}
+
+const setPageStateInfo = (info: TPageStateInfo | null) => {
+    if (info) {
+        itemsPerPage.value = info.itemsPerPage;
+        currentPage.value = info.page;
+        sortBy.value = info.sortBy;
+        lineSelected.value = info.selectedId
+
+        nextTick(() => {
+            scrollTo(info.sx || 0, info.sy || 0);
+        })
+
+        /*
+        nextTick(() => {
+            const element = document.getElementById(getUniqueId('40335a09-e7f7-4517-8cc8-4fdc71d24a02'));
+            if (element) element.scrollIntoView({ block: "center" });
+        })
+        */
+    }
+}
+
+
+const getUniqueId = (id: string) => {
+    return compuuid + "_" + id;
+}
+
+const onRowClick = (DataTableItemINavRow: any, index) => {
 
     lineSelected.value = DataTableItemINavRow.raw.id;
 
@@ -304,9 +395,6 @@ const reset = () => {
     lineSelected.value = null;
     scrollTo(0, 0);
 }
-
-
-const update = () => onUpdate();
 
 
 
@@ -378,6 +466,10 @@ const eventsHandler = (e: string, d: any) => {
             }
 
             break;
+
+            case "onBeforePageDeactivate":
+                getCurrScrollPos();
+                break;
     }
     return false;
 };

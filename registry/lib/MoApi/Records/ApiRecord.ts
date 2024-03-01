@@ -38,12 +38,14 @@ export abstract class ApiRecordCompanyData extends ApiRecordChData {
   "company"?: string | undefined;
 }
 
+
+@injectable()
 export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   public static RightToken = "";
   public static RecCode = 0;
   public static BatchGetRecDataPath = "";
 
-  protected _RecordType: Function;
+  protected _RecordType: Function = null!;
   public get RecordType(): Function {
     return this._RecordType;
   }
@@ -51,7 +53,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
     this._RecordType = value;
   }
 
-  protected _Key: string;
+  protected _Key: string = null!;
   public get Key(): string {
     return this._Key;
   }
@@ -81,11 +83,21 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   protected _childsData: { [code: number]: IRelData[] } = {};
   protected _parentsData: { [code: number]: IRelData[] } = {};
   protected _couplingsData: { [code: number]: ICouplingData[] } = {};
+  protected _RecStore: RecordsStore = null!;
 
-  constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, protected _RecStore: RecordsStore, RecType: Class<ApiRecord>, Key: string) {
+  constructor(
+    @inject("MoApiClient") protected _MoApiClient: MoApiClient,
+    @inject("UserContext") protected _UserContext: UserContext,
+  ) { }
+
+
+  init(RecStore: RecordsStore, RecType: Class<ApiRecord>, Key: string) {
     this._RecordType = RecType;
     this._Key = Key;
+    this._RecStore = RecStore;
+    return this;
   }
+
 
   protected abstract _getApiRecordPathGet(): string;
   protected abstract _getApiRecordPathAdd(): string;

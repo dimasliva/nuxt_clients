@@ -10,11 +10,11 @@
         <v-list-item>
           <v-list-item-title>{{ userInitials }}</v-list-item-title>
         </v-list-item>
-        <v-list-item @click="navigateTo('/settings')">
+        <v-list-item @click="navTo('/settings')">
           <v-list-item-title>Настройки<v-icon end icon="mdi-cog" size="x-small" /></v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
-        <v-list-item @click="navigateTo('/signout')">
+        <v-list-item @click="navTo('/signout')">
           <v-list-item-title>Выйти<v-icon end icon="mdi-close" size="x-small" /></v-list-item-title>
         </v-list-item>
       </v-list>
@@ -39,7 +39,7 @@
               <v-tooltip v-if="rail" activator="parent" location="right">{{ item.title }}</v-tooltip>
             </v-list-item>
           </template>
-          <v-list-item v-for="el in item.childs" @click="() => { rail = railPrev; navigateTo(el.getPagePath()); }"
+          <v-list-item v-for="el in item.childs" @click="() => { rail = railPrev; navTo(el.getPagePath()); }"
             style="padding-inline-start: 50px !important;">
             <v-icon :icon="el.icon" size="x-small" start color="secondary"></v-icon>
             <v-list-item-title class="text-body-2 d-inline">
@@ -48,7 +48,7 @@
           </v-list-item>
         </v-list-group>
         <v-list-item v-else :prepend-icon="item.icon" :title="item.title" :value="item.title" :active="false"
-          @click="() => { rail = railPrev; navigateTo(item.getPagePath()); }">
+          @click="() => { rail = railPrev; navTo(item.getPagePath()); }">
           <v-tooltip v-if="rail" activator="parent" location="right">{{ item.title }}</v-tooltip>
         </v-list-item>
       </template>
@@ -57,7 +57,7 @@
   <!--Закрепленные страницы-->
   <v-row justify="start" class="ma-0 bg-tertiary" style="height: 40px !important;">
     <v-col v-for="(selection, i) in pages" :key="selection.title" cols="auto" class="py-1 pe-0">
-      <v-chip closable class="bg-secondary ma-0" @click="navigateTo(selection.link)"
+      <v-chip closable class="bg-secondary ma-0" @click="navTo(selection.link)"
         @click:close="pages.splice(i, 1), pages.find(e => e.title == currPageTitle) ? currPin = false : currPin = true">
         {{ selection.title }}
       </v-chip>
@@ -124,6 +124,7 @@ import ToastComponent from '~/components/ToastComponent.vue'
 import { EMessageType } from '~~/lib/globalTypes';
 import { h, markRaw } from 'vue'
 import { type RouteLocationNormalizedLoaded } from 'vue-router';
+import path from 'path';
 
 
 
@@ -370,6 +371,16 @@ let userData = currUser.EmployeeData!;
 let currUserName = userData.name;
 let userInitials = userData.surname + ' ' + (userData.name[0].toUpperCase()) + '.' + (userData.patronymic ? userData.patronymic[0] + '.' : '');
 
+
+const navTo = (path: string) => {
+  if (pageObj.value && route.path != path) {
+    onBeforePageDeactivate(path);
+  }
+
+  navigateTo(path);
+}
+
+
 const getEventsHandler = () => {
   if (dialogFormsInx > 0) {
     const eventsHandler = dialogForms.value[dialogFormsInx - 1].eventsHandler;
@@ -393,12 +404,21 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 
+const onBeforePageDeactivate = (nextPath: string) => {
+  let handled = false;
+  const handler = getEventsHandler();
+  if (handler)
+    handled = handler("onBeforePageDeactivate", nextPath);
+}
+
+
 const onPageActivate = (route: RouteLocationNormalizedLoaded) => {
   let handled = false;
   const handler = getEventsHandler();
   if (handler)
     handled = handler("onPageActivate", route);
 }
+
 
 watch(rail, () => {
   if (rail && !input.value)

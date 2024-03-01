@@ -27,14 +27,12 @@ export class ScheduleItemData extends ApiRecordChData {
   }
 }
 
+
+@injectable()
 export class ScheduleItemRecord extends ApiRecord<ScheduleItemData> {
   static RightToken = "dbScheduleItem";
   static RecCode = 1026;
   static BatchGetRecDataPath="/Schedule/GetScheduleItems";
-
-  constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-    super(_MoApiClient, __UserContext, _RecStore, ScheduleItemRecord, Key);
-  }
 
   get RecCode() {
     return ScheduleItemRecord.RecCode;

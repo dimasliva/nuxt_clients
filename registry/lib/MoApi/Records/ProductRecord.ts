@@ -4,7 +4,10 @@ import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import PricesEntity from "./DataEntities/PricesEntity";
 import type { RecordsStore } from "./RecordsStore";
-import { injectable } from "inversify";
+import { injectable, inject } from "inversify";
+import { EWellKnownPageCaches, type PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
+import type { ProductCache } from "~/lib/Cache/ProductCache";
+
 
 @injectable()
 export class ProductRecordData extends ApiRecordChData {
@@ -26,15 +29,20 @@ export class ProductRecordData extends ApiRecordChData {
   }
 }
 
+
+@injectable()
 export class ProductRecord extends ApiRecord<ProductRecordData> {
   static RightToken = "dbProduct";
   static RecCode = 1024;
-  static BatchGetRecDataPath="/Products/GetProducts";
+  static BatchGetRecDataPath = "/Products/GetProducts";
 
 
-
-  constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-    super(_MoApiClient, _UserContext, _RecStore, ProductRecord, Key);
+  constructor(
+    @inject("MoApiClient") _MoApiClient: MoApiClient,
+    @inject("UserContext") _UserContext: UserContext,
+    @inject("PageCacheStore") protected _PageCacheStore: PageMemoryCacheStore,
+  ) {
+    super(_MoApiClient, _UserContext);
   }
 
   get RecCode() {
@@ -45,12 +53,16 @@ export class ProductRecord extends ApiRecord<ProductRecordData> {
     return this._RecStore.dataEntityFactory(ProductRecordData, null, this.Key);
   }
 
-  protected async _loadData() {
-    const arr = await this._MoApiClient.send<any, any>(this._getApiRecordPathGet(), this._Key);
-    this._Data = new Proxy(<ProductRecordData>arr, this._getProxyHanlders());
-    this._ModifiedData = new Proxy(<ProductRecordData>arr, this._getModifingProxyHanlders());
-    return this._Data;
+
+  override async save() {
+    await super.save();
+
+    const pcache=this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.Products) as ProductCache;
+    pcache.setValueByRec(this);
+    //setValueByRec
   }
+
+
 
   protected _getApiRecordPathGet = () => "/Products/GetProducts";
 

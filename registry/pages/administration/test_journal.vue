@@ -5,7 +5,7 @@
       :cell-click-hold="false" :time-to="21 * 60" :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded"
       v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
       :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
-      :events="currView === 'month' ? monthView : events" :split-days="employeesArr" :sticky-split-labels="true"
+      :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
       events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false" :time-from="6 * 60"
       @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate" :max-date="monthViewMaxDate">
       <template #title="{ title, view }">
@@ -60,7 +60,8 @@
                     }}</v-btn>
                   </v-card-actions>
                 </v-card>
-              </v-menu></v-text-field>
+              </v-menu>
+            </v-text-field>
             <!-- @click="openDialog(FinderFormMultipleTemplate, { diC: null, title: 'Поиск', finderDataProvider: finderDataProvider, historyResultTypeStorage: 1, apiRequestTimeout: 1000 })" -->
 
             <v-combobox v-model="selectedSchedulerItemGroup" density="compact" label="Раздел расписания"
@@ -81,7 +82,8 @@
             </v-expand-transition>
 
             <v-combobox chips closable-chips multiple v-model="employees" density="compact" label="Сотрудник"
-              :loading="empLoad" :items="employeesArr" item-title="title" item-value="id" variant="underlined" @click=" products.length || selectedSchedulerItemGroup ? false : openDialog(SearchProductDilaog, {
+              @update:menu="filterDays($event)" :loading="empLoad" :items="employeesArr" item-title="title"
+              item-value="id" variant="underlined" @click=" products.length || selectedSchedulerItemGroup ? false : openDialog(SearchProductDilaog, {
                 title: 'Поиск сотрудника', full: 'Выбрать из списка сотрудников', text_field: 'Иванов Иван Иванович', reqAction: searchEmployee, prices:
                   false, action: (e) => { employees = e }
               })"></v-combobox>
@@ -121,6 +123,8 @@ import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/Schedule
 import FinderFormMultipleTemplate from '~/components/forms/FinderFormMultiple.vue';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
+import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
+import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -155,12 +159,7 @@ let products = ref<ProductRecordData[]>([])
 let productsArr = ref<any>([])
 let employees = ref<any>([])
 let employeesArr = ref<any>([])
-// employeesArr = ref([
-//   { id: 1, class: ' font-weight-thin text-caption', specialist: "кардиолог", title: "Бобров А.В.", },
-//   { id: 2, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Александров Б.Ю.", },
-//   { id: 3, class: ' font-weight-thin text-caption', specialist: "гастроэнтеролог", title: "Рязанцев М.В.", },
-//   { id: 4, class: ' font-weight-thin text-caption', specialist: "терапевт", title: "Арсеньтьев Н.В.", }
-// ])
+let positions = ref<any>([])
 let quantum = ref(60)
 let currEvent = ref<any>(null)
 let division = ref<any>()
@@ -179,7 +178,6 @@ let monthViewMinDate = ref<any>(new Date())
 let monthViewMaxDate = ref<any>('')
 let selDate = ref(monthViewMinDate.value)
 let dateRange = ref('')
-let timespans = ref<any>([])
 let currRangeData = ref<any>()
 let prodsLoad = ref(false)
 let schdLoad = ref(false)
@@ -217,7 +215,6 @@ const openPopUp = (day_time: ScheduleEvent) => {
 }
 
 const clearCurrrange = () => {
-  console.log('work')
   minDate.value = '';
   maxDate.value = '';
 }
@@ -378,12 +375,18 @@ const getScheduleByItemGroup = async () => {
     currRangeData.value = res.bodyData
     buildMonthScheduler(sch);
     let prods: any = [];
+    let empls: any = [];
     Object.values(sch).flat().map((el: any) => {
       prods.push(el.products)
-      timespans.value.push(el.timespan)
+      empls.push(el.position)
     });
     prods = Array.from(new Set(prods.flat()))
     productsArr.value = await getProductsList(prods)
+    empls = Array.from(new Set(empls))
+    employeesArr.value = Array.from(await getEmployeeList(empls))
+    employeesArr.value.map((empl) =>
+      empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
+    )
   }
 }
 
@@ -393,6 +396,19 @@ const getProductsList = async (k) => {
     return { id: { key: i, type: ProductRecord } }
   }));
   return recs.map((i) => i.MData)
+}
+
+const getEmployeeList = async (k) => {
+  let keys = k.map((id) => id.replaceAll(`'`, `"`))
+  let recs = await recStore.getRecordsM(keys.map((i) => {
+    return { id: { key: i, type: PositionRecord } }
+  }));
+  positions.value = Array.from(recs.map(i => i.MData))
+  let emplsRec = recs.map(i => i.MData).map((el: any) => el.employee.replaceAll(`'`, `"`))
+  emplsRec = await recStore.getRecordsM(emplsRec.map((i) => {
+    return { id: { key: i, type: EmployeeRecord } }
+  }));
+  return emplsRec.map(i => i.MData)
 }
 
 const buildMonthScheduler = (ts) => {
@@ -412,16 +428,25 @@ const buildMonthScheduler = (ts) => {
         let dayTimeSpanNext = nextItem ? timeOfDay(nextItem.timespan.time) : null;
         let isSameDayTime = dayTimeSpan == dayTimeSpanNext
 
-        if (products.value.length > 0) {
-          if (hasProdInTimes(products.value, item)) {
+        const adderFunc = (cond: boolean) => {
+          if (cond) {
             quantity++
             list = listOfProds(list, item);
+            console.log('only prods')
           }
           if (!isSameDayTime) {
             monthViewSet.add(new ScheduleEvent(date, date, item.products, dayTimeSpan + ': ' + quantity))
             quantity = 0
             list = []
           }
+        }
+
+        if (products.value.length > 0 && !(employees.value.length > 0)) {
+          adderFunc(hasProdInTimes(products.value, item))
+        } else if (employees.value.length > 0 && !(products.value.length > 0)) {
+          adderFunc(hasEmplsInTimes(employees.value, item))
+        } else if (products.value.length > 0 && employees.value.length > 0) {
+          adderFunc(hasEmplsInTimes(employees.value, item) && hasProdInTimes(products.value, item))
         } else {
           quantity++
           list = listOfProds(list, item);
@@ -451,6 +476,7 @@ const listOfProds = (arr, i) => {
 
 let durationCondition = ref<number | null>(null)
 
+const hasEmplsInTimes = (arr, i) => positions.value.some((pos) => arr.some(empl => empl.id === pos.employee) && pos.id === i.position);
 const hasProdInTimes = (arr, i) => arr.some(prod => i.products?.includes(prod.id!) && (prod.duration <= (durationCondition.value ? durationCondition.value : i.timespan.duration)));
 
 const timeOfDay = (mins: number) => {
@@ -474,8 +500,6 @@ const filterDays = (opened: boolean) => {
 const filterProducts = (opened: boolean) => {
   if (!opened) {
     if (productsDuration.value == 'short') {
-      // products.value.reduce((x, y) => Math.min(x.duration, y.duration));
-      // const minDuration = products.value.reduce((min, item) => item.duration < min ? item.duration : min, products.value[0].duration);
       let min = products.value[0].duration;
       for (const item of products.value) {
         if (item.duration < min) {

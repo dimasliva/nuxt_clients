@@ -18,14 +18,11 @@ export class ScheduleItemGroupData extends ApiRecordChData {
   advData: string | null = null;
 }
 
+@injectable()
 export class ScheduleItemGroupRecord extends ApiRecord<ScheduleItemGroupData> {
   static RightToken = "dbScheduleItemGroup";
   static RecCode = 1035;
   static BatchGetRecDataPath="/Schedule/GetScheduleItemGroups";
-
-  constructor(protected _MoApiClient: MoApiClient, protected __UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-    super(_MoApiClient, __UserContext, _RecStore, ScheduleItemGroupRecord, Key);
-  }
 
   get RecCode() {
     return ScheduleItemGroupRecord.RecCode;

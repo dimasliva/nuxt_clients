@@ -6,9 +6,15 @@ export function useScroll(refDt: Ref<any>) {
     let scrollY = 0;
     let scrollX = 0;
 
+
+    const getElement = () => {
+        let childrenArr = Array.from(refDt.value.$el.children) as any[];
+        return childrenArr.find(item => item.className.includes("v-table"));
+    }
+
     const restoreScrolls = () => {
         if (refDt.value) {
-            let el = refDt.value.$el.children[0];
+            let el = getElement();
             el.scroll(scrollX, scrollY);
         }
     }
@@ -16,9 +22,22 @@ export function useScroll(refDt: Ref<any>) {
 
     const scrollTo = (x: number, y: number) => {
         if (refDt.value) {
-            let el = refDt.value.$el.children[0];
+            let el = getElement();
             el.scroll(x, y);
         }
+    }
+
+
+    const getCurrScrollPos = () => {
+        if (refDt.value) {
+            let el = getElement();
+            if (el) {
+                scrollY = el.scrollTop;
+                scrollX = el.scrollLeft;
+                return { scrollTop: el.scrollTop, scrollLeft: el.scrollLeft }
+            }
+        }
+        return null;
     }
 
 
@@ -32,13 +51,18 @@ export function useScroll(refDt: Ref<any>) {
     watch(refDt, () => {
         //костыль c прокруткой. Если вешать onscroll на другие элементы, то событие не вызывается
         if (refDt.value) {
-            let el = refDt.value.$el.children[0];
-            el.onscrollend = (e) => {
-                scrollY = el.scrollTop;
-                scrollX = el.scrollLeft;
+            let el = getElement();
+            if (el) {
+                el.onscrollend = (e) => {
+                    scrollY = el.scrollTop;
+                    scrollX = el.scrollLeft;
+                }
             }
         }
     });
 
-    return { scrollTo, restoreScrolls }
+
+
+
+    return { scrollTo, restoreScrolls, getCurrScrollPos }
 }

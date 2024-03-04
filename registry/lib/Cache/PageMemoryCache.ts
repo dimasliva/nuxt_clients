@@ -188,13 +188,18 @@ export class Page {
 
 
     isLoaded() {
-        return this._lastUpdate == null;
+        return this._lastUpdate != null;
     }
 
 
     setLoaded() {
         if (!this._lastUpdate)
             this._lastUpdate = new Date();
+    }
+
+
+    getKey(){
+        return this._key;
     }
 }
 

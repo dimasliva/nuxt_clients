@@ -18,6 +18,7 @@ export class ClientSdRecordData extends ApiRecordChData {
 }
 
 
+@injectable()
 export class ClientSdRecord extends ApiRecord<ClientSdRecordData>{
 
     static RightToken = "dbClientSd";
@@ -27,11 +28,7 @@ export class ClientSdRecord extends ApiRecord<ClientSdRecordData>{
 
     protected _photoFl: FilelinkRecord | null = null;
 
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, ClientSdRecord, Key);
-    }
-
-
+  
     get RecCode() { return ClientSdRecord.RecCode; }
 
 

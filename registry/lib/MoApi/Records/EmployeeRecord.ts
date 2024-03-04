@@ -31,7 +31,7 @@ export enum EEmployeeAccountStatus {
 }
 
 
-
+@injectable()
 export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     static RightToken = "dbEmployee";
@@ -41,10 +41,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     protected _photoFl: FilelinkRecord | null = null;
 
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, EmployeeRecord, Key);
-    }
-
+    
     get RecCode() { return EmployeeRecord.RecCode; }
 
 

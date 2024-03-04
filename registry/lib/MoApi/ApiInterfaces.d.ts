@@ -6,7 +6,7 @@
 
  export interface 	IFullRecordIdT<T> {
    key:string;
-   type: Class<T>;
+   type: InitializableClass<T>;
  }
 
 export interface 	IFullRecordId {

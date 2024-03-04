@@ -12,12 +12,13 @@
     "@mdi/font": "^7.4.47",
     "@nuxtjs/i18n": "^8.0.0",
     "@types/node": "^20.11.17",
+    "@types/uuid": "^9.0.8",
     "@vueuse/core": "^10.7.2",
     "@vueuse/nuxt": "^10.7.2",
     "h3": "^1.10.1",
-    "nuxt": "^3.10.1",
+    "nuxt": "^3.10.3",
     "sass": "^1.70.0",
-    "vue": "3.4.15",
+    "vue": "3.4.20",
     "vue-tsc": "^1.8.27"
   },
   "dependencies": {
@@ -29,10 +30,12 @@
     "inversify-inject-decorators": "^3.1.0",
     "maska": "^2.1.11",
     "reflect-metadata": "^0.2.1",
+    "sip.js": "^0.21.2",
+    "uuid": "^9.0.1",
     "v-phone-input": "^4.1.2",
     "vite-plugin-vuetify": "^2.0.1",
     "vue-cal": "^4.8.1",
     "vue-sonner": "^1.0.3",
-    "vuetify": "^3.5.3"
+    "vuetify": "^3.5.6"
   }
 }

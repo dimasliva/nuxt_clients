@@ -28,15 +28,12 @@ export class ClientDocumentsRecordData extends ApiRecordChData {
 }
 
 
+@injectable()
 export class ClientDocumentsRecord extends ApiRecord<ClientDocumentsRecordData>{
 
     static RightToken = "dbClientDocuments";
     static RecCode = 1012;
     static BatchGetRecDataPath="/Clients/GetClientDocuments";
-
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, ClientDocumentsRecord, Key);
-    }
 
 
     get RecCode() { return ClientDocumentsRecord.RecCode; }

@@ -13,14 +13,11 @@ export class CompanyRecordData extends ApiRecordChData {
 }
 
 
+@injectable()
 export class CompanyRecord extends ApiRecord<CompanyRecordData>{
 
     static RightToken = "dbCompany";
     static RecCode = 1001;
-
-    constructor(protected _MoApiClient: MoApiClient, protected _UserContext: UserContext, _RecStore: RecordsStore, Key: string) {
-        super(_MoApiClient, _UserContext, _RecStore, CompanyRecord, Key);
-    }
 
 
     get RecCode() { return CompanyRecord.RecCode; }

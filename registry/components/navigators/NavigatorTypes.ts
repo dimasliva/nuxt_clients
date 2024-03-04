@@ -34,6 +34,7 @@ export interface INavPathItem {
     key: string;
     title: string;
     tag?: any;
+    innerData?: any;
 }
 
 
@@ -53,7 +54,7 @@ export interface INavigatorContent {
     columns?: INavColumn[];
     rows: INavRow[];
     visibleCols?: string[];
-    onRowClick?: (level: number, currPathItem: INavPathItem, row: INavRow) => Promise<void>;
+    onRowClick?: (level: number, currPathItem: INavPathItem, row: INavRow, index?: number) => Promise<void>;
     actionsMenu?: INavRowActionMenuItem[];
     pathInfo: INavPathItem;
 }

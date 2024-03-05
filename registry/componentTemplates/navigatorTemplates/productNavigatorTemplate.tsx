@@ -37,7 +37,9 @@ type TFilterVals = {
 
 interface IProductNavRow extends INavRow {
     comments?: string | null | undefined;
+    code?: string | null | undefined;
 }
+
 
 
 export class ProductNavigatorTemplate {
@@ -223,13 +225,16 @@ export class ProductNavigatorTemplate {
     async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) {
 
         if (nextlevel <= 1) {
+            //каталоги товаров и услуг
             return {
                 pathInfo: { key: "0", title: "Прайсы", tag: "catalogs" } as INavPathItem,
-                columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" }],
-                visibleCols: ["comments"],
+                columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" },
+                          { key: "code", align: 'center', width: "150", sortable: true, title: "Код" }],
+                visibleCols: ["code","comments"],
                 actionsMenu: [{
-                    id: "update",
-                    title: "Обновить",
+                    id: "addCatalog",
+                    icon: "mdi-folder-plus",
+                    title: "Добавить каталог",
                     action: internalRowItem => this.onUpdate()
                 }],
                 rows: this._productCatalogRecs.value?.map((prodCatRec) => {
@@ -240,10 +245,11 @@ export class ProductNavigatorTemplate {
                         },
                         id: prodCatRec.Key,
                         title: prodCatRec.Data!.title,
-                        comments: prodCatRec.Data!.comments || ""
+                        comments: prodCatRec.Data!.comments || "",
+                        code: prodCatRec.Data!.code || ""
                     }
                 }) || []
-            }
+            } as INavigatorContent
         }
         else {
             const sectCache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.ProductCatalogSections) as ProductCatalogSectionCache;
@@ -253,8 +259,10 @@ export class ProductNavigatorTemplate {
             let nextId: string;
 
             if (row) {
+                //переход в подкаталог в навигаторе
                 nextId = row.id;
                 if (row.$mdata.tag == "catalog") {
+                    //переход в каталог товаров и услуг
                     pathInfo = {
                         key: row!.id,
                         title: (await this._RecordsStore.fetch(ProductsCatalogRecord, row!.id)).Data!.title,
@@ -262,6 +270,7 @@ export class ProductNavigatorTemplate {
                     }
                 }
                 else {
+                     //переход в раздел каталога товаров и услуг
                     pathInfo = {
                         key: row!.id,
                         title: (await sectCache.getOrCreate(row!.id)).title || "",
@@ -270,6 +279,7 @@ export class ProductNavigatorTemplate {
                 }
             }
             else {
+                //переход в вышестоящий каталог
                 pathInfo = currPath![nextlevel - 1];
                 nextId = pathInfo.key;
             }
@@ -277,14 +287,36 @@ export class ProductNavigatorTemplate {
             const res: INavigatorContent = {
                 filterTitle: "Фильтр по наименованию товара или услуги",
                 pathInfo,
-                columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" }],
-                visibleCols: ["comments"],
-                actionsMenu: [],
+                columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" },
+                          { key: "code", align: 'start', width: "150", sortable: true, title: "Код" }],
+                visibleCols: ["code", "comments"],
+                actionsMenu: [{
+                    id: "addSection",
+                    icon: "mdi-folder-plus",
+                    title: "Добавить раздел",
+                    action: internalRowItem => this.onUpdate()
+                },
+                {
+                    id: "addProduct",
+                    icon: "mdi-file-plus-outline",
+                    title: "Добавить товар или услугу",
+                    action: internalRowItem => this.onUpdate()
+                },
+                (selected)=>{
+                    return {
+                        id: "delSelProduct",
+                        icon: "mdi-file-plus-outline",
+                        title: "Удалить выбранное",
+                        action: internalRowItem => this.onUpdate()
+                    }
+                }
+                
+            ],
                 rows: [],
-                onRowClick: (...args)=>this.onRowClick(...args)
+                onRowClick: (...args) => this.onRowClick(...args)
             }
 
-
+            //сначала добавляются разделы каталолга
             const sectIter = await sectCache.getKeysIteratorInPage(nextId);
 
             if (sectIter)
@@ -299,11 +331,13 @@ export class ProductNavigatorTemplate {
                             getRowActionsMenu: () => [],
                         },
                         id: item,
-                        title: sectData.title || ""
+                        title: sectData.title || "",
+                        code: sectData.code || "",
                     }
                     res.rows.push(row);
                 }
 
+             // добавляются товары и услуги
             const prodIter = await prodCache.getKeysIteratorInPage(nextId);
 
             if (prodIter)
@@ -322,7 +356,8 @@ export class ProductNavigatorTemplate {
                         },
                         id: item,
                         title: prodData.title || "",
-                        comments: prodData.comments
+                        comments: prodData.comments,
+                        code: prodData.code || "",
                     }
                     res.rows.push(row);
                 }
@@ -345,7 +380,7 @@ export class ProductNavigatorTemplate {
                     {
                         (() => {
                             const dt = <Navigator ref={this._RefNavigator} v-model:filterValue={this._titleFilter.value}
-                                onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[], row: INavRow) =>
+                                onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) =>
                                     this.onNavigate(level, nextlevel, currPath, row)} />;
 
                             //return h(KeepAlive, dt);

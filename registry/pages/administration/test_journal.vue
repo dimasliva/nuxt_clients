@@ -27,11 +27,18 @@
           </v-card>
         </v-menu>
         <v-tooltip location="end" activator="parent">
-          <v-list density="compact" variant="text" bg-color="#FFFFFF00">
-            <v-list-item v-for="(item) in prodsList">
-              <v-list-item-title>{{ item.title }}: {{ item.quantity }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
+          <v-card density="compact" variant="outlined">
+            <v-card-title>
+              {{ prodListTitle }}
+            </v-card-title>
+            <v-card-text>
+              <v-list density="compact" variant="text" bg-color="#FFFFFF00">
+                <v-list-item v-for="(item) in prodsList">
+                  <v-list-item-title>{{ item.title }}: {{ item.quantity }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+          </v-card>
         </v-tooltip>
       </template>
     </wt>
@@ -48,7 +55,7 @@
                   <v-card-text class="pa-1">
                     <vue-cal id="datapicker" class="vuecal--date-picker" xsmall hide-view-selector :time="false"
                       active-view="month" :disable-views="['day', 'week', 'years']" locale="ru" :min-date="minDate"
-                      :max-date="maxDate" @cell-click="changeDate($event)" @view-change="onDatePicker()"
+                      :max-date="maxDate" @cell-click="changeDate($event)"
                       style="width: 300px; min-height: 230px; background-color: white; border-radius: 10px; text-align: center;">
                     </vue-cal>
                   </v-card-text>
@@ -62,9 +69,9 @@
                 </v-card>
               </v-menu>
             </v-text-field>
-            <!-- @click="openDialog(FinderFormMultipleTemplate, { diC: null, title: 'Поиск', finderDataProvider: finderDataProvider, historyResultTypeStorage: 1, apiRequestTimeout: 1000 })" -->
 
             <v-combobox v-model="selectedSchedulerItemGroup" density="compact" label="Раздел расписания"
+              @click="openDialog(FinderFormMultipleTemplate, { diC: null, title: 'Поиск', finderDataProvider: finderDataProvider, historyResultTypeStorage: 1, apiRequestTimeout: 1000 })"
               :loading="schdLoad" :items="schedulerItemGroups" item-title="title" variant="underlined"
               :disabled="(!!employees.length && !selectedSchedulerItemGroup?.title) || (!!products.length && !selectedSchedulerItemGroup?.title)"></v-combobox>
 
@@ -185,6 +192,7 @@ let empLoad = ref(false)
 let productsDuration = ref()
 let isProdsList = ref(false)
 let prodsList = ref<any>([])
+let prodListTitle = ref<any>('')
 
 finderDataProvider.init("serachSchedulerItemGroups", true, EDictionaries.CompanyPositions)
 
@@ -207,11 +215,24 @@ const openCurrDay = (ev) => {
   endSelectedCell.value = ev.end.formatTime('H');
 }
 
+// const openPopUp = (day_time: ScheduleEvent) => {
+//   day_time.products.map((product) => {
+//     product.title = productsArr.value.find((prod) => prod.id === product.id).title
+//   })
+//   prodsList.value = day_time.products
+// }
 const openPopUp = (day_time: ScheduleEvent) => {
+  prodsList.value = []
+  prodListTitle.value = day_time.start.format('DD.MM.YYYY');
   day_time.products.map((product) => {
-    product.title = productsArr.value.find((prod) => prod.id === product.id).title
-  })
-  prodsList.value = day_time.products
+    const foundProduct = productsArr.value.find((prod) => prod.id === product.id);
+    console.log(product)
+    if (foundProduct !== undefined) {
+      product.title = foundProduct.title;
+      prodsList.value.push(product);
+    }
+  });
+
 }
 
 const clearCurrrange = () => {
@@ -236,68 +257,59 @@ const monthViewDates = (b: boolean) => {
 }
 
 const changeDate = (date) => {
-  if (rangeSelected.value) {
-    if (minDate.value && maxDate.value) {
-      rangeSelected.value = false;
-      minDate.value = '';
-      maxDate.value = '';
-      onDatePicker();
-    }
+  if (minDate.value) {
+    minDate.value = '';
+    maxDate.value = '';
   } else {
-    if (!minDate.value) {
-      minDate.value = date;
-      onDatePicker();
-    } else {
-      maxDate.value = date;
-      rangeSelected.value = true;
-      onDatePicker();
-    }
+    minDate.value = new Date(date);
+    maxDate.value = new Date(date);
+    maxDate.value.setDate(maxDate.value.getDate() + 30)
   };
 }
 
 // css стилизация для отображения выбранного диапазона
-const onDatePicker = () => {
-  let cells: HTMLElement[] = []
-  setTimeout(() => {
-    let datapicker = document.getElementById('datapicker');
-    let selectedRange: HTMLElement[];
-    cells = Array.from(datapicker!.querySelectorAll('.vuecal__cell'));
+// const onDatePicker = () => {
+//   let cells: HTMLElement[] = []
+//   setTimeout(() => {
+//     let datapicker = document.getElementById('datapicker');
+//     let selectedRange: HTMLElement[];
+//     cells = Array.from(datapicker!.querySelectorAll('.vuecal__cell'));
 
-    if (minDate.value) {
-      cells.forEach((day: HTMLElement) => {
-        if (!day.className.includes('before-min')) {
-          day.classList.add('date-picker-month');
-        } else {
-          day.classList.remove('date-picker-month');
-        }
-      })
-      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-      selectedRange[0].classList.add('first-day-pick');
-    }
-    if (maxDate.value) {
-      cells.forEach((day: HTMLElement) => {
-        if (!day.className.includes('before-min') && !day.className.includes('after-max')) {
-          day.classList.add('date-picker-month');
-        } else {
-          day.classList.remove('date-picker-month');
-        }
-      })
-      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-      selectedRange[selectedRange.length - 1].classList.add('last-day-pick')
-    }
-    if (!minDate.value && !maxDate.value && rangeSelected.value) {
+//     if (minDate.value) {
+//       cells.forEach((day: HTMLElement) => {
+//         if (!day.className.includes('before-min')) {
+//           day.classList.add('date-picker-month');
+//         } else {
+//           day.classList.remove('date-picker-month');
+//         }
+//       })
+//       selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
+//       selectedRange[0].classList.add('first-day-pick');
+//     }
+//     if (maxDate.value) {
+//       cells.forEach((day: HTMLElement) => {
+//         if (!day.className.includes('before-min') && !day.className.includes('after-max')) {
+//           day.classList.add('date-picker-month');
+//         } else {
+//           day.classList.remove('date-picker-month');
+//         }
+//       })
+//       selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
+//       selectedRange[selectedRange.length - 1].classList.add('last-day-pick')
+//     }
+//     if (!minDate.value && !maxDate.value && rangeSelected.value) {
 
-      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-      selectedRange[0].classList.remove('first-day-pick');
-      selectedRange[selectedRange.length - 1].classList.remove('last-day-pick');
+//       selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
+//       selectedRange[0].classList.remove('first-day-pick');
+//       selectedRange[selectedRange.length - 1].classList.remove('last-day-pick');
 
-      cells.forEach((day: HTMLElement) => {
-        day.classList.remove('date-picker-month');
-      })
-    }
-  }, 100)
+//       cells.forEach((day: HTMLElement) => {
+//         day.classList.remove('date-picker-month');
+//       })
+//     }
+//   }, 100)
 
-}
+// }
 
 const searchEmployee = async (txt: string) => {
   let reqStr = '';
@@ -432,10 +444,9 @@ const buildMonthScheduler = (ts) => {
           if (cond) {
             quantity++
             list = listOfProds(list, item);
-            console.log('only prods')
           }
           if (!isSameDayTime) {
-            monthViewSet.add(new ScheduleEvent(date, date, item.products, dayTimeSpan + ': ' + quantity))
+            monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan + ': ' + quantity))
             quantity = 0
             list = []
           }
@@ -543,7 +554,7 @@ const clearFilters = () => {
 
 
 const onViewChange = ({ view }) => {
-  if (view === 'month' && !maxDate.value) {
+  if (view === 'month') {
     let cells: any = []
     setTimeout(() => {
       cells = Array.from(document.querySelectorAll('.vuecal__cell'))

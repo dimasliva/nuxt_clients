@@ -19,10 +19,11 @@
                         <template v-slot:prepend>
                             <v-btn color="primary" variant="text" icon="mdi-folder-upload" :disabled="path.length <= 1"
                                 @click="async () => {
+                                    const stateInfo = path[path.length - 2].innerData;
                                     content = await onNavigate(path.length, path.length - 1, path, null);
                                     path.pop();
                                     path[path.length - 1] = content.pathInfo;
-                                    setPageStateInfo(content.pathInfo.innerData);
+                                    setPageStateInfo(stateInfo);
                                 }" />
                         </template>
 
@@ -30,10 +31,11 @@
                         <template v-slot:item="props">
                             <li class="v-breadcrumbs-item"><a class="v-breadcrumbs-item--link" href="#" @click.prevent="async () => {
                                 if (path.length != props.index + 1) {
+                                    const stateInfo = path[props.index].innerData;
                                     content = await onNavigate(path.length, props.index + 1, path, null);
                                     path.splice(props.index + 1);
                                     path[path.length - 1] = content.pathInfo;
-                                    setPageStateInfo(content.pathInfo.innerData);
+                                    setPageStateInfo(stateInfo);
                                 }
                             }">
                                     {{ props.item.title }}</a></li>
@@ -94,8 +96,9 @@
 
                     <template v-slot:default="{ isActive }">
                         <v-list @mouseleave="(e) => { isActive.value = false }">
-                            <v-list-item v-for="action in content.actionsMenu" @click-once="() => action.action(props)">
-                                <v-icon v-if="action.icon" :icon="action.icon" size="x-small" />
+                            <v-list-item v-for="action in commonTableMenu" @click-once="() => action.action(props)">
+                                <v-icon v-if="action.icon" :icon="action.icon" color="primary" />
+                                &nbsp
                                 {{ action.title }}
                             </v-list-item>
                         </v-list>
@@ -274,6 +277,48 @@ const _columns = computed(() => {
 });
 
 
+//т.к. из компонента datatable без модификации компонентиа нет возможности вытащить отсортированные строки, то сортируем строки сами по аналогичному принципу что в datatable
+const getSortedRows = () => {
+    if (sortBy.value.length == 0)
+        return content.value?.rows;
+
+    const comparer = getSortComparer(sortBy.value[0].key);
+    const direct = sortBy.value[0].order == "desc" ? -1 : 1;
+    return content.value?.rows.map(item => item).sort((a, b) => comparer(a, b) * direct);
+}
+
+
+const goToRowByKey = (key: string) => {
+    const sortedRows = getSortedRows();
+    if (!sortedRows)
+        return;
+    const inx = sortedRows.findIndex(item => item.id == key);
+    if (inx == -1)
+        return;
+    const page = Math.floor(inx / itemsPerPage.value) + 1;
+    currentPage.value = page;
+    nextTick(() => {
+        const element = document.getElementById(getUniqueId(key));
+        if (element) {
+            element.scrollIntoView({ block: "center" });
+            lineSelected.value = key;
+        }
+    });
+}
+
+//отслеживание сортировки для перехода на выделенную строку
+watch(sortBy, () => {
+    if (lineSelected.value)
+        goToRowByKey(lineSelected.value);
+});
+
+//отслеживание изменения строк на странице для перехода на выделенную строку
+watch(itemsPerPage, () => {
+    if (lineSelected.value)
+        goToRowByKey(lineSelected.value);
+});
+
+
 
 const _headersMap = computed(() => {
 
@@ -307,6 +352,8 @@ const addCurrPage = (step: number) => {
 const onUpdate = async () => {
     content.value = await props.onNavigate(path.value.length, path.value.length, path.value, null);
     path.value[path.value.length - 1] = content.value.pathInfo;
+    if (lineSelected.value)
+        goToRowByKey(lineSelected.value);
 }
 
 
@@ -353,13 +400,6 @@ const setPageStateInfo = (info: TPageStateInfo | null) => {
         nextTick(() => {
             scrollTo(info.sx || 0, info.sy || 0);
         })
-
-        /*
-        nextTick(() => {
-            const element = document.getElementById(getUniqueId('40335a09-e7f7-4517-8cc8-4fdc71d24a02'));
-            if (element) element.scrollIntoView({ block: "center" });
-        })
-        */
     }
 }
 
@@ -434,6 +474,25 @@ const onFilterTextInput = () => {
 }
 
 
+//Формирование общего меню таблицы
+const commonTableMenu = computed(() => {
+    let res: any[] = [];
+    if (content.value?.actionsMenu)
+        for (let item of content.value?.actionsMenu) {
+            if (typeof item == "object")
+                res.push(item);
+            else
+                if (typeof item == "function") {
+                    const menuitem = item(selected.value);
+                    if (menuitem)
+                        res.push(menuitem);
+                }
+        }
+    return res;
+});
+
+
+
 const eventsHandler = (e: string, d: any) => {
     switch (e) {
         case "onKeydown":
@@ -467,9 +526,9 @@ const eventsHandler = (e: string, d: any) => {
 
             break;
 
-            case "onBeforePageDeactivate":
-                getCurrScrollPos();
-                break;
+        case "onBeforePageDeactivate":
+            getCurrScrollPos();
+            break;
     }
     return false;
 };

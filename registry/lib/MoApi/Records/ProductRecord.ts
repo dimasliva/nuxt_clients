@@ -57,7 +57,7 @@ export class ProductRecord extends ApiRecord<ProductRecordData> {
   override async save() {
     await super.save();
 
-    const pcache=this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.Products) as ProductCache;
+    const pcache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.Products) as ProductCache;
     pcache.setValueByRec(this);
     //setValueByRec
   }

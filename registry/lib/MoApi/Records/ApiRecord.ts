@@ -91,9 +91,9 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   ) { }
 
 
-  init(RecStore: RecordsStore, RecType: Class<ApiRecord>, Key: string) {
+  init(RecStore: RecordsStore, RecType: Class<ApiRecord>, Key?: string | null) {
     this._RecordType = RecType;
-    this._Key = Key;
+    this._Key = Key!;
     this._RecStore = RecStore;
     return this;
   }

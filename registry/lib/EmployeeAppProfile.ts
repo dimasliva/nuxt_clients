@@ -20,6 +20,12 @@ export class EmployeeAppProfile extends AppProfile {
             pageSettings: {},
             compSettings: {}
         });
+
+        if (!this._profile.pageSettings)
+            this._profile.pageSettings = {};
+
+        if (!this._profile.compSettings)
+            this._profile.compSettings = {};
     }
 
 
@@ -36,14 +42,14 @@ export class EmployeeAppProfile extends AppProfile {
 
 
 
-    getPropOfSection(sectionName: EEmployeeAppProfileSections, propName: string) {
-        const sect = this.getSection(sectionName);
-        return sect[propName];
+    getPropOfSection<T = any>(sectionName: EEmployeeAppProfileSections, propName: string) {
+        const sect = this.getSection(sectionName) || {};
+        return sect[propName] as T;
     }
 
 
 
-    setPropOfSection(sectionName: EEmployeeAppProfileSections, propName: string, val: any) {
+    setPropOfSection<T = any>(sectionName: EEmployeeAppProfileSections, propName: string, val: T) {
         const sect = this.getSection(sectionName);
         sect[propName] = val;
     }

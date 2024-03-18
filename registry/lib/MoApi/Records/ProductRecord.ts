@@ -58,8 +58,10 @@ export class ProductRecord extends ApiRecord<ProductRecordData> {
     await super.save();
 
     const pcache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.Products) as ProductCache;
-    pcache.setValueByRec(this);
-    //setValueByRec
+    if (this.Data?.notActive)
+      pcache.removeValue(this.Key);
+    else
+      pcache.setValueByRec(this);
   }
 
 

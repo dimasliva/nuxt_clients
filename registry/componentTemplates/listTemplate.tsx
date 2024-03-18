@@ -161,8 +161,8 @@ export abstract class ListTemplate<TFilterVals> {
         let res = await useDelQU(qustr);
         if (res) {
           let rec = await this.recStore.fetch(type, key);
-          rec.delete();
-          this.dataTableVars.value.rows.splice(index,1);
+          vHelpers.action(()=>rec.delete())
+          .then(()=> this.dataTableVars.value.rows.splice(index,1));
         }
       }
 

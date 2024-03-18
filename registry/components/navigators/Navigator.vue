@@ -8,7 +8,7 @@
             <template v-slot:top="props">
                 <v-row no-gutters>
                     <!--Кнопка Обновить-->
-                    <v-btn color="primary" variant="text" icon="mdi-refresh" @click="async () => onUpdate()">
+                    <v-btn color="primary" variant="text" icon="mdi-refresh" @click="async () => fullUpdate()">
                         <v-icon>mdi-refresh</v-icon>
                         <v-tooltip activator="parent" location="top">Обновить</v-tooltip>
                     </v-btn>
@@ -64,7 +64,7 @@
                                         <template v-slot:prepend="{ isActive }">
                                             <v-list-item-action start>
                                                 <v-checkbox-btn
-                                                    :model-value="content.visibleCols!.includes(val.key) ? true : false"
+                                                    :model-value="content.visibleCols.includes(val.key) ? true : false"
                                                     @update:modelValue="(e) => toggleSelectColumn(e, val.key)">
                                                 </v-checkbox-btn>
                                             </v-list-item-action>
@@ -75,7 +75,7 @@
                                 </v-list>
                                 <v-row justify="center" no-gutters>
                                     <VBtn class="mt-1 mb-3" color="primary" variant="text"
-                                        @click="() => { if (content!.visibleCols) content!.visibleCols.length = 0 }">
+                                        @click="() => { content!.visibleCols.length = 0; toggleSelectColumn(null, ''); }">
                                         Сбросить
                                     </VBtn>
                                 </v-row>
@@ -96,7 +96,8 @@
 
                     <template v-slot:default="{ isActive }">
                         <v-list @mouseleave="(e) => { isActive.value = false }">
-                            <v-list-item v-for="action in commonTableMenu" @click-once="() => action.action(props)">
+                            <v-list-item v-for=" action  in  commonTableMenu "
+                                @click-once="() => action.action(path, selected)">
                                 <v-icon v-if="action.icon" :icon="action.icon" color="primary" />
                                 &nbsp
                                 {{ action.title }}
@@ -124,9 +125,10 @@
 
                             <template v-slot:default="{ isActive }">
                                 <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for="action in getActionsMenu(internalItem)"
+                                    <v-list-item v-for=" action  in  getActionsMenu(internalItem) "
                                         @click-once="() => action.action(internalItem)">
-                                        <v-icon :icon="action.icon" size="x-small" />
+                                        <v-icon :icon="action.icon" color="primary" />
+                                        &nbsp
                                         {{ action.title }}
                                     </v-list-item>
                                 </v-list>
@@ -143,6 +145,7 @@
                 </VDataTableRow>
             </template>
 
+            <template v-slot:no-data />
             <template v-slot:bottom />
         </v-data-table>
 
@@ -176,7 +179,7 @@
 <script async setup lang="ts">
 import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
-import type { INavColumn, INavPathItem, INavRow, INavigatorContent, INavigatorProps } from "./NavigatorTypes"
+import type { INavActionMenuItem, INavColumn, INavPathItem, INavRow, INavigatorContent, INavigatorProps } from "./NavigatorTypes"
 import * as Helpers from '~/lib/Helpers';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -239,7 +242,7 @@ const getSortComparer = (colname: string) => {
 }
 
 
-
+//формирование колонок таблицы
 const _columns = computed(() => {
     const res: INavColumnInternal[] = [
         { key: "actions", align: 'start', minWidth: "24", width: "24", sortable: false, title: "" },
@@ -265,11 +268,13 @@ const _columns = computed(() => {
             sortRaw: getSortComparer("title")
         });
 
-    cols.forEach((item) => {
-        if (item.key == 'title' || content.value!.visibleCols && !content.value!.visibleCols.includes(item.key))
-            return;
-        item.sortRaw = getSortComparer(item.key);
-        res.push(item);
+    content.value!.visibleCols.forEach((item) => {
+
+        const colitem = cols.find(v => v.key == item);
+        if (colitem) {
+            colitem.sortRaw = getSortComparer(item);
+            res.push(colitem);
+        }
     });
 
     res.push({ key: "_space", sortable: false, title: "" })
@@ -287,7 +292,7 @@ const getSortedRows = () => {
     return content.value?.rows.map(item => item).sort((a, b) => comparer(a, b) * direct);
 }
 
-
+//визуальный переход на элемент с указанным ключем
 const goToRowByKey = (key: string) => {
     const sortedRows = getSortedRows();
     if (!sortedRows)
@@ -296,8 +301,9 @@ const goToRowByKey = (key: string) => {
     if (inx == -1)
         return;
     const page = Math.floor(inx / itemsPerPage.value) + 1;
-    currentPage.value = page;
+
     nextTick(() => {
+        currentPage.value = page;
         const element = document.getElementById(getUniqueId(key));
         if (element) {
             element.scrollIntoView({ block: "center" });
@@ -333,7 +339,7 @@ const _headersMap = computed(() => {
 
 const getActionsMenu = (DataTableItemINavRow: any) => {
     const res: any[] = [];
-    let menu = DataTableItemINavRow.raw.getRowActionsMenu?.(DataTableItemINavRow);
+    let menu = DataTableItemINavRow.raw.$mdata.getRowActionsMenu?.(DataTableItemINavRow);
     return menu;
 };
 
@@ -349,7 +355,19 @@ const addCurrPage = (step: number) => {
 
 
 
-const onUpdate = async () => {
+const fullUpdate = async () => {
+    await updateData();
+    await update();
+}
+
+
+const updateData = async () => {
+    if (content.value?.onUpdate)
+        await content.value.onUpdate(path.value);
+}
+
+
+const update = async () => {
     content.value = await props.onNavigate(path.value.length, path.value.length, path.value, null);
     path.value[path.value.length - 1] = content.value.pathInfo;
     if (lineSelected.value)
@@ -357,7 +375,7 @@ const onUpdate = async () => {
 }
 
 
-const update = () => onUpdate();
+const onUpdate = () => update();
 
 
 const onRowClickAction = async (DataTableItemINavRow: any) => {
@@ -374,6 +392,7 @@ const onRowClickAction = async (DataTableItemINavRow: any) => {
 }
 
 
+//сохранение визуального состояния
 const savePageStateInfo = () => {
     const pathdata = path.value[path.value.length - 1];
     const scrollPos = getCurrScrollPos();
@@ -390,6 +409,7 @@ const savePageStateInfo = () => {
     return undefined;
 }
 
+//установка визуального состояния
 const setPageStateInfo = (info: TPageStateInfo | null) => {
     if (info) {
         itemsPerPage.value = info.itemsPerPage;
@@ -398,6 +418,7 @@ const setPageStateInfo = (info: TPageStateInfo | null) => {
         lineSelected.value = info.selectedId
 
         nextTick(() => {
+            currentPage.value = info.page;
             scrollTo(info.sx || 0, info.sy || 0);
         })
     }
@@ -428,7 +449,7 @@ const onRowClick = (DataTableItemINavRow: any, index) => {
 };
 
 
-
+//сброс визуального состояния(переход в начало)
 const reset = () => {
     currentPage.value = 1;
     selected.value.length = 0;
@@ -450,19 +471,23 @@ const clearChangeTimeout = () => {
     colChangeTimeout = null;
 }
 
+//переключение видимости колонок
 const toggleSelectColumn = (e, colName: string) => {
 
-    if (content.value!.visibleCols) {
+    if (colName) {
         let inx = content.value!.visibleCols.findIndex((val) => val == colName);
         if (inx != -1)
             content.value!.visibleCols.splice(inx, 1);
         else
             content.value!.visibleCols.push(colName);
-
-        clearChangeTimeout();
-        colChangeTimeout = setTimeout(() => emit("onColumnsChangedDelayed", content.value!.columns), 3000);
     }
+    clearChangeTimeout();
+    const vc = content.value!.visibleCols;
+    const f = content.value!.onVisibleColsChanged;
+
+    colChangeTimeout = setTimeout(() => { if (f) f(vc) }, 2000);
 }
+
 
 const onFilterTextInput = () => {
     if (filterInputTextTimeout)
@@ -476,7 +501,7 @@ const onFilterTextInput = () => {
 
 //Формирование общего меню таблицы
 const commonTableMenu = computed(() => {
-    let res: any[] = [];
+    let res: INavActionMenuItem[] = [];
     if (content.value?.actionsMenu)
         for (let item of content.value?.actionsMenu) {
             if (typeof item == "object")
@@ -534,7 +559,18 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-defineExpose({ addCurrPage, reset, update, eventsHandler });
+const setSelectedLine = (key: string) => {
+    lineSelected.value = key;
+    goToRowByKey(key);
+}
+
+
+const addRow = (row: INavRow) => {
+    content.value?.rows.push(row);
+}
+
+
+defineExpose({ addCurrPage, reset, update, setSelectedLine, addRow, eventsHandler });
 
 //методы с await должны идти после специальных функций vue
 content.value = await props.onNavigate(0, 1, null, null);

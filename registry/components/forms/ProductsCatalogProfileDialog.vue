@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль товара или услуги" :on-save="save" :on-close="close" :readonly="readonly">
+  <FormsEditWindowDialog title="Профиль каталога товаров и услуг" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -19,8 +19,8 @@
  
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
-import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
-import { UserContext } from '~/lib/UserContext';
+import type { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import type { UserContext } from '~/lib/UserContext';
 import { useI18n } from "vue-i18n"
 import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
@@ -29,11 +29,9 @@ import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { Exception } from '~/lib/Exceptions';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
-import { ProductRecord } from '~/lib/MoApi/Records/ProductRecord';
+import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
 import { QueryDictsFFParams } from '~/lib/MoApi/RequestArgs';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
-import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
-import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import type { Container } from 'inversify/lib/container/container';
 
 
@@ -43,7 +41,7 @@ const { t, locale } = useI18n();
 interface IProps {
   diC?: Container;
   recKey: string | null;
-  rec?: ProductRecord
+  rec?: ProductsCatalogRecord
 }
 
 const props = defineProps<IProps>();
@@ -65,22 +63,20 @@ const eventsHandler = (e: string, d: any) => {
 defineExpose({ eventsHandler });
 
 
-let rec = ref<ProductRecord>();
-let emplRec = ref<EmployeeRecord>();
-
+let rec = ref<ProductsCatalogRecord>();
 
 if (props.rec)
   rec.value = props.rec
 else
   if (props.recKey) {
     let recs = await recStore.getRecordsM([
-      { id: { key: props.recKey, type: ProductRecord } }
+      { id: { key: props.recKey, type: ProductsCatalogRecord } }
     ]);
 
-    rec.value = recs[0] as ProductRecord;
+    rec.value = recs[0] as ProductsCatalogRecord;
   }
   else {
-    rec.value = await recStore.createNew(ProductRecord, (data) => { });
+    rec.value = await recStore.createNew(ProductsCatalogRecord, (data) => { });
   }
 
 
@@ -107,7 +103,7 @@ const cancelModifingData = () => {
 
 
 //const dictFinderDataProvider = iocc.get(DictsFinderDataProvider);
-//dictFinderDataProvider.init("serachProducts", false, EDictionaries.CompanyProducts);
+//dictFinderDataProvider.init("serachProductsCatalogs", false, EDictionaries.CompanyProductsCatalogs);
 
 //const emplFioFinderDataProvider = iocc.get(EmployeeFioFinderDataProvider);
 //emplFioFinderDataProvider.init("fioEmployyee");

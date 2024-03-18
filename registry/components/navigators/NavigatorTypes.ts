@@ -53,7 +53,7 @@ export interface INavActionMenuItem {
     title: string;
     icon?: string;
     disabled?: boolean;
-    action: (internalRowItem: any) => Promise<any>;
+    action: (path:INavPathItem[], selected: string[]) => Promise<any>;
 }
 
 
@@ -61,8 +61,10 @@ export interface INavigatorContent {
     filterTitle?: string | null;
     columns?: INavColumn[];
     rows: INavRow[];
-    visibleCols?: string[];
+    visibleCols: string[];
+    onVisibleColsChanged?: (visCols:string[])=>void;
     onRowClick?: (level: number, currPathItem: INavPathItem, row: INavRow, index?: number) => Promise<void>;
+    onUpdate?: (path:INavPathItem[]) => Promise<void>;
     actionsMenu?: (INavActionMenuItem | ((sel:string[])=>INavActionMenuItem))[];
     pathInfo: INavPathItem;
 }

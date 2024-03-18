@@ -37,7 +37,7 @@ export default {
 
     const diC= props.diC || useSessionContainer();
    
-    diC.get<PageMap>("PageMap").setPageData("/list/product_catalogs", {title:"Прайс-тест"});
+    diC.get<PageMap>("PageMap").setPageData("/list/product_catalogs", {title:"Товары и услуги"});
 
     const o = new ProductCatalogNav();
 

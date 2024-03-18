@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль товара или услуги" :on-save="save" :on-close="close" :readonly="readonly">
+  <FormsEditWindowDialog title="Профиль раздела каталога" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -29,11 +29,9 @@ import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { Exception } from '~/lib/Exceptions';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
-import { ProductRecord } from '~/lib/MoApi/Records/ProductRecord';
+import { ProductsCatalogSectionRecord } from '~/lib/MoApi/Records/ProductsCatalogSectionRecord';
 import { QueryDictsFFParams } from '~/lib/MoApi/RequestArgs';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
-import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
-import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import type { Container } from 'inversify/lib/container/container';
 
 
@@ -43,7 +41,7 @@ const { t, locale } = useI18n();
 interface IProps {
   diC?: Container;
   recKey: string | null;
-  rec?: ProductRecord
+  rec?: ProductsCatalogSectionRecord
 }
 
 const props = defineProps<IProps>();
@@ -65,8 +63,7 @@ const eventsHandler = (e: string, d: any) => {
 defineExpose({ eventsHandler });
 
 
-let rec = ref<ProductRecord>();
-let emplRec = ref<EmployeeRecord>();
+let rec = ref<ProductsCatalogSectionRecord>();
 
 
 if (props.rec)
@@ -74,13 +71,13 @@ if (props.rec)
 else
   if (props.recKey) {
     let recs = await recStore.getRecordsM([
-      { id: { key: props.recKey, type: ProductRecord } }
+      { id: { key: props.recKey, type: ProductsCatalogSectionRecord } }
     ]);
 
-    rec.value = recs[0] as ProductRecord;
+    rec.value = recs[0] as ProductsCatalogSectionRecord;
   }
   else {
-    rec.value = await recStore.createNew(ProductRecord, (data) => { });
+    rec.value = await recStore.createNew(ProductsCatalogSectionRecord, (data) => { });
   }
 
 
@@ -107,7 +104,7 @@ const cancelModifingData = () => {
 
 
 //const dictFinderDataProvider = iocc.get(DictsFinderDataProvider);
-//dictFinderDataProvider.init("serachProducts", false, EDictionaries.CompanyProducts);
+//dictFinderDataProvider.init("serachProductsCatalogSections", false, EDictionaries.CompanyProductsCatalogSections);
 
 //const emplFioFinderDataProvider = iocc.get(EmployeeFioFinderDataProvider);
 //emplFioFinderDataProvider.init("fioEmployyee");

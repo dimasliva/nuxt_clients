@@ -23,7 +23,7 @@ export class ProductCacheValue {
     temporaryNotActive?: boolean | null;
 
 
-    static initFromProductListView(val: IProductListView) {
+    static factoryFromProductListView(val: IProductListView) {
         const obj = new ProductCacheValue();
         obj.title = val.title;
         obj.code = val.code;
@@ -35,7 +35,7 @@ export class ProductCacheValue {
     }
 
 
-    static initFromRec(rec: ProductRecord) {
+    static factoryFromRec(rec: ProductRecord) {
         const obj = new ProductCacheValue();
         obj.title = rec.Data!.title;
         obj.code = rec.Data!.code;
@@ -94,7 +94,7 @@ export class ProductCache extends PageMemoryCache {
 
         const select = "id,title,fullTitle,code,comments,prices,temporaryNotActive";
         let where = rec instanceof ProductsCatalogRecord ? "productCatalogSection is null" : `productCatalogSection='${key}'`;
-        where += ` and productsCatalog='${productsCatalog}'`;
+        where += ` and productsCatalog='${productsCatalog}' and notActive is not true`;
 
         const queryParams = new QueryParams(select, where);
         const dl = await this._ProductsViews.getProductsListView(queryParams);
@@ -103,7 +103,7 @@ export class ProductCache extends PageMemoryCache {
         const page = this._getPage(key);
         while (row = dl.getNext()) {
             page.set(row.id!);
-            this._index.set(row.id!, new IndexVal(page,  ProductCacheValue.initFromProductListView(row)));
+            this._index.set(row.id!, new IndexVal(page,  ProductCacheValue.factoryFromProductListView(row)));
         }
         page.setLoaded();// на случай, если страница пустая, то нужно указать что она была загружена. Иначе при каждом последующем обращении к ней будет попытка загрузки
     }
@@ -132,7 +132,7 @@ export class ProductCache extends PageMemoryCache {
         let page = this._getPage(rec.Data!.productsCatalogSection || rec.Data!.productsCatalog);
         if (page.isLoaded()) {
             page.set(rec.Key);
-            this._index.set(rec.Key, new IndexVal(page,  ProductCacheValue.initFromRec(rec)))
+            this._index.set(rec.Key, new IndexVal(page,  ProductCacheValue.factoryFromRec(rec)))
         }
         else
             if (cacheVal) {

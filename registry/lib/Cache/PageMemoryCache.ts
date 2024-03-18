@@ -105,6 +105,11 @@ export class PageMemoryCache {
     }
 
 
+    clear() {
+       this._pages.clear();
+       this._index.clear();
+    }
+
 
     checkPageExpiration(page: Page) {
         if (page.isExpired()) {

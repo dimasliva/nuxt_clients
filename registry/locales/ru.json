@@ -77,6 +77,7 @@
   "err_msg_RequestErr": "Ошибка запроса к серверу",
   "err_msg_FrequentRequests": "Слишком частые запросы. Немного подождите и повторите попытку",
   "err_msg_undefined": "Неопределенная ошибка",
+  "err_msg_ERR:RecordIsUsed":"Запись используется другими записями",
   "phone.phoneCountry":"Страна",
   "phone.invalidPhone":"Некорректный номер. Пример: {0}"
 }

@@ -13,15 +13,18 @@ import { ProductsApiSection } from "../MoApi/ApiSectionsV1/ProductsApiSection";
 export class ProductSectionCacheValue {
 
     title?: string | null;
+    comments?: string | null;
     code?: string | null;
     temporaryNotActive?: boolean | null
 
 
-    initFromRec(val: ProductsCatalogSectionRecord) {
-        this.title = val.Data!.title;
-        this.code = val.Data!.code;
-        this.temporaryNotActive = val.Data!.temporaryNotActive;
-        return this;
+    static factoryFromRec(val: ProductsCatalogSectionRecord) {
+        const obj = new ProductSectionCacheValue();
+        obj.title = val.Data!.title;
+        obj.comments = val.Data!.comments;
+        obj.code = val.Data!.code;
+        obj.temporaryNotActive = val.Data!.temporaryNotActive;
+        return obj;
     }
 }
 
@@ -72,16 +75,16 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
 
 
         let where = rec instanceof ProductsCatalogRecord ? "parent is null" : `parent='${key}'`
-        where += ` and productsCatalog='${productsCatalog}'`;
+        where += ` and productsCatalog='${productsCatalog}' and notActive is not true`;
 
         const ids = await this._ProductsApiSection.findProductsCatalogSections(where);
-        const recs = await this._RecordsStore.getRecords(ProductsCatalogSectionRecord, ids, null,null,true);
+        const recs = await this._RecordsStore.getRecords(ProductsCatalogSectionRecord, ids, null, null, true);
 
         console.debug(`load product section for section cache page: ${key} `)
         const page = this._getPage(key);
         recs.forEach(item => {
             page.set(item.Key);
-            this._index.set(item.Key, new IndexVal(page, new ProductSectionCacheValue().initFromRec(item)));
+            this._index.set(item.Key, new IndexVal(page, ProductSectionCacheValue.factoryFromRec(item)));
         });
         page.setLoaded();// на случай, если страница пустая, то нужно указать что она была загружена. Иначе при каждом последующем обращении к ней будет попытка загрузки
     }
@@ -90,6 +93,32 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
 
     setValue(key: string, pagekey: string, value: any) {
         Exception.throw("MethodNotImplemented", "Функция не реализована");
+    }
+
+
+
+    setValueByRec(rec: ProductsCatalogSectionRecord) {
+        if (!rec)
+            return;
+
+        var cacheVal = this._index.get(rec.Key);
+        if (cacheVal) {
+            let pageKey = cacheVal.page.getKey();
+
+            if (pageKey != rec.Data!.parent && pageKey != rec.Data!.productsCatalog) {
+                cacheVal.page.removeValue(rec.Key);
+            }
+        }
+
+        let page = this._getPage(rec.Data!.parent || rec.Data!.productsCatalog);
+        if (page.isLoaded()) {
+            page.set(rec.Key);
+            this._index.set(rec.Key, new IndexVal(page, ProductSectionCacheValue.factoryFromRec(rec)))
+        }
+        else
+            if (cacheVal) {
+                this._index.delete(rec.Key);
+            }
     }
 
 

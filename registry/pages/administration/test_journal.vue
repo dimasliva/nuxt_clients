@@ -130,9 +130,6 @@ import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults'
 import { ScheduleEvent } from '~/components/customMonthView/SchedulerTypes';
 import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
 import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
-import FinderFormMultipleTemplate from '~/components/forms/FinderFormMultiple.vue';
-import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
-import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
@@ -231,7 +228,7 @@ const getCatalogList = async (keys) => {
 const getCatalogs = async () => {
   let catalogsKeys = await apiClient.send<any, any>('/Products/FindProductsCatalogs', 'notactive != true', false);
   await getCatalogList(catalogsKeys);
-  productFinderDataProvider.init("Product", true);
+  productFinderDataProvider.init("Product", true, 20, catalogs.value);
 }
 
 // const openPopUp = (day_time: ScheduleEvent) => {
@@ -621,6 +618,7 @@ defineExpose({ eventsHandler });
 .vuecal__event {
   margin: 2px;
   border-radius: 10px;
+  width: 95%;
 }
 
 .available {

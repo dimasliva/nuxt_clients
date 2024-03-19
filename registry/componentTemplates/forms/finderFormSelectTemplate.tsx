@@ -17,7 +17,7 @@ let t: any;
 export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
 
     sections = ref([] as { id: string, title: string }[])
-    selectedSection = ref({} as { id: string, title: string })
+    selectedSections = ref<any>([])
 
     selected = ref([] as { value: any, title: string }[]);
     /**Последнее значение в строке поиска, которое учитывалось для статистики введенных значений*/
@@ -34,7 +34,6 @@ export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
         if (props.selectedOptionsValues) {
             this.sections.value = props.selectedOptionsValues;
         }
-        console.log('select template', props.selectedOptionsValues)
     }
 
     async onFind() {
@@ -47,7 +46,7 @@ export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
                 let diff = this.lastFindRequestDate ? Date.now() - this.lastFindRequestDate : this.apiRequestTimeout;
                 if (diff < this.apiRequestTimeout)
                     await sleep(this.apiRequestTimeout - diff);
-                this.valueList.value = await this.props.finderDataProvider.getList(this.searchingText.value, this.selectedSection.value);
+                this.valueList.value = await this.props.finderDataProvider.getList(this.searchingText.value, this.selectedSections.value);
                 this.lastFindRequestDate = Date.now();
             }
             else
@@ -83,8 +82,31 @@ export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
 
     /**Поле для выбора из списка*/
     getSelectPanel(){
-        return <v-select chips closable-chips multiple label="Искать в:" items={this.sections.value} v-model={this.selectedSection.value}
-         item-title="title" item-value="id" variant="underlined"></v-select>
+        const isAllSelected = () => {
+            return this.selectedSections.value.length === this.sections.value.length 
+        }
+        const toggle = () =>  {
+            if (isAllSelected()) {
+              this.selectedSections.value = []
+            } else {
+              this.selectedSections.value = this.sections.value.slice()
+            }
+        }
+        return <v-select chips closable-chips multiple label="Искать в:" items={this.sections.value} v-model={this.selectedSections.value}
+         item-title="title" item-value="id" variant="underlined">
+              {{ 
+                "prepend-item": () => 
+                <>
+                    <v-list-item title="Все" onClick={toggle}>
+                        {{ prepend: () => 
+                        <v-checkbox-btn modelValue={isAllSelected()}></v-checkbox-btn>
+                        }}
+                    </v-list-item>
+                    <v-divider></v-divider>
+                </>
+            }} 
+
+         </v-select>
     }
 
 

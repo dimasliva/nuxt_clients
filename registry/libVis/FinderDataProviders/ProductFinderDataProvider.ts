@@ -1,20 +1,18 @@
 import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/lib/UserContext";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
-import { Exception } from "~/lib/Exceptions";
 import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
-import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
-import * as Utils from "~/lib/Utils";
 import { ProductFtsViews } from "~/lib/MoApi/Views/ProductFtsListView";
 import { ProductRecord } from "~/lib/MoApi/Records/ProductRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from "~/components/forms/FinderForm.vue";
-import FinderFormSelect from "~/components/forms/FinderFormSelect.vue";
+import FinderSelectForm from "~/components/forms/FinderFormSelect.vue";
 
 @injectable()
 export class ProductFinderDataProvider extends FinderDataProvider {
   protected _listSizeLimit = 20;
+  protected _selectedOptionsValues: any = [];
 
   constructor(
     @inject("MoApiClient") _MoApiClient: MoApiClient,
@@ -28,17 +26,37 @@ export class ProductFinderDataProvider extends FinderDataProvider {
     this._apiRequestTimeout = 2500;
   }
 
-  init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
-    super.init(instName, multiselect ? FinderFormSelect : FinderForm);
+  init(instName: string | null, multiselect = false, sizeLimit: number = 20, cats: []) {
+    super.init(instName, multiselect ? FinderSelectForm : FinderForm);
     this._instName = instName;
     this._listSizeLimit = sizeLimit;
+    this._selectedOptionsValues = cats;
   }
 
-  async getCatalogs() {}
+  async edit(choosedValues?: any): Promise<any | null> {
+    return new Promise((resolve) => {
+      openDialog(
+        this._editFormComponent,
+        {
+          diC: this._diC,
+          title: "Поиск",
+          finderDataProvider: this,
+          apiRequestTimeout: this._apiRequestTimeout,
+          choosedValues: choosedValues,
+          selectedOptionsValues: this._selectedOptionsValues,
+          historyResultTypeStorage: this._historyResultTypeStorage,
+        },
+        true,
+        (e, d) => {
+          if (e == "onBeforeClose") resolve(d);
+          return true;
+        }
+      );
+    });
+  }
 
   async getList(txt: string, cats: any): Promise<TDictViewVal[]> {
     if (txt) {
-      console.log(cats);
       let rdl = await this._ProductsFtsListView.getProductFtsListView({
         select: "id, title, fullTitle, catalogTitle, sectionTitle",
         text: txt,

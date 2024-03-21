@@ -48,29 +48,22 @@
           <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon
                 @click="drawer = false">mdi-close</v-icon></v-row>
+
             <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined" density="compact"
-              :loading="schdLoad" append-inner-icon="mdi-calendar-month" @click:control="clearCurrrange()">
+              :loading="schdLoad" append-inner-icon="mdi-calendar-month" @click:control="monthViewDates(false)">
               <v-menu v-model="dataPickerMenu" :close-on-content-click="false" activator="parent">
                 <v-card>
                   <v-card-text class="pa-1">
                     <vue-cal id="datapicker" class="vuecal--date-picker" xsmall hide-view-selector :time="false"
-                      active-view="month" :disable-views="['day', 'week', 'years']" locale="ru" :min-date="minDate"
-                      :max-date="maxDate" @cell-click="changeDate($event)"
+                      active-view="month" :disable-views="['day', 'week', 'year', 'years']" locale="ru"
+                      :min-date="minDate" :max-date="maxDate" @cell-click="changeDate($event)"
                       style="width: 300px; min-height: 230px; background-color: white; border-radius: 10px; text-align: center;">
                     </vue-cal>
                   </v-card-text>
-                  <v-card-actions class="pa-1">
-                    <v-btn @click="monthViewDates(true)" density="compact" variant="text"
-                      class="ml-2 mt-2">Применить</v-btn>
-                    <v-btn @click="monthViewDates(false)" density="compact" variant="text" class="ml-2 mt-2">{{
-                      $t('cancel')
-                    }}</v-btn>
-                  </v-card-actions>
                 </v-card>
               </v-menu>
             </v-text-field>
 
-            <!-- @click="openDialog(FinderFormMultipleTemplate, { diC: null, title: 'Поиск', finderDataProvider: finderDataProvider, historyResultTypeStorage: 1, apiRequestTimeout: 1000 })" -->
             <v-combobox v-model="selectedSchedulerItemGroup" density="compact" label="Раздел расписания"
               :loading="schdLoad" :items="schedulerItemGroups" item-title="title" variant="underlined"
               :disabled="(!!employees.length && !selectedSchedulerItemGroup?.title) || (!!products.length && !selectedSchedulerItemGroup?.title)"></v-combobox>
@@ -82,8 +75,10 @@
               })">
             </v-combobox> -->
 
-            <InputField class="pb-4" :type="EDataType.referenceMultiple" v-model="products" label="Услуга"
-              :finderDataProvider="productFinderDataProvider" />
+            <InputField variant="underlined" :state="fieldsOptions" chips closable-chips
+              :type="employees.length || selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
+              v-model="products" label="Услуга" :items="productsArr" item-value="id"
+              :finderDataProvider="productFinderDataProvider" @update:model-value="filterDays($event)" />
 
             <v-expand-transition>
               <v-select v-if="products.length" :items="kindOfDuration" item-title="title" item-value="time"
@@ -160,6 +155,12 @@ let currView = ref('month');
 let dataPickerMenu = ref(false);
 let schedulerItemGroups = ref<any>([])
 
+const fieldsOptions = reactive({
+  errCnt: 0,
+  changedCnt: 0,
+  readonly: false
+})
+
 let specialHours = ref({ 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: '' } })
 let divisions = ref([])
 let monthView = ref<ScheduleEvent[]>([])
@@ -231,12 +232,6 @@ const getCatalogs = async () => {
   productFinderDataProvider.init("Product", true, 20, catalogs.value);
 }
 
-// const openPopUp = (day_time: ScheduleEvent) => {
-//   day_time.products.map((product) => {
-//     product.title = productsArr.value.find((prod) => prod.id === product.id).title
-//   })
-//   prodsList.value = day_time.products
-// }
 const openPopUp = (day_time: ScheduleEvent) => {
   prodsList.value = []
   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
@@ -248,11 +243,6 @@ const openPopUp = (day_time: ScheduleEvent) => {
     }
   });
 
-}
-
-const clearCurrrange = () => {
-  minDate.value = '';
-  maxDate.value = '';
 }
 
 const monthViewDates = (b: boolean) => {
@@ -272,14 +262,10 @@ const monthViewDates = (b: boolean) => {
 }
 
 const changeDate = (date) => {
-  if (minDate.value) {
-    minDate.value = '';
-    maxDate.value = '';
-  } else {
-    minDate.value = new Date(date);
-    maxDate.value = new Date(date);
-    maxDate.value.setDate(maxDate.value.getDate() + 30)
-  };
+  minDate.value = new Date(date);
+  maxDate.value = new Date(date);
+  maxDate.value.setDate(maxDate.value.getDate() + 30)
+  monthViewDates(true);
 }
 
 // css стилизация для отображения выбранного диапазона
@@ -515,6 +501,7 @@ const listOfProds = (arr, i) => {
 let durationCondition = ref<number | null>(null)
 
 const hasEmplsInTimes = (arr, i) => positions.value.some((pos) => arr.some(empl => empl.id === pos.employee) && pos.id === i.position);
+
 const hasProdInTimes = (arr, i) => arr.some(prod => i.products?.includes(prod.id!) && (prod.duration <= (durationCondition.value ? durationCondition.value : i.timespan.duration)));
 
 const timeOfDay = (mins: number) => {
@@ -530,9 +517,8 @@ const timeOfDay = (mins: number) => {
 }
 
 const filterDays = (opened: boolean) => {
-  if (!opened) {
-    buildMonthScheduler(currRangeData.value)
-  }
+  products.value = products.value.map(productId => productsArr.value.find(product => product.id === productId));
+  buildMonthScheduler(currRangeData.value)
 }
 
 const filterProducts = (opened: boolean) => {
@@ -616,7 +602,7 @@ defineExpose({ eventsHandler });
 </script>
 <style>
 .vuecal__event {
-  margin: 2px;
+  margin: 3px auto;
   border-radius: 10px;
   width: 95%;
 }

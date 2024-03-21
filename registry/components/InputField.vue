@@ -213,7 +213,6 @@ const onValChanged = (force?: boolean) => {
     if (!currErr || force) {
         if (props.state && CurrModelVal.value != props.modelValue) {
             props.state.changedCnt++;
-
             let val = CurrModelVal.value;
 
             if (props.type == EDataType.phone) {

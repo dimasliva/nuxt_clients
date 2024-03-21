@@ -89,9 +89,10 @@ export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
             if (isAllSelected()) {
               this.selectedSections.value = []
             } else {
-              this.selectedSections.value = this.sections.value.slice()
+              this.selectedSections.value = this.sections.value.map((section) => section.id)
             }
         }
+
         return <v-select chips closable-chips multiple label="Искать в:" items={this.sections.value} v-model={this.selectedSections.value}
          item-title="title" item-value="id" variant="underlined">
               {{ 

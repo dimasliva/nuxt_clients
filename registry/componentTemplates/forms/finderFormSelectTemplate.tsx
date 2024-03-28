@@ -1,20 +1,18 @@
 
 import WindowDialog from "~/components/forms/WindowDialog.vue"
-import { FinderFormTemplate, type IFinderFormProps } from "./finderFormTemplate";
+import { FinderFormMultipleTemplate, type IFinderFormMultipleProps } from "./finderFormMultipleTemplate";
 import * as Utils from '~~/lib/Utils';
-import type { IFrameHeaderData } from "~/lib/PageMap";
-import { sleep } from "~/lib/Helpers";
 
 
-export interface IFinderFormSelectProps extends IFinderFormProps {
-    choosedValues?: any[];
+
+export interface IFinderFormSelectProps extends IFinderFormMultipleProps {
     selectedOptionsValues?: any[];
 }
 
 let t: any;
 
 
-export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
+export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplate {
 
     sections = ref([] as { id: string, title: string }[])
     selectedSections = ref<any>([])
@@ -36,49 +34,13 @@ export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
         }
     }
 
-    async onFind() {
-        if (this._onfindSingleExec)
-            return;
 
-        this._onfindSingleExec = true;
-        try {
-            if (this.searchingText.value) {
-                let diff = this.lastFindRequestDate ? Date.now() - this.lastFindRequestDate : this.apiRequestTimeout;
-                if (diff < this.apiRequestTimeout)
-                    await sleep(this.apiRequestTimeout - diff);
-                this.valueList.value = await this.props.finderDataProvider.getList(this.searchingText.value, this.selectedSections.value);
-                this.lastFindRequestDate = Date.now();
-            }
-            else
-                this.valueList.value = null;
-        }
-        finally {
-            this._onfindSingleExec = false;
-        }
+
+    async getValueList() {
+        return await this.props.finderDataProvider.getList(this.searchingText.value, this.selectedSections.value);
     }
 
 
-    async onSelect(e: any[]) {
-        if (this.lastSearchStrForStat != this.searchingText.value && this.searchingText.value) {
-            this.lastSearchStrForStat = this.searchingText.value
-            this.searchStrStatistic.addItem(this.searchingText.value);
-        }
-
-        let val = e[0];
-        if (val != null && this.selected.value.find(item => item.value == val.value) == null) {
-            this.selected.value.push({ value: val.value, title: val.title || await this.getTitleItemByVal(val) || "" });
-        }
-    }
-
-
-
-    onOk() {
-        let res = this.selected.value.map(item => {
-            this.resultHistoryStatistic.addItem(item.value);
-            return item
-        });
-        closeDialog(res);
-    }
 
     /**Поле для выбора из списка*/
     getSelectPanel(){
@@ -108,27 +70,6 @@ export abstract class FinderFormSelectTemplate extends FinderFormTemplate {
             }} 
 
          </v-select>
-    }
-
-
-    /**Поле выбранных значений */
-    getChoosePanel() {
-        return <v-sheet class="h-100 w-100" >
-            <v-row no-gutters class="align-center" style="margin-bottom:-5px;">
-                <p>Выбранное</p>
-                <v-spacer />
-                <v-btn ripple={false} style={(this.selected.value.length == 0) ? "visibility:hidden;" : ""} icon="mdi-close-circle" variant="plain" color="secondary"
-                    onClick={() => this.selected.value.length = 0} />
-            </v-row>
-
-            <v-sheet class="overflow-y-auto h-100" border >
-                {
-                    this.selected.value.map((item, inx) =>
-                        <v-chip key={item.value} closable onClick:close={(e) => { this.selected.value.splice(inx, 1); }}>{item.title}</v-chip>)
-                }
-            </v-sheet>
-
-        </v-sheet>
     }
 
 

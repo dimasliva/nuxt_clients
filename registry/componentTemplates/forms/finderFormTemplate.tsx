@@ -89,6 +89,12 @@ export abstract class FinderFormTemplate {
 
     _onfindSingleExec = false;
 
+    async getValueList() {
+        return await this.props.finderDataProvider.getList(this.searchingText.value);
+    }
+
+
+
     async onFind() {
         if (this._onfindSingleExec)
             return;
@@ -99,7 +105,7 @@ export abstract class FinderFormTemplate {
                 let diff = this.lastFindRequestDate ? Date.now() - this.lastFindRequestDate : this.apiRequestTimeout;
                 if (diff < this.apiRequestTimeout)
                     await sleep(this.apiRequestTimeout - diff);
-                this.valueList.value = await this.props.finderDataProvider.getList(this.searchingText.value);
+                this.valueList.value = await this.getValueList();
                 this.lastFindRequestDate = Date.now();
             }
             else

@@ -1,9 +1,9 @@
 <template>
   <v-row style="height: 75vh; overflow-y: auto;" class="ma-1 flex-nowrap">
-    <wt :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)"
-      @event-mouse-enter="openPopUp($event)" :on-event-click="currView === 'month' ? openCurrDay : editEvent"
-      :cell-click-hold="false" :time-to="21 * 60" :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded"
-      v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
+    <wt :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)" @event-focus="openPopUp($event)"
+      :on-event-click="currView === 'month' ? openCurrDay : editEvent" :cell-click-hold="false" :time-to="21 * 60"
+      :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded" v-model:active-view="currView" hide-view-selector
+      locale="ru" :special-hours="specialHours"
       :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
       :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
       events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false" :time-from="6 * 60"
@@ -16,34 +16,36 @@
       </template>
       <template v-if="currView === 'month'" #event="{ event }">
         <div class="vuecal__event-title">{{ event.title }}</div>
-        <v-menu activator="parent" location="end" :close-on-content-click="false">
-          <v-card min-width="300" max-height="300" class="pa-4">
-            <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)" :on-event-create="onEventCreate"
-              :split-days="employeesArr" hide-view-selector hide-title-bar :events="events"
-              :selected-date="selectedCurrDate" locale="ru" :cell-click-hold="false" :drag-to-create-event="false"
-              :snap-to-time="5" :time-step="30" ref="vuecal" :time-from="startSelectedCell * 60"
-              :time-to="endSelectedCell * 60" sticky-split-labels show-time-in-cells>
-            </vue-cal>
-          </v-card>
+        <v-menu activator="parent" location="top" close-on-content-click>
+          <v-list size="x-small" variant="text" rounded="lg" :lines="false">
+            <v-list-subheader>
+              <v-menu :close-on-content-click="false">
+                <template v-slot:activator="{ props }">
+                  {{ prodListTitle }} <v-btn variant="text" density="compact" v-bind="props">запись на {{
+                    event.title }}</v-btn>
+                </template>
+                <v-card max-height="300" class="pa-4 " max-width="600">
+                  <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)" :on-event-create="onEventCreate"
+                    :split-days="employeesArr" hide-view-selector hide-title-bar :events="events"
+                    :selected-date="selectedCurrDate" locale="ru" :cell-click-hold="false" :drag-to-create-event="false"
+                    :snap-to-time="5" :time-step="30" ref="vuecal" :time-from="event.startTime * 60"
+                    :time-to="event.endTime * 60" sticky-split-labels style="width: fit-content;">
+                  </vue-cal>
+                </v-card>
+              </v-menu>
+            </v-list-subheader>
+            <v-list-item v-for="(item) in prodsList" density="compact">
+              <v-list-item-title class="text-body-2">{{ item.title }}</v-list-item-title>
+              <template v-slot:append>
+                <v-btn variant="text">10:00</v-btn>
+              </template>
+            </v-list-item>
+          </v-list>
         </v-menu>
-        <v-tooltip location="end" activator="parent">
-          <v-card density="compact" variant="outlined">
-            <v-card-title>
-              {{ prodListTitle }}
-            </v-card-title>
-            <v-card-text>
-              <v-list density="compact" variant="text" bg-color="#FFFFFF00">
-                <v-list-item v-for="(item) in prodsList">
-                  <v-list-item-title>{{ item.title }}: {{ item.quantity }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-card-text>
-          </v-card>
-        </v-tooltip>
       </template>
     </wt>
     <v-expand-x-transition>
-      <VCard v-show="drawer" class="mb-auto mx-1" max-width="20vw">
+      <VCard v-show="drawer" class="mb-auto mx-1" width="15vw">
         <VForm>
           <VCol>
             <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по: <v-spacer></v-spacer><v-icon
@@ -74,15 +76,20 @@
                   (p) => { products = p }
               })">
             </v-combobox> -->
+            <InputField variant="underlined" :state="fieldsOptions" :type="EDataType.referenceMultiple"
+              :disabled="(!!employees.length && !selectedSchedulerItemGroup?.title) || (!!products.length && !selectedSchedulerItemGroup?.title)"
+              v-model="selectedSchedulerItemGroup" label="Раздел расписания" :items="productsArr"
+              :finderDataProvider="productFinderDataProvider" />
 
             <InputField variant="underlined" :state="fieldsOptions" chips closable-chips
               :type="employees.length || selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
               v-model="products" label="Услуга" :items="productsArr" item-value="id"
-              :finderDataProvider="productFinderDataProvider" @update:model-value="filterDays($event)" />
+              :finderDataProvider="productFinderDataProvider"
+              @update:model-value="selectedSchedulerItemGroup ? filterDays($event) : false" />
 
             <v-expand-transition>
-              <v-select v-if="products.length" :items="kindOfDuration" item-title="title" item-value="time"
-                v-model="productsDuration" @update:menu="filterProducts($event)" density="compact" variant="underlined"
+              <v-select v-if="products.length" :items="kindOfDuration" item-value="time" v-model="productsDuration"
+                @update:menu="filterProducts($event)" density="compact" variant="underlined"
                 label="Искать по:"></v-select>
             </v-expand-transition>
 
@@ -112,7 +119,7 @@
 import SearchProductDilaog from '~/components/forms/SearchProductDilaog.vue';
 import EventDialog from '~~/components/forms/EventDialog.vue';
 import VueCal from 'vue-cal';
-import 'vue-cal/dist/vuecal.css';
+import '~~/components/customMonthView/custom-cal-style.css';
 import wt from '~~/components/customMonthView/vue-cal-m';
 import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
 import { QueryParams, QueryParamsScheduler, QueryProductFtsList } from '~~/lib/MoApi/RequestArgs';
@@ -122,7 +129,7 @@ import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Reco
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
-import { ScheduleEvent } from '~/components/customMonthView/SchedulerTypes';
+import { ScheduleMonthEvent } from '~/components/customMonthView/SchedulerTypes';
 import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
 import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
@@ -130,6 +137,7 @@ import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 import { EDataType } from '~/lib/globalTypes';
 import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
+import { ScheduleApiSection } from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -151,6 +159,7 @@ const iocc = useContainer();
 const recStore = iocc.get(RecordsStore);
 const apiClient = iocc.get<MoApiClient>('MoApiClient');
 const pageMap = iocc.get<PageMap>("PageMap");
+const schItemGroup = iocc.get(ScheduleApiSection);
 let currView = ref('month');
 let dataPickerMenu = ref(false);
 let schedulerItemGroups = ref<any>([])
@@ -163,7 +172,7 @@ const fieldsOptions = reactive({
 
 let specialHours = ref({ 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: '' } })
 let divisions = ref([])
-let monthView = ref<ScheduleEvent[]>([])
+let monthView = ref<ScheduleMonthEvent[]>([])
 let events = []
 let vuecal = ref<any>(null);
 let products = ref<ProductRecordData[]>([])
@@ -180,7 +189,6 @@ let startSelectedCell = ref()
 let endSelectedCell = ref()
 let selectedSchedulerItemGroup = ref<ScheduleItemGroupData>()
 const employeesViews = iocc.get(EmployeesViews);
-const productsView = iocc.get(ProductFtsViews);
 let rangeSelected = ref(false)
 let minDate = ref<any>('')
 let maxDate = ref<any>('')
@@ -196,6 +204,7 @@ let productsDuration = ref()
 let isProdsList = ref(false)
 let prodsList = ref<any>([])
 let prodListTitle = ref<any>('')
+let isDayTime = ref(false)
 
 const productFinderDataProvider = iocc.get(ProductFinderDataProvider);
 
@@ -232,7 +241,7 @@ const getCatalogs = async () => {
   productFinderDataProvider.init("Product", true, 20, catalogs.value);
 }
 
-const openPopUp = (day_time: ScheduleEvent) => {
+const openPopUp = (day_time: ScheduleMonthEvent) => {
   prodsList.value = []
   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
   day_time.products.map((product) => {
@@ -268,50 +277,6 @@ const changeDate = (date) => {
   monthViewDates(true);
 }
 
-// css стилизация для отображения выбранного диапазона
-const onDatePicker = () => {
-  let cells: HTMLElement[] = []
-  setTimeout(() => {
-    let datapicker = document.getElementById('datapicker');
-    let selectedRange: HTMLElement[];
-    cells = Array.from(datapicker!.querySelectorAll('.vuecal__cell'));
-
-    if (minDate.value) {
-      cells.forEach((day: HTMLElement) => {
-        if (!day.className.includes('before-min')) {
-          day.classList.add('date-picker-month');
-        } else {
-          day.classList.remove('date-picker-month');
-        }
-      })
-      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-      selectedRange[0].classList.add('first-day-pick');
-    }
-    if (maxDate.value) {
-      cells.forEach((day: HTMLElement) => {
-        if (!day.className.includes('before-min') && !day.className.includes('after-max')) {
-          day.classList.add('date-picker-month');
-        } else {
-          day.classList.remove('date-picker-month');
-        }
-      })
-      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-      selectedRange[selectedRange.length - 1].classList.add('last-day-pick')
-    }
-    if (!minDate.value && !maxDate.value && rangeSelected.value) {
-
-      selectedRange = Array.from(datapicker!.querySelectorAll('.date-picker-month'));
-      selectedRange[0].classList.remove('first-day-pick');
-      selectedRange[selectedRange.length - 1].classList.remove('last-day-pick');
-
-      cells.forEach((day: HTMLElement) => {
-        day.classList.remove('date-picker-month');
-      })
-    }
-  }, 100)
-
-}
-
 const searchEmployee = async (txt: string) => {
   let reqStr = '';
   let recArr;
@@ -335,16 +300,6 @@ const searchEmployee = async (txt: string) => {
     empl.push(row);
   }
   return empl
-}
-
-const searchProds = async (txt, cats) => {
-  let prodsArr = await productsView.getProductFtsListView(new QueryProductFtsList("id, title, fullTitle, catalogTitle, sectionTitle", txt, 20, 1, false, cats, false))
-  const prods: IProductFtsListView[] = [];
-  let row: IProductFtsListView | undefined;
-  while (row = prodsArr.getNext()) {
-    prods.push(row);
-  }
-  return prods
 }
 
 const cumstomEventCreator = (ev) => {
@@ -384,6 +339,7 @@ const getScheduleByItemGroup = async () => {
       `/api/v1/Schedule/GetScheduleByItemGroup?${apiClient._convertToURLParams(new QueryParamsScheduler(minDate.value.format('MM-DD-YYYY'), maxDate.value.format('MM-DD-YYYY'), selectedSchedulerItemGroup.value.id!))}`,
       null,
       null);
+    // let res = await schItemGroup.getScheduleByItemGroup(minDate.value, maxDate.value, selectedSchedulerItemGroup.value.id!)
     let sch: any = res.bodyData
     currRangeData.value = res.bodyData
     buildMonthScheduler(sch);
@@ -428,7 +384,7 @@ const buildMonthScheduler = (ts) => {
   let dates: string[] = Object.keys(ts);
   let times: ScheduleTimespanItem[][] = Object.values(ts);
   monthView.value = [];
-  const monthViewSet = new Set<ScheduleEvent>();
+  const monthViewSet = new Set<ScheduleMonthEvent>();
 
   dates.map((date, i) => {
     if (times[i].length > 0) {
@@ -439,7 +395,8 @@ const buildMonthScheduler = (ts) => {
         let nextItem = times[i][ind + 1];
         let dayTimeSpan = timeOfDay(item.timespan.time);
         let dayTimeSpanNext = nextItem ? timeOfDay(nextItem.timespan.time) : null;
-        let isSameDayTime = dayTimeSpan == dayTimeSpanNext
+        let isSameDayTime = dayTimeSpan == dayTimeSpanNext;
+        const { start, end } = hoursSpanAdder(dayTimeSpan);
 
         const adderFunc = (cond: boolean) => {
           if (cond) {
@@ -448,7 +405,7 @@ const buildMonthScheduler = (ts) => {
           }
           if (!isSameDayTime) {
             let status = crtStatus(quantity);
-            monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan + ': ' + quantity, status))
+            monthViewSet.add(new ScheduleMonthEvent(date, date, list, dayTimeSpan, start, end, status))
             quantity = 0
             list = []
           }
@@ -465,7 +422,7 @@ const buildMonthScheduler = (ts) => {
           list = listOfProds(list, item);
           let status = crtStatus(quantity);
           if (!isSameDayTime) {
-            monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan + ': ' + quantity, status))
+            monthViewSet.add(new ScheduleMonthEvent(date, date, list, dayTimeSpan, start, end, status))
             quantity = 0
             list = []
           }
@@ -474,6 +431,26 @@ const buildMonthScheduler = (ts) => {
     }
   })
   monthView.value = Array.from(monthViewSet);
+}
+
+const hoursSpanAdder = (daytime) => {
+  let start = 0
+  let end = 0
+
+  if (daytime === 'Утро') {
+    start = 6
+    end = 12
+  }
+  if (daytime === 'День') {
+    start = 13
+    end = 17
+  }
+  if (daytime === 'Вечер') {
+    start = 18
+    end = 21
+  }
+
+  return { start, end }
 }
 
 const crtStatus = (q) => {
@@ -600,81 +577,7 @@ pageMap.setPageData("/administration/test_journal", pageMapData);
 defineExpose({ eventsHandler });
 
 </script>
-<style>
-.vuecal__event {
-  margin: 3px auto;
-  border-radius: 10px;
-  width: 95%;
-}
-
-.available {
-  background-color: #83ff8163;
-}
-
-.unavailable {
-  background-color: #c5c5c542;
-}
-
-.none {
-  display: none;
-}
-
-.vuecal--short-events .vuecal__event-title {
-  text-align: center;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding: 0 5px;
-  border-radius: 10px;
-  margin: 2px;
-}
-
-.date-picker-month {
-  background-color: rgba(150 255 194 / 35%) !important;
-  margin-top: 1px;
-}
-
-.first-day-pick {
-  border-radius: 10px 0 0 10px;
-}
-
-.last-day-pick {
-  border-radius: 0 10px 10px 0;
-}
-
-.vuecal--date-picker:not(.vuecal--day-view) .vuecal__cell--current .vuecal__cell-content,
-.vuecal--date-picker:not(.vuecal--day-view) .vuecal__cell--today .vuecal__cell-content {
-  border-color: #666666;
-}
-
-.vuecal--date-picker:not(.vuecal--day-view) .vuecal__cell--selected .vuecal__cell-content {
-  background-color: #ffff0000;
-  color: black;
-}
-
-.vuecal__title-bar {
-  background-color: transparent;
-}
-
-.not_working_hours {
-  background-color: #929090;
-}
-
-.separator {
-  background-color: #c0c0c049;
-  z-index: 0;
-}
-
-.vuecal--month-view .vuecal__cell .vuecal__event {
-  cursor: pointer;
-}
-
-.vuecal .day-split-header {
-  box-sizing: border-box;
-  word-break: break-all;
-  padding-left: 1px;
-}
-
+<style scoped>
 .not_paid {
   background-color: #fff2f2;
 }
@@ -691,30 +594,12 @@ defineExpose({ eventsHandler });
   background-color: #fff;
 }
 
-.vuecal__cell--before-min {
-  color: #00000040
+.not_working_hours {
+  background-color: #929090;
 }
 
-.vuecal--month-view .vuecal__cell {
-  height: 20%;
-}
-
-.vuecal--month-view .vuecal__cell-content {
-  justify-content: flex-start;
-  height: 100%;
-  align-items: flex-end;
-}
-
-.vuecal--month-view .vuecal__cell-date {
-  padding: 4px;
-}
-
-.vuecal--month-view .vuecal__no-event {
-  display: none;
-}
-
-.vuecal__cell--disabled {
-  color: #00000040;
-  cursor: pointer;
+.separator {
+  background-color: #c0c0c049;
+  z-index: 0;
 }
 </style>

@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev --host",
+    "dev": "nuxt dev --host --https --ssl-cert ./certs/cert.crt --ssl-key ./certs/certkey.key", 
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",

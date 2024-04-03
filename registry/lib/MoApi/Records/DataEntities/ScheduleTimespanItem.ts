@@ -10,7 +10,7 @@ import ScheduleTimeSpanEntity from "./ScheduleTimeSpanEntity";
 
 @injectable()
 export default class ScheduleTimespanItem extends DataEntity {
-    timespan: ScheduleTimeSpanEntity = null!;
+    timespan?: ScheduleTimeSpanEntity;
     position?: string;
     division?: string;
     placement?: string;
@@ -21,10 +21,18 @@ export default class ScheduleTimespanItem extends DataEntity {
     }
 
 
+    
+    override init(jsonObj: any[], ...params: any[]): void {
+        if (jsonObj)
+            this.fromJsonObj(jsonObj);
+    }
+
+
 
     override fromJsonObj(obj: any) {
         super.fromJsonObj(obj)
         this.timespan = obj.timespan ? this.__RecordStore.dataEntityFactory(ScheduleTimeSpanEntity, obj.timespan) : null;
+        this.products = obj.products ? [...obj.products] : null; 
     }
 
 

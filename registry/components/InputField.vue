@@ -1,8 +1,8 @@
 <template>
     <!--Строка-->
     <v-text-field v-if="type == EDataType.string && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact" v-maska:[maska]
-        :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
+        v-maska:[maska] :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
         :rules="StringFieldRules">
         <template v-slot:label>
             <span>
@@ -14,8 +14,9 @@
 
     <!--Текст-->
     <v-textarea v-if="type == EDataType.text && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal" rows="2"
-        :clearable="!readonly" :label="<string>label" variant="solo" :readonly="readonly" :maxlength="constraints?.max"
-        :rules="StringFieldRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
+        :clearable="!readonly" :label="<string>label" :variant='customVariant || "solo"' :readonly="readonly"
+        :maxlength="constraints?.max" :rules="StringFieldRules" @blur="(d) => onValChanged()"
+        @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -28,7 +29,7 @@
     <!--Телефон-->
     <VPhoneInput v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" :label="<string>label"
         :readonly="readonly" defaultCountry="RU" countryIconMode="svg" type="text" displayFormat="international" clearable
-        density="compact" v-model="CurrModelVal" variant="underlined" countryLabel="" :rules="PhoneRules"
+        density="compact" v-model="CurrModelVal" :variant='customVariant || "underlined"' countryLabel="" :rules="PhoneRules"
         @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>
             <span>
@@ -40,7 +41,7 @@
 
     <!--email-->
     <v-text-field v-if="type == EDataType.email && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
         :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
         :rules="MailFieldRules">
         <template v-slot:label>
@@ -59,9 +60,9 @@
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }">
 
         <template #trigger>
-            <v-text-field v-model="CurrModelVal" type="date" ref="refField" variant="underlined" :clearable="!readonly"
-                density="compact" :readonly="readonly" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
-                :rules="DatePickerRules">
+            <v-text-field v-model="CurrModelVal" type="date" ref="refField" :variant='customVariant || "underlined"'
+                :clearable="!readonly" density="compact" :readonly="readonly" @blur="(d) => onValChanged()"
+                @keydown.stop="(k) => onKeydown(k)" :rules="DatePickerRules">
                 <template v-slot:label>
                     <span>
                         {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -75,7 +76,7 @@
     <!--Выпадаюший список-->
     <v-select v-if="type == EDataType.strictstring && visible" ref="refField" v-bind="$attrs" :modelValue="CurrModelVal"
         :single-line="!(label || required)" density="compact" hide-details :readonly="readonly" :label="label || ''"
-        :items="items" :item-props="itemProps" variant="underlined" :rules="SingleStrSelectRules"
+        :items="items" :item-props="itemProps" :variant='customVariant || "underlined"' :rules="SingleStrSelectRules"
         @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }"
         :menuProps="{ scrollStrategy: 'close', maxWidth: 0 }">
         <template v-slot:label>
@@ -94,7 +95,7 @@
     <!--Выпадаюший список с множественным выбором-->
     <v-select width="300px" v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs"
         v-model="CurrModelVal" multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items"
-        :item-props="itemProps" variant="solo" :rules="MultipleStrSelectRules"
+        :item-props="itemProps" :variant='customVariant || "solo"' :rules="MultipleStrSelectRules"
         @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
         @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
@@ -107,7 +108,7 @@
 
     <!--Целое число-->
     <v-text-field v-if="type == EDataType.int && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
         v-maska:[IntFieldMaska] @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" :rules="NumberFieldRules">
         <template v-slot:label>
             <span>
@@ -118,7 +119,7 @@
 
     <!--Плавоющее число-->
     <v-text-field v-if="type == EDataType.float && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" variant="underlined" :clearable="!readonly" density="compact"
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
         v-maska:[FloatFieldMaska] @blur="() => onFloatChanged()" @keydown.stop="(k) => onKeydown(k)"
         :rules="NumberFieldRules">
         <template v-slot:label>
@@ -137,7 +138,7 @@
     <!--Словарное значение. modelValue в виде {value:string, title?:string} или его массива -->
     <v-select v-if="(type == EDataType.reference || type == EDataType.referenceMultiple) && visible" ref="refField"
         :chips="type == EDataType.referenceMultiple" v-bind="$attrs" :modelValue="referVal" :readonly="true" type="text"
-        variant="underlined" :clearable="!readonly" density="compact" :rules="SingleStrSelectRules"
+        :variant='customVariant || "underlined"' :clearable="!readonly" density="compact" :rules="SingleStrSelectRules"
         @keydown.stop="(k) => onKeydown(k)" @click="() => onReferEdit()"
         @click:clear="() => { CurrModelVal = null; onValChanged(true); }">
         <template v-slot:label>
@@ -188,6 +189,7 @@ interface IProps {
     tokens?: string[] | null,
     finderDataProvider?: FinderDataProvider | null,
     readonly?: boolean | null;
+    customVariant?: "solo" | "filled" | "outlined" | "plain" | "underlined" | "solo-inverted" | "solo-filled" | null;
 
     state?: {
         errCnt: number,

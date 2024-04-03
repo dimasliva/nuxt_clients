@@ -61,3 +61,21 @@ export class QueryParamsScheduler {
     this.groupId = _groupId;
   }
 }
+
+export class QuerySchedule {
+  begDate: string;
+  endDate: string;
+  positionIds?: string[] | null;
+  divisionIds?: string[] | null;
+  placementIds?: string[] | null;
+  productIds?: string[] | null;
+
+  constructor(_begDate: string, _endDate: string, _positionIds: string[] | null = null, _divisionIds: string[] | null = null, _placementIds: string[] | null = null, _productIds: string[] | null = null) {
+    this.begDate = _begDate;
+    this.endDate = _endDate;
+    this.positionIds = _positionIds;
+    this.divisionIds = _divisionIds;
+    this.placementIds = _placementIds;
+    this.productIds = _productIds;
+  }
+}

@@ -4,7 +4,7 @@ export class ScheduleMonthEvent {
   /** Конец события, если вид месяц то формат "ГГГГ-ММ-ДД", если виды неделя и день, то формат "ГГГГ-ММ-ДД ЧЧ:ММ"*/
   end: string = "";
   /**Список услуг для отображения в виде на месяц*/
-  products: { id: string; title: string; quantity: number }[] = [];
+  products: { id: string; title: string; quantity: number; duration: number; time: string }[] = [];
   /** Если вид месяц, то значения "Утро, День, Вечер"*/
   title: string;
   /**Время начала временного интервала*/

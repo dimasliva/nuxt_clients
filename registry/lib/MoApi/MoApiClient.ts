@@ -70,7 +70,7 @@ export class MoApiClient {
 
         if (res.bodyData && typeof res.bodyData == "object") {
             const answ = <IApiResult>res.bodyData;
-
+            
             if (answ.resultCode == "OK")
                 return <outT>answ.result;
             else

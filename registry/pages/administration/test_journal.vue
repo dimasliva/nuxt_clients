@@ -8,7 +8,7 @@
             :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
             events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
             :time-from="6 * 60" @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate"
-            :max-date="monthViewMaxDate">
+            :max-date="monthViewMaxDate"> 
             <template #title="{ title, view }">
                 <span v-if="view.id === 'month'">С {{ view.firstCellDate.format('DD.MM.YYYY') }} по {{
             view.lastCellDate.format('DD.MM.YYYY') }}
@@ -23,8 +23,7 @@
                             <v-menu :close-on-content-click="false">
                                 <template v-slot:activator="{ props }">
                                     {{ prodListTitle }} <v-btn variant="text" density="compact" v-bind="props">запись на
-                                        {{
-            event.title }}</v-btn>
+                                        {{ event.title }}</v-btn>
                                 </template>
                                 <!-- style="resize: both;" -->
                                 <v-card max-height="300" class="pa-4 " max-width="600">
@@ -52,7 +51,7 @@
             <VCard v-show="drawer" class="mb-auto mx-1" width="15vw">
                 <VForm>
                     <VCol>
-                        <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Фильтровать по:
+                        <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Поиск
                             <v-spacer></v-spacer><v-icon @click="drawer = false">mdi-close</v-icon></v-row>
 
                         <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined"
@@ -81,26 +80,32 @@
               v-model="selectedSchedulerItemGroup" label="Раздел расписания" :items="productsArr"
               :finderDataProvider="scheduleItemFinderDataProvider" /> -->
 
-                        <InputField customVariant="underlined" :state="fieldsOptions" chips closable-chips
-                            :type="employees.length || selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
-                            v-model="products" label="Услуга" :items="productsArr" item-value="id"
+                        <!-- <InputField customVariant="underlined" :state="fieldsOptions"
+                            :type="selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
+                            v-model="products" label="Услуга" :items="selectedSchedulerItemGroup? productsArr : []" item-value="id"
                             :finderDataProvider="productFinderDataProvider"
-                            @update:model-value="selectedSchedulerItemGroup ? filterDays() : false" />
+                            @update:model-value="() => {if(selectedSchedulerItemGroup)filterDays($event)}" /> -->
 
-                        <v-expand-transition>
-                            <InputField :type="EDataType.strictstring" :state="fieldsOptions" v-if="products.length"
-                                :items="kindOfDuration" item-value="time" v-model="productsDuration"
-                                @update:model-value="filterProducts($event)" variant="underlined" label="Искать по:" />
-                        </v-expand-transition>
+                        <InputField customVariant="underlined" :state="fieldsOptions"
+                            :type="selectedSchedulerItemGroup || employees.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
+                            v-model="products" label="Услуга" :items="selectedSchedulerItemGroup ? productsArr : []"
+                            :item-value="'id' || 'value'" :finderDataProvider="productFinderDataProvider"
+                            @update:model-value="() => { if (selectedSchedulerItemGroup) { filterDays() } else { getSchedule() }; isProdsList = true }" />
 
-                        <InputField customVariant="underlined" :state="fieldsOptions" chips closable-chips
-                            :type="products.length || selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
+
+                        <InputField :type="EDataType.strictstring" :state="fieldsOptions" 
+                        :items="kindOfDuration" item-value="time" v-model="productsDuration"
+                        @update:model-value="filterProducts($event)" variant="underlined"
+                        label="Искать по:" />
+
+                        <InputField customVariant="underlined" :state="fieldsOptions"
+                            :type="selectedSchedulerItemGroup || products.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
                             v-model="employees" label="Сотрудники" :items="employeesArr" item-value="id"
                             :finderDataProvider="emplFioFinderDataProvider"
-                            @update:model-value="selectedSchedulerItemGroup ? filterDays() : false" />
+                            @update:model-value="() => { if (selectedSchedulerItemGroup) filterDays() }" />
 
-                        <InputField customVariant="underlined" :state="fieldsOptions" chips closable-chips
-                            :type="products.length || selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
+                        <InputField customVariant="underlined" :state="fieldsOptions"
+                            :type="selectedSchedulerItemGroup || products.length || employees.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
                             v-model="division" label="Филиал" :items="divisions" item-value="id"
                             :finderDataProvider="emplFioFinderDataProvider"
                             :disabled="!employees.length && !products.length && !selectedSchedulerItemGroup"
@@ -108,7 +113,7 @@
 
                         <v-card-actions style="min-width: 200pt;">
                             <VBtn variant="text" @click="requestSchedule()">Поиск</VBtn>
-                            <VBtn variant="text" @click="clearFilters()">Сбросить</VBtn>
+                            <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
                         </v-card-actions>
                     </VCol>
                 </VForm>
@@ -118,27 +123,28 @@
 </template>
 
 <script setup lang="ts">
-import EventDialog from '~~/components/forms/EventDialog.vue';
 import VueCal from 'vue-cal';
-import '~~/components/customMonthView/custom-cal-style.scss';
+import { EDataType } from '~/lib/globalTypes';
+import InputField from '~/components/InputField.vue';
 import wt from '~~/components/customMonthView/vue-cal-m';
-import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
-import { QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
-import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
-import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { MoApiClient } from '~/lib/MoApi/MoApiClient';
+import '~~/components/customMonthView/custom-cal-style.scss';
+import EventDialog from '~~/components/forms/EventDialog.vue';
+import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
+import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
+import { QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
 import { ScheduleMonthEvent } from '~/components/customMonthView/SchedulerTypes';
-import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
-import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
-import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
-import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
-import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
-import { EDataType } from '~/lib/globalTypes';
 import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ScheduleApiSection } from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
+import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
+import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
+import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
+import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
 import { ScheduleItemFinderDataProvider } from '~/libVis/FinderDataProviders/ScheduleItemFinderDataProvider';
+import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -176,7 +182,7 @@ let divisions = ref([])
 let monthView = ref<ScheduleMonthEvent[]>([])
 let events = []
 let vuecal = ref<any>(null);
-let products = ref<ProductRecordData[]>([])
+let products = ref<any[]>([])
 let productsArr = ref<any>([])
 let employees = ref<any>([])
 let employeesArr = ref<any>([])
@@ -355,10 +361,16 @@ const getEmployeeList = async (k) => {
 }
 
 const getSchedule = async () => {
+    let prodsIds: any = null;
+    let positionsIds: any = null;
+    if (employees.value.length) {
+        positionsIds = employees.value.map()
+    }
+    if (products.value.length) {
+        prodsIds = products.value.map((i: any) => i.value)
+    }
 
-
-    // let res = await schItemGroup.getSchedule(minDate.value, maxDate.value);
-    let res = await schItemGroup.getSchedule({ begDate: minDate.value.toISOString().substring(0, 10), endDate: maxDate.value.toISOString().substring(0, 10) });
+    let res = await schItemGroup.getSchedule({ begDate: minDate.value, endDate: maxDate.value, productIds: prodsIds, positionIds: null, divisionIds: division.value ? division.value : null, placementIds: null });
     let sch: any = res
     currRangeData.value = res
     buildMonthScheduler(sch);
@@ -368,26 +380,23 @@ const getSchedule = async () => {
         prods.push(el.products)
         empls.push(el.position)
     });
-    if (!products.value.length) {
-        prods = Array.from(new Set(prods.flat()))
-        productsArr.value = await getProductsList(prods)
-    }
-    if (!employees.value.length) {
-        empls = Array.from(new Set(empls))
-        employeesArr.value = Array.from(await getEmployeeList(empls))
-        employeesArr.value.map((empl) =>
-            empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
-        )
-    }
+    prods = Array.from(new Set(prods.flat()))
+    productsArr.value = await getProductsList(prods)
+    empls = Array.from(new Set(empls))
+    employeesArr.value = Array.from(await getEmployeeList(empls))
+    employeesArr.value.map((empl) =>
+        empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
+    )
+
 }
 
 const buildMonthScheduler = (ts) => {
     monthView.value = [];
-    let dates: string[] = Object.keys(ts);
-    let times: ScheduleTimespanItem[][] = Object.values(ts);
+    const dates: string[] = Object.keys(ts);
+    const times: ScheduleTimespanItem[][] = Object.values(ts);
     const monthViewSet = new Set<ScheduleMonthEvent>();
 
-    dates.map((date, i) => {
+    dates.forEach((date, i) => {
         if (times[i].length > 0) {
             let quantity = 0;
             let list: { id: string, title: string, quantity: number, duration: number }[] = [];
@@ -411,14 +420,7 @@ const buildMonthScheduler = (ts) => {
                         list = []
                     }
                 }
-
-                if (products.value.length > 0 && !(employees.value.length > 0)) {
-                    adderFunc(hasProdInTimes(products.value, item))
-                } else if (employees.value.length > 0 && !(products.value.length > 0)) {
-                    adderFunc(hasEmplsInTimes(employees.value, item))
-                } else if (products.value.length > 0 && employees.value.length > 0) {
-                    adderFunc(hasEmplsInTimes(employees.value, item) && hasProdInTimes(products.value, item))
-                } else {
+                const adderDefFunc = () => {
                     quantity++
                     list = addToListOfProds(list, item);
                     let status = crtStatus(quantity);
@@ -427,6 +429,19 @@ const buildMonthScheduler = (ts) => {
                         quantity = 0
                         list = []
                     }
+                }
+                if (selectedSchedulerItemGroup.value) {
+                    if (products.value.length > 0 && !(employees.value.length > 0)) {
+                        adderFunc(hasProdInTimes(products.value, item))
+                    } else if (employees.value.length > 0 && !(products.value.length > 0)) {
+                        adderFunc(hasEmplsInTimes(employees.value, item))
+                    } else if (products.value.length > 0 && employees.value.length > 0) {
+                        adderFunc(hasEmplsInTimes(employees.value, item) && hasProdInTimes(products.value, item))
+                    } else {
+                        adderDefFunc();
+                    }
+                } else {
+                    adderDefFunc();
                 }
             })
         }
@@ -545,7 +560,7 @@ const clearFilters = () => {
     products.value = [];
     division.value = [];
     changeDate(new Date)
-    monthView.value = [];
+    getSchedule();
 }
 
 
@@ -587,7 +602,6 @@ let pageMapData: IFrameHeaderData = reactive({
 getScheduleItemGroupIds();
 getCatalogs();
 requestSchedule();
-
 pageMap.setPageData("/administration/test_journal", pageMapData);
 
 defineExpose({ eventsHandler });

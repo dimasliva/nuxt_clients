@@ -17,18 +17,10 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
     sections = ref([] as { id: string, title: string }[])
     selectedSections = ref<any>([])
 
-    selected = ref([] as { value: any, title: string }[]);
-    /**Последнее значение в строке поиска, которое учитывалось для статистики введенных значений*/
-    lastSearchStrForStat = "";
-
 
 
     async setup(props: IFinderFormSelectProps, ctx?) {
         await super.setup(props, ctx);
-        if (!t) t = useNuxtApp().$i18n.t;
-        if (props.choosedValues) {
-            this.selected.value = await Utils.mapAsync(props.choosedValues, async (val, inx) => { return { value: val.value, title: val.title || await this.getTitleItemByVal(val) || "" } });
-        }
         if (props.selectedOptionsValues) {
             this.sections.value = props.selectedOptionsValues;
         }
@@ -102,7 +94,6 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
                         this.getChoosePanel()
                     }
                 </v-row>
-
             </WindowDialog>
     }
 }

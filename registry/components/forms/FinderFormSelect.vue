@@ -49,9 +49,11 @@ export default {
 
 
     async setup(props, ctx) {
+        
         let t = useI18n().t;
         const o = new FinderSelectForm();
         await o.setup(props as IFinderFormSelectProps, ctx);
+
         ctx.expose({
             eventsHandler: (e, d) => o.eventsHandler(e, d)
         });

@@ -38,7 +38,6 @@ export abstract class FinderDataProvider {
 
 
     async edit(choosedValues?: any): Promise<any | null> {
-
         return new Promise(resolve => {
             openDialog(this._editFormComponent,
                 {

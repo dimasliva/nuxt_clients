@@ -63,14 +63,21 @@ export class QueryParamsScheduler {
 }
 
 export class QuerySchedule {
-  begDate: string;
-  endDate: string;
+  begDate: string | Date;
+  endDate: string | Date;
   positionIds?: string[] | null;
   divisionIds?: string[] | null;
   placementIds?: string[] | null;
   productIds?: string[] | null;
 
-  constructor(_begDate: string, _endDate: string, _positionIds: string[] | null = null, _divisionIds: string[] | null = null, _placementIds: string[] | null = null, _productIds: string[] | null = null) {
+  constructor(
+    _begDate: string | Date,
+    _endDate: string | Date,
+    _positionIds: string[] | null = null,
+    _divisionIds: string[] | null = null,
+    _placementIds: string[] | null = null,
+    _productIds: string[] | null = null
+  ) {
     this.begDate = _begDate;
     this.endDate = _endDate;
     this.positionIds = _positionIds;

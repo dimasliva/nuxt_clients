@@ -25,23 +25,9 @@ export class ScheduleApiSection {
     return res;
   }
 
-  async getSchedule(
-    // _begDate: Date,
-    // _endDate: Date,
-    // _positionIds: string[] | null = null,
-    // _divisionIds: string[] | null = null,
-    // _placementIds: string[] | null = null,
-    // _productIds: string[] | null = null
-    queryArgs: QuerySchedule
-  ) {
-    // const queryArgs = {
-    //   begDate: Utils.getDateStr(_begDate),
-    //   endDate: Utils.getDateStr(_endDate),
-    //   positionIds: _positionIds,
-    //   divisionIds: _divisionIds,
-    //   placementIds: _placementIds,
-    //   productIds: _productIds,
-    // };
+  async getSchedule(queryArgs: QuerySchedule) {
+    queryArgs.begDate = Utils.getDateStr(new Date(queryArgs.begDate));
+    queryArgs.endDate = Utils.getDateStr(new Date(queryArgs.endDate));
 
     const raw = await this._MoApiClient.send<QuerySchedule, ScheduleTimespanItem[][]>("/Schedule/GetSchedule", queryArgs);
     const res: ScheduleTimespanItem[][] = [];

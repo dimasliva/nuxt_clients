@@ -139,7 +139,7 @@
     <v-select v-if="(type == EDataType.reference || type == EDataType.referenceMultiple) && visible" ref="refField"
         :chips="type == EDataType.referenceMultiple" v-bind="$attrs" :modelValue="referVal" :readonly="true" type="text"
         :variant='customVariant || "underlined"' :clearable="!readonly" density="compact" :rules="SingleStrSelectRules"
-        @keydown.stop="(k) => onKeydown(k)" @click="() => onReferEdit()"
+        @keydown.stop="(k) => onKeydown(k)" @click="onReferEdit()"
         @click:clear="() => { CurrModelVal = null; onValChanged(true); }">
         <template v-slot:label>
             <span>
@@ -147,6 +147,7 @@
             </span>
         </template>
     </v-select>
+    
 </template>
 
 

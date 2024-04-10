@@ -1,7 +1,9 @@
 import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/lib/UserContext";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
+import { Exception } from "~/lib/Exceptions";
 import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
+import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { ProductFtsViews } from "~/lib/MoApi/Views/ProductFtsListView";
 import { ProductRecord } from "~/lib/MoApi/Records/ProductRecord";
@@ -11,6 +13,7 @@ import FinderSelectForm from "~/components/forms/FinderFormSelect.vue";
 
 @injectable()
 export class ProductFinderDataProvider extends FinderDataProvider {
+
   protected _listSizeLimit = 20;
   protected _selectedOptionsValues: any = [];
 
@@ -33,13 +36,15 @@ export class ProductFinderDataProvider extends FinderDataProvider {
     this._selectedOptionsValues = cats;
   }
 
+
+
   async edit(choosedValues?: any): Promise<any | null> {
     return new Promise((resolve) => {
       openDialog(
         this._editFormComponent,
         {
           diC: this._diC,
-          title: "Поиск",
+          title: "Поиск товаров и услуг",
           finderDataProvider: this,
           apiRequestTimeout: this._apiRequestTimeout,
           choosedValues: choosedValues,
@@ -50,8 +55,7 @@ export class ProductFinderDataProvider extends FinderDataProvider {
         (e, d) => {
           if (e == "onBeforeClose") resolve(d);
           return true;
-        }
-      );
+        });
     });
   }
 
@@ -66,10 +70,8 @@ export class ProductFinderDataProvider extends FinderDataProvider {
         productCatalogs: cats,
         temporaryNotActive: false,
       });
-      let res = rdl.toArray().map((item) => {
-        return { value: item.id, title: item.title! };
-      });
-      return res.sort((a, b) => a.title!.localeCompare(b.title!));
+      let res = rdl.toArray().map((item) => { return { value: item.id, title: item.title! }});
+      return res;
     }
 
     return [];
@@ -78,6 +80,6 @@ export class ProductFinderDataProvider extends FinderDataProvider {
   async getTitle(value: any, ...args: any[]): Promise<string | undefined> {
     if (!value) return undefined;
     const rec = await this._RecordsStore.fetch(ProductRecord, value);
-    return;
+    return rec.Data?.title;
   }
 }

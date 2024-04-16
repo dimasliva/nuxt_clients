@@ -95,6 +95,7 @@ import { useI18n } from 'vue-i18n';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
+import * as U from "~~/lib/Utils";
 
 const { t } = useI18n()
 let form = ref(false)
@@ -149,7 +150,7 @@ const onSubmit = async () => {
   let regData = {
     "email": email.value,
     "login": login.value,
-    "password": password.value,
+    "password": await U.getPasswordHash(password.value),
     "companyTitle": companyTitle.value,
     "companyFullTitle": companyFullTitle.value,
     "emplName": emplName.value,

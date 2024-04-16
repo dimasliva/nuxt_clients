@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { UserContext } from "~~/lib/UserContext";
+import * as U from "~~/lib/Utils";
 
 const { t } = useI18n()
 let form = ref(false)
@@ -83,7 +84,7 @@ const onSubmit = async () => {
   const userCtx = iocc.get<UserContext>("UserContext");
 
   loading.value = true;
-  if (await userCtx.tryAuthorize(login.value,password.value)) {
+  if (await userCtx.tryAuthorize(login.value, await U.getPasswordHash(password.value))) {
     navigateTo('/dashboard');
   } else {
     err.value = true;
@@ -91,6 +92,7 @@ const onSubmit = async () => {
 
   loading.value = false;
 }
+
 
 definePageMeta({
   layout: false,

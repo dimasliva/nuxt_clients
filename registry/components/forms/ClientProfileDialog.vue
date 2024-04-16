@@ -361,7 +361,7 @@ const docsDescr = computedAsync(async () => {
 
 const onAddDoc = (fieldsOptions, typeCode) => {
   fieldsOptions.changedCnt++;
-  otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity, null, {
+  otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity,  {
     typeCode: typeCode
   }), true, true));
 }

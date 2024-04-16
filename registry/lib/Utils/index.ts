@@ -4,7 +4,6 @@ import type { UserContext } from "../UserContext";
 import * as Helpers from "../Helpers";
 
 
-
 export function chkRights(requiredFeature: string[] | null | undefined, requiredRights: { [rec: string]: string } | null | undefined) {
     const iocc = useContainer();
     const UserCtx = iocc.get<UserContext>('UserContext');
@@ -136,7 +135,20 @@ export async function mapAsync(arr: any[], handler: (val, inx) => Promise<any>) 
 
 
 
-export function getDateStr(date:Date){
-    return date.toISOString().substring(0,10);
+export function getDateStr(date: Date) {
+    return date.toISOString().substring(0, 10);
+}
+
+
+
+export async function getPasswordHash(psw: string) {
+    if (!psw) return "";
+    const msgUint8 = new TextEncoder().encode(psw); // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8); // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""); // convert bytes to hex string
+    return hashHex.toLowerCase();
 }
 

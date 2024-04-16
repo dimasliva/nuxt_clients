@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { EmployeeRecord, EmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
-import { EmployeeContactsRecord } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
+import { EmployeeContactsRecord, EmployeeContactsRecordData } from '~~/lib/MoApi/Records/EmployeeContactsRecord';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { ClientRecord, ClientRecordData } from '~~/lib/MoApi/Records/ClientRecord';
 import { ClientContactsRecord } from '~~/lib/MoApi/Records/ClientContactsRecord';
@@ -61,9 +61,9 @@ let scheduleItemGroupLoader = ref(false)
 const createRecs = async (recLoading: typeof emplLoading) => {
 
     const size = recLoading.size;
-    const recCreateTask = recLoading.createTask;
     if (productsCatalogName.value && productsCatalogSectionQuantity.value && priceListLoading.size) { await addProductsCatalog(productsCatalogName.value) };
     if (scheduleItemGroup.value) { await addScheduleItemGroup() };
+    const recCreateTask = recLoading.createTask;
 
     if (size != 0) {
         recLoading.loading = true;
@@ -117,10 +117,11 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
         data.surname = surname;
         data.patronymic = patronymic;
         data.gender = gender;
-        data.birthdate = "2023-05-25T05:12:08.774Z";
+        data.birthdate = generateRandomDate();
         data.roles = "admin";
     })
     await rec.save();
+    console.log(rec)
 
     let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
     emplcont.MData!.mainEmail = mail || null;

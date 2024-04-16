@@ -51,7 +51,7 @@
             <VCard v-show="drawer" class="mb-auto mx-1" width="15vw">
                 <VForm>
                     <VCol>
-                        <v-row class="text-body-1 ma-2" style="min-width: 200pt;">Поиск
+                        <v-row class="text-body-1 ma-2">Поиск
                             <v-spacer></v-spacer><v-icon @click="drawer = false">mdi-close</v-icon></v-row>
 
                         <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined"
@@ -80,29 +80,23 @@
               v-model="selectedSchedulerItemGroup" label="Раздел расписания" :items="productsArr"
               :finderDataProvider="scheduleItemFinderDataProvider" /> -->
 
-                        <!-- <InputField customVariant="underlined" :state="fieldsOptions"
-                            :type="selectedSchedulerItemGroup ? EDataType.strictstringarray : EDataType.referenceMultiple"
-                            v-model="products" label="Услуга" :items="selectedSchedulerItemGroup? productsArr : []" item-value="id"
-                            :finderDataProvider="productFinderDataProvider"
-                            @update:model-value="() => {if(selectedSchedulerItemGroup)filterDays($event)}" /> -->
-
-                        <InputField customVariant="underlined" :state="fieldsOptions"
-                            :type="selectedSchedulerItemGroup || employees.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
-                            v-model="products" label="Услуга" :items="selectedSchedulerItemGroup ? productsArr : []"
+                        <InputField customVariant="underlined" :state="fieldsOptions" 
+                            :type="selectedSchedulerItemGroup || employees.title ? EDataType.strictstringarray : EDataType.referenceMultiple"
+                            v-model="products" label="Услуга" :items="selectedSchedulerItemGroup || employees.title ? productsArr : []"
                             :item-value="'id' || 'value'" :finderDataProvider="productFinderDataProvider"
-                            @update:model-value="() => { if (selectedSchedulerItemGroup) { filterDays() } else { getSchedule() }; isProdsList = true }" />
+                            @update:model-value="() => { if (selectedSchedulerItemGroup || employees.title) { filterDays() } else { getSchedule() }}" />
 
 
-                        <InputField :type="EDataType.strictstring" :state="fieldsOptions" 
-                        :items="kindOfDuration" item-value="time" v-model="productsDuration"
-                        @update:model-value="filterProducts($event)" variant="underlined"
-                        label="Искать по:" />
+                        <InputField :type="EDataType.strictstring" :state="fieldsOptions" :disabled="!products.length"
+                          :items="kindOfDuration" item-value="time" v-model="productsDuration"
+                          @update:model-value="filterProducts($event)" variant="underlined"
+                          label="Искать по:" />
 
                         <InputField customVariant="underlined" :state="fieldsOptions"
                             :type="selectedSchedulerItemGroup || products.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
                             v-model="employees" label="Сотрудники" :items="employeesArr" item-value="id"
                             :finderDataProvider="emplFioFinderDataProvider"
-                            @update:model-value="() => { if (selectedSchedulerItemGroup) filterDays() }" />
+                            @update:model-value="() => { if (selectedSchedulerItemGroup || products.length) { filterDays() } else { getSchedule() } }" />
 
                         <InputField customVariant="underlined" :state="fieldsOptions"
                             :type="selectedSchedulerItemGroup || products.length || employees.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
@@ -111,7 +105,7 @@
                             :disabled="!employees.length && !products.length && !selectedSchedulerItemGroup"
                             @update:model-value="selectedSchedulerItemGroup ? filterDays() : false" />
 
-                        <v-card-actions style="min-width: 200pt;">
+                        <v-card-actions>
                             <VBtn variant="text" @click="requestSchedule()">Поиск</VBtn>
                             <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
                         </v-card-actions>
@@ -133,13 +127,14 @@ import EventDialog from '~~/components/forms/EventDialog.vue';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
-import { QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
+import { QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
 import { ScheduleMonthEvent } from '~/components/customMonthView/SchedulerTypes';
 import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ScheduleApiSection } from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
 import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
+import { PositionsViews } from '~/lib/MoApi/Views/PositionsViews';
 import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
@@ -167,6 +162,7 @@ const recStore = iocc.get(RecordsStore);
 const apiClient = iocc.get<MoApiClient>('MoApiClient');
 const pageMap = iocc.get<PageMap>("PageMap");
 const schItemGroup = iocc.get(ScheduleApiSection);
+const positionviews = iocc.get(PositionsViews);
 let currView = ref('month');
 let dataPickerMenu = ref(false);
 let schedulerItemGroups = ref<any>([])
@@ -201,7 +197,7 @@ maxDate.value.setDate(maxDate.value.getDate() + 30)
 let monthViewMinDate = ref<any>(new Date())
 let monthViewMaxDate = ref<any>('')
 let selDate = ref(monthViewMinDate.value)
-let dateRange = ref(`${minDate.value.format('DD.MM.YYYY')}-${maxDate.value.format('DD.MM.YYYY')}`)
+let dateRange = ref(`${minDate.value.format('DD.MM.YYYY')}`)
 let currRangeData = ref<any>()
 let prodsLoad = ref(false)
 let schdLoad = ref(false)
@@ -210,6 +206,7 @@ let productsDuration = ref()
 let isProdsList = ref(false)
 let prodsList = ref<any>([])
 let prodListTitle = ref<any>('')
+let catalogs = ref<any>([])
 
 const productFinderDataProvider = iocc.get(ProductFinderDataProvider);
 const emplFioFinderDataProvider = iocc.get(EmployeeFioFinderDataProvider);
@@ -236,7 +233,6 @@ const openCurrDay = (ev) => {
     endSelectedCell.value = ev.end.formatTime('H');
 }
 
-let catalogs = ref<any>([])
 const getCatalogList = async (keys) => {
     let list = await recStore.getRecordsM(keys.map((k) => {
         return { id: { key: k, type: ProductsCatalogRecord } }
@@ -280,7 +276,7 @@ const changeDate = (date) => {
     minDate.value = new Date(date);
     maxDate.value = new Date(date);
     maxDate.value.setDate(maxDate.value.getDate() + 30)
-    dateRange.value = `${minDate.value.format('DD.MM.YYYY')}-${maxDate.value.format('DD.MM.YYYY')}`;
+    dateRange.value = `${minDate.value.format('DD.MM.YYYY')}`;
     selDate.value = minDate.value;
     dataPickerMenu.value = false;
     monthViewMinDate.value = minDate.value;
@@ -349,28 +345,27 @@ const getProductsList = async (k) => {
 
 const getEmployeeList = async (k) => {
     let keys = k.map((id) => id.replaceAll(`'`, `"`))
-    let recs = await recStore.getRecordsM(keys.map((i) => {
-        return { id: { key: i, type: PositionRecord } }
-    }));
+    let recs = await recStore.getRecords<PositionRecord>(PositionRecord, keys)
     positions.value = Array.from(recs.map(i => i.MData))
-    let emplsRec = recs.map(i => i.MData).map((el: any) => el.employee.replaceAll(`'`, `"`))
-    emplsRec = await recStore.getRecordsM(emplsRec.map((i) => {
-        return { id: { key: i, type: EmployeeRecord } }
-    }));
+    let emplsKeys = recs.map(i => i.MData).map((el: any) => el.employee.replaceAll(`'`, `"`))
+    let emplsRec = await recStore.getRecords<EmployeeRecord>(EmployeeRecord, emplsKeys)
     return emplsRec.map(i => i.MData)
 }
 
 const getSchedule = async () => {
     let prodsIds: any = null;
     let positionsIds: any = null;
-    if (employees.value.length) {
-        positionsIds = employees.value.map()
+    if (employees.value.value) {
+      let select = "id"
+      let where = `employee='${employees.value.value}'`
+      positionsIds = await positionviews.getPositionListView({select, where, limit:0})
+      positionsIds = positionsIds._data.flat()
     }
     if (products.value.length) {
         prodsIds = products.value.map((i: any) => i.value)
     }
 
-    let res = await schItemGroup.getSchedule({ begDate: minDate.value, endDate: maxDate.value, productIds: prodsIds, positionIds: null, divisionIds: division.value ? division.value : null, placementIds: null });
+    let res = await schItemGroup.getSchedule({ begDate: minDate.value, endDate: maxDate.value, productIds: prodsIds, positionIds: positionsIds, divisionIds: division.value ? division.value : null, placementIds: null });
     let sch: any = res
     currRangeData.value = res
     buildMonthScheduler(sch);

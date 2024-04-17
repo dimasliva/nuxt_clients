@@ -229,7 +229,7 @@ import { getNextSerialKey } from '~/lib/Utils';
 
 const { t, locale } = useI18n();
 
-class VisWrap<T>{
+class VisWrap<T> {
   modelValue: T;
   key: number = getNextSerialKey();
 
@@ -303,11 +303,20 @@ let recCont = ref<ClientContactsRecord>();
 let recSd = ref<ClientSdRecord>();
 
 if (props.recKey) {
-  rec.value = await recStore.fetch(ClientRecord, props.recKey);
-  recDoc.value = await recStore.getOrCreate(ClientDocumentsRecord, props.recKey);
-  recAddr.value = await recStore.getOrCreate(ClientAddressesRecord, props.recKey);
-  recCont.value = await recStore.getOrCreate(ClientContactsRecord, props.recKey);
-  recSd.value = await recStore.getOrCreate(ClientSdRecord, props.recKey);
+
+  let recs = await recStore.getRecordsM([
+    { id: { key: props.recKey, type: ClientRecord } },
+    { id: { key: props.recKey, type: ClientDocumentsRecord }, optional: true },
+    { id: { key: props.recKey, type: ClientAddressesRecord }, optional: true },
+    { id: { key: props.recKey, type: ClientContactsRecord }, optional: true },
+    { id: { key: props.recKey, type: ClientSdRecord }, optional: true }
+  ]);
+
+  rec.value = recs[0] as ClientRecord;
+  recDoc.value = recs[1] as ClientDocumentsRecord;
+  recAddr.value = recs[2] as ClientAddressesRecord;
+  recCont.value = recs[3] as ClientContactsRecord;
+  recSd.value = recs[4] as ClientSdRecord;
 }
 else {
   rec.value = await recStore.createNew(ClientRecord, (data) => { });
@@ -361,7 +370,7 @@ const docsDescr = computedAsync(async () => {
 
 const onAddDoc = (fieldsOptions, typeCode) => {
   fieldsOptions.changedCnt++;
-  otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity,  {
+  otherDocuments.push(new VisWrap(recStore.dataEntityFactory(PersonalDocumentEntity, {
     typeCode: typeCode
   }), true, true));
 }

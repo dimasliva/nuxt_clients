@@ -9,7 +9,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3000",
+            "url": "https://172.16.121.39:3000",
             "webRoot": "${workspaceFolder}"
         },
 
@@ -17,8 +17,35 @@
             "type": "firefox",
             "request": "launch",
             "name": "Launch firefox against localhost",
-            "url": "http://localhost:3000",
+            "url": "https://172.16.121.39:3000",
             "webRoot": "${workspaceFolder}"
+        },
+
+        {
+            "type": "msedge",
+            "request": "launch",
+            "name": "Launch msedge",
+            "url": "https://172.16.121.39:3000",
+            "webRoot": "${workspaceFolder}"
+        },
+
+        {
+            // режим attach с LiveServer
+            "name": "Attach Chrome tab, server LiveServer",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "url": "http://localhost:5555",
+            "webRoot": "${workspaceFolder}/.output/public"
+        },
+
+        {
+            // режим attach с LiveServer
+            "name": "Chrome product",
+            "type": "chrome",
+            "request": "launch",
+            "url": "https://localhost",
+            "webRoot": "${workspaceFolder}/.output/public/server"
         },
     ]
 }

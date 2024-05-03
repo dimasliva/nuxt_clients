@@ -5,7 +5,7 @@ import { Exception } from "~/lib/Exceptions";
 import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
-import { ProductFtsViews } from "~/lib/MoApi/Views/ProductFtsListView";
+import { ProductViews } from "~/lib/MoApi/Views/ProductViews";
 import { ProductRecord } from "~/lib/MoApi/Records/ProductRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from "~/components/forms/FinderForm.vue";
@@ -22,7 +22,7 @@ export class ProductFinderDataProvider extends FinderDataProvider {
     @inject("UserContext") _UserContext: UserContext,
     @inject("diC") _diC: Container,
     @inject("RecordsStore") protected _RecordsStore: RecordsStore,
-    @inject(ProductFtsViews) protected _ProductsFtsListView: ProductFtsViews
+    @inject(ProductViews) protected _ProductViews: ProductViews
   ) {
     super(_MoApiClient, _UserContext, _diC);
     this._historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.full;
@@ -61,7 +61,7 @@ export class ProductFinderDataProvider extends FinderDataProvider {
 
   async getList(txt: string, cats: any): Promise<TDictViewVal[]> {
     if (txt) {
-      let rdl = await this._ProductsFtsListView.getProductFtsListView({
+      let rdl = await this._ProductViews.getProductFtsListView({
         select: "id, title, fullTitle, catalogTitle, sectionTitle",
         text: txt,
         limit: this._listSizeLimit,

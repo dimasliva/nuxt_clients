@@ -281,7 +281,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   async getCouplings(slaveRecCode: number = -1) {
     if (this._couplingsData[slaveRecCode]) return this._couplingsData[slaveRecCode];
 
-    this._loadCouplings();
+    await this._loadCouplings();
     return this._couplingsData[slaveRecCode];
   }
 

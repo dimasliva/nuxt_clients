@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { QueryParams } from "../RequestArgs";
+import { QueryParams, QueryProductFtsList } from "../RequestArgs";
 import { MoApiClient } from "../MoApiClient";
 import { UserContext } from "~/lib/UserContext";
 import { type IApiDataListResult } from "../RequestResults";
@@ -32,8 +32,18 @@ export interface IProductListView {
 }
 
 
+export interface IProductFtsListView {
+    "id": string | undefined,
+    "title": string | undefined,
+    "fullTitle": string | undefined,
+    "catalogTitle": string | undefined,
+    "sectionTitle": string | undefined
+}
+
+
+
 @injectable()
-export class ProductsViews {
+export class ProductViews {
 
     constructor(
         @inject("MoApiClient") protected _MoApiClient: MoApiClient,
@@ -44,6 +54,13 @@ export class ProductsViews {
     async getProductsListView(args: QueryParams) {
         const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Products/ProductsListView", args);
         let res = DataList.createFromApiDl<IProductListView>(apires);
+        return res;
+    }
+
+
+    async getProductFtsListView(args: QueryProductFtsList) {
+        const apires = await this._MoApiClient.send<QueryProductFtsList, IApiDataListResult>("/Products/ProductFtsListView", args);
+        let res = DataList.createFromApiDl<IProductFtsListView>(apires);
         return res;
     }
 

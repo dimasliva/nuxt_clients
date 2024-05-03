@@ -62,8 +62,6 @@ const createRecs = async (recLoading: typeof emplLoading) => {
 
     const size = recLoading.size;
     const recCreateTask = recLoading.createTask;
-    if (productsCatalogName.value && productsCatalogSectionQuantity.value && priceListLoading.size) { await addProductsCatalog(productsCatalogName.value) };
-    if (scheduleItemGroup.value) { await addScheduleItemGroup() };
 
     if (size != 0) {
         recLoading.loading = true;
@@ -166,6 +164,8 @@ const addPosition = async (emplkey, i) => {
     await addScheduleItem(rec.Key, i); //3
 };
 
+
+
 const timeSpansCrtr = () => {
     let a: ScheduleTimeSpanEntity[] = [];
 
@@ -217,6 +217,7 @@ const addScheduleItemGroup = async () => {
 }
 
 
+
 const addClient = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
     let rec = await recStore.createNew<ClientRecord, ClientRecordData>(ClientRecord, (data) => {
         data.name = name;
@@ -232,6 +233,7 @@ const addClient = async (name: string, surname: string, patronymic: string, gend
     reccont.MData!.mainPhone = phone || null;
     reccont.save();
 }
+
 
 
 const clientsCreateTask = async (size: number) => {
@@ -257,6 +259,8 @@ const clientsCreateTask = async (size: number) => {
     }
 }
 
+
+
 let currElement = ref(0)
 let catalogKey = ref('')
 const addProductsCatalog = async (title) => {
@@ -280,6 +284,8 @@ const addProductsCatalog = async (title) => {
     console.log('products and catalogs creating end')
 }
 
+
+
 const addProductsCatalogSection = async (quantity, prodCat) => {
     let recSection = await recStore.createNew<ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData>(ProductsCatalogSectionRecord, (data) => {
         data.title = 'Раздел' + (quantity + 1).toString();
@@ -291,8 +297,10 @@ const addProductsCatalogSection = async (quantity, prodCat) => {
         data.advData = null
     })
     await recSection.save()
-    productsCreateTask(priceListLoading.size, recSection.Key);
+    await productsCreateTask(priceListLoading.size, recSection.Key);
 }
+
+
 
 const productsCreateTask = async (size: number, key) => {
     for (let i = 0; i < size; i++) {
@@ -309,9 +317,11 @@ const productsCreateTask = async (size: number, key) => {
     }
 }
 
+
+
 const addProducts = async (title: string, fullTitle: string, code: string, productsCatalog: string, productsCatalogSection: string, prices: any, duration: number, comments: string) => {
     let rec = await recStore.createNew<ProductRecord, ProductRecordData>(ProductRecord, (data) => {
-        data.title = title;
+        data.title = title || "test";
         data.fullTitle = fullTitle;
         data.code = code;
         data.productsCatalog = productsCatalog;
@@ -327,6 +337,7 @@ const addProducts = async (title: string, fullTitle: string, code: string, produ
 const emplLoading = reactive({ size: 0, loading: false, recName: "employees", createTask: emplCreateTask });
 const clientsLoading = reactive({ size: 0, loading: false, recName: "clients", createTask: clientsCreateTask });
 const priceListLoading = reactive({ size: 0, loading: false, recName: "products", createTask: productsCreateTask });
+
 
 const generateRandomPrices = (prices: number[]) => {
     const randomPrices: { [key: string]: number } = {};
@@ -351,6 +362,8 @@ const generateRandomPrices = (prices: number[]) => {
     return randomPrices;
 };
 
+
+
 function generatePhoneNumber() {
     let phoneNumber = "7"; // Assuming the country code is +1 for the United States
     // Generate the remaining 10 digits of the phone number
@@ -359,6 +372,7 @@ function generatePhoneNumber() {
     }
     return phoneNumber;
 }
+
 
 
 function generateEmailAddress() {

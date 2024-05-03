@@ -1,9 +1,9 @@
 <template>
     <!--Строка-->
     <v-text-field v-if="type == EDataType.string && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
-        v-maska:[maska] :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
-        :rules="StringFieldRules">
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly"
+        density="compact" v-maska:[maska] :maxlength="constraints?.max" @blur="(d) => onValChanged()"
+        @keydown.stop="(k) => onKeydown(k)" :rules="StringFieldRules">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -28,9 +28,9 @@
 
     <!--Телефон-->
     <VPhoneInput v-if="type == EDataType.phone && visible" ref="refField" v-bind="$attrs" :label="<string>label"
-        :readonly="readonly" defaultCountry="RU" countryIconMode="svg" type="text" displayFormat="international" clearable
-        density="compact" v-model="CurrModelVal" :variant='customVariant || "underlined"' countryLabel="" :rules="PhoneRules"
-        @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
+        :readonly="readonly" defaultCountry="RU" countryIconMode="svg" type="text" displayFormat="international"
+        clearable density="compact" v-model="CurrModelVal" :variant='customVariant || "underlined"' countryLabel=""
+        :rules="PhoneRules" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -41,9 +41,9 @@
 
     <!--email-->
     <v-text-field v-if="type == EDataType.email && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
-        :maxlength="constraints?.max" @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
-        :rules="MailFieldRules">
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly"
+        density="compact" :maxlength="constraints?.max" @blur="(d) => onValChanged()"
+        @keydown.stop="(k) => onKeydown(k)" :rules="MailFieldRules">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -53,11 +53,12 @@
 
 
     <!--Дата-->
-    <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal" :readonly="readonly"
-        :dark="useTheme().global.current.value.dark" :enable-time-picker="false" model-type="yyyy-MM-dd" :locale="locale"
-        auto-apply keep-action-row :min-date="constraints?.min" :max-date="constraints?.max"
-        :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }" now-button-label="Сегодня"
-        @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }">
+    <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal"
+        :readonly="readonly" :dark="useTheme().global.current.value.dark" :enable-time-picker="false"
+        model-type="yyyy-MM-dd" :locale="locale" auto-apply keep-action-row :min-date="constraints?.min"
+        :max-date="constraints?.max"
+        :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }"
+        now-button-label="Сегодня" @update:modelValue="(d) => { CurrModelVal = d; onValChanged(true); }">
 
         <template #trigger>
             <v-text-field v-model="CurrModelVal" type="date" ref="refField" :variant='customVariant || "underlined"'
@@ -108,8 +109,9 @@
 
     <!--Целое число-->
     <v-text-field v-if="type == EDataType.int && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
-        v-maska:[IntFieldMaska] @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" :rules="NumberFieldRules">
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly"
+        density="compact" v-maska:[IntFieldMaska] @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)"
+        :rules="NumberFieldRules">
         <template v-slot:label>
             <span>
                 {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -119,8 +121,8 @@
 
     <!--Плавоющее число-->
     <v-text-field v-if="type == EDataType.float && visible" ref="refField" v-bind="$attrs" v-model="CurrModelVal"
-        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly" density="compact"
-        v-maska:[FloatFieldMaska] @blur="() => onFloatChanged()" @keydown.stop="(k) => onKeydown(k)"
+        :readonly="readonly" type="text" :variant='customVariant || "underlined"' :clearable="!readonly"
+        density="compact" v-maska:[FloatFieldMaska] @blur="() => onFloatChanged()" @keydown.stop="(k) => onKeydown(k)"
         :rules="NumberFieldRules">
         <template v-slot:label>
             <span>
@@ -147,7 +149,7 @@
             </span>
         </template>
     </v-select>
-    
+
 </template>
 
 
@@ -208,7 +210,7 @@ const refField = ref();
 let OldModelVal = ref();
 let CurrModelVal = ref();
 let CurrModelMaskVal = ref();
-let isMenuActive = false;
+let isMenuActive: boolean = false;
 
 
 

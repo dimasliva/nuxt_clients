@@ -97,7 +97,7 @@ export class DictionariesApiSection {
     }
 
 
-    async FFDictItemsListView(query: QueryDictsFFParams) {
-        return await this._apiClient.send<QueryDictsFFParams, IApiDataListResult>(`${_apiPath}/FFDictItemsListView`, query, false);
+    async FsDictItemsListView(query: QueryDictsFFParams) {
+        return await this._apiClient.send<QueryDictsFFParams, IApiDataListResult>(`${_apiPath}/FsDictItemsListView`, query, false);
     }
 }

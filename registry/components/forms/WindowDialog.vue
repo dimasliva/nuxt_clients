@@ -77,10 +77,10 @@ interface IProps {
     onOk?: () => any;
     onClose?: () => Promise<boolean>;
     onEvent?: (ev, data) => Promise<void>;
-    height?: string;
-    width?: string;
-    okTitle?: string;
-    closeTitle?: string;
+    height?: string | null;
+    width?: string | null;
+    okTitle?: string | null;
+    closeTitle?: string | null;
     frameHeaderData: IFrameHeaderData;
 }
 const props = defineProps<IProps>();

@@ -36,7 +36,7 @@ import { QueryParams } from '~~/lib/MoApi/RequestArgs';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { ProductRecord, ProductRecordData } from '~~/lib/MoApi/Records/ProductRecord';
 import { ProductsCatalogRecord, ProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
-import { ProductFtsViews } from '~~/lib/MoApi/Views/ProductFtsListView';
+
 
 
 let productsCatalogSection = [{title: 'Товар #1', value: 1,},
@@ -53,7 +53,7 @@ const usData = iocc.get(UserContext);
 const recStore = iocc.get(RecordsStore);
 const apiTemp = iocc.get(MoApiClient);
 const pageMap = iocc.get<PageMap>("PageMap");
-const productFtsViews = iocc.get(ProductFtsViews);
+
 let pageMapData: IPageData = reactive({title: "Прайс-листы", icon: "mdi-list-box", mainBtnBar:[]});
 
 const getProductsData = async() => {

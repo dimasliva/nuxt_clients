@@ -86,3 +86,26 @@ export class QuerySchedule {
     this.productIds = _productIds;
   }
 }
+
+
+export class BookingQuery {
+  begDate: string;
+  endDate: string;
+  positionIds?: string[] | null = null;
+  divisionIds?: string[] | null = null;
+  placementIds?: string[] | null = null;
+  statuses?: number[] | null = null;
+  includeNames: boolean = false;
+  includePlace: boolean = false;
+  includeStatus: boolean = false;
+
+  constructor(
+    _begDate: string,
+    _endDate: string
+  ) {
+    this.begDate = _begDate;
+    this.endDate = _endDate;
+  }
+}
+
+

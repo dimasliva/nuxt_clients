@@ -191,8 +191,8 @@ export class Dictionary {
 
 
 
-    async ffDictItemsListView(text:string, limit=20, select="code,value", includeObsolete: boolean=false, section?: number){
-        return await this._apiClient.getDictionariesApiSection().FFDictItemsListView(new QueryDictsFFParams(this.id, text, select, limit, includeObsolete,section));
+    async fsDictItemsListView(text:string, limit=20, select="code,value", includeObsolete: boolean=false, section?: number){
+        return await this._apiClient.getDictionariesApiSection().FsDictItemsListView(new QueryDictsFFParams(this.id, text, select, limit, includeObsolete,section));
     }
     
     

@@ -3,11 +3,12 @@ import type { UserContext } from "~/lib/UserContext";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
-import { ScheduleItemGroupRecord } from "~/lib/MoApi/Records/SchedulerItemGroupRecord";
+import { ScheduleItemGroupData, ScheduleItemGroupRecord } from "~/lib/MoApi/Records/SchedulerItemGroupRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from "~/components/forms/FinderForm.vue";
 import FinderSelectForm from "~/components/forms/FinderFormSelect.vue";
-import type { IApiResult } from "~/lib/MoApi/RequestResults";
+import type { IApiDataListResult, IApiResult } from "~/lib/MoApi/RequestResults";
+import { DataList } from "~/lib/DataList";
 
 @injectable()
 export class ScheduleItemFinderDataProvider extends FinderDataProvider {
@@ -54,11 +55,9 @@ export class ScheduleItemFinderDataProvider extends FinderDataProvider {
 
   async getList(txt: string): Promise<TDictViewVal[]> {
     if (txt) {
-      let rdl = await this._MoApiClient.send<string, IApiResult>("/Schedule/FindScheduleItemGroups", "'" + txt + "'");
-      let res = rdl.result.map((item) => {
-        return { value: item.id, title: item.title! };
-      });
-      return res.sort((a, b) => a.title!.localeCompare(b.title!));
+      let rdl = await this._MoApiClient.send<any, IApiDataListResult>("/Schedule/FuzzySearchScheduleItemGroups", {select: 'id, title', text: txt, searchBy: ['title']});
+      let res = DataList.createFromApiDl<ScheduleItemGroupData>(rdl).toArray().map((item) => { return { value: item.id, title: item.title! }})
+      return res.sort((a, b) => a.title.localeCompare(b.title));
     }
 
     return [];
@@ -67,6 +66,6 @@ export class ScheduleItemFinderDataProvider extends FinderDataProvider {
   async getTitle(value: any, ...args: any[]): Promise<string | undefined> {
     if (!value) return undefined;
     const rec = await this._RecordsStore.fetch(ScheduleItemGroupRecord, value);
-    return;
+    return rec.Data?.title;
   }
 }

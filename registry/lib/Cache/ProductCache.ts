@@ -5,7 +5,7 @@ import type { MoApiClient } from "../MoApi/MoApiClient";
 import type { UserContext } from "../UserContext";
 import type { RecordsStore } from "../MoApi/Records/RecordsStore";
 import { ProductRecord } from "../MoApi/Records/ProductRecord";
-import { ProductsViews, type IProductListView } from "../MoApi/Views/ProductsListView";
+import { ProductViews, type IProductListView } from "../MoApi/Views/ProductViews";
 import { QueryParams } from "../MoApi/RequestArgs";
 import type PricesEntity from "../MoApi/Records/DataEntities/PricesEntity";
 import { Exception } from "../Exceptions";
@@ -60,7 +60,7 @@ export class ProductCache extends PageMemoryCache {
         @inject("MoApiClient") protected _MoApiClient: MoApiClient,
         @inject("UserContext") protected _UserContext: UserContext,
         @inject("RecordsStore") protected _RecordsStore: RecordsStore,
-        @inject(ProductsViews) protected _ProductsViews: ProductsViews,
+        @inject(ProductViews) protected _ProductsViews: ProductViews,
 
     ) {
         super();

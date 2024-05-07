@@ -1,7 +1,7 @@
 
  export interface 	ICouplingData {
-    id:string;
-    recCode:number;
+    key:string;
+    params?:number;
  }
 
  export interface 	IFullRecordIdT<T> {

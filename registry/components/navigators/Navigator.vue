@@ -1,8 +1,9 @@
 <template>
     <div v-if="content">
         <v-data-table ref="refDt" v-model:sortBy="sortBy" v-model="selected" show-select item-value="id"
-            v-model:items-per-page="itemsPerPage" hover :headers="_columns" hide-default-footer v-model:page="currentPage"
-            :items="content.rows" class="elevation-1" fixed-header height="68dvh" disable-pagination>
+            v-model:items-per-page="itemsPerPage" hover :headers="_columns" hide-default-footer
+            v-model:page="currentPage" :items="content.rows" class="elevation-1" fixed-header height="68dvh"
+            disable-pagination>
 
             <!--Верхняя строка перед основной таблицей-->
             <template v-slot:top="props">
@@ -70,7 +71,7 @@
                                             </v-list-item-action>
                                         </template>
                                         <v-list-item-title>{{ val.title || ""
-                                        }}</v-list-item-title>
+                                            }}</v-list-item-title>
                                     </v-list-item>
                                 </v-list>
                                 <v-row justify="center" no-gutters>
@@ -96,7 +97,7 @@
 
                     <template v-slot:default="{ isActive }">
                         <v-list @mouseleave="(e) => { isActive.value = false }">
-                            <v-list-item v-for=" action  in  commonTableMenu "
+                            <v-list-item v-for=" action in commonTableMenu "
                                 @click-once="() => action.action(path, selected)">
                                 <v-icon v-if="action.icon" :icon="action.icon" color="primary" />
                                 &nbsp
@@ -125,7 +126,7 @@
 
                             <template v-slot:default="{ isActive }">
                                 <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for=" action  in  getActionsMenu(internalItem) "
+                                    <v-list-item v-for=" action in getActionsMenu(internalItem) "
                                         @click-once="() => action.action(internalItem)">
                                         <v-icon :icon="action.icon" color="primary" />
                                         &nbsp

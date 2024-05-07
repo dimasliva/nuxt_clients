@@ -42,7 +42,8 @@ export class EventBus implements IEventBus {
         // Get all the callback functions of the current event
         const callbackObject = this._eventObject[eventName];
 
-        if (!callbackObject) return console.warn(eventName + " not found!");
+        if (!callbackObject) 
+            return console.warn(eventName + " not found!");
 
         // execute each callback function
         for (let id in callbackObject) {

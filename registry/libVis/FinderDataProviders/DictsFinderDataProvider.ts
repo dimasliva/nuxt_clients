@@ -22,7 +22,7 @@ export class DictsFinderDataProvider extends FinderDataProvider {
 
 
 
-    init(instName: string | null, multiselect=false, dictId: EDictionaries, dictSection: number | undefined = undefined, sizeLimit: number = 20) {
+    init(instName: string | null, multiselect = false, dictId: EDictionaries, dictSection: number | undefined = undefined, sizeLimit: number = 20) {
         super.init(instName, multiselect ? FinderFormMultiple : FinderForm);
         this._instName = instName;
         this._dictId = dictId;
@@ -35,7 +35,7 @@ export class DictsFinderDataProvider extends FinderDataProvider {
 
 
     async getList(text: string, ...args: any[]): Promise<TDictViewVal[]> {
-        let res = await this._dict.ffDictItemsListView(text);
+        let res = await this._dict.fsDictItemsListView(text);
         return res.data.map((item) => { return { value: item[0], title: item[1] } });
     }
 

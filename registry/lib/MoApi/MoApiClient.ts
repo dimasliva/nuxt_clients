@@ -135,7 +135,7 @@ export class MoApiClient {
             let response: Response | null = null;
 
             while (attemp--) {
-
+                
                 const headers: { [key: string]: string } = {};
                 if (this._AuthToken)
                     headers["Authorization"] = `Bearer ${this._AuthToken}`;
@@ -195,7 +195,7 @@ export class MoApiClient {
                             continue;
                         }
                 }
-                catch {
+                catch (exc) {
                     continue;
                 }
 

@@ -1,27 +1,37 @@
 import type { UserContext } from "~/lib/UserContext";
 import type { MoApiClient } from "../../MoApiClient";
 import type { RecordsStore } from "../RecordsStore";
+import { DataEntity } from "./DataEntity";
 import { injectable, inject } from "inversify";
-import TimeSpanEntity from "./TimeSpanEntity";
-
 
 @injectable()
-export default class ScheduleTimeSpanEntity extends TimeSpanEntity {
-  type: number = 0;
+export default class TimeSpanEntity extends DataEntity {
+  time: number = 0;
+  duration: number = 0;
+
 
   constructor(@inject("RecordsStore") __RecordStore: RecordsStore) {
     super(__RecordStore);
   }
 
   
-
-  getType() {
-    return this.type;
+  getTime() {
+    return this.time;
   }
 
 
-
-  setType(val: number) {
-    this.type = val;
+  setTime(val: number) {
+    this.time = val;
   }
+
+
+  getDuration() {
+    return this.duration;
+  }
+
+
+  setDuration(val: number) {
+    this.duration = val;
+  }
+
 }

@@ -44,6 +44,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   public static RightToken = "";
   public static RecCode = 0;
   public static BatchGetRecDataPath = "";
+  public static RecordsFindPath = "";
 
   protected _RecordType: Function = null!;
   public get RecordType(): Function {
@@ -395,5 +396,8 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
 export interface ApiRecordClass extends Class {
-  rightToken: string;
+  RightToken: string;
+  RecCode: number;
+  BatchGetRecDataPath: string;
+  RecordsFindPath: string;
 }

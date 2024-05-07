@@ -4,7 +4,7 @@ import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 
 
 @injectable()
-class ClientGroupRecordData extends ApiRecordChData{
+export class ClientGroupRecordData extends ApiRecordChData{
     title: string = '';
     code?: string | null= null;
     uid?: string | null= null;

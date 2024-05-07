@@ -16,7 +16,8 @@
             <v-btn :loading="emplLoading.loading" type="submit" @click="createRecs(emplLoading)">Создать</v-btn>
         </VCol>
         <VCol style="max-width: 300px;">
-            <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса" hide-details="auto" />
+            <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса"
+                hide-details="auto" />
             <v-text-field v-model="productsCatalogSectionQuantity" variant="underlined" label="Кол-во разделов прайса"
                 hide-details="auto" />
             <v-text-field v-model="priceListLoading.size" variant="underlined" label="Кол-во номенклатурных позиций"
@@ -27,6 +28,17 @@
                     <v-progress-linear absolute height="7" indeterminate></v-progress-linear>
                 </template>
             </v-btn>
+        </VCol>
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="clientGroupLoading.size" variant="underlined" label="Группы клиентов"
+                hide-details="auto" />
+            <v-btn :loading="clientGroupLoading.loading" type="submit"
+                @click="createRecS(clientGroupLoading)">Создать</v-btn>
+
+            <v-text-field v-model="productGroupLoading.size" variant="underlined" label="Группы продуктов"
+                hide-details="auto" />
+            <v-btn :loading="productGroupLoading.loading" type="submit"
+                @click="createRecS(productGroupLoading)">Создать</v-btn>
         </VCol>
     </VRow>
 </template>
@@ -45,6 +57,10 @@ import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Reco
 import ProductTitles from '~/public/ProductTitles';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
 import ScheduleTimeSpanEntity from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
+import { ProductGroupRecord, type ProductGroupRecordData } from '~/lib/MoApi/Records/ProductGroupRecord';
+import { ClientGroupRecord, type ClientGroupRecordData } from '~/lib/MoApi/Records/ClientGroupRecord';
+import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
+import type TimeSpanEntity from '~/lib/MoApi/Records/DataEntities/TimeSpanEntity';
 
 
 const iocc = useContainer();
@@ -90,6 +106,18 @@ const createRecs = async (recLoading: typeof emplLoading) => {
     }
 }
 
+
+const createRecS = async (recLoading: typeof emplLoading) => {
+    console.info(`${recLoading.recName} create started`);
+    recLoading.loading = true;
+    try {
+        await recLoading.createTask(recLoading.size);
+    }
+    finally {
+        console.info(`${recLoading.recName} created`);
+        recLoading.loading = false;
+    }
+}
 
 
 
@@ -170,7 +198,7 @@ const timeSpansCrtr = () => {
     let a: ScheduleTimeSpanEntity[] = [];
 
     for (let i = 0; i < Math.floor(Math.random() * (20 - 2) + 2); i++) {
-        a.push( recStore.dataEntityFactory(ScheduleTimeSpanEntity, {
+        a.push(recStore.dataEntityFactory(ScheduleTimeSpanEntity, {
             "time": Math.floor(Math.random() * (144 - 36) + 36) * 10,
             "duration": Math.floor(Math.random() * (12 - 1) + 1) * 10,
             "type": 1,
@@ -416,11 +444,130 @@ function generateUniqueStrings(count, length) {
         }
         uniqueStrings.add(string);
     }
-    return Array.from(uniqueStrings)[0];
+    return <string>Array.from(uniqueStrings)[0];
 }
 
 
 const positionDictCodes = [
     1048910, 1048911, 1049003, 1049004, 1048912, 1048913, 1049005, 1049006, 1049007, 1049008, 1049009, 1049010, 1049011, 1049012, 1049013, 1049014, 1049098, 1049099, 1049100, 1049091, 1049090,
     1049089, 1049096, 1049097, 1049101, 1048916, 1048917, 1048918, 1048919, 1048920, 1048921, 1048587, 1048589, 1048590, 1048591, 1048592];
+
+
+
+const addProductGroup = async () => {
+    let rec = await recStore.createNew<ProductGroupRecord, ProductGroupRecordData>(ProductGroupRecord, (data) => {
+        data.title = generateUniqueStrings(2, 8);
+    })
+    await rec.save();
+
+    return rec;
+}
+
+
+
+const addClientGroup = async () => {
+    let rec = await recStore.createNew<ClientGroupRecord, ClientGroupRecordData>(ClientGroupRecord, (data) => {
+        data.title = generateUniqueStrings(2, 8);
+    })
+    await rec.save();
+
+    return rec;
+}
+
+
+
+const productGroupsCreateTask = async (size: number) => {
+    const maxItemsInGroup = 10;
+    const products = await recStore.findRecords(ProductRecord, null);
+    let cplInx = 0;
+    for (let i = 0; i < size; i++) {
+        let rec = await addProductGroup();
+        let groupSize = Math.floor(Math.random() * maxItemsInGroup) + 1;
+
+        var promises: Promise<void>[] = [];
+        for (let y = 0; y < groupSize; y++) {
+            promises.push(rec.addCoupling(products[cplInx], ProductRecord.RecCode));
+            if (++cplInx >= products.length)
+                cplInx = 0;
+        }
+
+        await Promise.all(promises);
+    }
+}
+
+
+
+const clientGroupsCreateTask = async (size: number) => {
+    const maxItemsInGroup = 10;
+    const clients = await recStore.findRecords(ClientRecord, null);
+    let cplInx = 0;
+    for (let i = 0; i < size; i++) {
+        let rec = await addClientGroup();
+        let groupSize = Math.floor(Math.random() * maxItemsInGroup) + 1;
+
+        var promises: Promise<void>[] = [];
+        for (let y = 0; y < groupSize; y++) {
+            promises.push(rec.addCoupling(clients[cplInx], ClientRecord.RecCode));
+            if (++cplInx >= clients.length)
+                cplInx = 0;
+        }
+
+        await Promise.all(promises);
+    }
+}
+
+class BookingGridInfo {
+    timespan: TimeSpanEntity = null!;
+    source: any;
+}
+
+
+class ScheduleGridInfo {
+    timespan: ScheduleTimeSpanEntity = null!;
+    source: any;
+}
+
+
+class GridItem {
+    schedule: ScheduleGridInfo[] = null!
+    bookings: BookingGridInfo[] = null!
+}
+
+
+const createScheduleGrid = (sgInfo: ScheduleGridInfo[], bInfo: BookingGridInfo[], resolution: number = 5) => {
+    debugger;
+    const minuteInDay = 1440;
+    const gridSize = Math.round(minuteInDay / resolution);
+    const grid = Array.from(Array(gridSize), () => new GridItem());
+
+    //заполнение расписания
+    sgInfo.forEach((val) => {
+        const begItem = Math.round(val.timespan.getTime() / resolution);
+        const endItem = Math.round((val.timespan.getTime() + val.timespan.getDuration()) / resolution);
+        for (let i = begItem; i <= endItem; i++)
+            grid[i].schedule.push(val);
+    });
+
+    //заполнение предварительной записи
+    bInfo.forEach((val) => {
+        const begItem = Math.round(val.timespan.getTime() / resolution);
+        const endItem = Math.round((val.timespan.getTime() + val.timespan.getDuration()) / resolution);
+        for (let i = begItem; i <= endItem; i++)
+            grid[i].bookings.push(val);
+    });
+
+    return grid;
+}
+
+
+
+
+
+
+
+
+
+const clientGroupLoading = reactive({ size: 0, loading: false, recName: "client groups", createTask: clientGroupsCreateTask });
+const productGroupLoading = reactive({ size: 0, loading: false, recName: "product groups", createTask: productGroupsCreateTask });
+
 </script>

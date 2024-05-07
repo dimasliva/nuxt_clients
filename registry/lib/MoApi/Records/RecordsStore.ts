@@ -19,6 +19,22 @@ export class RecordsStore {
         @inject("diC") protected _diC: Container) {
     }
 
+
+
+    /**Поиск записей одного типа. */
+    async findRecords(type: ApiRecordClass, where: string | null) {
+
+        const apiPath = (<any>type).RecordsFindPath;
+        if (!apiPath)
+            Exception.throw("PathNotFound", `Отсутствует путь api поиска записей. Тип: ${type.name}`);
+
+        if (!this.canRecRead(type))
+            Exception.throw("AccessDenied", `Отсутствуют права. Тип: ${type.name}`);
+
+        return await this._MoApiClient.send<string | null, string[]>(apiPath, where, false);
+    }
+
+
     /**Получение записи без загрузки данных */
     get<T extends ApiRecord>(type: Class<T>, Key: string) {
         if (!this._store[type.name])
@@ -37,7 +53,7 @@ export class RecordsStore {
     /**Получение записи с загрузкой основных данных. Если данные не удалось загрузить - исключение */
     async fetch<T extends ApiRecord>(type: Class<T>, Key: string) {
         const rec = this.get<ApiRecord>(type, Key);
-        if(!rec.Data) 
+        if (!rec.Data)
             await rec.loadAllData();
         return <T>rec;
     }
@@ -203,28 +219,28 @@ export class RecordsStore {
 
     canRecRead(type: ApiRecordClass) {
         let traits: any = {}
-        traits[type.rightToken] = "r";
+        traits[type.RightToken] = "r";
         return chkRights(null, traits);
     }
 
 
     canRecWrite(type: ApiRecordClass) {
         let traits: any = {}
-        traits[type.rightToken] = "w";
+        traits[type.RightToken] = "w";
         return chkRights(null, traits);
     }
 
 
     canRecCreate(type: ApiRecordClass) {
         let traits: any = {}
-        traits[type.rightToken] = "c";
+        traits[type.RightToken] = "c";
         return chkRights(null, traits);
     }
 
 
     canRecDelete(type: ApiRecordClass) {
         let traits: any = {}
-        traits[type.rightToken] = "d";
+        traits[type.RightToken] = "d";
         return chkRights(null, traits);
     }
 
@@ -232,7 +248,7 @@ export class RecordsStore {
 
     canRecSpecial(type: ApiRecordClass) {
         let traits: any = {}
-        traits[type.rightToken] = "s";
+        traits[type.RightToken] = "s";
         return chkRights(null, traits);
     }
 

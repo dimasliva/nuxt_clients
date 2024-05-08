@@ -33,19 +33,19 @@ export interface  IBookingListView {
 @injectable()
 export class BookingsViews {
 
-    constructor(@inject("MoApiBooking") protected _MoApiBooking: MoApiClient, @inject("UserContext") protected _UserContext: UserContext) {
+    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("UserContext") protected _UserContext: UserContext) {
     }
 
 
     async getBookings(args: BookingQuery) {
-        const apires = await this._MoApiBooking.send<BookingQuery, IApiDataListResult>("/Schedule/GetBookings", args);
+        const apires = await this._MoApiClient.send<BookingQuery, IApiDataListResult>("/Schedule/GetBookings", args);
         let res = DataList.createFromApiDl<IBookingListView>(apires);
         return res;
     }
 
 
     async getBookingsListView(args: QueryParams) {
-        const apires = await this._MoApiBooking.send<QueryParams, IApiDataListResult>("/Schedule/BookingsListView", args);
+        const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Schedule/BookingsListView", args);
         let res = DataList.createFromApiDl<IBookingListView>(apires);
         return res;
     }

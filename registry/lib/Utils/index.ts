@@ -134,11 +134,68 @@ export async function mapAsync(arr: any[], handler: (val, inx) => Promise<any>) 
 }
 
 
+function _padDate(num) {
+    return (num < 10 ? '0' : '') + num;
+};
 
 export function getDateStr(date: Date) {
+    const y=date.getFullYear();
+    const m=_padDate(date.getMonth()+1);
+    const d=_padDate(date.getDate());
+    
+    return `${y}-${m}-${d}`;
+}
+
+
+
+export function getUtcDateStr(date: Date) {
     return date.toISOString().substring(0, 10);
 }
 
+
+
+export function addDaysToDate(date: string | Date, days: number): Date {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+
+
+export function compareDatesOnly(date1: Date, date2: Date): number {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+
+    d1.setHours(0, 0, 0, 0);
+    d2.setHours(0, 0, 0, 0);
+
+    if (d1.getTime() < d2.getTime()) {
+        return -1;
+    } else if (d1.getTime() > d2.getTime()) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+
+
+export function compareDates(date1: Date, date2: Date): number {
+    if (date1.getTime() < date2.getTime()) {
+        return -1;
+    } else if (date1.getTime() > date2.getTime()) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+
+
+export function getMinutesOfDay(date: Date): number {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return hours * 60 + minutes;
+}
 
 
 export async function getPasswordHash(psw: string) {

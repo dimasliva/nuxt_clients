@@ -27,14 +27,14 @@ export class RelationApiSection {
   }
 
   async addCoupling(masterId: string, masterRecCode: number, slaveId: string, slaveRecCode: number) {
-    return await this._apiClient.send<any, boolean>(`${_apiPath}/_AddCoupling`, { masterId, masterRecCode, slaveId, slaveRecCode }, true);
+    return await this._apiClient.send<any, boolean>(`${_apiPath}/AddCoupling`, { masterId, masterRecCode, slaveId, slaveRecCode }, true);
   }
 
   async getCouplings(masterId: string, masterRecCode: number, slaveRecCode: number) {
-    return await this._apiClient.send<any, ICouplingData[]>(`${_apiPath}/_GetCouplings`, { masterId, masterRecCode, slaveRecCode }, true);
+    return await this._apiClient.send<any, ICouplingData[]>(`${_apiPath}/GetCouplings`, { masterId, masterRecCode, slaveRecCode }, true);
   }
 
   async delCoupling(masterId: string, masterRecCode: number, slaveId: string, slaveRecCode: number) {
-    return await this._apiClient.send<any, boolean>(`${_apiPath}/_DelCoupling`, { masterId, masterRecCode, slaveId, slaveRecCode }, true);
+    return await this._apiClient.send<any, boolean>(`${_apiPath}/DelCoupling`, { masterId, masterRecCode, slaveId, slaveRecCode }, true);
   }
 }

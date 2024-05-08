@@ -7,9 +7,14 @@ import ScheduleTimeSpanEntity from "../Records/DataEntities/ScheduleTimeSpanEnti
 import ScheduleTimespanItem from "../Records/DataEntities/ScheduleTimespanItem";
 import { QuerySchedule, QueryParamsScheduler } from "../RequestArgs";
 
+
+export type TDatedScheduleTimespanItems = { [date: string]: ScheduleTimespanItem[] };
+
 @injectable()
 export class ScheduleApiSection {
-  constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("RecordsStore") protected _RecordsStore: RecordsStore) {}
+  constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @inject("RecordsStore") protected _RecordsStore: RecordsStore) { }
+
+
 
   async getScheduleByItemGroup(fromDate: Date, toDate: Date, groupId: string) {
     const queryObj = {
@@ -18,19 +23,18 @@ export class ScheduleApiSection {
       groupId,
     };
 
-    const raw = await this._MoApiClient.send<QueryParamsScheduler, ScheduleTimespanItem[][]>("/Schedule/GetScheduleByItemGroup", queryObj, true);
-    const res: ScheduleTimespanItem[][] = [];
+    const raw = await this._MoApiClient.send<QueryParamsScheduler, TDatedScheduleTimespanItems>("/Schedule/GetScheduleByItemGroup", queryObj, true);
+    const res: TDatedScheduleTimespanItems = {};
     for (const date in raw) res[date] = raw[date].map((item) => this._RecordsStore.dataEntityFactory(ScheduleTimespanItem, item));
 
     return res;
   }
 
-  async getSchedule(queryArgs: QuerySchedule) {
-    queryArgs.begDate = Utils.getDateStr(new Date(queryArgs.begDate));
-    queryArgs.endDate = Utils.getDateStr(new Date(queryArgs.endDate));
 
-    const raw = await this._MoApiClient.send<QuerySchedule, ScheduleTimespanItem[][]>("/Schedule/GetSchedule", queryArgs);
-    const res: ScheduleTimespanItem[][] = [];
+
+  async getSchedule(queryArgs: QuerySchedule) {
+    const raw = await this._MoApiClient.send<QuerySchedule, TDatedScheduleTimespanItems>("/Schedule/GetSchedule", queryArgs);
+    const res: TDatedScheduleTimespanItems = {};
     for (const date in raw) res[date] = raw[date].map((item) => this._RecordsStore.dataEntityFactory(ScheduleTimespanItem, item));
 
     return res;

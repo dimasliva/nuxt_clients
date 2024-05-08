@@ -40,6 +40,12 @@
             <v-btn :loading="productGroupLoading.loading" type="submit"
                 @click="createRecS(productGroupLoading)">Создать</v-btn>
         </VCol>
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="bookingLoading.size" variant="underlined" label="Предварительная запись"
+                hide-details="auto" />
+            <v-btn :loading="bookingLoading.loading" type="submit" @click="createRecS(bookingLoading)">Создать</v-btn>
+
+        </VCol>
     </VRow>
 </template>
 
@@ -59,12 +65,12 @@ import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/Position
 import ScheduleTimeSpanEntity from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
 import { ProductGroupRecord, type ProductGroupRecordData } from '~/lib/MoApi/Records/ProductGroupRecord';
 import { ClientGroupRecord, type ClientGroupRecordData } from '~/lib/MoApi/Records/ClientGroupRecord';
-import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
-import type TimeSpanEntity from '~/lib/MoApi/Records/DataEntities/TimeSpanEntity';
+import * as Utils from '~/lib/Utils';
+import { ScheduleGrid, ScheduleGridOptions } from '~/lib/Booking/ScheduleGrid';
 
 
-const iocc = useContainer();
-const recStore = iocc.get(RecordsStore);
+const diC = useContainer();
+const recStore = diC.get(RecordsStore);
 
 
 let productsCatalogSectionQuantity = ref(0)
@@ -77,8 +83,6 @@ let scheduleItemGroupLoader = ref(false)
 const createRecs = async (recLoading: typeof emplLoading) => {
 
     const size = recLoading.size;
-    if (productsCatalogName.value && productsCatalogSectionQuantity.value && priceListLoading.size) { await addProductsCatalog(productsCatalogName.value) };
-    if (scheduleItemGroup.value) { await addScheduleItemGroup() };
     const recCreateTask = recLoading.createTask;
 
     if (size != 0) {
@@ -519,50 +523,18 @@ const clientGroupsCreateTask = async (size: number) => {
     }
 }
 
-class BookingGridInfo {
-    timespan: TimeSpanEntity = null!;
-    source: any;
+
+
+const bookingGroupsCreateTask = async (size: number) => {
+    const schGrid = diC.get(ScheduleGrid);
+    const begDate = new Date();
+    const endDate = Utils.addDaysToDate(begDate, 31);
+    const opts = new ScheduleGridOptions(begDate, endDate);
+   // opts.positionIds=['018f293e-90ec-70f5-bf15-9b6532a02284']
+    await schGrid.init(opts);
+
+
 }
-
-
-class ScheduleGridInfo {
-    timespan: ScheduleTimeSpanEntity = null!;
-    source: any;
-}
-
-
-class GridItem {
-    schedule: ScheduleGridInfo[] = null!
-    bookings: BookingGridInfo[] = null!
-}
-
-
-const createScheduleGrid = (sgInfo: ScheduleGridInfo[], bInfo: BookingGridInfo[], resolution: number = 5) => {
-    debugger;
-    const minuteInDay = 1440;
-    const gridSize = Math.round(minuteInDay / resolution);
-    const grid = Array.from(Array(gridSize), () => new GridItem());
-
-    //заполнение расписания
-    sgInfo.forEach((val) => {
-        const begItem = Math.round(val.timespan.getTime() / resolution);
-        const endItem = Math.round((val.timespan.getTime() + val.timespan.getDuration()) / resolution);
-        for (let i = begItem; i <= endItem; i++)
-            grid[i].schedule.push(val);
-    });
-
-    //заполнение предварительной записи
-    bInfo.forEach((val) => {
-        const begItem = Math.round(val.timespan.getTime() / resolution);
-        const endItem = Math.round((val.timespan.getTime() + val.timespan.getDuration()) / resolution);
-        for (let i = begItem; i <= endItem; i++)
-            grid[i].bookings.push(val);
-    });
-
-    return grid;
-}
-
-
 
 
 
@@ -572,5 +544,6 @@ const createScheduleGrid = (sgInfo: ScheduleGridInfo[], bInfo: BookingGridInfo[]
 
 const clientGroupLoading = reactive({ size: 0, loading: false, recName: "client groups", createTask: clientGroupsCreateTask });
 const productGroupLoading = reactive({ size: 0, loading: false, recName: "product groups", createTask: productGroupsCreateTask });
+const bookingLoading = reactive({ size: 0, loading: false, recName: "booking groups", createTask: bookingGroupsCreateTask });
 
 </script>

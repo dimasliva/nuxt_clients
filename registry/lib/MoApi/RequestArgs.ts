@@ -1,3 +1,5 @@
+import * as Utils from '~/lib/Utils';
+
 export class QueryParams {
   select: string;
   where: string;
@@ -63,8 +65,8 @@ export class QueryParamsScheduler {
 }
 
 export class QuerySchedule {
-  begDate: string | Date;
-  endDate: string | Date;
+  begDate: string;
+  endDate: string;
   positionIds?: string[] | null;
   divisionIds?: string[] | null;
   placementIds?: string[] | null;
@@ -78,8 +80,8 @@ export class QuerySchedule {
     _placementIds: string[] | null = null,
     _productIds: string[] | null = null
   ) {
-    this.begDate = _begDate;
-    this.endDate = _endDate;
+    this.begDate = Utils.getDateStr(new Date(_begDate));
+    this.endDate = Utils.getDateStr(new Date(_endDate));
     this.positionIds = _positionIds;
     this.divisionIds = _divisionIds;
     this.placementIds = _placementIds;
@@ -100,11 +102,11 @@ export class BookingQuery {
   includeStatus: boolean = false;
 
   constructor(
-    _begDate: string,
-    _endDate: string
+    _begDate: string | Date,
+    _endDate: string | Date
   ) {
-    this.begDate = _begDate;
-    this.endDate = _endDate;
+    this.begDate = Utils.getDateStr(new Date(_begDate));
+    this.endDate = Utils.getDateStr(new Date(_endDate));
   }
 }
 

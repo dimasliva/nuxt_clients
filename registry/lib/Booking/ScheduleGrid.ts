@@ -134,7 +134,7 @@ export class ScheduleGrid {
 
 
     /**Проверка подходимости пз к расписанию*/
-    protected _checkSchBookingMatch(sch: ScheduleTimespanItem, bk: IBookingListView, checkTime = true) {
+    protected _checkSchBookingMatch(sch: ScheduleTimespanItem, bk: IBookingListView, checkTime = true, productIds: string[] | null = null) {
 
         let res = true;
         debugger;
@@ -157,6 +157,12 @@ export class ScheduleGrid {
             if (bkb < schb || bke > sche)
                 return false;
         }
+
+        //проверка, что все требуемые продукты имеются в элементе расписания
+        const schProducts = sch.getProducts();
+        if (schProducts && schProducts.length > 0 && productIds)
+            if (!productIds.every(v => schProducts.includes(v)))
+                return false;
 
         return true;
     }
@@ -229,5 +235,5 @@ export type TGridQuerySch = {
     positionId?: string | null;
     divisionId?: string | null;
     placementId?: string | null;
-    productId?: string | null;
+    productIds?: string[] | null;
 }

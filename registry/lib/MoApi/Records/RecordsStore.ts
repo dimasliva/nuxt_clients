@@ -257,7 +257,7 @@ export class RecordsStore {
     dataEntityFactory<T extends DataEntity>(dEntity: Class<T>, jsonObj: any = null, ...params) {
         let inst = this._diC.get(dEntity);
         inst.init(jsonObj, ...params);
-        return inst;
+        return <T>inst;
     }
 
 }

@@ -11,7 +11,7 @@ export interface  IBookingListView {
     begDate?: string | null;
     duration?: number;
     division?: string | null;
-    position?: number | null;
+    position?: string | null;
     placement?: string | null;
     status?: number;
     product?: string | null;
@@ -38,14 +38,14 @@ export class BookingsViews {
 
 
     async getBookings(args: BookingQuery) {
-        const apires = await this._MoApiClient.send<BookingQuery, IApiDataListResult>("/Schedule/GetBookings", args);
+        const apires = await this._MoApiClient.send<BookingQuery, IApiDataListResult>("/Bookings/BookingsListViewPerPeriod", args);
         let res = DataList.createFromApiDl<IBookingListView>(apires);
         return res;
     }
 
 
     async getBookingsListView(args: QueryParams) {
-        const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Schedule/BookingsListView", args);
+        const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Bookings/BookingsListView", args);
         let res = DataList.createFromApiDl<IBookingListView>(apires);
         return res;
     }

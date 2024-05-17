@@ -5,6 +5,17 @@ import { injectable, inject } from "inversify";
 import TimeSpanEntity from "./TimeSpanEntity";
 
 
+export const enum EEmployeeTimeTypes {
+  WORK = 1,
+  DINNER_BREAK = 2,
+  SERVICE_BREAK = 3,
+  BREAK = 4,
+  MEETING = 5,
+  EXERCISES = 6
+}
+
+
+
 @injectable()
 export default class ScheduleTimeSpanEntity extends TimeSpanEntity {
   type: number = 0;
@@ -13,7 +24,7 @@ export default class ScheduleTimeSpanEntity extends TimeSpanEntity {
     super(__RecordStore);
   }
 
-  
+
 
   getType() {
     return this.type;

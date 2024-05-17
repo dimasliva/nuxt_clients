@@ -1,14 +1,16 @@
-import * as Utils from '~/lib/Utils';
+import * as U from '~/lib/Utils';
 import { MoApiClient } from "../MoApi/MoApiClient";
 import { injectable, inject } from 'inversify';
 import type { RecordsStore } from '../MoApi/Records/RecordsStore';
 import TimeSpanEntity from '../MoApi/Records/DataEntities/TimeSpanEntity';
-import ScheduleTimeSpanEntity from '../MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
+import ScheduleTimeSpanEntity, { EEmployeeTimeTypes } from '../MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
 import { BookingsViews, type IBookingListView } from '../MoApi/Views/BookingViews';
 import type ScheduleTimespanItem from '../MoApi/Records/DataEntities/ScheduleTimespanItem';
 import { BookingQuery, QuerySchedule } from '../MoApi/RequestArgs';
 import type { TDatedScheduleTimespanItems } from '../MoApi/ApiSectionsV1/SchedulerApiSection';
-import { v1 } from 'uuid';
+import { Exception } from '../Exceptions';
+import { Locks } from '../MoApi/Locks';
+import type { BookingRecord } from '../MoApi/Records/BookingRecord';
 
 
 
@@ -16,22 +18,22 @@ import { v1 } from 'uuid';
 export class ScheduleGrid {
 
     protected _grid: { [date: string]: ScheduleGridItem[] } = {};
-    protected _bookings: IBookingListView[] = [];
-    protected _schedule: TDatedScheduleTimespanItems = {};
-
+    protected _resolution: number = 5;
+    protected _options: ScheduleGridOptions = null!
 
     constructor(
         @inject("MoApiClient") protected _MoApiClient: MoApiClient,
         @inject("RecordsStore") protected _RecordsStore: RecordsStore,
         @inject(BookingsViews) protected _BookingsViews: BookingsViews,
+        @inject(Locks) protected _Locks: Locks,
     ) { }
 
 
 
     async init(options: ScheduleGridOptions) {
 
-        debugger;
-        this._schedule = await this._MoApiClient.getScheduleApiSection().getSchedule(options);
+        this._options = options;
+        const schedule = await this._MoApiClient.getScheduleApiSection().getSchedule(options);
 
         const bq: BookingQuery = new BookingQuery(options.begDate, options.endDate);
         bq.positionIds = options.positionIds;
@@ -41,39 +43,248 @@ export class ScheduleGrid {
         bq.includeNames = true;
         bq.includePlace = true;
         bq.includeStatus = true;
-        this._bookings = (await this._BookingsViews.getBookings(bq)).toArray();
+        const bookings = (await this._BookingsViews.getBookings(bq)).toArray();
 
-        let currDate = new Date(options.begDate);
-        currDate.setHours(0, 0, 0, 0);
+        let begDate = new Date(options.begDate);
+        begDate.setHours(0, 0, 0, 0);
+
+        let currDate = begDate;
 
         let endDate = new Date(options.endDate);
         endDate.setHours(0, 0, 0, 0);
-        debugger;
-        while (Utils.compareDates(currDate, endDate) <= 0) {
+
+        while (U.compareDates(currDate, endDate) <= 0) {
 
             //фильтруем данные на текущую дату
-            const dateStr = Utils.getDateStr(currDate);
-            const schedule = this._schedule[dateStr];
-            const booking = this._bookings.filter(val => {
+            const dateStr = U.getDateStr(currDate);
+            const oneDaySchedule = schedule[dateStr];
+            const oneDayBooking = bookings.filter(val => {
                 const date = new Date(val.begDate!);
                 date.setHours(0, 0, 0, 0);
-                return Utils.compareDates(currDate, date) == 0;
+                return U.compareDates(currDate, date) == 0;
             });
 
-
-            const sgInfo = schedule.map<ScheduleGridInfo>(v => ScheduleGridInfo.fromScheduleTimespanItemFactory(v, this._RecordsStore));
-            const bInfo = booking.map(v => BookingGridInfo.fromBookingListViewFactory(v, this._RecordsStore));
+            const sgInfo = oneDaySchedule.map<ScheduleGridInfo>(v => ScheduleGridInfo.fromScheduleTimespanItemFactory(v, this._RecordsStore));
+            const bInfo = oneDayBooking.map(v => BookingGridInfo.fromBookingListViewFactory(v, this._RecordsStore));
             this._grid[dateStr] = this._createScheduleGrid(sgInfo, bInfo, options.resolution);
 
-            currDate = Utils.addDaysToDate(currDate, 1);
+            currDate = U.addDaysToDate(currDate, 1);
         }
+
+        this._resolution = options.resolution;
         return this;
     }
 
 
+    /**Загрузка сетки на определенную дату */
+    protected async _loadOneDay(date: Date) {
+        const dateStr = U.getDateStr(date);
 
-    getGrid() {
-        return this._grid;
+        const options = U.CloneData(this._options);
+        options.begDate = dateStr;
+        options.endDate = dateStr;
+
+        const oneDaySchedule = (await this._MoApiClient.getScheduleApiSection().getSchedule(options))[dateStr];
+
+        const bq: BookingQuery = new BookingQuery(dateStr, dateStr);
+        bq.positionIds = options.positionIds;
+        bq.placementIds = options.placementIds;
+        bq.divisionIds = options.divisionIds;
+        bq.statuses = options.bookingStatuses;
+        bq.includeNames = true;
+        bq.includePlace = true;
+        bq.includeStatus = true;
+        const oneDayBooking = (await this._BookingsViews.getBookings(bq)).toArray();
+
+        const sgInfo = oneDaySchedule.map<ScheduleGridInfo>(v => ScheduleGridInfo.fromScheduleTimespanItemFactory(v, this._RecordsStore));
+        const bInfo = oneDayBooking.map(v => BookingGridInfo.fromBookingListViewFactory(v, this._RecordsStore));
+        this._grid[dateStr] = this._createScheduleGrid(sgInfo, bInfo, options.resolution);
+
+        return this._grid[dateStr];
+    }
+
+
+
+    /**Поиск первого подходящего свободного времении в расписании для брони с указанными параметрами*/
+    getEmptyTimeForBooking(params: TGridQuerySch) {
+
+        //проверка диапазона - загружены ли данные в указанном диапазоне
+        this._chkReqPeriod(params.begDate, params.endDate);
+
+        let currDate = params.begDate;
+
+        const bk = params.booking;
+
+        while (U.compareDatesOnly(currDate, params.endDate) <= 0) {
+
+            let gridPerDay = this._grid[U.getDateStr(currDate)];
+            let timeCnt = 0;
+            let begTime = 0;
+
+            const normBegTime = ~~(params.begTime / this._resolution);
+            const normEndTime = ~~(params.endTime / this._resolution);
+            const normDuration = Math.ceil(bk.duration / this._resolution);
+
+            for (let i = normBegTime; i <= normEndTime && i < gridPerDay.length; i++) {
+
+                const sgItem = gridPerDay[i];
+                const schedule = sgItem.schedule;
+                const bookings = sgItem.bookings;
+                let matchable = false;
+
+                for (let schi = 0; schi < schedule.length; schi++)
+                    if (this._checkSchBookingMatch(schedule[schi].source, bk)) {
+                        if (bookings.every(v => !this._checkOverlayBooking(v.source, bk))) {
+                            matchable = true;
+                        }
+                        break;
+                    }
+
+                if (matchable) {
+                    if (++timeCnt == 1)
+                        begTime = i * this._resolution;
+
+                    if (timeCnt >= normDuration) {
+                        const resDate = new Date(currDate);
+                        resDate.setHours(Math.trunc(begTime / 60));
+                        resDate.setMinutes(begTime % 60);
+                        resDate.setSeconds(0);
+                        return resDate;
+                    }
+                }
+                else
+                    timeCnt = 0;
+
+            }
+            currDate = U.addDaysToDate(currDate, 1);
+        }
+
+        return null;
+    }
+
+
+
+    protected async _chkReqPeriod(begDate, endDate) {
+
+        let currDate = begDate;
+
+        while (U.compareDates(currDate, endDate) <= 0) {
+
+            const currDateStr = U.getDateStr(currDate);
+
+            if (!this._grid[currDateStr])
+                await this._loadOneDay(currDate);
+
+            currDate = U.addDaysToDate(currDate, 1);
+        }
+    }
+
+
+    /**Проверка брони на подходимость к расписанию и отсутствию наложений на указонное время.
+     * При forceUpdate==true будет производится получение блокировки и обновление данных.
+     * Если задана func, то если бронь подходит проверку, будет вызвана func при действующей блокировке(если forceUpdate==true)
+     */
+    async checkEmptySch(date: Date, bk: TBookingParams, func?: () => Promise<any>, forceUpdate = false) {
+
+        const lock = await this._Locks.getBookingLock(date, bk);
+
+        try {
+            if (forceUpdate) {
+                await lock.waitLock(15 * 1000);
+                if (!lock.isСaptured())
+                    throw new Exception("ERR", "Не удалось получть эксклюзивый доступ")
+                await this._loadOneDay(date);
+            }
+            else
+                await this._chkReqPeriod(date, date);
+
+            const grDate = U.getDateStr(date);
+            const grTime = this._getMinutesFromBeginDay(date);
+            const normTime = ~~(grTime / this._resolution);
+            const normDuration = Math.ceil(bk.duration / this._resolution);
+
+            let gridPerDay = this._grid[grDate];
+
+            for (let i = normTime; i < normTime + normDuration && i < gridPerDay.length; i++) {
+
+                const sgItem = gridPerDay[i];
+                const schedule = sgItem.schedule;
+                const bookings = sgItem.bookings;
+                let matchable = false;
+
+                for (let schi = 0; schi < schedule.length; schi++)
+                    if (this._checkSchBookingMatch(schedule[schi].source, bk)) {
+                        if (bookings.every(v => !this._checkOverlayBooking(v.source, bk))) {
+                            matchable = true;
+                        }
+                        break;
+                    }
+
+                if (!matchable)
+                    return false;
+            }
+            if (func)
+                await func();
+
+            return true;
+        }
+        finally {
+            await lock.unlock();
+        }
+    }
+
+
+
+    updateBookingInfo(bk: IBookingListView) {
+        const bdata = new Date(bk.begDate!);
+        const grDate = U.getDateStr(bdata);
+        const grTime = this._getMinutesFromBeginDay(bdata);
+        const normTime = ~~(grTime / this._resolution);
+        const normDuration = Math.ceil(bk.duration! / this._resolution);
+        const gridDay = this._grid[grDate];
+
+        //заносим данные брони в текущий grid
+        for (let i = normTime; i < normTime + normDuration; i++) {
+            const curbgi = gridDay[i].bookings.find(v => v.source.id == bk.id);
+            if (curbgi)
+                curbgi.source = bk;
+            else
+                console.error(`Не найдена запись брони, которая обязана быть. Данные расписания и броней могут быть некорректными`);
+        }
+    }
+
+
+    async addBooking(bookingRec: BookingRecord, products: string[]) {
+        const bdata = bookingRec.MData;
+
+        const bookingDate = new Date(bdata.beginDate);
+
+        const bk: TBookingParams = {
+            begTime: this._getMinutesFromBeginDay(bookingDate),
+            duration: bdata.duration,
+            position: bdata.position,
+            division: bdata.division,
+            placement: bdata.placement,
+            tsTypes: [EEmployeeTimeTypes.WORK]
+        }
+
+        //проверка свободного времени и сохраняем запись брони, если оно успешно
+        const res = await this.checkEmptySch(bookingDate, bk, async () => {
+            await bookingRec.save();
+        }, true);
+
+        if (res) {
+            const bookingDateStr = U.getDateStr(bookingDate);
+            const gridDay = this._grid[bookingDateStr];
+            const normTime = ~~(bk.begTime! / this._resolution);
+            const normDuration = ~~(bk.duration / this._resolution);
+
+            //заносим данные брони в текущий grid
+            for (let i = normTime; i < normTime + normDuration; i++)
+                gridDay[i].bookings.push(BookingGridInfo.fromBookingListViewFactory(bdata, this._RecordsStore));
+        }
+
+        return res;
     }
 
 
@@ -110,9 +321,10 @@ export class ScheduleGrid {
 
 
     /**Проверка наложения пз */
-    protected _checkOverlayBooking(b1: IBookingListView, b2: IBookingListView, checkTime = true) {
-        debugger;
-        if (checkTime) {
+    protected _checkOverlayBooking(b1: IBookingListView, b2: IBookingListView) {
+
+        if (b2.begDate) {
+            //не проверено
             const b1b = new Date(b1.begDate!).getTime();
             const b1e = b1b + (b1.duration || 0);
             const b2b = new Date(b2.begDate!).getTime();
@@ -133,11 +345,15 @@ export class ScheduleGrid {
     }
 
 
-    /**Проверка подходимости пз к расписанию*/
-    protected _checkSchBookingMatch(sch: ScheduleTimespanItem, bk: IBookingListView, checkTime = true, productIds: string[] | null = null) {
+    /**Проверка подходимости брони к расписанию*/
+    protected _checkSchBookingMatch(sch: ScheduleTimespanItem, bk: TBookingParams) {
 
         let res = true;
-        debugger;
+
+        if (bk.tsTypes && bk.tsTypes.length > 0)
+            if (!bk.tsTypes.includes(sch.getTimespan()!.getType()))
+                return false;
+
         if ((sch.position || bk.position) && sch.position != bk.position)
             return false;
 
@@ -147,21 +363,21 @@ export class ScheduleGrid {
         if ((sch.placement || bk.placement) && sch.placement != bk.placement)
             return false;
 
-        if (checkTime) {
+        if (bk.begTime != null) {
             const schb = sch.getTimespan()!.getTime();
             const sche = schb + sch.getTimespan()!.duration;
 
-            const bkb = this._getMinutesFromBeginDay(new Date(bk.begDate!))
+            const bkb = bk.begTime;
             const bke = bkb + (bk.duration || 0);
 
             if (bkb < schb || bke > sche)
                 return false;
         }
 
-        //проверка, что все требуемые продукты имеются в элементе расписания
+        //проверка, что все требуемые продукты имеются в элементе расписания или если они не указаны, тогда подходят любые продукты
         const schProducts = sch.getProducts();
-        if (schProducts && schProducts.length > 0 && productIds)
-            if (!productIds.every(v => schProducts.includes(v)))
+        if (bk.products && bk.products.length > 0 && schProducts && schProducts.length > 0)
+            if (!bk.products.every(v => schProducts.includes(v)))
                 return false;
 
         return true;
@@ -174,7 +390,6 @@ export class ScheduleGrid {
         const minutes = date.getMinutes();
         return hours * 60 + minutes;
     }
-
 
 }
 
@@ -196,7 +411,7 @@ export class BookingGridInfo {
         const res = new BookingGridInfo()
         res.timespan = new TimeSpanEntity(_RecordsStore);
 
-        const begMinutes = Utils.getMinutesOfDay(new Date(item.begDate!));
+        const begMinutes = U.getMinutesOfDay(new Date(item.begDate!));
         res.timespan.setTime(begMinutes);
         res.timespan.setDuration(item.duration!);
         res.source = item;
@@ -227,13 +442,24 @@ export class ScheduleGridItem {
 }
 
 
-export type TGridQuerySch = {
-    begDate: Date;
-    endDate: Date;
-    begTime: number;
-    endTime: number;
-    positionId?: string | null;
-    divisionId?: string | null;
-    placementId?: string | null;
-    productIds?: string[] | null;
+export type TBookingParams = {
+    begTime?: number;  //время бронирования
+    duration: number;
+    position?: string | null;
+    division?: string | null;
+    placement?: string | null;
+    products?: string[] | null;
+    tsTypes?: EEmployeeTimeTypes[] | null; //тип промежутка времени в расписании
 }
+
+
+export type TGridQuerySch = {
+    begDate: Date;  //начальная возможная дата бронирования
+    endDate: Date;  //конечная возможная дата бронирования
+    begTime: number;  //начальное возможное время бронирования
+    endTime: number;  //конечное возможное время бронирования
+    booking: TBookingParams
+}
+
+
+

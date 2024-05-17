@@ -10,7 +10,7 @@ export function fmtStr(mess: string, ...args: any) {
   });
 }
 
-/**Полное копирование данных объекта*/
+/**Deprecate. Полное копирование данных объекта*/
 export function CloneData<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }

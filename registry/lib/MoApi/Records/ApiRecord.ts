@@ -166,14 +166,11 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
   protected async _addAllData() {
-    if (this.Key) {
-      this._ModifiedData!.id = this.Key;
-      await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
-    } else {
-      let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
-      this._ModifiedData!.id = guid;
-      this.Key = guid;
-    }
+    let res = await this._MoApiClient.send<any, { id: string; changedAt: string }>(this._getApiRecordPathAdd(), this._ModifiedData);
+    this._ModifiedData!.id = res.id;
+    this._ModifiedData!.changedAt = res.changedAt;
+    this._ModifiedData!.createdAt = res.changedAt;
+    this.Key = res.id;
     return this.Key;
   }
 

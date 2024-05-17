@@ -139,10 +139,10 @@ function _padDate(num) {
 };
 
 export function getDateStr(date: Date) {
-    const y=date.getFullYear();
-    const m=_padDate(date.getMonth()+1);
-    const d=_padDate(date.getDate());
-    
+    const y = date.getFullYear();
+    const m = _padDate(date.getMonth() + 1);
+    const d = _padDate(date.getDate());
+
     return `${y}-${m}-${d}`;
 }
 
@@ -150,6 +150,21 @@ export function getDateStr(date: Date) {
 
 export function getUtcDateStr(date: Date) {
     return date.toISOString().substring(0, 10);
+}
+
+
+
+export function getLocalISODateTime(date: Date): string {
+    const offset = date.getTimezoneOffset();
+    const localISOTime = new Date(date.getTime() - offset * 60000).toISOString();
+    return localISOTime;
+}
+
+
+export function getLocalISODateTimeWoTz(date: Date): string {
+    const offset = date.getTimezoneOffset();
+    const localISOTime = new Date(date.getTime() - offset * 60000).toISOString();
+    return localISOTime.slice(0, 19);
 }
 
 
@@ -198,6 +213,7 @@ export function getMinutesOfDay(date: Date): number {
 }
 
 
+
 export async function getPasswordHash(psw: string) {
     if (!psw) return "";
     const msgUint8 = new TextEncoder().encode(psw); // encode as (utf-8) Uint8Array
@@ -209,3 +225,21 @@ export async function getPasswordHash(psw: string) {
     return hashHex.toLowerCase();
 }
 
+
+/**Получить хэш строки в виде hex-строки по указанному алгоритму */
+export async function getHashHex(str: string, alg: "SHA-1"|"SHA-256"|"SHA-384"|"SHA-512"="SHA-256") {
+    const msgUint8 = new TextEncoder().encode(str); // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest(alg, msgUint8); // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""); // convert bytes to hex string
+    return hashHex.toLowerCase();
+}
+
+
+
+/**Полное копирование данных объекта*/
+export function CloneData<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
+  }

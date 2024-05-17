@@ -62,11 +62,14 @@ import { ScheduleItemRecord, ScheduleItemData } from '~/lib/MoApi/Records/Schedu
 import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
 import ProductTitles from '~/public/ProductTitles';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
-import ScheduleTimeSpanEntity from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
-import { ProductGroupRecord, type ProductGroupRecordData } from '~/lib/MoApi/Records/ProductGroupRecord';
+import ScheduleTimeSpanEntity, { EEmployeeTimeTypes } from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
+import { ProductGroupRecord, ProductGroupRecordData } from '~/lib/MoApi/Records/ProductGroupRecord';
 import { ClientGroupRecord, type ClientGroupRecordData } from '~/lib/MoApi/Records/ClientGroupRecord';
 import * as Utils from '~/lib/Utils';
 import { ScheduleGrid, ScheduleGridOptions } from '~/lib/Booking/ScheduleGrid';
+import { BookingRecord, BookingRecordData } from '~/lib/MoApi/Records/BookingRecord';
+import { Locks } from '~/lib/MoApi/Locks';
+import { ApiLock } from '~/lib/MoApi/ApiLock';
 
 
 const diC = useContainer();
@@ -526,12 +529,63 @@ const clientGroupsCreateTask = async (size: number) => {
 
 
 const bookingGroupsCreateTask = async (size: number) => {
+
     const schGrid = diC.get(ScheduleGrid);
     const begDate = new Date();
     const endDate = Utils.addDaysToDate(begDate, 31);
     const opts = new ScheduleGridOptions(begDate, endDate);
-   // opts.positionIds=['018f293e-90ec-70f5-bf15-9b6532a02284']
+    opts.positionIds = ['018f293e-90ec-70f5-bf15-9b6532a02284']
     await schGrid.init(opts);
+
+    const booking = {
+        //begTime: 500,
+        duration: 10,
+        position: '018f293e-90ec-70f5-bf15-9b6532a02284',
+        products: ['018f2924-5d6e-70f4-a6b0-394c50b08352'],
+        tsTypes: [EEmployeeTimeTypes.WORK]
+    }
+
+    const dt = schGrid.getEmptyTimeForBooking({
+        begDate,
+        endDate,
+        begTime: 7 * 60,
+        endTime: 18 * 60,
+        booking: booking
+    });
+
+    debugger;
+    if (dt) {
+
+        let rec = await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
+            d.beginDate = Utils.getLocalISODateTimeWoTz(dt);
+            d.duration = 10;
+            d.position = '018f293e-90ec-70f5-bf15-9b6532a02284';
+            //d.product = '018f2924-5d6e-70f4-a6b0-394c50b08352';
+        });
+
+        const pgr = recStore.dataEntityFactory<ProductGroupRecordData>(ProductGroupRecordData);
+        pgr.title = "prod group";
+        rec.setNewProductGroup(pgr);
+
+        let res = await schGrid.addBooking(rec, ['018f2924-5d6e-70f4-a6b0-394c50b08352']);
+        debugger;
+        let t=rec.Data?.productGroup;
+    }
+
+    debugger
+    /*
+    if (dt) {
+        debugger
+        let rec=await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
+            d.beginDate= Utils.getLocalISODateTimeWoTz(dt);
+            d.duration= 10;
+            d.position='018f293e-90ec-70f5-bf15-9b6532a02284';
+            d.product='018f2924-5d6e-70f4-a6b0-394c50b08352';
+        });
+        await rec.save();
+        debugger
+    }
+    */
 
 
 }

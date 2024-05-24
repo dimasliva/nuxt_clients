@@ -89,7 +89,7 @@ export class BookingRecord extends ApiRecord<BookingRecordData> {
 
 
   protected override async _addAllData() {
-    debugger;
+
     if (this._newProductGroupPending || this._newClientGroupPending) {
 
       if (this._newProductGroupPending && (this.MData.product || this.MData.productGroup))

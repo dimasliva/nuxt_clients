@@ -1,5 +1,6 @@
 import { Exception } from "../Exceptions";
 
+/**Deprecate*/
 export async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

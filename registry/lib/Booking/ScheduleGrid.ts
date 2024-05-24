@@ -31,7 +31,6 @@ export class ScheduleGrid {
 
 
     async init(options: ScheduleGridOptions) {
-
         this._options = options;
         const schedule = await this._MoApiClient.getScheduleApiSection().getSchedule(options);
 
@@ -254,7 +253,7 @@ export class ScheduleGrid {
     }
 
 
-    async addBooking(bookingRec: BookingRecord, products: string[]) {
+    async addBooking(bookingRec: BookingRecord, products: string[], forceUpdate = true) {
         const bdata = bookingRec.MData;
 
         const bookingDate = new Date(bdata.beginDate);
@@ -271,7 +270,7 @@ export class ScheduleGrid {
         //проверка свободного времени и сохраняем запись брони, если оно успешно
         const res = await this.checkEmptySch(bookingDate, bk, async () => {
             await bookingRec.save();
-        }, true);
+        }, forceUpdate);
 
         if (res) {
             const bookingDateStr = U.getDateStr(bookingDate);

@@ -1,10 +1,12 @@
+import { injectable, inject } from "inversify";
 import type { ICouplingData, IRelData } from "../ApiInterfaces";
 import type { MoApiClient } from "../MoApiClient";
 
 const _apiPath = "/Relations";
 
+@injectable()
 export class RelationApiSection {
-  constructor(protected _apiClient: MoApiClient) {}
+  constructor(@inject("MoApiClient") protected _apiClient: MoApiClient) { }
 
   async getChilds(parentId: string, parentRecCode: number, childsRecCode: number) {
     return await this._apiClient.send<any, IRelData[]>(`${_apiPath}/GetChilds`, { parentId, parentRecCode, childsRecCode }, true);

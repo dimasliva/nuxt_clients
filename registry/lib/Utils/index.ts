@@ -4,6 +4,12 @@ import type { UserContext } from "../UserContext";
 import * as Helpers from "../Helpers";
 
 
+export async function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
 export function chkRights(requiredFeature: string[] | null | undefined, requiredRights: { [rec: string]: string } | null | undefined) {
     const iocc = useContainer();
     const UserCtx = iocc.get<UserContext>('UserContext');
@@ -227,7 +233,7 @@ export async function getPasswordHash(psw: string) {
 
 
 /**Получить хэш строки в виде hex-строки по указанному алгоритму */
-export async function getHashHex(str: string, alg: "SHA-1"|"SHA-256"|"SHA-384"|"SHA-512"="SHA-256") {
+export async function getHashHex(str: string, alg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256") {
     const msgUint8 = new TextEncoder().encode(str); // encode as (utf-8) Uint8Array
     const hashBuffer = await crypto.subtle.digest(alg, msgUint8); // hash the message
     const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
@@ -242,4 +248,4 @@ export async function getHashHex(str: string, alg: "SHA-1"|"SHA-256"|"SHA-384"|"
 /**Полное копирование данных объекта*/
 export function CloneData<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj));
-  }
+}

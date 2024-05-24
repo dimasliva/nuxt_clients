@@ -33,6 +33,7 @@ export class ScheduleItemRecord extends ApiRecord<ScheduleItemData> {
   static RightToken = "dbScheduleItem";
   static RecCode = 1026;
   static BatchGetRecDataPath="/Schedule/GetScheduleItems";
+  static RecordsFindPath = "/Schedule/FindScheduleItems";
 
   get RecCode() {
     return ScheduleItemRecord.RecCode;

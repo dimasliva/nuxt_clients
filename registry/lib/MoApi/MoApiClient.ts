@@ -70,7 +70,7 @@ export class MoApiClient {
 
         if (res.bodyData && typeof res.bodyData == "object") {
             const answ = <IApiResult>res.bodyData;
-            
+
             if (answ.resultCode == "OK")
                 return <outT>answ.result;
             else
@@ -135,7 +135,7 @@ export class MoApiClient {
             let response: Response | null = null;
 
             while (attemp--) {
-                
+
                 const headers: { [key: string]: string } = {};
                 if (this._AuthToken)
                     headers["Authorization"] = `Bearer ${this._AuthToken}`;
@@ -184,16 +184,24 @@ export class MoApiClient {
                         return { response, bodyData };
                     }
                     else
-                        if (response.status >= 500 && response.status < 600) {
+                        if (response.status == 429) {
                             if (ATTEMPS - attemp == 1)
                                 await sleep(1000);
                             else
-                                if (ATTEMPS - attemp == 2)
-                                    await sleep(5000);
-                                else
-                                    await sleep(10000);
+                                await sleep(2000);
                             continue;
                         }
+                        else
+                            if (response.status >= 500 && response.status < 600) {
+                                if (ATTEMPS - attemp == 1)
+                                    await sleep(1000);
+                                else
+                                    if (ATTEMPS - attemp == 2)
+                                        await sleep(5000);
+                                    else
+                                        await sleep(10000);
+                                continue;
+                            }
                 }
                 catch (exc) {
                     continue;

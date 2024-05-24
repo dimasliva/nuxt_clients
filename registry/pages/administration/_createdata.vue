@@ -64,12 +64,16 @@ import ProductTitles from '~/public/ProductTitles';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
 import ScheduleTimeSpanEntity, { EEmployeeTimeTypes } from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
 import { ProductGroupRecord, ProductGroupRecordData } from '~/lib/MoApi/Records/ProductGroupRecord';
-import { ClientGroupRecord, type ClientGroupRecordData } from '~/lib/MoApi/Records/ClientGroupRecord';
+import { ClientGroupRecord, ClientGroupRecordData } from '~/lib/MoApi/Records/ClientGroupRecord';
 import * as Utils from '~/lib/Utils';
-import { ScheduleGrid, ScheduleGridOptions } from '~/lib/Booking/ScheduleGrid';
+import { ScheduleGrid, ScheduleGridOptions, type TBookingParams } from '~/lib/Booking/ScheduleGrid';
 import { BookingRecord, BookingRecordData } from '~/lib/MoApi/Records/BookingRecord';
 import { Locks } from '~/lib/MoApi/Locks';
 import { ApiLock } from '~/lib/MoApi/ApiLock';
+import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
+import { QueryParams } from '~/lib/MoApi/RequestArgs';
+import { ProductViews } from '~/lib/MoApi/Views/ProductViews';
+import { RelationApiSection } from '~/lib/MoApi/ApiSectionsV1/RelationApiSection';
 
 
 const diC = useContainer();
@@ -120,7 +124,7 @@ const createRecS = async (recLoading: typeof emplLoading) => {
     console.info(`${recLoading.recName} create started`);
     recLoading.loading = true;
     try {
-        await recLoading.createTask(recLoading.size);
+        await recLoading.createTask(recLoading.size * 1);
     }
     finally {
         console.info(`${recLoading.recName} created`);
@@ -464,6 +468,36 @@ const positionDictCodes = [
 
 
 
+///////////////// ЖПЗ /////////////////////////
+
+let clientIds: string[] = [];
+let productIds: string[] = [];
+
+const getRandomClients = async (count: number) => {
+    if (clientIds.length == 0)
+        clientIds = await recStore.findRecords(ClientRecord, null);
+
+    const res: string[] = [];
+    for (let i = 0; i < count; i++)
+        res.push(clientIds[~~(Math.random() * (clientIds.length - 1))]);
+
+    return res;
+}
+
+
+const getRandomProducts = async (count: number) => {
+    if (productIds.length == 0)
+        productIds = await recStore.findRecords(ProductRecord, null);
+
+    const res: string[] = [];
+    for (let i = 0; i < count; i++)
+        res.push(productIds[~~(Math.random() * (productIds.length - 1))]);
+
+    return res;
+}
+
+
+
 const addProductGroup = async () => {
     let rec = await recStore.createNew<ProductGroupRecord, ProductGroupRecordData>(ProductGroupRecord, (data) => {
         data.title = generateUniqueStrings(2, 8);
@@ -486,111 +520,202 @@ const addClientGroup = async () => {
 
 
 
+const addProductsToGroup = async (rec: ProductGroupRecord, products: string[]) => {
+    var promises: Promise<void>[] = [];
+    for (let y = 0; y < products.length; y++) {
+        promises.push(rec.addCoupling(products[y], ProductRecord.RecCode));
+    }
+    await Promise.all(promises);
+}
+
+
 const productGroupsCreateTask = async (size: number) => {
     const maxItemsInGroup = 10;
-    const products = await recStore.findRecords(ProductRecord, null);
-    let cplInx = 0;
     for (let i = 0; i < size; i++) {
         let rec = await addProductGroup();
-        let groupSize = Math.floor(Math.random() * maxItemsInGroup) + 1;
-
-        var promises: Promise<void>[] = [];
-        for (let y = 0; y < groupSize; y++) {
-            promises.push(rec.addCoupling(products[cplInx], ProductRecord.RecCode));
-            if (++cplInx >= products.length)
-                cplInx = 0;
-        }
-
-        await Promise.all(promises);
+        const products = await getRandomProducts(Math.random() * maxItemsInGroup);
+        await addProductsToGroup(rec, products);
     }
 }
 
+
+
+const addClientsToGroup = async (rec: ClientGroupRecord, clients: string[]) => {
+    var promises: Promise<void>[] = [];
+    for (let y = 0; y < clients.length; y++) {
+        promises.push(rec.addCoupling(clients[y], ClientRecord.RecCode));
+    }
+    await Promise.all(promises);
+}
 
 
 const clientGroupsCreateTask = async (size: number) => {
     const maxItemsInGroup = 10;
-    const clients = await recStore.findRecords(ClientRecord, null);
-    let cplInx = 0;
     for (let i = 0; i < size; i++) {
         let rec = await addClientGroup();
-        let groupSize = Math.floor(Math.random() * maxItemsInGroup) + 1;
-
-        var promises: Promise<void>[] = [];
-        for (let y = 0; y < groupSize; y++) {
-            promises.push(rec.addCoupling(clients[cplInx], ClientRecord.RecCode));
-            if (++cplInx >= clients.length)
-                cplInx = 0;
-        }
-
-        await Promise.all(promises);
+        const clients = await getRandomClients(Math.random() * maxItemsInGroup);
+        await addClientsToGroup(rec, clients);
     }
 }
 
 
 
-const bookingGroupsCreateTask = async (size: number) => {
+const bookingCreateTask = async (size: number = 500) => {
+    const PERIOD_DAYS = 31;
+
+    const begDate = new Date();
+    const endDate = Utils.addDaysToDate(begDate, PERIOD_DAYS);
+    const bookingParamSet = await getBookingParams(begDate, endDate);
+
+    //набор продуктов для запроса расписания
+    const prodsraw = bookingParamSet.map(v => v.products?.[0]).filter(v => v);
+    const prods = [...new Set(prodsraw)];
 
     const schGrid = diC.get(ScheduleGrid);
-    const begDate = new Date();
-    const endDate = Utils.addDaysToDate(begDate, 31);
     const opts = new ScheduleGridOptions(begDate, endDate);
-    opts.positionIds = ['018f293e-90ec-70f5-bf15-9b6532a02284']
+    opts.productIds = prods as string[];
+
     await schGrid.init(opts);
 
-    const booking = {
-        //begTime: 500,
-        duration: 10,
-        position: '018f293e-90ec-70f5-bf15-9b6532a02284',
-        products: ['018f2924-5d6e-70f4-a6b0-394c50b08352'],
-        tsTypes: [EEmployeeTimeTypes.WORK]
-    }
+    let attemp = size * 10;
 
-    const dt = schGrid.getEmptyTimeForBooking({
-        begDate,
-        endDate,
-        begTime: 7 * 60,
-        endTime: 18 * 60,
-        booking: booking
-    });
+    while (size && attemp--) {
+        const date = Utils.addDaysToDate(begDate, ~~(Math.random() * PERIOD_DAYS));
 
-    debugger;
-    if (dt) {
+        const bookingparam = bookingParamSet[~~(Math.random() * (bookingParamSet.length - 1))];
 
-        let rec = await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
-            d.beginDate = Utils.getLocalISODateTimeWoTz(dt);
-            d.duration = 10;
-            d.position = '018f293e-90ec-70f5-bf15-9b6532a02284';
-            //d.product = '018f2924-5d6e-70f4-a6b0-394c50b08352';
+        const begTime = ~~((Math.random() * (13 * 60) + (7 * 60)) / 5) * 5; //случайное время с 7.00 до 20.00 кратное 5 минутам
+        const endTime = begTime + ~~(Math.random() * (2 * 60) + (1 * 60) / 5) * 5; //случайное окно для поиска
+
+        const duration = ~~(Math.random() * 60 / 5) * 5;
+
+        let products: string[] = [];
+        if (Math.random() > 0.3 || bookingparam.products!.length < 2) {
+            products.push(bookingparam.products![~~(Math.random() * (bookingparam.products!.length - 1))]);
+        }
+        else {
+            let bi = Math.random() * (bookingparam.products!.length - 2);
+            products = bookingparam.products!.slice(bi);
+        }
+
+        const dt = schGrid.getEmptyTimeForBooking({
+            begDate: date,
+            endDate: date,
+            begTime,
+            endTime,
+            booking: {
+                duration,
+                position: bookingparam.position,
+                division: bookingparam.division,
+                placement: bookingparam.placement,
+                products,
+                tsTypes: [EEmployeeTimeTypes.WORK],
+            }
         });
 
-        const pgr = recStore.dataEntityFactory<ProductGroupRecordData>(ProductGroupRecordData);
-        pgr.title = "prod group";
-        rec.setNewProductGroup(pgr);
+        if (dt) {
+            const bp: TBookingParams = {
+                duration,
+                position: bookingparam.position,
+                division: bookingparam.division,
+                placement: bookingparam.placement,
+                products
+            }
 
-        let res = await schGrid.addBooking(rec, ['018f2924-5d6e-70f4-a6b0-394c50b08352']);
-        debugger;
-        let t=rec.Data?.productGroup;
+            await createBooking(schGrid, dt, bp);
+           // await Utils.sleep(950);
+            size--;
+        }
     }
-
-    debugger
-    /*
-    if (dt) {
-        debugger
-        let rec=await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
-            d.beginDate= Utils.getLocalISODateTimeWoTz(dt);
-            d.duration= 10;
-            d.position='018f293e-90ec-70f5-bf15-9b6532a02284';
-            d.product='018f2924-5d6e-70f4-a6b0-394c50b08352';
-        });
-        await rec.save();
-        debugger
-    }
-    */
-
-
 }
 
 
+/**Формирует набор параметров брони из набора элементов расписания*/
+const getBookingParams = async (begDate: Date, endDate: Date) => {
+    const ids = await recStore.findRecords(ScheduleItemRecord, `beginDate<='${Utils.getDateStr(endDate)}' and endDate>='${Utils.getDateStr(begDate)}'`);
+    const recs: ScheduleItemRecord[] = await recStore.getRecords(ScheduleItemRecord, ids.slice(0, 499));
+    const res: TBookingParams[] = [];
+    const relApiSect = diC.get(RelationApiSection);
+
+    for (let i = 0; i < recs.length; i++) {
+        const rec = recs[i];
+        const bp: TBookingParams = {
+            begTime: 0,
+            duration: 0,
+            position: rec.Data!.position,
+            division: rec.Data!.division,
+            placement: rec.Data!.placement
+        }
+
+        //загрузка продуктов, привязанных к элементу расписания
+        const productrels = await rec.getChilds(ProductRecord.RecCode);
+        const products = productrels.map(v => v.id);
+
+        //загрузка групп,привязанных к элементу расписания
+        const grouprels = await rec.getChilds(ProductGroupRecord.RecCode);
+
+        //загрузка продуктов из каждой группы 
+        for (let j = 0; j < grouprels.length; j++) {
+            const grkey = grouprels[j].id;
+            const grprodrec = recStore.get(ProductGroupRecord, grkey);//получение объекта записи без загрузки данных
+            const grprodrel = await grprodrec.getCouplings(ProductRecord.RecCode);
+            grprodrel.forEach(v => {
+                if (!products.includes(v.key))
+                    products.push(v.key);
+            })
+        }
+
+        bp.products = products;
+        if (products.length > 0)
+            res.push(bp);
+    }
+    return res;
+}
+
+
+
+const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBookingParams) => {
+
+    let rec = await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
+        d.beginDate = Utils.getLocalISODateTimeWoTz(date);
+        d.duration = bookingParams.duration;
+        d.position = bookingParams.position || null;
+        d.division = bookingParams.division || null;
+        d.placement = bookingParams.placement || null;
+    });
+
+
+    if (bookingParams.products!.length == 1)
+        rec.MData.product = bookingParams.products![0];
+    else {
+        const pgr = recStore.dataEntityFactory(ProductGroupRecordData);
+        pgr.title = "prod group";
+        rec.setNewProductGroup(pgr);
+    }
+
+
+    if (Math.random() > 0.3)
+        rec.MData.client = (await getRandomClients(1))[0];
+    else {
+        const cgr = recStore.dataEntityFactory<ClientGroupRecordData>(ClientGroupRecordData);
+        cgr.title = "client group";
+        rec.setNewClientGroup(cgr);
+    }
+
+    let res = await sg.addBooking(rec, bookingParams.products!, false);
+    if (rec.Data!.productGroup) {
+        const pgrec = await recStore.fetch(ProductGroupRecord, rec.Data!.productGroup!);
+        await addProductsToGroup(pgrec, bookingParams.products!);
+    }
+
+    if (rec.Data!.clientGroup) {
+        const cgrec = await recStore.fetch(ClientGroupRecord, rec.Data!.clientGroup!);
+        const clients = await getRandomClients(Math.random() * 10);
+        await addClientsToGroup(cgrec, clients);
+    }
+
+    return rec;
+};
 
 
 
@@ -598,6 +723,6 @@ const bookingGroupsCreateTask = async (size: number) => {
 
 const clientGroupLoading = reactive({ size: 0, loading: false, recName: "client groups", createTask: clientGroupsCreateTask });
 const productGroupLoading = reactive({ size: 0, loading: false, recName: "product groups", createTask: productGroupsCreateTask });
-const bookingLoading = reactive({ size: 0, loading: false, recName: "booking groups", createTask: bookingGroupsCreateTask });
+const bookingLoading = reactive({ size: 0, loading: false, recName: "booking groups", createTask: bookingCreateTask });
 
 </script>

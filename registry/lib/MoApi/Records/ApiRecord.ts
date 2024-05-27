@@ -44,6 +44,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   public static RightToken = "";
   public static RecCode = 0;
   public static BatchGetRecDataPath = "";
+  public static RecordsFindPath = "";
 
   protected _RecordType: Function = null!;
   public get RecordType(): Function {
@@ -165,14 +166,11 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
   protected async _addAllData() {
-    if (this.Key) {
-      this._ModifiedData!.id = this.Key;
-      await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
-    } else {
-      let guid = await this._MoApiClient.send<any, string>(this._getApiRecordPathAdd(), this._ModifiedData);
-      this._ModifiedData!.id = guid;
-      this.Key = guid;
-    }
+    let res = await this._MoApiClient.send<any, { id: string; changedAt: string }>(this._getApiRecordPathAdd(), this._ModifiedData);
+    this._ModifiedData!.id = res.id;
+    this._ModifiedData!.changedAt = res.changedAt;
+    this._ModifiedData!.createdAt = res.changedAt;
+    this.Key = res.id;
     return this.Key;
   }
 
@@ -272,22 +270,28 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
 
-  protected async _loadCouplings(slaveRecCode: number = -1) {
+  protected async _loadCouplings(slaveRecCode: number) {
     this._couplingsData[slaveRecCode] = await this._MoApiClient.getRelationApiSection().getCouplings(this.Key, this.RecCode, slaveRecCode);
   }
 
 
 
-  async getCouplings(slaveRecCode: number = -1) {
+  async getCouplings(slaveRecCode: number) {
+    if (slaveRecCode <= 0)
+      throw new Exception("ERR", "Неверный код записи");
+
     if (this._couplingsData[slaveRecCode]) return this._couplingsData[slaveRecCode];
 
-    await this._loadCouplings();
+    await this._loadCouplings(slaveRecCode);
     return this._couplingsData[slaveRecCode];
   }
 
 
 
   async addCoupling(slaveKey: string, slaveRecCode: number) {
+    if (slaveRecCode <= 0)
+      throw new Exception("ERR", "Неверный код записи");
+
     await this._MoApiClient.getRelationApiSection().addCoupling(this.Key, this.RecCode, slaveKey, slaveRecCode);
     delete this._couplingsData[slaveRecCode];
   }
@@ -301,6 +305,9 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
   async delCoupling(slaveKey: string, slaveRecCode: number) {
+    if (slaveRecCode <= 0)
+      throw new Exception("ERR", "Неверный код записи");
+
     await this._MoApiClient.getRelationApiSection().delCoupling(this.Key, this.RecCode, slaveKey, slaveRecCode);
     delete this._couplingsData[slaveRecCode];
   }
@@ -313,31 +320,37 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
 
-  protected async _loadChilds(childsRecCode: number = -1) {
+  protected async _loadChilds(childsRecCode: number) {
     this._childsData[childsRecCode] = await this._MoApiClient.getRelationApiSection().getChilds(this.Key, this.RecCode, childsRecCode);
   }
 
 
 
-  protected async _loadParents(parentsRecCode: number = -1) {
+  protected async _loadParents(parentsRecCode: number) {
     this._parentsData[parentsRecCode] = await this._MoApiClient.getRelationApiSection().getParents(this.Key, this.RecCode, parentsRecCode);
   }
 
 
 
-  async getChilds(childsRecCode: number = -1) {
+  async getChilds(childsRecCode: number) {
+    if (childsRecCode <= 0)
+      throw new Exception("ERR", "Неверный код записи");
+
     if (this._childsData[childsRecCode]) return this._childsData[childsRecCode];
 
-    this._loadChilds();
+    await this._loadChilds(childsRecCode);
     return this._childsData[childsRecCode];
   }
 
 
 
   async getParents(parentsRecCode: number = -1) {
+    if (parentsRecCode <= 0)
+      throw new Exception("ERR", "Неверный код записи");
+
     if (this._parentsData[parentsRecCode]) return this._parentsData[parentsRecCode];
 
-    this._loadParents();
+    await this._loadParents(parentsRecCode);
     return this._parentsData[parentsRecCode];
   }
 
@@ -395,5 +408,8 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
 export interface ApiRecordClass extends Class {
-  rightToken: string;
+  RightToken: string;
+  RecCode: number;
+  BatchGetRecDataPath: string;
+  RecordsFindPath: string;
 }

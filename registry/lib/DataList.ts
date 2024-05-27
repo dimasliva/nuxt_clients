@@ -1,26 +1,45 @@
 import { EnumArray } from "./EnumArray";
+import { CloneData } from "./Helpers";
 import type { IApiDataListResult } from "./MoApi/RequestResults";
 
 
-export class DataList<T = any> implements IIndexableEnumerator<T>{
+export class DataList<T = any> implements IIndexableEnumerator<T> {
+
 
     protected _map: string[] = [];
     protected _indexMap: { [name: string]: number } = {};
     protected _data: any[][] = [];
     protected EnumInx = -1;
 
+    protected _dataConvertMap: ({ inx: number, cf: (rawVal: any) => any })[] = [];
 
-    static createFromApiDl<T = any>(apdl: IApiDataListResult) {
+
+    static createFromApiDl<T = any>(apdl: IApiDataListResult, convMap: { [headerName: string]: (rawVal) => any } = {}) {
         var res = new DataList<T>();
-        res.setMap(apdl.headers);
-        res.setData(apdl.data);
+        res.setMap(apdl.headers, convMap);
+        res.setRawData(apdl.data, false);
         return res;
     }
 
-    setMap(map: string[]) {
+
+
+    setMap(map: string[], convMap?: { [headerName: string]: (rawVal) => any }) {
+        this._dataConvertMap = [];
         this._map = map;
-        for (let i = 0; i < map.length; i++)
+        for (let i = 0; i < map.length; i++) {
             this._indexMap[map[i]] = i;
+            if (convMap && convMap[map[i]])
+                this._dataConvertMap.push({ inx: i, cf: convMap[map[i]] });
+        }
+    }
+
+
+
+    protected _convertRow(row: any[]) {
+        for (let i = 0; i < this._dataConvertMap.length; i++) {
+            const inx = this._dataConvertMap[i].inx;
+            row[inx] = this._dataConvertMap[i].cf(row[inx]);
+        }
     }
 
 
@@ -34,11 +53,21 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
         }
     }
 
-    
+
+
+    setRawData(data: string[][], cloneData: boolean = true) {
+        this._data = cloneData ? CloneData(data) : data;
+        if (this._dataConvertMap.length > 0)
+            for (let i = 0; i < this._data.length; i++)
+                this._convertRow(this._data[i]);
+    }
+
+
 
     setData(data: string[][]) {
         this._data = data;
     }
+
 
 
     getRow(inx: number | string): T | null {
@@ -54,9 +83,11 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
     }
 
 
+
     getAt(inx: string | number): T | null {
         return this.getRow(inx);
     }
+
 
 
     setAt(inx: string | number, val: T): boolean {
@@ -70,6 +101,7 @@ export class DataList<T = any> implements IIndexableEnumerator<T>{
                 row[this._indexMap[item]] = val[item];
         return true;
     }
+
 
 
     getNext(): T | undefined {

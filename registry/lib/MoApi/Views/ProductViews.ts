@@ -4,6 +4,8 @@ import { MoApiClient } from "../MoApiClient";
 import { UserContext } from "~/lib/UserContext";
 import { type IApiDataListResult } from "../RequestResults";
 import { DataList } from "~/lib/DataList";
+import type { RecordsStore } from "../Records/RecordsStore";
+import PricesEntity from "../Records/DataEntities/PricesEntity";
 
 
 export interface IProductListView {
@@ -13,7 +15,7 @@ export interface IProductListView {
     code?: string | null;
     productsCatalog?: string | null;
     productCatalogSection?: string | null;
-    prices?: any | null;
+    prices?: PricesEntity | null;
     duration?: number | null;
     comments?: string | null;
     temporaryNotActive?: boolean | null;
@@ -47,21 +49,33 @@ export class ProductViews {
 
     constructor(
         @inject("MoApiClient") protected _MoApiClient: MoApiClient,
-        @inject("UserContext") protected _UserContext: UserContext) {
-    }
+        @inject("UserContext") protected _UserContext: UserContext,
+        @inject("RecordsStore") protected _RecordsStore: RecordsStore,
+    ) { }
 
 
     async getProductsListView(args: QueryParams) {
         const apires = await this._MoApiClient.send<QueryParams, IApiDataListResult>("/Products/ProductsListView", args);
-        let res = DataList.createFromApiDl<IProductListView>(apires);
+        let res = DataList.createFromApiDl<IProductListView>(apires, this._getConvMap());
         return res;
     }
 
 
     async getProductFtsListView(args: QueryProductFtsList) {
         const apires = await this._MoApiClient.send<QueryProductFtsList, IApiDataListResult>("/Products/ProductFtsListView", args);
-        let res = DataList.createFromApiDl<IProductFtsListView>(apires);
+        let res = DataList.createFromApiDl<IProductFtsListView>(apires, this._getConvMap());
         return res;
     }
+
+
+
+    protected _getConvMap() {
+        return {
+            prices: this._pricesEntityConvertor
+        }
+    }
+
+
+    protected _pricesEntityConvertor = (rawval) => rawval ? this._RecordsStore.dataEntityFactory(PricesEntity, rawval) : rawval;
 
 }

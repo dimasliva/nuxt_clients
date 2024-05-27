@@ -239,7 +239,7 @@ onErrorCaptured((h, t) => {
   closeDiag(null, true);
 });
 
-watch(() => route.query, loadPageData);
+watch(() => route.query,  ()=>nextTick(loadPageData));
 
 onMounted(() => {
   loadPageData();

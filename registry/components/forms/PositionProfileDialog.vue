@@ -106,7 +106,7 @@ const positionPosition = computed({
     return { value: rec.value!.MData!.position }
   },
   set(newValue) {
-    rec.value!.MData!.position = newValue.value || 0;
+    rec.value!.MData!.position = newValue?.value || 0;
   }
 })
 

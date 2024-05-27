@@ -4,6 +4,12 @@ import type { UserContext } from "../UserContext";
 import * as Helpers from "../Helpers";
 
 
+export async function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
 export function chkRights(requiredFeature: string[] | null | undefined, requiredRights: { [rec: string]: string } | null | undefined) {
     const iocc = useContainer();
     const UserCtx = iocc.get<UserContext>('UserContext');
@@ -134,9 +140,82 @@ export async function mapAsync(arr: any[], handler: (val, inx) => Promise<any>) 
 }
 
 
+function _padDate(num) {
+    return (num < 10 ? '0' : '') + num;
+};
 
 export function getDateStr(date: Date) {
+    const y = date.getFullYear();
+    const m = _padDate(date.getMonth() + 1);
+    const d = _padDate(date.getDate());
+
+    return `${y}-${m}-${d}`;
+}
+
+
+
+export function getUtcDateStr(date: Date) {
     return date.toISOString().substring(0, 10);
+}
+
+
+
+export function getLocalISODateTime(date: Date): string {
+    const offset = date.getTimezoneOffset();
+    const localISOTime = new Date(date.getTime() - offset * 60000).toISOString();
+    return localISOTime;
+}
+
+
+export function getLocalISODateTimeWoTz(date: Date): string {
+    const offset = date.getTimezoneOffset();
+    const localISOTime = new Date(date.getTime() - offset * 60000).toISOString();
+    return localISOTime.slice(0, 19);
+}
+
+
+
+export function addDaysToDate(date: string | Date, days: number): Date {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+
+
+export function compareDatesOnly(date1: Date, date2: Date): number {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+
+    d1.setHours(0, 0, 0, 0);
+    d2.setHours(0, 0, 0, 0);
+
+    if (d1.getTime() < d2.getTime()) {
+        return -1;
+    } else if (d1.getTime() > d2.getTime()) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+
+
+export function compareDates(date1: Date, date2: Date): number {
+    if (date1.getTime() < date2.getTime()) {
+        return -1;
+    } else if (date1.getTime() > date2.getTime()) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+
+
+export function getMinutesOfDay(date: Date): number {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return hours * 60 + minutes;
 }
 
 
@@ -152,3 +231,21 @@ export async function getPasswordHash(psw: string) {
     return hashHex.toLowerCase();
 }
 
+
+/**Получить хэш строки в виде hex-строки по указанному алгоритму */
+export async function getHashHex(str: string, alg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256") {
+    const msgUint8 = new TextEncoder().encode(str); // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest(alg, msgUint8); // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""); // convert bytes to hex string
+    return hashHex.toLowerCase();
+}
+
+
+
+/**Полное копирование данных объекта*/
+export function CloneData<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
+}

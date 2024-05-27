@@ -35,7 +35,7 @@ export class ProductRecord extends ApiRecord<ProductRecordData> {
   static RightToken = "dbProduct";
   static RecCode = 1024;
   static BatchGetRecDataPath = "/Products/GetProducts";
-
+  static RecordsFindPath = "/Products/FindProducts";
 
   constructor(
     @inject("MoApiClient") _MoApiClient: MoApiClient,

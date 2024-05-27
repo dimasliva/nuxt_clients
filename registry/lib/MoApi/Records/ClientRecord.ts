@@ -23,6 +23,7 @@ export class ClientRecord extends ApiRecord<ClientRecordData>{
     static RightToken = "dbClient";
     static RecCode = 1010;
     static BatchGetRecDataPath="/Clients/GetClients";
+    static RecordsFindPath = "/Clients/FindClients";
 
 
     get RecCode() { return ClientRecord.RecCode; }

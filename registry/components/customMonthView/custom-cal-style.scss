@@ -536,8 +536,8 @@
 .vuecal__cell .cell-time-label {
   flex-grow: 1;
   font-size: 0.8em;
-  opacity: 0.3;
-  line-height: 1.7;
+  opacity: 0;
+  line-height: 2.9em;
 }
 .vuecal__cell-split {
   display: flex;
@@ -1080,4 +1080,10 @@
 .vuecal__cell--today {
   border: 3px solid #5e35b1;
   border-radius: 15px;
+}
+
+.vuecal__cell .cell-time-label:hover {
+  opacity: 1;
+  border: 2px solid #5e35b1;
+  border-radius: 10px;
 }

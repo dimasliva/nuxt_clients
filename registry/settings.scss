@@ -11,26 +11,4 @@ html {
   scrollbar-width: thin;
 }
 
-/* Ширина скрола */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
 
-/* Настройка полосы прокрутки */
-::-webkit-scrollbar-track {
-  background: rgb(189, 196, 197);
-  border-radius: 5px;
-}
-
-/* Бегунок */
-::-webkit-scrollbar-thumb {
-  background: #5e35b1;
-  border-radius: 5px;
-}
-
-/* Бегунок при наведении */
-::-webkit-scrollbar-thumb:hover {
-  background: #3d2274;
-  border-radius: 5px;
-}

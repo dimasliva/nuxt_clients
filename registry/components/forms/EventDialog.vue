@@ -12,7 +12,7 @@
             <v-row class="pa-2">
             <v-col cols="12" sm="6">
                 <v-select v-model="employee" density="compact" label="Сотрудник" @update:model-value="changedEvent.employee = employee" :items="props.employees"
-                 item-title="label" item-value="id" variant="underlined"></v-select>
+                  item-value="id" variant="underlined"></v-select>
             </v-col>
             <v-col cols="12" sm="6">
                 <v-combobox v-model="client" density="compact" :disabled="clientCreationPop" label="Клиент" @update:model-value="checkedClient(client)" :items="clientArr" 
@@ -145,6 +145,10 @@ const createNewClient = () => {
     clientCreationPop.value = false;
 }
 
+const findEmployeeById = (id: string) => {
+    return props.employees.find(employee => employee.id === id);
+}
+
 interface Props {
     event: any,
     employees: any,
@@ -167,7 +171,7 @@ interface Props {
  let clientArr = ref([addClient])
  let client = ref(props.event.title? props.event.title : '')
  let service = ref(props.event.content)
- let employee = ref(props.event.split)
+ let employee = ref(findEmployeeById(props.event.split))
  let speciality = ref(emplChoice(props.event.split, 'specialist'))
  let place = ref()
  let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
@@ -175,8 +179,10 @@ interface Props {
  let start = ref(props.event.start!.formatTime())
  let end = ref(props.event.end!.formatTime())
  let quant = ref(props.event.duration? props.event.duration : props.event.endTimeMinutes - props.event.startTimeMinutes)
+ console.log(start.value)
 
- let changedEvent = ref({
+
+let changedEvent = ref({
     title: client.value,
     employee: employee.value,
     speciality: speciality.value,
@@ -192,6 +198,8 @@ const saveChanges = () => {
     props.mainAction(changedEvent.value);
     closeDialog('');
 }
+
+
 
 let translit = (word) => {
    const converter = {

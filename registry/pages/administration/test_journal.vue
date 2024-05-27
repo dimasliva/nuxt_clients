@@ -1,19 +1,21 @@
 <template>
+    <v-progress-linear v-if="schdLoad" color="primary" indeterminate rounded></v-progress-linear>
     <v-row style="height: 75vh; overflow-y: auto;" class="ma-1 flex-nowrap">
-        <wt :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)"
-            @event-focus="currView === 'month' ? openPopUp($event) : false " :on-event-click="currView === 'month' ? openCurrDay : editEvent"
-            :cell-click-hold="false" :time-to="21 * 60" :snap-to-time="5" :time-step="30" ref="vuecal" class="rounded"
-            v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
-            :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
-            :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
-            events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
-            :time-from="6 * 60" @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate"
-            :max-date="monthViewMaxDate"> 
-            <template #title="{ title, view }">
-                <span v-if="view.id === 'month'">С {{ view.firstCellDate.format('DD.MM.YYYY') }} по {{
-            view.lastCellDate.format('DD.MM.YYYY') }}
+        <wt :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)" :showTimeInCells="currView === 'day'"
+        @event-focus="currView === 'month' ? openPopUp($event) : false " :on-event-click="currView === 'month' ? openCurrDay : editEvent"
+        :cell-click-hold="false" :time-to="21 * 60" :snap-to-time="15" :time-step="30" ref="vuecal" class="rounded"
+        v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
+        :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
+        :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
+        events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
+        :time-from="6 * 60" @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate"
+        :max-date="monthViewMaxDate"> 
+        <template #title="{ title, view }">
+            <span v-if="view.id === 'month'">С {{ view.firstCellDate.format('DD.MM.YYYY') }} по {{
+                view.lastCellDate.format('DD.MM.YYYY') }}
                     <v-btn variant="text" icon="mdi-calendar-today" @click="changeDate(new Date())"></v-btn>
                 </span>
+
             </template>
             <template #split-label="{ split, view }">
                 <p>{{ split.title }}</p>
@@ -36,6 +38,9 @@
                                         :cell-click-hold="false" :drag-to-create-event="false" :snap-to-time="5"
                                         :time-step="30" ref="vuecal" :time-from="event.startTime * 60"
                                         :time-to="event.endTime * 60" sticky-split-labels style="width: fit-content;">
+                                        <template #split-label="{ split, view }">
+                                            <p>{{ split.title }}</p>
+                                        </template>
                                     </vue-cal>
                                 </v-card>
                             </v-menu>
@@ -51,28 +56,28 @@
             </template>
         </wt>
         <v-expand-x-transition>
-            <VCard v-show="drawer" class="mb-auto mx-1" width="15vw">
+            <VCard v-show="drawer" class="mb-auto mx-1" width="20vw">
                 <VForm>
                     <VCol>
                         <v-row class="text-body-1 ma-2">Поиск
                             <v-spacer></v-spacer><v-icon @click="drawer = false">mdi-close</v-icon></v-row>
 
-                        <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined"
+                        <!-- <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined"
                             density="compact" :loading="schdLoad" append-inner-icon="mdi-calendar-month"
                             @click:control="clearMonthViewDates()">
                             <v-menu v-model="dataPickerMenu" :close-on-content-click="false" activator="parent">
                                 <v-card>
-                                    <v-card-text class="pa-1">
+                                    <v-card-text class="pa-1"> -->
                                         <vue-cal id="datapicker" class="vuecal--date-picker" xsmall hide-view-selector
                                             :time="false" active-view="month"
                                             :disable-views="['day', 'week', 'year', 'years']" locale="ru"
                                             :min-date="minDate" :max-date="maxDate" @cell-click="changeDate($event)"
-                                            style="width: 300px; min-height: 230px; background-color: white; border-radius: 10px; text-align: center;">
+                                            style="background-color: white; border: none; text-align: center;">
                                         </vue-cal>
-                                    </v-card-text>
+                                    <!-- </v-card-text>
                                 </v-card>
                             </v-menu>
-                        </v-text-field>
+                        </v-text-field> -->
 
                         <InputField customVariant="underlined" :state="fieldsOptions" :type="EDataType.referenceMultiple"
                             :disabled="(!!employees.length && !selectedSchedulerItemGroup?.title) || (!!products.length && !selectedSchedulerItemGroup?.title)"
@@ -105,7 +110,7 @@
                             @update:model-value="selectedSchedulerItemGroup ? filterItems() : false" />
 
                         <v-card-actions>
-                            <VBtn variant="text" @click="requestSchedule()">Поиск</VBtn>
+                            <!-- <VBtn variant="text" @click="requestSchedule()">Поиск</VBtn> -->
                             <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
                         </v-card-actions>
                     </VCol>
@@ -220,6 +225,7 @@ const eventsHandler = (e) => {
 };
 
 const eventAlteration = (data) => {
+    console.log(data)
     currEvent.value.title = data.title;
     currEvent.value.split = data.employee;
     currEvent.value.class = data.class;
@@ -283,9 +289,19 @@ const cumstomEventCreator = (ev) => {
     vuecal.value.createEvent(ev.date, quantum.value, { split: ev.split, title: '', duration: quantum.value, class: 'rounded not_paid mdi mdi-pencil', content: 'Название услуги' });
 }
 
+function roundTime(selectedTime: string): string {
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const roundedMinutes = Math.floor(minutes / 30) * 30;
+    const roundedHours = hours + Math.floor((hours * 60 + roundedMinutes) / 60);
+    
+    return `${roundedMinutes.toString().padStart(2, '0')}`;
+}
+
 const onEventCreate = (event, deleteEventFunction) => {
     currEvent.value = event;
     event.deleteEventFunction = deleteEventFunction;
+    event.start.setMinutes(roundTime(event.start.formatTime()));
+    event.end.setMinutes(roundTime(event.end.formatTime()));
     openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
     return event
 }
@@ -615,12 +631,14 @@ const onViewChange = ({ view }) => {
 }
 
 const requestSchedule = async () => {
+    schdLoad.value = true
     if (selectedSchedulerItemGroup.value) {
         await getScheduleByItemGroup()
     }
     if (!selectedSchedulerItemGroup.value && (products.value || employees.value)) {
         await getSchedule()
     }
+    schdLoad.value = false
 }
 
 let pageMapData: IFrameHeaderData = reactive({

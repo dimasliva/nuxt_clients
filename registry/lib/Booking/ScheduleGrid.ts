@@ -13,7 +13,6 @@ import { Locks } from '../MoApi/Locks';
 import type { BookingRecord } from '../MoApi/Records/BookingRecord';
 
 
-
 @injectable()
 export class ScheduleGrid {
 
@@ -39,9 +38,9 @@ export class ScheduleGrid {
         bq.placementIds = options.placementIds;
         bq.divisionIds = options.divisionIds;
         bq.statuses = options.bookingStatuses;
-        bq.includeNames = true;
+        bq.includeNames = false;
         bq.includePlace = true;
-        bq.includeStatus = true;
+        bq.includeStatus = (bq.statuses?.length == 1) ? false : true;
         const bookings = (await this._BookingsViews.getBookings(bq)).toArray();
 
         let begDate = new Date(options.begDate);

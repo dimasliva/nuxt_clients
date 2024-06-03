@@ -9,11 +9,13 @@
                 </template>
             </v-btn>
         </VCol>
-        <VCol style="max-width: 300px;">
+        <VCol style="max-width: 150px;">
             <v-text-field v-model="emplLoading.size" variant="underlined" label="Сотрудники" hide-details="auto" />
-            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Название раздела расписания"
-                hide-details="auto" />
             <v-btn :loading="emplLoading.loading" type="submit" @click="createRecs(emplLoading)">Создать</v-btn>
+        </VCol>
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Название раздела расписания" hide-details="auto" />
+            <v-btn :loading="scheduleGroupLoading.loading" type="submit" @click="createRecS(scheduleGroupLoading)">Создать</v-btn>
         </VCol>
         <VCol style="max-width: 300px;">
             <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса"
@@ -149,6 +151,7 @@ const fullTitles = ProductTitles;
 const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
 let scheduleGroupRec = ref();
 let tempProdRecArr = ref<any>([])
+let tempPositionArr = ref<any>([])
 
 const addEmployee = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
     let rec = await recStore.createNew<EmployeeRecord, EmployeeRecordData>(EmployeeRecord, (data) => {
@@ -160,7 +163,6 @@ const addEmployee = async (name: string, surname: string, patronymic: string, ge
         data.roles = "admin";
     })
     await rec.save();
-    console.log(rec)
 
     let emplcont = await recStore.getOrCreate(EmployeeContactsRecord, rec.Key);
     emplcont.MData!.mainEmail = mail || null;
@@ -191,19 +193,19 @@ const emplCreateTask = async (size: number) => {
         const day = Math.floor(Math.random() * 28) + 1;
         const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
         let emplkey = await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress()); //1
-
-        await addPosition(emplkey, i); //2
+        
+        await addPosition(emplkey);
     }
 }
 
 
-const addPosition = async (emplkey, i) => {
+const addPosition = async (emplkey) => {
     let rec = await recStore.createNew<PositionRecord, PositionRecordData>(PositionRecord, (data) => {
         data.employee = emplkey;
         data.position = positionDictCodes[Math.floor(Math.random() * positionDictCodes.length - 1)]!;
     });
     await rec.save();
-    await addScheduleItem(rec.Key, i); //3
+    tempPositionArr.value.push(rec.Key)
 };
 
 
@@ -223,9 +225,11 @@ const timeSpansCrtr = () => {
 
 let recCode = ref(0);
 let key = ref('')
-const addScheduleItem = async (positionKey, i) => {
+const addScheduleItem = async (size: number) => {
+    for (let i = 0; i < size; i++) {
+
     let rec = await recStore.createNew<ScheduleItemRecord, ScheduleItemData>(ScheduleItemRecord, (data) => {
-        data.position = positionKey;
+        data.position = randomPicker(tempPositionArr.value);
         data.beginDate = new Date().toISOString().slice(0, 10);
         data.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10);
         data.activityDays = Math.floor(Math.random() * (8 - 3) + 3);
@@ -237,8 +241,10 @@ const addScheduleItem = async (positionKey, i) => {
     await rec.save();
     recCode.value = rec.RecCode;
     key.value = rec.Key;
-    scheduleGroupRec.value.addCoupling(key.value, recCode.value)
-    rec.addChild(tempProdRecArr.value[i], 1024, 0)
+
+    await scheduleGroupRec.value.addCoupling(key.value, recCode.value)
+    await rec.addChild(randomPicker(tempProdRecArr.value), 1024, 0)
+    }
 }
 
 //варианты дат: число каждого месяца- 12, число в определенном месяце каждого года- 12.03, конкретная дата-12.03.2023
@@ -258,7 +264,12 @@ const addScheduleItemGroup = async () => {
     scheduleGroupRec.value = rec;
 }
 
-
+const scheduleCreateTask = async () => {
+    await addScheduleItemGroup();
+    await emplCreateTask(emplLoading.size);
+    await addProductsCatalog(productsCatalogName.value);
+    await addScheduleItem(emplLoading.size)
+}
 
 const addClient = async (name: string, surname: string, patronymic: string, gender: string, birthdate: string, phone?: string, mail?: string) => {
     let rec = await recStore.createNew<ClientRecord, ClientRecordData>(ClientRecord, (data) => {
@@ -339,12 +350,12 @@ const addProductsCatalogSection = async (quantity, prodCat) => {
         data.advData = null
     })
     await recSection.save()
-    await productsCreateTask(priceListLoading.size, recSection.Key);
+    await productsCreate(priceListLoading.size, recSection.Key);
 }
 
 
 
-const productsCreateTask = async (size: number, key) => {
+const productsCreate = async (size: number, key) => {
     for (let i = 0; i < size; i++) {
         currElement.value == fullTitles.length ? currElement.value = 0 : currElement.value++;
         let title: any = fullTitles[currElement.value];
@@ -378,7 +389,13 @@ const addProducts = async (title: string, fullTitle: string, code: string, produ
 
 const emplLoading = reactive({ size: 0, loading: false, recName: "employees", createTask: emplCreateTask });
 const clientsLoading = reactive({ size: 0, loading: false, recName: "clients", createTask: clientsCreateTask });
-const priceListLoading = reactive({ size: 0, loading: false, recName: "products", createTask: productsCreateTask });
+const priceListLoading = reactive({ size: 0, loading: false, recName: "products", createTask: productsCreate });
+
+// Генерация случайного индекса в пределах длины массива
+const randomPicker = (arr: any[]): any => {
+    const randInd = Math.floor(Math.random() * arr.length);
+    return arr[randInd];
+}
 
 
 const generateRandomPrices = (prices: number[]) => {
@@ -724,5 +741,6 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 const clientGroupLoading = reactive({ size: 0, loading: false, recName: "client groups", createTask: clientGroupsCreateTask });
 const productGroupLoading = reactive({ size: 0, loading: false, recName: "product groups", createTask: productGroupsCreateTask });
 const bookingLoading = reactive({ size: 0, loading: false, recName: "booking groups", createTask: bookingCreateTask });
+const scheduleGroupLoading = reactive({ size: 1, loading: false, recName: "schedule groups", createTask: scheduleCreateTask });
 
 </script>

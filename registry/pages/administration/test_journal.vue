@@ -37,6 +37,7 @@
                                         hide-title-bar :events="events" :selected-date="selectedCurrDate" locale="ru"
                                         :cell-click-hold="false" :drag-to-create-event="false" :snap-to-time="5"
                                         :time-step="30" ref="vuecal" :time-from="event.startTime * 60"
+                                        showTimeInCells
                                         :time-to="event.endTime * 60" sticky-split-labels style="width: fit-content;">
                                         <template #split-label="{ split, view }">
                                             <p>{{ split.title }}</p>

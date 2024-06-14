@@ -57,11 +57,11 @@
             </template>
         </wt>
         <v-expand-x-transition>
-            <VCard v-show="drawer" class="mb-auto mx-1" width="20vw">
+            <VCard v-show="drawer" class="mb-auto mx-1" width="20vw" >
                 <VForm>
                     <VCol>
-                        <v-row class="text-body-1 ma-2">Поиск
-                            <v-spacer></v-spacer><v-icon @click="drawer = false">mdi-close</v-icon></v-row>
+                        <!-- <v-row class="text-body-1 ma-2">Поиск
+                            <v-spacer></v-spacer><v-icon @click="drawer = false">mdi-close</v-icon></v-row> -->
 
                         <!-- <v-text-field v-model="dateRange" label="Диапазон дат" readonly variant="underlined"
                             density="compact" :loading="schdLoad" append-inner-icon="mdi-calendar-month"
@@ -203,7 +203,7 @@ let monthViewMinDate = ref<any>(new Date())
 let monthViewMaxDate = ref<any>('')
 let selDate = ref(monthViewMinDate.value)
 let dateRange = ref(`${minDate.value.format('DD.MM.YYYY')}`)
-let currRangeData = ref<any[]>()
+let currRangeData = ref<any>()
 let prodsLoad = ref(false)
 let schdLoad = ref(false)
 let empLoad = ref(false)
@@ -303,13 +303,13 @@ const onEventCreate = (event, deleteEventFunction) => {
     event.deleteEventFunction = deleteEventFunction;
     event.start.setMinutes(roundTime(event.start.formatTime()));
     event.end.setMinutes(roundTime(event.end.formatTime()));
-    openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
+    openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, products: productsArr.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
     return event
 }
 
 const editEvent = (event) => {
     currEvent.value = event;
-    openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, status: status.value, creation: false, mainAction: eventAlteration, delFunc: event.deleteEventFunction });
+    openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, products: productsArr.value, status: status.value, creation: false, mainAction: eventAlteration, delFunc: event.deleteEventFunction });
     return event
 }
 

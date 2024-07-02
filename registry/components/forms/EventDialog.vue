@@ -60,8 +60,8 @@
             <v-card flat class="w-50 pb-0">
                 <v-card-title class="text-subtitle-1">МЕСТО</v-card-title>
                 <v-card-text class="d-flex justify-start pb-0" >
-                    <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Филиал" v-model="place"/>
-                    <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Кабинет" v-model="place"/>
+                    <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Филиал" v-model="division"/>
+                    <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Кабинет" v-model="placement"/>
                 </v-card-text>
             </v-card>
         </div>
@@ -70,7 +70,7 @@
             <v-card-title class="text-subtitle-1">ВРЕМЯ</v-card-title>
             <v-card-text class="d-flex justify-start " >
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Дата" v-model="date"/>
-                <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Длительность" v-model="quant"/>
+                <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Длительность" v-model="duration"/>
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Начало-окончание" v-model="startAndEnd"/>
             </v-card-text>
         </v-card>
@@ -107,10 +107,12 @@ import { EDataType } from '~/lib/globalTypes';
 import * as Utils from '~/lib/Utils';
 import { ClientsViews, type IClientListView } from '~/lib/MoApi/Views/ClientsViews';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
-import type { ScheduleGrid, TBookingParams } from '~/lib/Booking/ScheduleGrid';
+import { ScheduleGrid, ScheduleGridOptions, type TBookingParams } from '~/lib/Booking/ScheduleGrid';
 import { BookingRecord, BookingRecordData } from '~/lib/MoApi/Records/BookingRecord';
 import { ClientGroupRecordData, ClientGroupRecord } from '~/lib/MoApi/Records/ClientGroupRecord';
 import { ProductGroupRecordData, ProductGroupRecord } from '~/lib/MoApi/Records/ProductGroupRecord';
+import { EEmployeeTimeTypes } from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
+import { ProductRecord } from '~/lib/MoApi/Records/ProductRecord';
 
 
 // import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
@@ -122,12 +124,13 @@ const fieldsOptions = reactive({
     readonly: false
 })
 
-const emplChoice = (split, founding) => {
-  for(let i=0; i<props.employees.length; i++){
-    if(props.employees[i].id == split){
-      return props.employees[i][founding]
-    }
-  }
+// const emplChoice = (positions, employees) => {
+//     return positions.some((pos) => employees.some(empl => empl.id === pos.employee))
+// }
+
+const emplChoice = (positions, employees) => {
+    const foundPosition = positions.find((pos) => employees.some(empl => empl.id === pos.employee));
+    return foundPosition ? foundPosition.id : null;
 }
 
 const openClientCreator = () => {
@@ -165,6 +168,7 @@ const checkedClient = (check) => {
         // Функция запроса данных выбранного клиента с API
     }
 }
+
 // Отмена создания нового клиента
 const clientCreationPopClose = () => {
     clientCreationPop.value = false;
@@ -190,7 +194,9 @@ const findEmployeeById = (id: string) => {
 
 interface Props {
     event: any,
+    schGrid: {start: any, end: any},
     employees: any[],
+    positions: any[],
     products: any[],
     status: any,
     creation: boolean,
@@ -200,39 +206,41 @@ interface Props {
 const iocc = useContainer();
 const recStore = iocc.get(RecordsStore);
 const clienView = iocc.get(ClientsViews);
- const props = defineProps<Props> ()
- let availableTimeSlots = ref<any>([])
- let clientName = ref()
- let clientSurname = ref()
- let clientPatronymic = ref()
- let clientPhone = ref()
- let clientEmail = ref()
- let clientBirthDate = ref()
- let clientCreationPop = ref(false)
- let clientGender = ref()
- let addClient = 'Добавить клиента'
- let clientArr = ref<any[]>([])
- let client = ref(props.event.title? props.event.title : '')
- let employee = ref(findEmployeeById(props.event.split))
- let speciality = ref(emplChoice(props.event.split, 'specialist'))
- let product = ref()
- let products = ref(props.products)
- let place = ref()
- let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
- let evTitle= ref(props.event.title)
- let start = ref(props.event.start!.formatTime())
- let end = ref(props.event.end!.formatTime())
- let quant = ref(props.event.duration? props.event.duration : props.event.endTimeMinutes - props.event.startTimeMinutes)
+const props = defineProps<Props> ()
+let availableTimeSlots = ref<any>([])
+let clientName = ref()
+let clientSurname = ref()
+let clientPatronymic = ref()
+let clientPhone = ref()
+let clientEmail = ref()
+let clientBirthDate = ref()
+let clientCreationPop = ref(false)
+let clientGender = ref()
+let addClient = 'Добавить клиента'
+let clientArr = ref<any[]>([])
+let client = ref(props.event.title? props.event.title : '')
+let employee = ref(findEmployeeById(props.event.split))
+let position = ref(emplChoice(props.positions, props.employees))
+let product = ref()
+let products = ref(props.products)
+let placement = ref()
+let division = ref()
+let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
+let evTitle= ref(props.event.title)
+let start = ref<number>(props.event.start!.formatTime())
+let end = ref<number>(props.event.end!.formatTime())
+let duration = ref(props.event.duration? props.event.duration : props.event.endTimeMinutes - props.event.startTimeMinutes)
 let startAndEnd = ref(start.value + '-' + end.value)
 let date = ref(props.event.start!.toLocaleDateString())
 let showField = ref(false)
 let inputText = ref('')
 let inputFocus = ref()
 
+
 let changedEvent = ref({
     title: client.value,
     employee: employee.value,
-    speciality: speciality.value,
+    position: position.value,
     class: props.event.class,
  })
 
@@ -241,13 +249,14 @@ const cancelAndClose = () => {
     closeDialog('');
 }
 
-const saveChanges = () => {
+const saveChanges = async() => {
+    await createRec()
     props.mainAction(changedEvent.value);
     closeDialog('');
 }
 
 const checkInputLength = (e) => {
-    console.log(e)
+
     if (inputText.value.length === 0) {
           showField.value = false;
         } 
@@ -288,22 +297,48 @@ const getList = async (text: string, ...args: any[]) => {
 
 }
 
-const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBookingParams) => {
+
+
+const addProductsToGroup = async (rec: ProductGroupRecord, products: string[]) => {
+    var promises: Promise<void>[] = [];
+    for (let y = 0; y < products.length; y++) {
+        promises.push(rec.addCoupling(products[y], ProductRecord.RecCode));
+    }
+    await Promise.all(promises);
+}
+
+
+const createRec = async () => {
+    const positions = props.positions.map(pos => pos.id)
+    const schGrid = iocc.get(ScheduleGrid);
+    const opts = new ScheduleGridOptions(props.schGrid.start, props.schGrid.end, positions);
+
+    await schGrid.init(opts)
 
     let rec = await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
-        d.beginDate = Utils.getLocalISODateTimeWoTz(date);
-        d.duration = bookingParams.duration;
-        d.position = bookingParams.position || null;
-        d.division = bookingParams.division || null;
-        d.placement = bookingParams.placement || null;
-        d.status= 1;
+        d.beginDate = Utils.getLocalISODateTimeWoTz(props.event.start);
+        d.duration = duration.value,
+        d.position =  position.value || null;
+        d.division = division.value || null;
+        d.placement = placement.value || null;
+        d.status=1;
     });
+    rec.MData.client = client.value.id
 
-    let res = await sg.addBooking(rec, bookingParams.products!, false);
+    if (products.value.length == 1)
+        rec.MData.product = products.value[0];
+    else {
+        const pgr = recStore.dataEntityFactory(ProductGroupRecordData);
+        pgr.title = "prod group";
+        rec.setNewProductGroup(pgr);
+    }
 
-return rec;
+    let res = await schGrid.addBooking(rec, products.value, false);
+
+    console.log(res, rec)
+
+    return rec;
 };
-
 
 let translit = (word) => {
    const converter = {

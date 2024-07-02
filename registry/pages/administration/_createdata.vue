@@ -210,6 +210,11 @@ const addPosition = async (emplkey) => {
 };
 
 
+// типы временных отрезков:
+// 1 - работа
+// 2 - совещание
+// 3 - обед
+// 4 - перерыв
 
 const timeSpansCrtr = () => {
     let a: ScheduleTimeSpanEntity[] = [];

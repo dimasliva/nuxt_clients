@@ -3,19 +3,18 @@
     <v-row style="height: 75vh; overflow-y: auto;" class="ma-1 flex-nowrap">
         <wt :on-event-create="onEventCreate" @cell-dblclick="cumstomEventCreator($event)" :showTimeInCells="currView === 'day'"
         @event-focus="currView === 'month' ? openPopUp($event) : false " :on-event-click="currView === 'month' ? openCurrDay : editEvent"
-        :cell-click-hold="false" :time-to="21 * 60" :snap-to-time="15" :time-step="30" ref="vuecal" class="rounded"
+        :cell-click-hold="false" :time-from="startDayHours * 60" :time-to="endDayHours * 60" :snap-to-time="15" :time-step="30" ref="vuecal" class="rounded"
         v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
         :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
         :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
         events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
-        :time-from="6 * 60" @view-change="onViewChange" :selected-date="selDate" :min-date="monthViewMinDate"
+        @view-change="onViewChange($event)" :selected-date="selDate" :min-date="monthViewMinDate"
         :max-date="monthViewMaxDate"> 
         <template #title="{ title, view }">
             <span v-if="view.id === 'month'">С {{ view.firstCellDate.format('DD.MM.YYYY') }} по {{
                 view.lastCellDate.format('DD.MM.YYYY') }}
                     <v-btn variant="text" icon="mdi-calendar-today" @click="changeDate(new Date())"></v-btn>
-                </span>
-
+            </span>
             </template>
             <template #split-label="{ split, view }">
                 <p>{{ split.title }}</p>
@@ -32,7 +31,7 @@
                                 </template>
                                 <!-- style="resize: both;" -->
                                 <v-card max-height="300" class="pa-4 " max-width="600">
-                                    <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)"
+                                    <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)"  :on-event-click="editEvent"
                                         :on-event-create="onEventCreate" :split-days="employeesArr" hide-view-selector
                                         hide-title-bar :events="events" :selected-date="selectedCurrDate" locale="ru"
                                         :cell-click-hold="false" :drag-to-create-event="false" :snap-to-time="5"
@@ -132,19 +131,22 @@ import EventDialog from '~~/components/forms/EventDialog.vue';
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { IFrameHeaderData, PageMap } from '~~/lib/PageMap';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
-import { QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
+// import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 import type { IApiDataListResult, IApiResult } from '~/lib/MoApi/RequestResults';
-import { ScheduleMonthEvent } from '~/components/customMonthView/SchedulerTypes';
+import { ScheduleEvent } from '~/components/customMonthView/SchedulerTypes';
 import { ProductsCatalogRecord } from '~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ScheduleApiSection } from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
 import { ProductRecord, ProductRecordData } from '~/lib/MoApi/Records/ProductRecord';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
+import * as Utils from '~/lib/Utils';
 import { PositionsViews } from '~/lib/MoApi/Views/PositionsViews';
 import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
 import { ScheduleItemFinderDataProvider } from '~/libVis/FinderDataProviders/ScheduleItemFinderDataProvider';
 import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
+import { BookingGridInfo, ScheduleGrid, ScheduleGridInfo, ScheduleGridOptions, type TGridQuerySch } from '~/lib/Booking/ScheduleGrid';
+import { BookingsViews } from '~/lib/MoApi/Views/BookingViews';
 
 //__________________________VVV Статичные данные, удалить при работе с API VVV
 
@@ -168,6 +170,8 @@ const apiClient = iocc.get<MoApiClient>('MoApiClient');
 const pageMap = iocc.get<PageMap>("PageMap");
 const schItemGroup = iocc.get(ScheduleApiSection);
 const positionviews = iocc.get(PositionsViews);
+const bookingViews = iocc.get(BookingsViews);
+// const scheduleGridInfo = iocc.get(ScheduleGridInfo);
 let currView = ref('month');
 let dataPickerMenu = ref(false);
 let schedulerItemGroups = ref<any>([])
@@ -178,10 +182,9 @@ const fieldsOptions = reactive({
     readonly: false
 })
 
-let specialHours = ref({ 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: '' } })
 let divisions = ref([])
-let monthView = ref<ScheduleMonthEvent[]>([])
-let events = []
+let monthView = ref<ScheduleEvent[]>([])
+let events = ref<ScheduleEvent[]>([])
 let vuecal = ref<any>(null);
 let products = ref<any[]>([])
 let productsArr = ref<any>([])
@@ -212,6 +215,9 @@ let isProdsList = ref(false)
 let prodsList = ref<any>([])
 let prodListTitle = ref<any>('')
 let catalogs = ref<any>([])
+let specialHours = ref({ 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: '' } })
+let startDayHours = 6
+let endDayHours = 21
 
 const productFinderDataProvider = iocc.get(ProductFinderDataProvider);
 const emplFioFinderDataProvider = iocc.get(EmployeeFioFinderDataProvider);
@@ -220,13 +226,12 @@ scheduleItemFinderDataProvider.init("scheduleItem");
 emplFioFinderDataProvider.init("fioEmployyee");
 
 const eventsHandler = (e) => {
-
+    
     cumstomEventCreator(e);
     return false;
 };
 
 const eventAlteration = (data) => {
-    console.log(data)
     currEvent.value.title = data.title;
     currEvent.value.split = data.employee;
     currEvent.value.class = data.class;
@@ -250,7 +255,7 @@ const getCatalogs = async () => {
     productFinderDataProvider.init("Product", true, 20, catalogs.value);
 }
 
-const openPopUp = (day_time: ScheduleMonthEvent) => {
+const openPopUp = (day_time: ScheduleEvent) => {
     prodsList.value = []
     prodListTitle.value = day_time.start.format('DD.MM.YYYY');
     let foundedTimeSpan = currRangeData.value![day_time.start.format('YYYY-MM-DD')]
@@ -303,27 +308,28 @@ const onEventCreate = (event, deleteEventFunction) => {
     event.deleteEventFunction = deleteEventFunction;
     event.start.setMinutes(roundTime(event.start.formatTime()));
     event.end.setMinutes(roundTime(event.end.formatTime()));
-    openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, products: productsArr.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
+    openDialog(EventDialog, { event: currEvent.value, schGrid: {start: minDate.value, end: maxDate.value}, employees: employeesArr.value, positions: positions.value, products: productsArr.value, status: status.value, creation: true, mainAction: eventAlteration, delFunc: deleteEventFunction });
     return event
 }
 
 const editEvent = (event) => {
     currEvent.value = event;
-    openDialog(EventDialog, { event: currEvent.value, employees: employeesArr.value, products: productsArr.value, status: status.value, creation: false, mainAction: eventAlteration, delFunc: event.deleteEventFunction });
+    openDialog(EventDialog, { event: currEvent.value, schGrid: {start: minDate.value, end: maxDate.value}, employees: employeesArr.value, positions: positions.value, products: productsArr.value, status: status.value, creation: false, mainAction: eventAlteration, delFunc: event.deleteEventFunction });
     return event
 }
 
-// const getScheduleItemGroupIds = async () => {
-//     let recIds = await apiClient.send<string, IApiResult>("/Schedule/FindScheduleItemGroups", "title !=''");
-//     getScheduleItemGroup(recIds);
-// }
+const getBookings = async () => {
+    const positionsIds = positions.value.map(pos => pos.id)
 
-// const getScheduleItemGroup = async (ids) => {
-//     let recs = await recStore.getRecordsM(ids.map((i) => {
-//         return { id: { key: i, type: ScheduleItemGroupRecord } }
-//     }));
-//     schedulerItemGroups.value = recs.map((i) => i.MData)
-// }
+    let res = await bookingViews.getBookings({
+        begDate: Utils.getDateStr(minDate.value),
+        endDate: Utils.getDateStr(maxDate.value),
+        positionIds: positionsIds,
+        includeNames:false,
+        includePlace:false,
+        includeStatus:false,
+    })
+}
 
 const getScheduleByItemGroup = async () => {
     monthViewMinDate.value = minDate.value;
@@ -347,6 +353,7 @@ const getScheduleByItemGroup = async () => {
             empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
         )
     }
+    await getBookings();
 }
 
 
@@ -423,7 +430,120 @@ const getSchedule = async () => {
     employeesArr.value.map((empl) =>
         empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
     )
+}
 
+const buildRangeScheduler = (start, end) => {
+    let startDay = Utils.getDateStr(start).toString();
+    let endDay = Utils.getDateStr(end).toString();
+
+    const keys = Object.keys(currRangeData.value).sort();
+    const keysInRange = keys.filter(key => key >= startDay && key <= endDay);
+
+    const result = keysInRange.reduce((acc, key) => {
+        acc[key] = currRangeData.value[key];
+        return acc;
+    }, {});
+
+    const dates: string[] = Object.keys(result);
+    const times: ScheduleTimespanItem[][] = Object.values(result);
+    const rangeFreeTime: ScheduleEvent[] = [];
+    const spansInSplit = (arr, split, date) => {
+        return arr.map(i => {
+            if (i.split === split && i.start.slice(0, -6) === date) {
+            return i;
+            }
+        }).filter(Boolean);
+    }
+    const newStart = '0'+startDayHours+':00';
+    const newEnd = endDayHours+':00';
+    
+    for (let i = 0; i < dates.length; i++) {
+        const date = dates[i];
+        const timeItems = times[i];
+        
+        
+        timeItems.forEach((item) => {
+            const freeTime: ScheduleEvent = {
+                start: '',
+                end: '',
+                title: '',
+                class: 'free_hours',
+                background: true,
+                split: '',
+                resizable: false
+            };
+            const startTime = item.timespan!.time;
+            const endTime = startTime + item.timespan!.duration;
+            
+            const startHours = Math.floor(startTime / 60);
+            const startMinutes = startTime % 60;
+            const endHours = Math.floor(endTime / 60);
+            const endMinutes = endTime % 60;
+            const start = `${date + ' '}${startHours< 10 ? '0' + startHours : startHours}:${startMinutes < 10 ? '0' + startMinutes : startMinutes}`;
+            const end = `${date + ' '}${endHours< 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`;
+            const split = positions.value.find((pos) => employeesArr.value.some(empl => empl.id === pos.employee) && pos.id === item.position).employee;
+            const spans = spansInSplit(rangeFreeTime, split, date)
+            
+            if (spans.length > 0) {
+                const lastSpan = spans[spans.length - 1];
+                const lastSpanEnd = lastSpan.end;
+
+                if (lastSpanEnd === start) {
+                    // Объединить интервалы, если конец последнего интервала равен началу текущего интервала
+                    lastSpan.end = end;
+                } else {
+                    // Создать новый интервал, если конец последнего интервала не равен началу текущего интервала
+                    freeTime.start = start;
+                    freeTime.end = end;
+                    freeTime.split = split;
+                    rangeFreeTime.push(freeTime);
+                }
+            } else {
+                // Создать новый интервал, если нет существующих интервалов для данного сотрудника и даты
+                freeTime.start = start;
+                freeTime.end = end;
+                freeTime.split = split;
+                rangeFreeTime.push(freeTime);
+            }
+
+
+        });
+    }
+    console.log(rangeFreeTime)
+    events.value.push(...rangeFreeTime)
+
+    // const unavailableSlots: ScheduleEvent[] = [];
+
+    // for (let i = 0; i < rangeFreeTime.length - 1; i++) {
+    //     const busyTime: ScheduleEvent = {
+    //             start: rangeFreeTime[i].start.slice(0, -6) +' '+newStart,
+    //             end: rangeFreeTime[i].end.slice(0, -6) +' '+newEnd,
+    //             title: '',
+    //             class: 'not_working_hours',
+    //             background: true,
+    //             split: '',
+    //             resizable: false
+    //         };
+    //     let currEl = rangeFreeTime[i]
+    //     let founded = foundSplit(unavailableSlots, currEl.split, currEl.start.slice(0, -6))
+
+    //     if(founded){
+    //         if(founded.end > currEl.start){
+    //             console.log(founded.end, currEl.start)
+    //             founded.end = currEl.start
+    //         } 
+    //             busyTime.split = currEl.split
+    //             busyTime.start = currEl.end
+    //             unavailableSlots.push(busyTime)
+    //     } else {
+    //         busyTime.split = currEl.split
+    //         unavailableSlots.push(busyTime)
+    //     }
+    // }
+
+    // console.log(unavailableSlots);
+
+    // events.value.push(...unavailableSlots)
 }
 
 
@@ -432,7 +552,7 @@ const buildMonthScheduler = (ts) => {
     monthView.value = [];
     const dates: string[] = Object.keys(ts);
     const times: ScheduleTimespanItem[][] = Object.values(ts);
-    const monthViewSet = new Set<ScheduleMonthEvent>();
+    const monthViewSet = new Set<ScheduleEvent>();
 
     for (let i = 0; i < dates.length; i++) {
         const date = dates[i];
@@ -457,7 +577,7 @@ const buildMonthScheduler = (ts) => {
                     }
                     if (!isSameDayTime) {
                         let status = crtStatus(quantity);
-                        monthViewSet.add(new ScheduleMonthEvent(date, date, list, dayTimeSpan, start, end, status))
+                        monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan, start, end, status))
                         quantity = 0
                         list = []
                     }
@@ -467,7 +587,7 @@ const buildMonthScheduler = (ts) => {
                     list = addToListOfProds(list, item);
                     let status = crtStatus(quantity);
                     if (!isSameDayTime) {
-                        monthViewSet.add(new ScheduleMonthEvent(date, date, list, dayTimeSpan, start, end, status))
+                        monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan, start, end, status))
                         quantity = 0
                         list = []
                     }
@@ -559,9 +679,7 @@ const filterItems = async () => {
         products.value = products.value.map(productId => productsArr.value.find(product => product.id === productId));
     }
     if (employees.value.length) {
-        console.log(employees.value)
       employees.value = employees.value.map(employeeId => employeesArr.value.find(employee => employee.id === employeeId));
-      console.log(employees.value)
     }
     buildMonthScheduler(currRangeData.value)
 }
@@ -616,8 +734,8 @@ const clearFilters = () => {
 }
 
 
-const onViewChange = ({ view }) => {
-    if (view === 'month') {
+const onViewChange = (ev) => {
+    if (ev.view === 'month') {
         let cells: any = []
         setTimeout(() => {
             cells = Array.from(document.querySelectorAll('.vuecal__cell'))
@@ -628,6 +746,9 @@ const onViewChange = ({ view }) => {
                 }
             })
         }, 200)
+    }
+    if(ev.view === 'day' || ev.view === 'week'){
+        buildRangeScheduler(ev.startDate, ev.endDate)
     }
 }
 

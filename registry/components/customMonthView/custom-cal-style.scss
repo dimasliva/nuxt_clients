@@ -1098,3 +1098,11 @@
   background: #00ff22;
   border-radius: 0;
 }
+
+.not_working_hours .vuecal__event-time{
+  display: none;
+}
+
+.not_working_hours.vuecal__event{
+  max-width: 100%;
+}

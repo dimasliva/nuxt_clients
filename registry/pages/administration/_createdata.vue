@@ -76,7 +76,7 @@ import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
 import { ProductViews } from '~/lib/MoApi/Views/ProductViews';
 import { RelationApiSection } from '~/lib/MoApi/ApiSectionsV1/RelationApiSection';
-import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
+// import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
 
 
 const diC = useContainer();

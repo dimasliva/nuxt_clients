@@ -6,7 +6,7 @@
         }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon="mdi-close" class="mt-2" @click="closeDialog"></v-btn>
+      <v-btn icon="mdi-close" class="mt-2" @click="closeDialog()"></v-btn>
     </v-toolbar>
 
     <div class="d-flex flex-row">
@@ -20,8 +20,8 @@
           <v-card flat>
             <v-card-title class="text-subtitle-1">УСЛУГИ</v-card-title>
             <v-card-text>
-              <InputField custom-variant="underlined" class="w-100" :state="fieldsOptions"
-                          :type="EDataType.strictstringarray" label="Наименование" v-model="product" :items="products"/>
+              <InputField custom-variant="underlined" class="w-100" :state="fieldsOptions" @update:model-value="onProductsChange($event)"
+                          :type="EDataType.strictstringarray" label="Наименование" v-model="product" :items="products" return-object/>
             </v-card-text>
           </v-card>
           <v-card flat>
@@ -64,17 +64,17 @@
             <v-card flat class="w-50 pb-0">
               <v-card-title class="text-subtitle-1">СОТРУДНИК</v-card-title>
               <v-card-text class="pb-0">
-                <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.strictstring" label="ФИО"
-                            v-model="employee" :items="props.employees"/>
+                <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="ФИО"
+                            v-model="employee.title" readonly/>
               </v-card-text>
             </v-card>
             <v-card flat class="w-50 pb-0">
               <v-card-title class="text-subtitle-1">МЕСТО</v-card-title>
               <v-card-text class="d-flex justify-start pb-0">
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Филиал"
-                            v-model="division"/>
+                            v-model="division" readonly/>
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Кабинет"
-                            v-model="placement"/>
+                            v-model="placement" readonly/>
               </v-card-text>
             </v-card>
           </div>
@@ -83,11 +83,11 @@
             <v-card-title class="text-subtitle-1">ВРЕМЯ</v-card-title>
             <v-card-text class="d-flex justify-start ">
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Дата"
-                          v-model="date"/>
+                          v-model="date" readonly/>
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Длительность"
-                          v-model="duration"/>
+                          v-model="duration" readonly/>
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string"
-                          label="Начало-окончание" v-model="startAndEnd"/>
+                          label="Начало-окончание" v-model="startAndEnd" readonly/>
             </v-card-text>
           </v-card>
           <v-card flat>
@@ -144,13 +144,9 @@ const fieldsOptions = reactive({
   readonly: false
 })
 
-// const emplChoice = (positions, employees) => {
-//     return positions.some((pos) => employees.some(empl => empl.id === pos.employee))
-// }
+const emplChoice = (positions, employee) => {
+  return positions.find((pos) => pos.employee == employee).id;
 
-const emplChoice = (positions, employees) => {
-  const foundPosition = positions.find((pos) => employees.some(empl => empl.id === pos.employee));
-  return foundPosition ? foundPosition.id : null;
 }
 
 const openClientCreator = () => {
@@ -180,7 +176,6 @@ const changeStatus = (status) => {
 //     closeDialog;
 //     openDialog(GroupEventDialog, {})
 // }
-
 const checkedClient = (check) => {
   if (check == addClient) {
     clientCreationPop.value = true
@@ -190,6 +185,7 @@ const checkedClient = (check) => {
 }
 
 // Отмена создания нового клиента
+
 const clientCreationPopClose = () => {
   clientCreationPop.value = false;
   client.value = '';
@@ -199,15 +195,14 @@ const clientCreationPopClose = () => {
   clientPhone.value = '';
   clientBirthDate.value = '';
 }
-
 // Создание нового клиента
+
 const createNewClient = async () => {
   client.value = Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value;
   changedEvent.value.title = client.value;
   // Запрос на API создание нового клиента
   clientCreationPop.value = false;
 }
-
 const findEmployeeById = (id: string) => {
   return props.employees.find(employee => employee.id === id);
 }
@@ -220,13 +215,15 @@ interface Props {
   products: any[],
   status: any,
   creation: boolean,
-  delFunc: Function,
-  mainAction: Function
+  delFunc?: Function,
+  mainAction: Function,
+  clientData?: { id: string, name: string, surname: string}
 }
 
 const iocc = useContainer();
+
 const recStore = iocc.get(RecordsStore);
-const clienView = iocc.get(ClientsViews);
+const clientView = iocc.get(ClientsViews);
 const props = defineProps<Props>()
 let availableTimeSlots = ref<any>([])
 let clientName = ref()
@@ -239,31 +236,40 @@ let clientCreationPop = ref(false)
 let clientGender = ref()
 let addClient = 'Добавить клиента'
 let clientArr = ref<any[]>([])
-let client = ref(props.event.title ? props.event.title : '')
+let client = ref()
 let employee = ref(findEmployeeById(props.event.split))
-let position = ref(emplChoice(props.positions, props.employees))
-let product = ref()
+let position = ref(emplChoice(props.positions, props.event.split))
+let product = ref(props.products.length == 1? props.products[0] : null)
 let products = ref(props.products)
 let placement = ref()
 let division = ref()
 let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
 let evTitle = ref(props.event.title)
+let duration = ref(product && props.creation ? product.value.duration : props.event.duration )
 let start = ref<number>(props.event.start!.formatTime())
-let end = ref<number>(props.event.end!.formatTime())
-let duration = ref(props.event.duration ? props.event.duration : props.event.endTimeMinutes - props.event.startTimeMinutes)
-let startAndEnd = ref(start.value + '-' + end.value)
+let end = ref<number>(new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime())
+let startAndEnd = ref(start.value && end.value ? start.value + '-' + end.value : "-")
 let date = ref(props.event.start!.toLocaleDateString())
 let showField = ref(false)
 let inputText = ref('')
 let inputFocus = ref()
-
-
 let changedEvent = ref({
-  title: client.value,
+  title: clientSurname.value + ' ' + clientName.value,
   employee: employee.value,
   position: position.value,
   class: props.event.class,
 })
+
+const onProductsChange = (ev) => {
+   if(ev.length > 1){
+     duration.value = ev.reduce((acc, prod) => acc + prod.duration, 0)
+   } else {
+     duration.value = ev[0].duration
+  }
+  end.value = new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime()
+  startAndEnd.value = start.value + '-' + end.value
+  // console.log(ev)
+}
 
 const cancelAndClose = () => {
   props.delFunc();
@@ -271,9 +277,14 @@ const cancelAndClose = () => {
 }
 
 const saveChanges = async () => {
-  await createRec()
-  props.mainAction(changedEvent.value);
-  closeDialog('');
+  let rec = await createRec();
+  if(rec){
+    props.event.title = clientSurname.value + ' ' + clientName.value;
+    props.event.duration = duration.value;
+    props.event.class = 'ordered'
+    // props.mainAction(changedEvent.value);
+    closeDialog();
+  }
 }
 
 const checkInputLength = (e) => {
@@ -308,7 +319,7 @@ const getList = async (text: string, ...args: any[]) => {
       if (phone) {
         whereArr.push(`mainphone= '${phone}'`);
       }
-      let rdl = await clienView.getClientListView({
+      let rdl = await clientView.getClientListView({
         select: "id,name,surname,patronymic,birthdate,mainPhone",
         where: whereArr.join(" and "),
         limit: 10
@@ -348,23 +359,24 @@ const createRec = async () => {
 
   let rec = await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
     d.beginDate = Utils.getLocalISODateTimeWoTz(props.event.start);
-    d.duration = duration.value,
-        d.position = position.value || null;
+    d.duration = duration.value;
+    d.position = position.value || null;
     d.division = division.value || null;
     d.placement = placement.value || null;
     d.status = 1;
   });
-  rec.MData.client = client.value.id
 
-  if (products.value.length == 1)
-    rec.MData.product = products.value[0];
-  else {
+  rec.MData.client = client.value.value
+
+  if (product.value.length == 1){
+    rec.MData.product = product.value[0].id;
+  } else {
     const pgr = recStore.dataEntityFactory(ProductGroupRecordData);
     pgr.title = "prod group";
     rec.setNewProductGroup(pgr);
   }
 
-  let res = await schGrid.addBooking(rec, products.value, false);
+  let res = await schGrid.addBooking(rec, product.value, false);
 
   console.log(res, rec)
 

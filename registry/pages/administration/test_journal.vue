@@ -142,18 +142,17 @@ import {
   ScheduleGridOptions,
   type TGridQuerySch
 } from '~/lib/Booking/ScheduleGrid';
-import {BookingsViews} from '~/lib/MoApi/Views/BookingViews';
+import {BookingsViews, type IBookingListView} from '~/lib/MoApi/Views/BookingViews';
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 
+
+let status = ref({
+  1: {icon: 'mdi-account', title: 'Заказано', class: 'ordered'},
+  2: {icon: 'mdi-pencil', title: 'Выполнено', class: 'executed'},
+  3: {icon: 'mdi-cancel', title: 'Отменено', class: 'canceled'},
+})
+
 //__________________________VVV Статичные данные, удалить при работе с API VVV
-
-let status = ref([
-  {icon: 'mdi-account', title: 'Контакт'},
-  {icon: 'mdi-pencil', title: 'Предварительная запись'},
-  {icon: 'mdi-email', title: 'Напоминание'},
-  {icon: 'mdi-phone', title: 'Лид'},
-])
-
 let kindOfDuration = ref([
   {time: 'short', title: 'Самой короткой'},
   {time: 'long', title: 'Самой длинной'},
@@ -182,6 +181,7 @@ const fieldsOptions = reactive({
 let divisions = ref([])
 let monthView = ref<ScheduleEvent[]>([])
 let events = ref<ScheduleEvent[]>([])
+let bookings = ref<ScheduleEvent[]>([])
 let freeTimeSpans = ref<ScheduleEvent[]>([])
 let vuecal = ref<any>(null);
 let products = ref<any[]>([])
@@ -189,7 +189,7 @@ let productsArr = ref<any>([])
 let employees = ref<any>([])
 let employeesArr = ref<any>([])
 let positions = ref<any>([])
-let quantum = ref(60)
+let quantum = ref(20)
 let currEvent = ref<any>(null)
 let division = ref<any>()
 let drawer = ref(true)
@@ -293,9 +293,9 @@ const changeDate = (date) => {
 const cumstomEventCreator = (ev) => {
   vuecal.value.createEvent(ev.date, quantum.value, {
     split: ev.split,
-    title: '',
+    title: 'Новая запись',
     duration: quantum.value,
-    class: 'rounded not_paid mdi mdi-pencil',
+    class: 'rounded',
     content: 'Название услуги'
   });
 }
@@ -308,6 +308,18 @@ function roundTime(selectedTime: string): string {
   return `${roundedMinutes.toString().padStart(2, '0')}`;
 }
 
+function checkTimeInIntervals(chosenTime, intervals) {
+  chosenTime = new Date(chosenTime);
+  for (let i = 0; i < intervals.length; i++) {
+    let startTime = new Date(intervals[i].start);
+    let endTime = new Date(intervals[i].end);
+    if (startTime <= chosenTime && chosenTime <= endTime) {
+      return intervals[i];
+    }
+  }
+  return false;
+}
+
 const onEventCreate = (event, deleteEventFunction) => {
   let currDate = event.start.format('YYYY-MM-DD')
   let split = event.split
@@ -317,24 +329,33 @@ const onEventCreate = (event, deleteEventFunction) => {
   event.deleteEventFunction = deleteEventFunction;
   event.start.setMinutes(roundTime(event.start.formatTime()));
   event.end.setMinutes(roundTime(event.end.formatTime()));
-  console.log(event.start)
-  console.log(event.start.format('YYYY-MM-DD hh:mm'), foundedSpans.map(i => i.start), foundedSpans.map(i => i.end))
-  openDialog(EventDialog, {
-    event: currEvent.value,
-    schGrid: {start: minDate.value, end: maxDate.value},
-    employees: employeesArr.value,
-    positions: positions.value,
-    products: foundedProducts,
-    status: status.value,
-    creation: true,
-    mainAction: eventAlteration,
-    delFunc: deleteEventFunction
-  });
+  event.start.format('YYYY-MM-DD hh:mm');
+  event.end.format('YYYY-MM-DD hh:mm');
+
+  let fitSpan = checkTimeInIntervals(event.start, foundedSpans);
+  if(fitSpan){
+    if(fitSpan.end < event.end){
+      event.end = fitSpan.end
+    }
+    openDialog(EventDialog, {
+      event: currEvent.value,
+      schGrid: {start: minDate.value, end: maxDate.value},
+      employees: employeesArr.value,
+      positions: positions.value,
+      products: foundedProducts,
+      status: status.value,
+      creation: true,
+      mainAction: eventAlteration,
+      delFunc: deleteEventFunction
+    });
+
+  }
   return event
 }
 
 const editEvent = (event) => {
   currEvent.value = event;
+  console.log(event)
   openDialog(EventDialog, {
     event: currEvent.value,
     schGrid: {start: minDate.value, end: maxDate.value},
@@ -344,22 +365,48 @@ const editEvent = (event) => {
     status: status.value,
     creation: false,
     mainAction: eventAlteration,
-    delFunc: event.deleteEventFunction
   });
   return event
 }
 
+const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
+  let bookingsArr: ScheduleEvent[] = [];
+
+  for(let i = 0; i < bookingArr.length; i++ ){
+    let currEl = bookingArr[i]
+
+    let event: ScheduleEvent = {
+      start: new Date(currEl.begDate!).format('YYYY-MM-DD HH:mm'),
+      end: new Date(new Date(currEl.begDate!).getTime() + currEl.duration * 60000).format('YYYY-MM-DD HH:mm'),
+      products: currEl.product ? currEl.product.split(',') : [currEl.productGroup],
+      background: false,
+      title: currEl.client && !currEl.clientGroup ? currEl.clientSurname!+ ' ' + currEl.clientName! : 'Группа',
+      split: positions.value.find((pos) => pos.id === currEl.position).employee,
+      class: status.value[currEl.status].class,
+      duration: currEl.duration
+    }
+    bookingsArr.push(event)
+  }
+  bookings.value = bookingsArr
+}
+
 const getBookings = async () => {
   const positionsIds = positions.value.map(pos => pos.id)
+  const bookingArr: IBookingListView[] = []
 
   let res = await bookingViews.getBookings({
     begDate: Utils.getDateStr(minDate.value),
     endDate: Utils.getDateStr(maxDate.value),
     positionIds: positionsIds,
-    includeNames: false,
-    includePlace: false,
-    includeStatus: false,
+    includeNames: true,
+    includePlace: true,
+    includeStatus: true,
   })
+  for(let i = 0; i< res.getLength(); i++){
+    bookingArr.push(res.getRow(i)!)
+  }
+  console.log(bookingArr)
+  createBookingsFromApi(bookingArr)
 }
 
 const getScheduleByItemGroup = async () => {
@@ -505,7 +552,6 @@ const buildRangeScheduler = (start, end) => {
     const date = dates[i];
     const timeItems = times[i];
 
-
     timeItems.forEach((item) => {
       const freeTime: ScheduleEvent = {
         start: '',
@@ -519,24 +565,24 @@ const buildRangeScheduler = (start, end) => {
       };
       const startTime = item.timespan!.time;
       const endTime = startTime + item.timespan!.duration;
-
       const startHours = Math.floor(startTime / 60);
       const startMinutes = startTime % 60;
       const endHours = Math.floor(endTime / 60);
       const endMinutes = endTime % 60;
+
       const start = `${date + ' '}${startHours < 10 ? '0' + startHours : startHours}:${startMinutes < 10 ? '0' + startMinutes : startMinutes}`;
       const end = `${date + ' '}${endHours < 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`;
-      const split = positions.value.find((pos) => employeesArr.value.some(empl => empl.id === pos.employee) && pos.id === item.position).employee;
+      const split = positions.value.find((pos) => pos.id === item.position).employee;
       const spans = spansInSplit(rangeFreeTime, split, date)
-
+      // console.log(start, end, spans)
       if (spans.length > 0) {
         const lastSpan = spans[spans.length - 1];
 
-        if (lastSpan.end >= start && lastSpan.end <= end) {
+        if(lastSpan.end >= start && lastSpan.end <= end) {
           lastSpan.end = end;
-        } else if (lastSpan.end >= start && lastSpan.end > end) {
+        } else if (lastSpan.end >= end && lastSpan.start <= start) {
           return
-        } else {
+        } else if( lastSpan.end < end && lastSpan.start < start) {
           freeTime.start = start;
           freeTime.end = end;
           freeTime.split = split;
@@ -549,8 +595,8 @@ const buildRangeScheduler = (start, end) => {
         rangeFreeTime.push(freeTime);
       }
 
-
     });
+
     for (let j = 0; j < employeesArr.value.length; j++) {
       const busyTime: ScheduleEvent = {
         start: date + ' ' + newStart,
@@ -565,6 +611,7 @@ const buildRangeScheduler = (start, end) => {
     }
   }
   freeTimeSpans.value = rangeFreeTime
+  // events.value = rangeFreeTime
 
   for (let i = 0; i < rangeFreeTime.length - 1; i++) {
     const busyTime: ScheduleEvent = {
@@ -591,7 +638,8 @@ const buildRangeScheduler = (start, end) => {
 
   }
 
-  events.value = unavailableSlots
+  events.value = unavailableSlots;
+  events.value.push(...bookings.value)
 }
 
 
@@ -657,7 +705,7 @@ const buildMonthScheduler = (ts) => {
     }
   }
   monthView.value = Array.from(monthViewSet);
-  console.log(performance.now() - start)
+  console.log(`Время загрузки расписания: ${performance.now() - start}`)
 }
 
 
@@ -864,6 +912,7 @@ pageMap.setPageData("/administration/test_journal", pageMapData);
 defineExpose({eventsHandler});
 
 </script>
+
 <style scoped>
 .not_paid {
   background-color: #fff2f2;

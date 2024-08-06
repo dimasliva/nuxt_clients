@@ -76,7 +76,7 @@ import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
 import { ProductViews } from '~/lib/MoApi/Views/ProductViews';
 import { RelationApiSection } from '~/lib/MoApi/ApiSectionsV1/RelationApiSection';
-// import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
+import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
 
 
 const diC = useContainer();
@@ -585,7 +585,6 @@ const clientGroupsCreateTask = async (size: number) => {
 
 const bookingCreateTask = async (size: number = 500) => {
     const PERIOD_DAYS = 31;
-debugger;
     const begDate = new Date();
     const endDate = Utils.addDaysToDate(begDate, PERIOD_DAYS);
     const bookingParamSet = await getBookingParams(begDate, endDate);

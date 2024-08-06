@@ -25,6 +25,7 @@ export default defineNuxtConfig({
   },
 
   css: ["vuetify/lib/styles/main.sass"],
+
   build: {
     transpile: ["vuetify", "@vuepic/vue-datepicker", "vue-sonner"],
   },
@@ -93,4 +94,6 @@ export default defineNuxtConfig({
       },
     },
   },
+
+  compatibilityDate: "2024-07-22",
 });

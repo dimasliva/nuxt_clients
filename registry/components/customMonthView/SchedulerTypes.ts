@@ -11,6 +11,10 @@ export class ScheduleEvent {
   startTime: number;
   /**Время конца временного интервала*/
   endTime: number;
+  /**Сотрудник и его данные*/
+  employee?: {id: string, name: string, surname: string, patronymic?: string, position: string};
+  /**Клиент и его данные*/
+  client?: {id: string, name: string, surname: string, patronymic?: string, phone: string};
   /**Размещение доп контента, например иконки*/
   content?: string;
   /**Стилизация событий, для добавления статусов*/
@@ -25,8 +29,12 @@ export class ScheduleEvent {
   deletable?: boolean;
   /**Если есть параметр editable в компоненте расписания, делает событие изменяемым по размеру/не изменяемым по размеру */
   resizable?: boolean;
+  /**ID получаемое из API*/
+  id?: string;
 
-  constructor(start, end, products, title, startTime, endTime, clss?, content?, background?, split?, allDay?, deletable?, resizable?) {
+  duration?: number;
+
+  constructor(start, end, products, title, startTime, endTime, clss?, content?, background?, split?, allDay?, deletable?, resizable?, id?, duration?) {
     this.start = start;
     this.end = end;
     this.products = products;
@@ -40,5 +48,7 @@ export class ScheduleEvent {
     this.allDay = allDay;
     this.deletable = deletable;
     this.resizable = resizable;
+    this.id = id;
+    this.duration = duration;
   }
 }

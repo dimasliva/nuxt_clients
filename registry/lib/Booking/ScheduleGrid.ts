@@ -109,6 +109,7 @@ export class ScheduleGrid {
         //проверка диапазона - загружены ли данные в указанном диапазоне
         this._chkReqPeriod(params.begDate, params.endDate);
 
+
         let currDate = params.begDate;
 
         const bk = params.booking;

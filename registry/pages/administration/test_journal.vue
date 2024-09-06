@@ -1,11 +1,11 @@
 <template>
   <div class="d-flex flex-nowrap" style="height: 75vh;">
-    <wt class="rounded mx-1" style="width: 80%;" :on-event-create="onEventCreate"
-        @cell-dblclick="cumstomEventCreator($event)" :showTimeInCells="currView === 'day'"
+    <wt class="rounded mx-1" style="width: 80%;" :on-event-create="eventDialog"
+        @cell-dblclick="currView === 'month' ? false : cumstomEventCreator($event)" :showTimeInCells="currView === 'day'"
         @event-focus="currView === 'month' ? openPopUp($event) : false "
         :on-event-click="currView === 'month' ? openCurrDay : editEvent"
         :cell-click-hold="false" :time-from="startDayHours * 60" :time-to="endDayHours * 60" :snap-to-time="15"
-        :time-step="30" ref="vuecal"
+        :time-step="timeStep" ref="vuecal" @event-mouse-enter=""
         v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
         :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
         :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
@@ -13,12 +13,11 @@
         @view-change="onViewChange($event)" :selected-date="selDate" :min-date="monthViewMinDate" :min-split-width="50"
         :max-date="monthViewMaxDate">
       <template #title="{ view }">
-        <span v-if="view.id === 'month'">С {{
-            view.firstCellDate.format('DD.MM.YYYY')
-          }} по {{ view.lastCellDate.format('DD.MM.YYYY') }}
+        <span v-if="view.id === 'month'">С {{ view.firstCellDate.format('DD.MM.YYYY') }} по {{ view.lastCellDate.format('DD.MM.YYYY') }}
           <v-btn variant="text" icon="mdi-calendar-today" @click="changeDate(new Date())"></v-btn>
         </span>
       </template>
+
       <template #split-label="{ split }">
         <p>{{ split.title }}</p>
       </template>
@@ -37,7 +36,7 @@
                 <!-- style="resize: both;" -->
                 <v-card max-height="300" class="pa-4 " max-width="600">
                   <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)" :on-event-click="editEvent"
-                           :on-event-create="onEventCreate" :split-days="employeesArr" hide-view-selector
+                           :on-event-create="eventDialog" :split-days="employeesArr" hide-view-selector
                            hide-title-bar :events="events" :selected-date="selectedCurrDate" locale="ru"
                            :cell-click-hold="false" :drag-to-create-event="false" :snap-to-time="5"
                            :time-step="30" ref="vuecal" :time-from="event.startTime * 60"
@@ -53,7 +52,7 @@
             <v-list-item v-for="(item) in prodsList" density="compact">
               <v-list-item-title class="text-body-2">{{ item.title }}</v-list-item-title>
               <template v-if="item.time" v-slot:append>
-                <v-btn variant="text">{{ item.time }}</v-btn>
+                <v-btn variant="text" @click="eventDiagFromMonth(item)">{{ item.time }}</v-btn>
               </template>
             </v-list-item>
           </v-list>
@@ -100,6 +99,8 @@
                       :disabled="!employees.length && !products.length && !selectedSchedulerItemGroup"
                       @update:model-value="selectedSchedulerItemGroup ? filterItems() : false"/>
 
+          <InputField v-if="currView == 'day' || currView == 'week'" :type="EDataType.strictstring" :state="fieldsOptions"
+                      v-model="timeStep" :items="[5, 10, 15, 30, 60]" width="auto" label="Шаг времени" class="my-2"/>
           <v-card-actions>
             <v-spacer></v-spacer>
             <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
@@ -113,6 +114,7 @@
 
 <script setup lang="ts">
 import VueCal from 'vue-cal';
+import * as Utils from '~/lib/Utils';
 import {EDataType} from '~/lib/globalTypes';
 import InputField from '~/components/InputField.vue';
 import wt from '~~/components/customMonthView/vue-cal-m';
@@ -121,15 +123,16 @@ import '~~/components/customMonthView/custom-cal-style.scss';
 import EventDialog from '~~/components/forms/EventDialog.vue';
 import {RecordsStore} from '~/lib/MoApi/Records/RecordsStore';
 import type {IFrameHeaderData, PageMap} from '~~/lib/PageMap';
+import {PositionsViews} from '~/lib/MoApi/Views/PositionsViews';
 import {EmployeeRecord} from '~/lib/MoApi/Records/EmployeeRecord';
-import type {IApiDataListResult, IApiResult} from '~/lib/MoApi/RequestResults';
 import {ScheduleEvent} from '~/components/customMonthView/SchedulerTypes';
+import type {IApiDataListResult, IApiResult} from '~/lib/MoApi/RequestResults';
 import {ProductsCatalogRecord} from '~/lib/MoApi/Records/ProductsCatalogRecord';
 import {ScheduleApiSection} from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
+import {ClientContactsRecord} from "~/lib/MoApi/Records/ClientContactsRecord";
 import {ProductRecord, ProductRecordData} from '~/lib/MoApi/Records/ProductRecord';
+import {BookingsViews, type IBookingListView} from '~/lib/MoApi/Views/BookingViews';
 import {PositionRecord, PositionRecordData} from '~/lib/MoApi/Records/PositionRecord';
-import * as Utils from '~/lib/Utils';
-import {PositionsViews} from '~/lib/MoApi/Views/PositionsViews';
 import type ScheduleTimespanItem from '~/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
 import {ProductFinderDataProvider} from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 import {EmployeeFioFinderDataProvider} from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
@@ -142,9 +145,9 @@ import {
   ScheduleGridOptions,
   type TGridQuerySch
 } from '~/lib/Booking/ScheduleGrid';
-import {BookingsViews, type IBookingListView} from '~/lib/MoApi/Views/BookingViews';
+import {BookingRecord} from "~/lib/MoApi/Records/BookingRecord";
+import {duration} from "@unocss/preset-mini/theme";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
-
 
 let status = ref({
   1: {icon: 'mdi-account', title: 'Заказано', class: 'ordered'},
@@ -178,6 +181,7 @@ const fieldsOptions = reactive({
   readonly: false
 })
 
+let timeStep = ref(30)
 let divisions = ref([])
 let monthView = ref<ScheduleEvent[]>([])
 let events = ref<ScheduleEvent[]>([])
@@ -225,7 +229,6 @@ scheduleItemFinderDataProvider.init("scheduleItem");
 emplFioFinderDataProvider.init("fioEmployee");
 
 const eventsHandler = (e) => {
-
   cumstomEventCreator(e);
   return false;
 };
@@ -254,26 +257,87 @@ const getCatalogs = async () => {
   productFinderDataProvider.init("Product", true, 20, catalogs.value);
 }
 
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
 const openPopUp = (day_time: ScheduleEvent) => {
+  let selectedDate = day_time.start.format('YYYY-MM-DD')
   prodsList.value = []
   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
-  let foundedTimeSpan = currRangeData.value![day_time.start.format('YYYY-MM-DD')]
+  let foundedTimeSpan = currRangeData.value![selectedDate];
+  let busyTimes = events.value.filter(ev => ev.start.slice(0, 10) == selectedDate && timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime && timeToMinutes(ev.end.slice(11))/60 < day_time.endTime)
+  let availableTimes = freeTimeSpans.value.filter(ev => ev.start.slice(0, 10) == selectedDate && timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime && ((timeToMinutes(ev.end.slice(11))/60 - ev.products[0].duration) < day_time.endTime))
+  availableTimes = availableTimes.map(event => {
+      return {
+        start: timeToMinutes(event.start.slice(11)),
+        end: timeToMinutes(event.end.slice(11)),
+        duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
+        products: event.products.map(prod => prod.id),
+        split: event.split
+      }
+    });
+  busyTimes = busyTimes.map(event => {
+    if(event.products){
+      return {
+        start: timeToMinutes(event.start.slice(11)),
+        end: timeToMinutes(event.end.slice(11)),
+        duration: event.products.reduce((acc, prod) => acc + prod.duration, 0),
+        products: event.products,
+        split: event.split
+      }
+    } else {
+      return {
+        start: timeToMinutes(event.start.slice(11)),
+        end: timeToMinutes(event.end.slice(11)),
+        duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
+        products: [],
+        split: event.split
+      }
+    }
+  });
+  let splits = Array.from( new Set(busyTimes.map(time => time.split).concat(availableTimes.map(time => time.split))));
+  let potentialFitTime = splits.map(split => {
+    let busy = busyTimes.filter(time => time.split === split)
+    let free = availableTimes.filter(time => time.split === split)
+
+    return free.filter(currentFree => {
+      for (let currentBusy of busy) {
+        if (currentFree.start < currentBusy.end && currentFree.end > currentBusy.start) {
+          return false;
+        }
+      }
+      return true;
+    }).map(currentFree => ({
+      start: currentFree.start,
+      end: currentFree.end,
+      duration: currentFree.duration,
+      products: currentFree.products,
+      split: currentFree.split
+    }));
+
+  }).flat()
   day_time.products.map((product) => {
     const foundProduct = productsArr.value.find((prod) => prod.id === product.id);
     if (foundProduct !== undefined) {
       product.title = foundProduct.title;
       product.duration = foundProduct.duration;
       prodsList.value.push(product);
-      let totalMinutes = foundedTimeSpan.find((span) => (span.products.includes(product.id) && span.timespan.duration >= product.duration && (span.timespan.time / 60 > day_time.startTime && span.timespan.time / 60 < day_time.endTime)));
-      if (totalMinutes) {
-        let hours = Math.floor(totalMinutes.timespan.time / 60);
-        let minutes = totalMinutes.timespan.time % 60;
+
+      let totalMinutes = potentialFitTime.filter(slot =>  slot!.products.includes(product.id));
+      if (!!totalMinutes.length) {
+        let hours = Math.floor(totalMinutes[0].start / 60);
+        let minutes = totalMinutes[0].start % 60;
         product.time = `${hours > 9 ? hours : hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        product.split = totalMinutes[0].split
+        product.start = selectedDate +" "+product.time
+
       }
     }
   });
-
 }
+
 
 const clearMonthViewDates = () => {
   minDate.value = '';
@@ -302,7 +366,7 @@ const cumstomEventCreator = (ev) => {
 
 function roundTime(selectedTime: string): string {
   const [hours, minutes] = selectedTime.split(':').map(Number);
-  const roundedMinutes = Math.floor(minutes / 30) * 30;
+  const roundedMinutes = Math.floor(minutes / timeStep.value) * timeStep.value;
   const roundedHours = hours + Math.floor((hours * 60 + roundedMinutes) / 60);
 
   return `${roundedMinutes.toString().padStart(2, '0')}`;
@@ -320,20 +384,55 @@ function checkTimeInIntervals(chosenTime, intervals) {
   return false;
 }
 
-const onEventCreate = (event, deleteEventFunction) => {
+const eventDiagFromMonth = (i) => {
+  console.log(i);
+  let event = {
+    start: new Date(i.start),
+    split: i.split,
+    title: 'Новая запись',
+    duration: i.duration,
+    class: 'rounded',
+    content: 'Название услуги'
+  }
+  openDialog(EventDialog, {
+    event: event,
+    schGrid: {start: minDate.value, end: maxDate.value},
+    employees: employeesArr.value,
+    positions: positions.value,
+    products: productsArr.value.find(el=> el.id === i.id),
+    status: status.value,
+    creation: true,
+    mainAction: eventAlteration,
+    delFunc: ()=>{},
+    clientData: null
+  });
+}
+
+const eventDialog = async (event, deleteEventFunction, creating: boolean = true) => {
   let currDate = event.start.format('YYYY-MM-DD')
   let split = event.split
   let foundedSpans = spansInSplit(freeTimeSpans.value, split, currDate)
   let foundedProducts = [...new Set(foundedSpans.map(el => el.products).flat())]
   currEvent.value = event;
-  event.deleteEventFunction = deleteEventFunction;
-  event.start.setMinutes(roundTime(event.start.formatTime()));
-  event.end.setMinutes(roundTime(event.end.formatTime()));
-  event.start.format('YYYY-MM-DD hh:mm');
-  event.end.format('YYYY-MM-DD hh:mm');
+
+  if(creating){
+    event.deleteEventFunction = deleteEventFunction;
+    event.start.setMinutes(roundTime(event.start.formatTime()));
+    event.end.setMinutes(roundTime(event.end.formatTime()));
+    event.start.format('YYYY-MM-DD hh:mm');
+    event.end.format('YYYY-MM-DD hh:mm');
+  } else {
+    let clientConts = await recStore.fetch(ClientContactsRecord, currEvent.value.client.id);
+    if(clientConts){
+      currEvent.value.client.phone = clientConts.Data?.mainPhone
+    }
+    // let bookingRec = await recStore.fetch(BookingRecord, event.id);
+    // deleteEventFunction = bookingRec.delete
+  }
 
   let fitSpan = checkTimeInIntervals(event.start, foundedSpans);
-  if(fitSpan){
+
+  if(fitSpan || !creating){
     if(fitSpan.end < event.end){
       event.end = fitSpan.end
     }
@@ -344,35 +443,28 @@ const onEventCreate = (event, deleteEventFunction) => {
       positions: positions.value,
       products: foundedProducts,
       status: status.value,
-      creation: true,
+      creation: creating,
       mainAction: eventAlteration,
-      delFunc: deleteEventFunction
+      delFunc: deleteEventFunction,
+      clientData: creating ? null : currEvent.value.client
     });
-
+  } else {
+    console.log('Невозможно создать запись на выбранную дату')
   }
+  event = currEvent.value;
+
   return event
 }
 
-const editEvent = (event) => {
-  currEvent.value = event;
-  console.log(event)
-  openDialog(EventDialog, {
-    event: currEvent.value,
-    schGrid: {start: minDate.value, end: maxDate.value},
-    employees: employeesArr.value,
-    positions: positions.value,
-    products: productsArr.value,
-    status: status.value,
-    creation: false,
-    mainAction: eventAlteration,
-  });
-  return event
+const editEvent = async (event) => {
+  const delFunc = () => {}
+  await eventDialog(event, delFunc, false)
 }
 
 const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
   let bookingsArr: ScheduleEvent[] = [];
 
-  for(let i = 0; i < bookingArr.length; i++ ){
+  for(let i = 0; i < bookingArr.length; i++){
     let currEl = bookingArr[i]
 
     let event: ScheduleEvent = {
@@ -383,7 +475,9 @@ const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
       title: currEl.client && !currEl.clientGroup ? currEl.clientSurname!+ ' ' + currEl.clientName! : 'Группа',
       split: positions.value.find((pos) => pos.id === currEl.position).employee,
       class: status.value[currEl.status].class,
-      duration: currEl.duration
+      duration: currEl.duration,
+      client: {id: currEl.client!, name: currEl.clientName!, surname: currEl.clientSurname!, patronymic: currEl.clientPatronymic!, phone: '' },
+      id: currEl.id!
     }
     bookingsArr.push(event)
   }
@@ -405,7 +499,6 @@ const getBookings = async () => {
   for(let i = 0; i< res.getLength(); i++){
     bookingArr.push(res.getRow(i)!)
   }
-  console.log(bookingArr)
   createBookingsFromApi(bookingArr)
 }
 
@@ -561,7 +654,8 @@ const buildRangeScheduler = (start, end) => {
         class: 'free_hours',
         background: true,
         split: '',
-        resizable: false
+        resizable: false,
+        duration: 0
       };
       const startTime = item.timespan!.time;
       const endTime = startTime + item.timespan!.duration;
@@ -574,15 +668,14 @@ const buildRangeScheduler = (start, end) => {
       const end = `${date + ' '}${endHours < 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`;
       const split = positions.value.find((pos) => pos.id === item.position).employee;
       const spans = spansInSplit(rangeFreeTime, split, date)
-      // console.log(start, end, spans)
       if (spans.length > 0) {
         const lastSpan = spans[spans.length - 1];
 
-        if(lastSpan.end >= start && lastSpan.end <= end) {
-          lastSpan.end = end;
-        } else if (lastSpan.end >= end && lastSpan.start <= start) {
+        if(lastSpan!.end >= start && lastSpan!.end <= end) {
+          lastSpan!.end = end;
+        } else if (lastSpan!.end >= end && lastSpan!.start <= start) {
           return
-        } else if( lastSpan.end < end && lastSpan.start < start) {
+        } else if( lastSpan!.end < end && lastSpan!.start < start) {
           freeTime.start = start;
           freeTime.end = end;
           freeTime.split = split;
@@ -846,15 +939,14 @@ const onViewChange = (ev) => {
       })
     }, 200)
   }
-  if (ev.view === 'day' || ev.view === 'week') {
-    buildRangeScheduler(ev.startDate, ev.endDate)
-  }
+
 }
 
 const requestSchedule = async () => {
   schdLoad.value = true
   if (selectedSchedulerItemGroup.value) {
     await getScheduleByItemGroup()
+    buildRangeScheduler(minDate.value, maxDate.value)
   }
   if (!selectedSchedulerItemGroup.value && (products.value || employees.value)) {
     await getSchedule()

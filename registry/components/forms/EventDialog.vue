@@ -6,7 +6,7 @@
         }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon="mdi-close" class="mt-2" @click="closeDialog()"></v-btn>
+      <v-btn icon="mdi-close" class="mt-2" @click="props.creation? cancelAndClose() : closeDialog('')"></v-btn>
     </v-toolbar>
 
     <div class="d-flex flex-row">
@@ -88,15 +88,17 @@
                           v-model="duration" readonly/>
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string"
                           label="Начало-окончание" v-model="startAndEnd" readonly/>
+              <v-btn v-if="!props.creation && !showQuicks" color="primary" variant="text" @click="showQuicks = true">ИЗМЕНИТЬ</v-btn>
             </v-card-text>
           </v-card>
+          <QuickTimeOffer v-if="showQuicks"></QuickTimeOffer>
           <v-card flat>
             <v-card-title class="text-subtitle-1">ПРИМЕЧАНИЕ
-              <v-btn v-if="!showField" color="primary" variant="text" @click="showField = true">ДОБАВИТЬ</v-btn>
+              <v-btn v-if="!addDescr" color="primary" variant="text" @click="addDescr = true">ДОБАВИТЬ</v-btn>
             </v-card-title>
-            <v-card-text class="d-flex justify-start" v-if="showField">
+            <v-card-text class="d-flex justify-start" v-if="addDescr">
               <InputField v-model="inputText" custom-variant="underlined" :state="fieldsOptions" :type="EDataType.text"
-                          :focused="showField" @update:focused="checkInputLength($event)" rows="1"/>
+                          :focused="addDescr" @update:focused="checkInputLength($event)" rows="1"/>
             </v-card-text>
           </v-card>
         </v-tabs-window-item>
@@ -133,6 +135,7 @@ import {ClientGroupRecordData, ClientGroupRecord} from '~/lib/MoApi/Records/Clie
 import {ProductGroupRecordData, ProductGroupRecord} from '~/lib/MoApi/Records/ProductGroupRecord';
 import {EEmployeeTimeTypes} from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
 import {ProductRecord} from '~/lib/MoApi/Records/ProductRecord';
+import QuickTimeOffer from "~/components/QuickTimeOffer.vue";
 
 
 // import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
@@ -217,7 +220,7 @@ interface Props {
   creation: boolean,
   delFunc?: Function,
   mainAction: Function,
-  clientData?: { id: string, name: string, surname: string}
+  clientData?: { id: string, name: string, surname: string, patronymic: string, phone: string}
 }
 
 const iocc = useContainer();
@@ -226,31 +229,32 @@ const recStore = iocc.get(RecordsStore);
 const clientView = iocc.get(ClientsViews);
 const props = defineProps<Props>()
 let availableTimeSlots = ref<any>([])
-let clientName = ref()
-let clientSurname = ref()
-let clientPatronymic = ref()
-let clientPhone = ref()
+let clientName = ref(props.clientData ? props.clientData.name : '')
+let clientSurname = ref(props.clientData ? props.clientData.surname : '')
+let clientPatronymic = ref(props.clientData ? props.clientData.patronymic : '')
+let clientPhone = ref(props.clientData ? props.clientData.phone : '')
 let clientEmail = ref()
 let clientBirthDate = ref()
 let clientCreationPop = ref(false)
 let clientGender = ref()
 let addClient = 'Добавить клиента'
 let clientArr = ref<any[]>([])
-let client = ref()
+let client = ref(props.creation ? null : Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value)
 let employee = ref(findEmployeeById(props.event.split))
 let position = ref(emplChoice(props.positions, props.event.split))
-let product = ref(props.products.length == 1? props.products[0] : null)
+let product = ref(props.creation? null : props.event.products.map(id => props.products.find(prod => id == prod.id)))
 let products = ref(props.products)
 let placement = ref()
 let division = ref()
 let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
 let evTitle = ref(props.event.title)
-let duration = ref(product && props.creation ? product.value.duration : props.event.duration )
+let duration = ref(props.creation ? 0 : product.value.reduce((total, currProd) => total + currProd.duration, 0))
 let start = ref<number>(props.event.start!.formatTime())
 let end = ref<number>(new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime())
 let startAndEnd = ref(start.value && end.value ? start.value + '-' + end.value : "-")
 let date = ref(props.event.start!.toLocaleDateString())
-let showField = ref(false)
+let addDescr = ref(false)
+let showQuicks = ref(false)
 let inputText = ref('')
 let inputFocus = ref()
 let changedEvent = ref({
@@ -271,26 +275,44 @@ const onProductsChange = (ev) => {
   // console.log(ev)
 }
 
-const cancelAndClose = () => {
-  props.delFunc();
+const cancelAndClose = async () => {
+  await props.delFunc();
   closeDialog('');
 }
 
 const saveChanges = async () => {
-  let rec = await createRec();
-  if(rec){
-    props.event.title = clientSurname.value + ' ' + clientName.value;
-    props.event.duration = duration.value;
-    props.event.class = 'ordered'
-    // props.mainAction(changedEvent.value);
-    closeDialog();
+  if(props.creation){
+    let rec = await createRec();
+    let clientTitle = client.value.title.split(' ');
+    clientTitle = clientTitle[0] + " " + clientTitle[1];
+    let timeStart =new Date( props.event.start.format('YYYY-MM-DD') + " " + start.value);
+    let timeEnd = new Date( props.event.start.format('YYYY-MM-DD') + " " + end.value);
+    let startMinutes = start.value.split(':')
+    startMinutes = startMinutes[0] * 60 + startMinutes[1] * 1;
+    let endMinutes = end.value.split(':')
+    endMinutes = endMinutes[0] * 60 + endMinutes[1] * 1;
+    console.log(startMinutes, endMinutes)
+    if(rec){
+      props.event.start = timeStart;
+      props.event.end = timeEnd;
+      props.event.title = clientTitle;
+      props.event.duration = duration.value;
+      props.event.startTimeMinutes = startMinutes;
+      props.event.endTimeMinutes = endMinutes;
+      props.event.class = 'ordered';
+      props.event.content = product.value.map(pr => pr.title).toString();
+      props.event.id = rec.id
+    }
+  } else {
+    await updateRec()
   }
+  closeDialog('');
 }
 
 const checkInputLength = (e) => {
 
   if (inputText.value.length === 0) {
-    showField.value = false;
+    addDescr.value = false;
   }
 };
 
@@ -349,6 +371,11 @@ const addProductsToGroup = async (rec: ProductGroupRecord, products: string[]) =
   await Promise.all(promises);
 }
 
+const updateRec = async () => {
+  console.log(props.event)
+  let updRec = await recStore.fetch<BookingRecord>(BookingRecord, props.event.id)
+  console.log(updRec)
+}
 
 const createRec = async () => {
   const positions = props.positions.map(pos => pos.id)

@@ -145,8 +145,6 @@ import {
   ScheduleGridOptions,
   type TGridQuerySch
 } from '~/lib/Booking/ScheduleGrid';
-import {BookingRecord} from "~/lib/MoApi/Records/BookingRecord";
-import {duration} from "@unocss/preset-mini/theme";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 
 let status = ref({
@@ -262,80 +260,104 @@ const timeToMinutes = (time) => {
   return hours * 60 + minutes;
 }
 
+// const openPopUp = (day_time: ScheduleEvent) => {
+//   let selectedDate = day_time.start.format('YYYY-MM-DD')
+//   prodsList.value = []
+//   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
+//   let foundedTimeSpan = currRangeData.value![selectedDate];
+//   let busyTimes = events.value.filter(ev => ev.start.slice(0, 10) == selectedDate && timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime && timeToMinutes(ev.end.slice(11))/60 < day_time.endTime)
+//   let availableTimes = freeTimeSpans.value.filter(ev => (ev.start.slice(0, 10) == selectedDate) && (timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime) && (timeToMinutes(ev.end.slice(11))/60  <= day_time.endTime))
+//   availableTimes = availableTimes.map(event => {
+//       return {
+//         start: timeToMinutes(event.start.slice(11)),
+//         end: timeToMinutes(event.end.slice(11)),
+//         duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
+//         products: event.products.map(prod => prod.id),
+//         split: event.split
+//       }
+//     });
+//   busyTimes = busyTimes.map(event => {
+//     if(event.products){
+//       return {
+//         start: timeToMinutes(event.start.slice(11)),
+//         end: timeToMinutes(event.end.slice(11)),
+//         duration: event.products.reduce((acc, prod) => acc + prod.duration, 0),
+//         products: event.products,
+//         split: event.split
+//       }
+//     } else {
+//       return {
+//         start: timeToMinutes(event.start.slice(11)),
+//         end: timeToMinutes(event.end.slice(11)),
+//         duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
+//         products: [],
+//         split: event.split
+//       }
+//     }
+//   });
+//   let splits = Array.from( new Set(busyTimes.map(time => time.split).concat(availableTimes.map(time => time.split))));
+//   let potentialFitTime = splits.flatMap(split => {
+//     let busy = busyTimes.filter(time => time.split === split)
+//     let free = availableTimes.filter(time => time.split === split)
+//
+//     return free.filter(currentFree => {
+//       for (let currentBusy of busy) {
+//         if (currentFree.start < currentBusy.end && currentFree.end > currentBusy.start) {
+//           return false;
+//         }
+//       }
+//       return true;
+//     }).map(currentFree => ({
+//       start: currentFree.start,
+//       end: currentFree.end,
+//       duration: currentFree.duration,
+//       products: currentFree.products,
+//       split: currentFree.split
+//     }));
+//   })
+//   day_time.products.map((product) => {
+//     const foundProduct = productsArr.value.find((prod) => prod.id === product.id);
+//     if (foundProduct !== undefined) {
+//       product.title = foundProduct.title;
+//       product.duration = foundProduct.duration;
+//       prodsList.value.push(product);
+//
+//       let totalMinutes = potentialFitTime.filter(slot =>  slot!.products.includes(product.id));
+//       if (!!totalMinutes.length) {
+//         let hours = Math.floor(totalMinutes[0].start / 60);
+//         let minutes = totalMinutes[0].start % 60;
+//         product.time = `${hours > 9 ? hours : hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+//         product.split = totalMinutes[0].split
+//         product.start = selectedDate +" "+product.time
+//       } else {
+//         let rProd = day_time.products.find(p => p.split === product.split && (p.time || p.start));
+//         product.time = rProd!.time;
+//         product.start = rProd!.start;
+//       }
+//     }
+//   });
+//
+// }
+
 const openPopUp = (day_time: ScheduleEvent) => {
-  let selectedDate = day_time.start.format('YYYY-MM-DD')
-  prodsList.value = []
+  let selDate = day_time.start.format('YYYY-MM-DD');
   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
-  let foundedTimeSpan = currRangeData.value![selectedDate];
-  let busyTimes = events.value.filter(ev => ev.start.slice(0, 10) == selectedDate && timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime && timeToMinutes(ev.end.slice(11))/60 < day_time.endTime)
-  let availableTimes = freeTimeSpans.value.filter(ev => ev.start.slice(0, 10) == selectedDate && timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime && ((timeToMinutes(ev.end.slice(11))/60 - ev.products[0].duration) < day_time.endTime))
-  availableTimes = availableTimes.map(event => {
-      return {
-        start: timeToMinutes(event.start.slice(11)),
-        end: timeToMinutes(event.end.slice(11)),
-        duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
-        products: event.products.map(prod => prod.id),
-        split: event.split
-      }
-    });
-  busyTimes = busyTimes.map(event => {
-    if(event.products){
-      return {
-        start: timeToMinutes(event.start.slice(11)),
-        end: timeToMinutes(event.end.slice(11)),
-        duration: event.products.reduce((acc, prod) => acc + prod.duration, 0),
-        products: event.products,
-        split: event.split
-      }
+  prodsList.value = [];
+  let prods = day_time.products.map(pr => pr.id);
+  prods = prods.map(id => {return productsArr.value.find(pr => pr.id === id)});
+  let availableTimes = freeTimeSpans.value.filter(ev => (ev.start.slice(0, 10) == selDate) && (timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime) && (timeToMinutes(ev.end.slice(11))/60  <= day_time.endTime));
+  prodsList.value = prods.map(pr => {
+    let fitSlot = availableTimes.find(el => el.products.includes(pr) )
+    if(fitSlot){
+      pr.split = fitSlot.split;
+      pr.start = fitSlot.start;
+      pr.time = fitSlot.start.slice(11);
     } else {
-      return {
-        start: timeToMinutes(event.start.slice(11)),
-        end: timeToMinutes(event.end.slice(11)),
-        duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
-        products: [],
-        split: event.split
-      }
+      pr.start = null;
+      pr.time = null;
     }
-  });
-  let splits = Array.from( new Set(busyTimes.map(time => time.split).concat(availableTimes.map(time => time.split))));
-  let potentialFitTime = splits.map(split => {
-    let busy = busyTimes.filter(time => time.split === split)
-    let free = availableTimes.filter(time => time.split === split)
-
-    return free.filter(currentFree => {
-      for (let currentBusy of busy) {
-        if (currentFree.start < currentBusy.end && currentFree.end > currentBusy.start) {
-          return false;
-        }
-      }
-      return true;
-    }).map(currentFree => ({
-      start: currentFree.start,
-      end: currentFree.end,
-      duration: currentFree.duration,
-      products: currentFree.products,
-      split: currentFree.split
-    }));
-
-  }).flat()
-  day_time.products.map((product) => {
-    const foundProduct = productsArr.value.find((prod) => prod.id === product.id);
-    if (foundProduct !== undefined) {
-      product.title = foundProduct.title;
-      product.duration = foundProduct.duration;
-      prodsList.value.push(product);
-
-      let totalMinutes = potentialFitTime.filter(slot =>  slot!.products.includes(product.id));
-      if (!!totalMinutes.length) {
-        let hours = Math.floor(totalMinutes[0].start / 60);
-        let minutes = totalMinutes[0].start % 60;
-        product.time = `${hours > 9 ? hours : hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        product.split = totalMinutes[0].split
-        product.start = selectedDate +" "+product.time
-
-      }
-    }
-  });
+    return pr
+  })
 }
 
 
@@ -399,7 +421,7 @@ const eventDiagFromMonth = (i) => {
     schGrid: {start: minDate.value, end: maxDate.value},
     employees: employeesArr.value,
     positions: positions.value,
-    products: productsArr.value.find(el=> el.id === i.id),
+    products: productsArr.value.filter(el=> el.id === i.id),
     status: status.value,
     creation: true,
     mainAction: eventAlteration,

@@ -5,9 +5,11 @@
 </template>
 
 <script lang="ts">
-import "@/lib/ExtensionMethods/ArrayExtensionMethods"
 import "reflect-metadata";
+import "@/lib/ExtensionMethods/ArrayExtensionMethods"
+
 export default {
   name: 'app'
 }
+
 </script>

@@ -20,9 +20,9 @@ export class ClientSnapshotRecordData extends ApiRecordChData {
 @injectable()
 export class ClientSnapshotRecord extends ApiRecord<ClientSnapshotRecordData> {
 
-    static RightToken = "dbClientSnapshot";
-    static RecCode = 1042;
-    static BatchGetRecDataPath = "/Clients/GetClientSnapshots";
+    static override RightToken = "dbClientSnapshot";
+    static override RecCode = 1042;
+    static overrideBatchGetRecDataPath = "/Clients/GetClientSnapshots";
 
 
     get RecCode() { return ClientSnapshotRecord.RecCode; }

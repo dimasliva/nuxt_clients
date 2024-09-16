@@ -45,8 +45,8 @@ export abstract class ListTemplate<TFilterVals> {
         itemsPerPage: 10,
         rows: [] as any[],
         page: 1,
-        selected: [],
-        columns: null as any
+        selected: [] as any[],
+        columns: [] as Array<string> 
     });
 
 
@@ -56,7 +56,9 @@ export abstract class ListTemplate<TFilterVals> {
         if (!t) t = useNuxtApp().$i18n.t;
     }
 
-    setPageData() {
+
+
+    getPageData() {
         let pageMapData: IFrameHeaderData = reactive({
             title: this.PAGE_TITLE, icon: "",
             mainBtnBar: [
@@ -75,7 +77,13 @@ export abstract class ListTemplate<TFilterVals> {
             ]
         });
 
-        this.pageMap.setPageData(this.PAGE_PATH, pageMapData);
+       return pageMapData;
+    }
+
+
+
+    setPageData() {
+        this.pageMap.setPageData(this.PAGE_PATH, this.getPageData());
     }
 
 
@@ -262,11 +270,17 @@ export abstract class ListTemplate<TFilterVals> {
                     }
                     {
                         (() => {
-                            const dt = <DataTable table-descr={this.dataTableDescr.value} visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
-                                v-model:columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
-                                ref={this.refDataTable} rows={this.dataTableVars.value.rows}
-                                selected={this.dataTableVars.value.selected} onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
-                                onOnColumnsChanged={() => { this.loadData() }} onOnColumnsChangedDelayed={() => { this.saveSettings() }} />;
+                            const dt = <DataTable 
+                                tableDescr={this.dataTableDescr.value} 
+                                visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
+                                columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
+                                ref={this.refDataTable} 
+                                rows={this.dataTableVars.value.rows}
+                                selected={this.dataTableVars.value.selected} 
+                                onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
+                                onOnColumnsChanged={() => { this.loadData() }} 
+                                onOnColumnsChangedDelayed={() => { this.saveSettings() }} 
+                                />;
 
                             //return h(KeepAlive, dt);
                             return dt;

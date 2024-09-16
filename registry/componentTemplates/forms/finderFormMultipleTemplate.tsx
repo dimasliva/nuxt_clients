@@ -20,7 +20,7 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
 
 
-    async setup(props: IFinderFormMultipleProps, ctx?) {
+    override async setup(props: IFinderFormMultipleProps, ctx?) {
         await super.setup(props, ctx);
         if (!t) t = useNuxtApp().$i18n.t;
         if (props.choosedValues) {
@@ -30,7 +30,7 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
 
 
-    async onSelect(e: any[]) {
+    override async onSelect(e: any[]) {
         if (this.lastSearchStrForStat != this.searchingText.value && this.searchingText.value) {
             this.lastSearchStrForStat = this.searchingText.value
             this.searchStrStatistic.addItem(this.searchingText.value);
@@ -75,7 +75,7 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
 
 
-    render() {
+    override render() {
         return (createElement, context) =>
             <WindowDialog diC={this.props.diC} frameHeaderData={{ title: this.props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
                 {this.getMainSearchField()}

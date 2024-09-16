@@ -92,17 +92,29 @@ import { UserContext } from '~~/lib/UserContext';
 import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
+import type { IDataTableDescription } from '~/componentComposables/dataTables/useDataTable';
+
+
+export interface IDataTableProps{
+    tableDescr:IDataTableDescription;
+    rows:any[];
+    selected: any[],
+    visibility: Boolean,
+    columns:  string[]
+}
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
 
-
+const props = defineProps<IDataTableProps>();
+/*
 const props = defineProps({
     tableDescr: { type: Object, required: true },
     rows: { type: Array<any>, required: true },
     selected: Array<any>,
     visibility: Boolean,
-    columns: { type: Array<string>, required: true },
+    columns: { type: Array<string>, required: true }
 });
+*/
 
 
 let itemsPerPage = ref(12);

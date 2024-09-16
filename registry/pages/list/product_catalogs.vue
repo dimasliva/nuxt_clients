@@ -12,7 +12,7 @@ let t: any;
 class ProductCatalogNav extends ProductNavigatorTemplate
 {
 
-  async setup(props,ctx) {
+  override async  setup(props,ctx) {
     await super.setup(props,ctx);
   }
 

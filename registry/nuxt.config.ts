@@ -34,6 +34,22 @@ export default defineNuxtConfig({
     define: {
       "process.env.DEBUG": false,
     },
+
+
+    vueJsx: {
+      babelPlugins:
+
+        [
+          // ["@babel/plugin-syntax-decorators", { "version": "2023-11" }]
+          ["@babel/plugin-proposal-decorators", { legacy: true }],
+          ["@babel/plugin-transform-class-static-block"],
+          ["@babel/plugin-transform-class-properties"],
+        ]
+
+    },
+
+
+
     //for nuxt 3.7
     esbuild: {
       tsconfigRaw: {

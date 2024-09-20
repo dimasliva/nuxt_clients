@@ -84,7 +84,15 @@ declare global {
     }
 
 
-    const EmptyGuid= "00000000-0000-0000-0000-000000000000";
+    /**Предназначено  для абстракции хранилища данных. Например, для хранения долговременных настроек компонента, которые управляются пользователем*/
+    interface IDataStorageCell {
+        getData<T = any>(): T | null | undefined;
+        setData<T = any>(data: any);
+        flush(): Promise<void>;
+    }
+
+
+    const EmptyGuid = "00000000-0000-0000-0000-000000000000";
 }
 
 

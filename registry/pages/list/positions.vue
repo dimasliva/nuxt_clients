@@ -7,7 +7,7 @@ import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { PositionRecord } from '~/lib/MoApi/Records/PositionRecord';
-import { ListTemplate } from '~/componentTemplates/listTemplate';
+import { ListTemplate } from '~/componentTemplates/listTemplates/listTemplate';
 import { PositionsViews } from '~/lib/MoApi/Views/PositionsViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
@@ -28,8 +28,8 @@ type TPositionFilterVals = {
 
 class PositionList extends ListTemplate<TPositionFilterVals>
 {
-  positionsViews = this.iocc.get(PositionsViews);
-  finderDataProvider = this.iocc.get(DictsFinderDataProvider);
+  positionsViews = this.diC.get(PositionsViews);
+  finderDataProvider = this.diC.get(DictsFinderDataProvider);
 
 
   async setup() {
@@ -129,7 +129,7 @@ class PositionList extends ListTemplate<TPositionFilterVals>
 
   //Конвертация данных из формата апи в формат для таблицы
   convertRow = async (rawData) => {
-    let dictstore = this.iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
+    let dictstore = this.diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
     return {
       id: rawData.id,
       fio: (rawData.employeeSurname || "") + " " + (rawData.employeeName || "") + " " + (rawData.employeePatronymic || ""),
@@ -148,8 +148,8 @@ class PositionList extends ListTemplate<TPositionFilterVals>
         row = this.dataTableVars.value.rows.find((i) => i.id == key);
 
       if (row) {
-        let dictstore = this.iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
-        let rec = await this.recStore.fetch(PositionRecord, key);
+        let dictstore = this.diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
+        let rec = await this._recStore.fetch(PositionRecord, key);
         row.position = await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rec.Data!.position) || ""
       }
     })();

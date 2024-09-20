@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev --host --https --ssl-cert ./certs/cert.crt --ssl-key ./certs/certkey.key", 
+    "dev": "nuxt dev --host --https --ssl-cert ./certs/cert.crt --ssl-key ./certs/certkey.key",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -22,9 +22,15 @@
     "vue-tsc": "^2.0.19"
   },
   "dependencies": {
+    "@babel/plugin-transform-class-properties": "^7.25.4",
+    "@babel/plugin-transform-class-static-block": "^7.24.7",
+    "@babel/plugin-transform-classes": "^7.25.4",
+    "@babel/plugin-transform-private-property-in-object": "^7.24.7",
+    "@babel/plugin-transform-runtime": "^7.25.4",
     "@microsoft/signalr": "^8.0.0",
     "@nuxt-alt/proxy": "^2.5.8",
     "@vuepic/vue-datepicker": "^6.1.0",
+    "babel-plugin-transform-class": "^0.3.0",
     "flag-icons": "^7.1.0",
     "inversify": "^6.0.2",
     "inversify-inject-decorators": "^3.1.0",

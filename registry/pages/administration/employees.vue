@@ -8,7 +8,7 @@ import { useI18n } from "vue-i18n"
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsRecord';
-import { ListTemplate } from '~/componentTemplates/listTemplate';
+import { ListTemplate } from '~/componentTemplates/listTemplates/listTemplate';
 import { EmployeesViews } from '~/lib/MoApi/Views/EmployeesViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDataType } from '~/lib/globalTypes';
@@ -25,7 +25,7 @@ type TEmployeeFilterVals = {
 
 class EmployeeList extends ListTemplate<TEmployeeFilterVals>
 {
-  employeesViews = this.iocc.get(EmployeesViews);
+  employeesViews = this.diC.get(EmployeesViews);
 
   //Указание пути текущей страницы
   PAGE_PATH = "/administration/employees";
@@ -169,9 +169,9 @@ class EmployeeList extends ListTemplate<TEmployeeFilterVals>
         row = this.dataTableVars.value.rows.find((i) => i.id == key);
 
       if (row) {
-        let rec = await this.recStore.fetch(EmployeeRecord, key);
+        let rec = await this._recStore.fetch(EmployeeRecord, key);
         // let recDoc = await this.recStore.getOrCreate(EmployeeDocumentsRecord, key);
-        let recCont = await this.recStore.getOrCreate(EmployeeContactsRecord, key);
+        let recCont = await this._recStore.getOrCreate(EmployeeContactsRecord, key);
 
 
         row.fio = (rec.Data!.surname || "") + " " + (rec.Data!.name || "") + " " + (rec.Data!.patronymic || "");

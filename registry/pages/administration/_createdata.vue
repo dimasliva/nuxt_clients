@@ -49,7 +49,15 @@
 
         </VCol>
     </VRow>
+
+    <VRow>
+        <VCol>
+           <TemplateFrame :templateInstance="new ClientList(diC)"  />
+        </VCol>
+    </VRow>
+
 </template>
+
 
 <script setup lang="ts">
 import { EmployeeRecord, EmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
@@ -77,7 +85,8 @@ import { QueryParams } from '~/lib/MoApi/RequestArgs';
 import { ProductViews } from '~/lib/MoApi/Views/ProductViews';
 import { RelationApiSection } from '~/lib/MoApi/ApiSectionsV1/RelationApiSection';
 import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
-
+import { ClientList } from '~/componentTemplates/listTemplates/clientListTemplate';
+import  TemplateFrame  from '~/components/TemplateFrame.vue';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -87,7 +96,6 @@ let productsCatalogSectionQuantity = ref(0)
 let productsCatalogName = ref('')
 let scheduleItemGroup = ref('')
 let scheduleItemGroupLoader = ref(false)
-
 
 
 const createRecs = async (recLoading: typeof emplLoading) => {
@@ -742,6 +750,11 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 };
 
 
+
+const testWindow= ()=>{
+
+
+}
 
 
 

@@ -13,8 +13,6 @@ import { ListTemplate } from '~/componentTemplates/listTemplates/listTemplate';
 import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDataType } from '~/lib/globalTypes';
-import type { UserContext } from '~/lib/UserContext';
-import type { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import type { IRenderedTemplateComponentProps } from '../componentTemplates';
 
 
@@ -37,7 +35,7 @@ export class ClientList extends ListTemplate<TClientFilterVals> {
             this._clientsViews = deps.get(ClientsViews);
         }
         else {
-            this._recStore = deps["ClientsViews"];
+            this._clientsViews = deps["ClientsViews"];
         }
     }
 

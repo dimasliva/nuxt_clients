@@ -19,7 +19,7 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
 
 
-    async setup(props: IFinderFormSelectProps, ctx?) {
+    override async setup(props: IFinderFormSelectProps, ctx?) {
         await super.setup(props, ctx);
         if (props.selectedOptionsValues) {
             this.sections.value = props.selectedOptionsValues;
@@ -28,7 +28,7 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
 
 
-    async getValueList() {
+    override async getValueList() {
         return await this.props.finderDataProvider.getList(this.searchingText.value, this.selectedSections.value);
     }
 
@@ -66,7 +66,7 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
 
 
-    render() {
+    override render() {
         return (createElement, context) =>
             <WindowDialog diC={this.props.diC} frameHeaderData={{ title: this.props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
                 {this.getMainSearchField()}

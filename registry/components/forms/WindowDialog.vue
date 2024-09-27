@@ -33,7 +33,7 @@
             </v-row>
         </v-card-title>
 
-        <v-card-text class="overflow-y-auto pb-0">
+        <v-card-text class="overflow-y-auto pb-0 h-100 pt-0">
             <slot>
 
             </slot>
@@ -91,7 +91,8 @@ const eventsHandler = (e: string, d: any) => {
 
 
 const windowStyle = {
-    height: props.height || "90dvh"
+    height: props.height || "90dvh",
+    "min-width": props.width
 }
 
 const close = async () => {

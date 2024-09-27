@@ -1,82 +1,87 @@
 <template>
-    <div v-if="visibility">
-        <v-data-table ref="refDt" v-model="selected" show-select item-value="id" v-model:items-per-page="itemsPerPage" hover
-            :headers="_headers" hide-default-footer v-model:page="currentPage" :items="props.rows" class="elevation-1"
-            fixed-header height="72dvh" disable-pagination>
+    <div v-if="visibility" style="height: 100%; " class="d-flex flex-column">
+        <div class="flex-grow-1" style="min-height:10rem; ">
+            <v-data-table ref="refDt" v-model="selected" show-select item-value="id"
+                v-model:items-per-page="itemsPerPage" hover :headers="_headers" hide-default-footer
+                v-model:page="currentPage" :items="props.rows" class="elevation-1 h-100" fixed-header disable-paginatio
+                style="width: 100%;" >
 
-            <!-- настройка колонок-->
-            <template v-slot:header.actions="{ column }">
+                <!-- настройка колонок-->
+                <template v-slot:header.actions="{ column }">
 
-                <v-menu :close-on-content-click="false">
+                    <v-menu :close-on-content-click="false">
 
-                    <template v-slot:activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-cog" variant="text"> </v-btn>
-                    </template>
+                        <template v-slot:activator="{ props }">
+                            <v-btn v-bind="props" icon="mdi-cog" variant="text"> </v-btn>
+                        </template>
 
-                    <template v-slot:default="{ isActive }">
-                        <v-card class="mx-auto" max-width="400">
-                            <v-list>
-                                <v-list-item v-for="val in accessibleColItems">
-                                    <template v-slot:prepend="{ isActive }">
-                                        <v-list-item-action start>
-                                            <v-checkbox-btn :model-value="columns.includes(val.key)"
-                                                @update:modelValue="(e) => toggleSelectColumn(e, val.key)"></v-checkbox-btn>
-                                        </v-list-item-action>
-                                    </template>
-                                    <v-list-item-title>{{ val.title || "" }}</v-list-item-title>
-                                </v-list-item>
-                            </v-list>
-                            <VBtn class="ml-5 mb-5" color="primary" variant="text"
-                                @click="$emit('onColumnsChanged', props.columns)">Обновить</VBtn>
-                            <VBtn class="mr-5 mb-5" color="primary" variant="text" @click="() => columns.length = 0">
-                                Сбросить
-                            </VBtn>
-                        </v-card>
-                    </template>
-                </v-menu>
-
-
-            </template>
-
-
-            <template v-slot:item="{ internalItem, index }">
-                <VDataTableRow :index="index" :item="internalItem" :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
-                    @click="(e) => { onRowClick(internalItem) }">
-
-                    <template v-slot:item.actions="{ item }">
-                        <v-menu  scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
-                            <template v-slot:activator="{ props }">
-                                <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
-                                    @click="() => lineSelected = internalItem.raw.id"></v-btn>
-                            </template>
-
-                            <template v-slot:default="{ isActive }">
-                                <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for="action in getActionsMenu(internalItem)"
-                                        @click-once="() => action.action(internalItem)">
-                                        <v-icon :icon="action.icon" size="x-small" />
-                                        {{ action.title }}
+                        <template v-slot:default="{ isActive }">
+                            <v-card class="mx-auto" max-width="400">
+                                <v-list>
+                                    <v-list-item v-for="val in accessibleColItems">
+                                        <template v-slot:prepend="{ isActive }">
+                                            <v-list-item-action start>
+                                                <v-checkbox-btn :model-value="columns.includes(val.key)"
+                                                    @update:modelValue="(e) => toggleSelectColumn(e, val.key)"></v-checkbox-btn>
+                                            </v-list-item-action>
+                                        </template>
+                                        <v-list-item-title>{{ val.title || "" }}</v-list-item-title>
                                     </v-list-item>
                                 </v-list>
-                            </template>
-                        </v-menu>
-                    </template>
+                                <VBtn class="ml-5 mb-5" color="primary" variant="text"
+                                    @click="$emit('onColumnsChanged', props.columns)">Обновить</VBtn>
+                                <VBtn class="mr-5 mb-5" color="primary" variant="text"
+                                    @click="() => columns.length = 0">
+                                    Сбросить
+                                </VBtn>
+                            </v-card>
+                        </template>
+                    </v-menu>
 
-                    <template v-for="val in accessibleCols" #[`item.${val}`]="{ internalItem }">
-                        <div :class="getDataAlignClass(val)"> {{ internalItem.columns[val] }} </div>
-                    </template>
 
-                    <template v-for="val in notAccessibleCols" #[`item.${val}`]>
-                        -
-                    </template>
+                </template>
 
-                </VDataTableRow>
-            </template>
 
-            <template v-slot:bottom />
-        </v-data-table>
+                <template v-slot:item="{ internalItem, index }">
+                    <VDataTableRow :index="index" :item="internalItem"
+                        :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
+                        @click="(e) => { onRowClick(internalItem) }">
 
-        <v-row class="text-center pt-5" justify="center">
+                        <template v-slot:item.actions="{ item }">
+                            <v-menu scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
+                                <template v-slot:activator="{ props }">
+                                    <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
+                                        @click="() => lineSelected = internalItem.raw.id"></v-btn>
+                                </template>
+
+                                <template v-slot:default="{ isActive }">
+                                    <v-list @mouseleave="(e) => { isActive.value = false }">
+                                        <v-list-item v-for="action in getActionsMenu(internalItem)"
+                                            @click-once="() => action.action(internalItem)">
+                                            <v-icon :icon="action.icon" size="x-small" />
+                                            {{ action.title }}
+                                        </v-list-item>
+                                    </v-list>
+                                </template>
+                            </v-menu>
+                        </template>
+
+                        <template v-for="val in accessibleCols" #[`item.${val}`]="{ internalItem }">
+                            <div :class="getDataAlignClass(val)"> {{ internalItem.columns[val] }} </div>
+                        </template>
+
+                        <template v-for="val in notAccessibleCols" #[`item.${val}`]>
+                            -
+                        </template>
+
+                    </VDataTableRow>
+                </template>
+
+                <template v-slot:bottom />
+            </v-data-table>
+        </div>
+
+        <v-row class="text-center pt-5 w-100" justify="center" style="min-height: 6rem; max-height: 6rem;">
             <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
                 @update:modelValue="() => scrollTo(0, 0)" />
             <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
@@ -95,12 +100,12 @@ import { useScroll } from "~/componentComposables/dataTables/useScroll"
 import type { IDataTableDescription } from '~/componentComposables/dataTables/useDataTable';
 
 
-export interface IDataTableProps{
-    tableDescr:IDataTableDescription;
-    rows:any[];
+export interface IDataTableProps {
+    tableDescr: IDataTableDescription;
+    rows: any[];
     selected: any[],
     visibility: Boolean,
-    columns:  string[]
+    columns: string[]
 }
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
@@ -143,14 +148,13 @@ const pagesCount = computed(() => {
 
 const notAccessibleCols = ref<string[]>([]);
 const accessibleCols = ref<string[]>([]);
-const accessibleColItems=ref<any[]>([]);
+const accessibleColItems = ref<any[]>([]);
 
 
 props.tableDescr.headers.forEach((item) => {
     if (!chkRights(null, item.traits))
         notAccessibleCols.value.push(item.key)
-    else
-    {
+    else {
         accessibleCols.value.push(item.key);
         accessibleColItems.value.push(item);
     }
@@ -162,8 +166,8 @@ const _headers = computed(() => {
 
     props.columns.forEach((item) => {
         let headerItem = accessibleColItems.value.find((el) => el.key == item)
-         if(headerItem)
-           res.push(headerItem);
+        if (headerItem)
+            res.push(headerItem);
     });
 
     res.push({ key: "_space", sortable: false, title: "" })

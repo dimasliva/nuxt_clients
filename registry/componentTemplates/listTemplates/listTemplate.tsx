@@ -43,8 +43,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
     constructor(deps: Container | Object, opts?: IRenderedTemplateComponentProps | null) {
-
-        t = useI18n().t;
+        if (!t) t = useNuxtApp().$i18n.t;
         if (deps instanceof Container) {
             this._recStore = deps.get("RecordsStore");
         }
@@ -261,9 +260,8 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
     render() {
 
-        return () => <div style="height: 100%;">
-            <v-row class="ma-1 bg-background">
-                <v-col class="w-50" style="min-width: 400; ">
+        return () => <v-row class="ma-1 h-100 bg-background">
+                <v-col class="w-50 h-100 pt-0 pb-0" style="min-width: 400;">
                     {
                         (() => {
                             if (this.loading.value == true)
@@ -301,6 +299,6 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
                 </v-expand-x-transition>
 
             </v-row>
-        </div>
+       
     }
 }

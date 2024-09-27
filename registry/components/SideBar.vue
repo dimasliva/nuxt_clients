@@ -64,8 +64,8 @@
     </v-col>
   </v-row>
   <!--Страница-->
-  <v-sheet class="bg-background pr-sm-12 pr-md-12 pr-lg-0">
-    <v-row class="ma-0 pt-3 px-4 bg-background">
+  <v-sheet class="d-flex flex-column bg-background pr-sm-12 pr-md-12 pr-lg-0" style="height:calc(100% - 40px);">
+    <v-row class="flex-grow-0 ma-0 pt-3 px-4 bg-background">
       <!--Название страницы-->
       <p class="text-h6 text-secondary font-weight-bold mx-2">{{ currPageTitle }}</p>
       <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPageBtnClick">
@@ -102,13 +102,15 @@
       </v-menu>
     </v-row>
     <!--Содержимое страницы-->
-    <NuxtPage ref="pageObj" :keepalive="true" />
+    <v-col class="pt-1" style="min-height: 10rem;">
+      <NuxtPage ref="pageObj" :keepalive="true" />
+    </v-col>
   </v-sheet>
   <!--Всплывающие сообщения-->
   <Toaster position="bottom-right" :expand="true" closeButton richColors />
   <!--Поддержка диалоговых окон-->
   <v-dialog v-for="(item, index) in dialogForms" :key="index" :modelValue="item.showDialog" :persistent="item.modal"
-    width="auto">
+    content-class="d-flex align-center justify-center" width="100vw" height="100dvh">
     <component :ref="item.refComp" :is="item.comp" v-bind="item.props" />
   </v-dialog>
 </template>
@@ -239,7 +241,7 @@ onErrorCaptured((h, t) => {
   closeDiag(null, true);
 });
 
-watch(() => route.query,  ()=>nextTick(loadPageData));
+watch(() => route.query, () => nextTick(loadPageData));
 
 onMounted(() => {
   loadPageData();

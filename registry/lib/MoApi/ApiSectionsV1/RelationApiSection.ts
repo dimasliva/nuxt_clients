@@ -1,3 +1,4 @@
+import   "reflect-metadata";
 import { injectable, inject } from "inversify";
 import type { ICouplingData, IRelData } from "../ApiInterfaces";
 import type { MoApiClient } from "../MoApiClient";

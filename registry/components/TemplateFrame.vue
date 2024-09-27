@@ -1,7 +1,7 @@
 <template>
-    <v-card>
-        <v-card-title class="mx-2">
-            <v-row class="pt-4 pb-4 align-center">
+    <v-card class="h-100 w-100">
+        <v-card-title  v-if="showHeader" class="mx-2">
+            <v-row class="pt-1 pb-1 align-center">
                 <v-spacer></v-spacer>
                 <!--Пользовательские кнопки окна-->
                 <template v-for="(buttons, index) in frameHeaderData.mainBtnBar" :key="buttons.id">
@@ -29,8 +29,8 @@
             </v-row>
         </v-card-title>
 
-        <v-card-text class="overflow-y-auto pb-0">
-            <TemplateRenderer :templateInstance="templateInstance"  />
+        <v-card-text class="pb-0 h-100">
+            <TemplateRenderer :templateInstance="templateInstance" />
         </v-card-text>
     </v-card>
 </template>
@@ -46,7 +46,8 @@ import TemplateRenderer from '~/components/TemplateRenderer.vue'
 
 interface IProps {
     templateInstance: IRenderedTemplateComponent,
-    props?: IRenderedTemplateComponentProps
+    //props?: IRenderedTemplateComponentProps
+    showHeader: boolean;
 }
 
 
@@ -58,6 +59,11 @@ export default {
         templateInstance: {
             type: Object as PropType<IRenderedTemplateComponent>,
             required: true
+        },
+
+        showHeader: {
+            type: Boolean,
+            required: false
         }
     },
 

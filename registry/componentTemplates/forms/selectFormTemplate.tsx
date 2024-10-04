@@ -5,26 +5,25 @@ import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from
 import type { Container } from "inversify";
 import TemplateFrame from "~/components/TemplateFrame.vue"
 import type { SetupContext } from "vue";
-import { VRow } from "vuetify/components";
-import type { IFrameHeaderData } from "~/lib/PageMap";
+
 
 let t: any;
 
-export interface IMultiselectFormProps extends IRenderedTemplateComponentProps {
+export interface ISelectFormProps extends IRenderedTemplateComponentProps {
     title: string;
     componentTemplate: IRenderedTemplateComponent;
 }
 
 
-export class MultiselectFormTemplate implements IRenderedTemplateComponent {
+export class SelectFormTemplate implements IRenderedTemplateComponent {
 
     protected _selected = ref([] as { value: any, title: string }[]);
     protected _diC: Container;
-    protected _props: IMultiselectFormProps;
+    protected _props: ISelectFormProps;
     protected _templateFrameRef = ref();
 
 
-    constructor(_diC: Container, props: IMultiselectFormProps) {
+    constructor(_diC: Container, props: ISelectFormProps) {
         if (!t) t = useNuxtApp().$i18n.t;
         this._diC = _diC;
         this._props = props;
@@ -33,15 +32,18 @@ export class MultiselectFormTemplate implements IRenderedTemplateComponent {
     }
 
 
-    async setup(ctx: SetupContext) {
-
-        ctx.expose({
-            eventsHandler: (e, d) => this._templateFrameRef.value.eventsHandler(e, d)
-        });
-
+    async setup(props, ctx: SetupContext) {
+        ctx.expose(this.expose())
         //if (this.props.choosedValues) {
         //    this.selected.value = await Utils.mapAsync(props.choosedValues, async (val, inx) => { return { value: val.value, title: val.title || await this.getTitleItemByVal(val) || "" } });
         // }
+    }
+
+
+    expose() {
+        return {
+            eventsHandler: (e, d) => this._templateFrameRef.value.eventsHandler(e, d)
+        }
     }
 
 
@@ -78,18 +80,14 @@ export class MultiselectFormTemplate implements IRenderedTemplateComponent {
 
 
 
-    get render() {
+    render() {
         return (createElement, context) =>
-            <WindowDialog diC={this._diC} frameHeaderData={this._getFrameHeaderData()} onOk={() => this.onOk()}>
-
+            <WindowDialog diC={this._diC} frameHeaderData={this._getFrameHeaderData()} onOk={() => { return this._templateFrameRef.value.getSelected(); }}>
                 <v-col class="h-100">
                     <v-row class="overflow-y-auto h-100" no-gutters >
                         <TemplateFrame ref={this._templateFrameRef} templateInstance={this._props.componentTemplate} />
                     </v-row>
-
-     
                 </v-col>
-
             </WindowDialog>
     }
 }

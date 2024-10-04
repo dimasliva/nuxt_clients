@@ -4,7 +4,7 @@
             <v-data-table ref="refDt" v-model="selected" show-select item-value="id"
                 v-model:items-per-page="itemsPerPage" hover :headers="_headers" hide-default-footer
                 v-model:page="currentPage" :items="props.rows" class="elevation-1 h-100" fixed-header disable-paginatio
-                style="width: 100%;" >
+                :selectStrategy="selectStrategy" style="width: 100%;">
 
                 <!-- настройка колонок-->
                 <template v-slot:header.actions="{ column }">
@@ -81,12 +81,19 @@
             </v-data-table>
         </div>
 
-        <v-row class="text-center pt-5 w-100" justify="center" style="min-height: 6rem; max-height: 6rem;">
-            <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
-                @update:modelValue="() => scrollTo(0, 0)" />
-            <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
-                :items="[10, 12, 25, 50, 100]" variant="solo"
-                @update:model-value="itemsPerPage = parseInt(<string><unknown>$event, 10)"></v-select>
+        <v-row class="text-center pt-5 w-100 mb-1 pr-0" justify="center" style="min-height: 6rem; max-height: 6rem; ">
+            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">Всего:{{ props.rows.length }} Выбрано:{{
+                selected.length }}</v-col>
+            <v-col lg="7" md="8" sm="9" xs="10" class="pl-0 pr-0" style="min-width: 650px;">
+                <v-row justify="center">
+                    <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
+                        @update:modelValue="() => scrollTo(0, 0)" />
+                    <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
+                        :items="[10, 12, 25, 50, 100]" variant="solo"
+                        @update:model-value="itemsPerPage = parseInt(<string><unknown>$event, 10)"></v-select>
+                </v-row>
+            </v-col>
+            <v-col />
         </v-row>
     </div>
 </template>
@@ -105,7 +112,8 @@ export interface IDataTableProps {
     rows: any[];
     selected: any[],
     visibility: Boolean,
-    columns: string[]
+    columns: string[],
+    selectStrategy?: 'page' | 'single' | 'all'
 }
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
@@ -266,7 +274,12 @@ const toggleSelectColumn = (e, colName: string) => {
 }
 
 
-defineExpose({ addCurrPage, reset });
+const getSelected = () => {
+    return selected.value;
+}
+
+
+defineExpose({ addCurrPage, reset, getSelected });
 
 </script>
 

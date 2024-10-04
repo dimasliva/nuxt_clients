@@ -18,7 +18,7 @@ export default {
     const settingStorage = diC.get(EmployeeAppProfilePageDataStorageCell);
     settingStorage.initPageSec(PAGE_PATH)
     const o = new PositionList(diC, { settingsStorage: settingStorage });
-    await o.setup(ctx);
+    await o.setup(props,ctx);
     diC.get<PageMap>("PageMap").setPageData(PAGE_PATH, o.getFrameHeaderData());
 
     const del = () => { }

@@ -6,7 +6,7 @@ import * as vHelpers from '~/libVis/Helpers';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsRecord';
-import { ListTemplate } from '~/componentTemplates/listTemplates/listTemplate';
+import { ListTemplate, type IListTemplateProps } from '~/componentTemplates/listTemplates/listTemplate';
 import { EmployeesViews } from '~/lib/MoApi/Views/EmployeesViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDataType } from '~/lib/globalTypes';
@@ -23,13 +23,13 @@ type TEmployeeFilterVals = {
 
   
 
-export class EmployeeList extends ListTemplate<TEmployeeFilterVals>
+export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals>
 {
 
   protected _employeesViews: EmployeesViews = null!;
 
   
-    constructor(deps: Container | Object, opts?: IRenderedTemplateComponentProps | null) {
+    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
         super(deps, opts);
 
         if (deps instanceof Container) {

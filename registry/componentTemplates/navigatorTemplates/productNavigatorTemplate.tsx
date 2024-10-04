@@ -115,8 +115,11 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
 
-    async setup(ctx: SetupContext) {
-        ctx?.expose({ eventsHandler: (e, d) => this.eventsHandler(e, d) })
+    async setup(props, ctx: SetupContext) {
+        ctx?.expose({ 
+            eventsHandler: (e, d) => this.eventsHandler(e, d), 
+            getSelected: ()=>this.getSelected() 
+        });
 
         await this.loadSettings();
     }
@@ -171,7 +174,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
             data.productsCatalogSection = catalogSectionKey;
         });
 
-        openDialog(ProductProfileDialog, { recKey: null, rec: newrec}, true,
+        openDialog(ProductProfileDialog, { recKey: null, rec: newrec}, true, true,
             (e, d) => {
                 if (e == "onBeforeClose" && d) {
                     this._RefNavigator.value.update();
@@ -184,7 +187,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
     async editProduct(row:IProductNavRow, index?) {
-        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
+        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
     }
 
 
@@ -223,7 +226,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
             data.parent = catalogSectionKey;
         });
 
-        openDialog(ProductsCatalogSectionProfileDialog, { recKey: null, rec: newrec}, true,
+        openDialog(ProductsCatalogSectionProfileDialog, { recKey: null, rec: newrec}, true, true,
             (e, d) => {
                 if (e == "onBeforeClose" && d) {
                     this._RefNavigator.value.update();
@@ -236,7 +239,13 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
     async editProductsCatalogSection(row:IProductNavRow, index?){
-        openDialog(ProductsCatalogSectionProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogSectionRow(row, index) : true : true)
+        openDialog(
+            ProductsCatalogSectionProfileDialog, 
+            { diC: this._diC, recKey: row.id }, 
+            true, 
+            true, 
+            (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogSectionRow(row, index) : true : true
+        );
     }
 
 
@@ -270,7 +279,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
     async addProductsCatalog() {
-        openDialog(ProductsCatalogProfileDialog, { recKey: null }, true,
+        openDialog(ProductsCatalogProfileDialog, { recKey: null }, true, true,
             (e, d) => {
                 if (e == "onBeforeClose" && d) {
                     this._productCatalogRecs.value=null;
@@ -283,7 +292,13 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
     async editProductsCatalog(row:IProductNavRow, index?){
-        openDialog(ProductsCatalogProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogRow(row, index) : true : true)
+        openDialog(
+            ProductsCatalogProfileDialog,
+            { diC: this._diC, recKey: row.id }, 
+            true, 
+            true,
+            (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogRow(row, index) : true : true
+        );
     }
 
 
@@ -569,11 +584,16 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
     }
 
 
+    getSelected() {
+        return this._RefNavigator.value.getSelected();
+    }
+
+
 
     render() {
         return () => <div style="height: 100%;">
             <v-row class="ma-1 h-100 bg-background">
-                <v-col class="w-50 h-100" style="min-width: 400; ">
+                <v-col class="w-50 h-100 pt-0" style="min-width: 400; ">
                     {
                         (() => {
                             if (this._Loading.value == true)

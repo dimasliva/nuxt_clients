@@ -3,6 +3,7 @@ import WindowDialog from "~/components/forms/WindowDialog.vue"
 import { FinderFormTemplate, type IFinderFormProps } from "./finderFormTemplate";
 import * as Utils from '~~/lib/Utils';
 import type { IFrameHeaderData } from "~/lib/PageMap";
+import type { Container } from "inversify";
 
 
 export interface IFinderFormMultipleProps extends IFinderFormProps {
@@ -20,6 +21,12 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
 
 
+    constructor(deps: Container, props: IFinderFormProps) {
+        super(deps,props);
+    }
+
+
+
     override async setup(props: IFinderFormMultipleProps, ctx?) {
         await super.setup(props, ctx);
         if (!t) t = useNuxtApp().$i18n.t;
@@ -31,9 +38,9 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
 
     override async onSelect(e: any[]) {
-        if (this.lastSearchStrForStat != this.searchingText.value && this.searchingText.value) {
-            this.lastSearchStrForStat = this.searchingText.value
-            this.searchStrStatistic.addItem(this.searchingText.value);
+        if (this.lastSearchStrForStat != this._searchingText.value && this._searchingText.value) {
+            this.lastSearchStrForStat = this._searchingText.value
+            this._searchStrStatistic.addItem(this._searchingText.value);
         }
 
         let val = e[0];
@@ -46,7 +53,7 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
     onOk() {
         let res = this.selected.value.map(item => {
-            this.resultHistoryStatistic.addItem(item.value);
+            this._resultHistoryStatistic.addItem(item.value);
             return item
         });
         closeDialog(res);
@@ -77,18 +84,18 @@ export abstract class FinderFormMultipleTemplate extends FinderFormTemplate {
 
     override render() {
         return (createElement, context) =>
-            <WindowDialog diC={this.props.diC} frameHeaderData={{ title: this.props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
+            <WindowDialog diC={this._diC} frameHeaderData={{ title: this._props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
                 {this.getMainSearchField()}
 
                 <v-row style="height:60%;" class="overflow-y-auto" >
                     {
-                        this.loading.value ?
+                        this._loading.value ?
                             <v-progress-linear style="width:98%" color="primary" class="ma-1" indeterminate />
                             :
-                            this.valueList.value == null ?
+                            this._valueList.value == null ?
                                 this.getMostFreqChoose(95)
                                 :
-                                (this.valueList.value.length > 0) ? this.getResultListField() : this.getEmptyResultListField()
+                                (this._valueList.value.length > 0) ? this.getResultListField() : this.getEmptyResultListField()
                     }
                 </v-row>
 

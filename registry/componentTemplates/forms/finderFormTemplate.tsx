@@ -4,19 +4,19 @@ import WindowDialog from "~/components/forms/WindowDialog.vue"
 import { sleep } from "~/lib/Helpers";
 import { FreqUsingStrStatistic } from "~/libVis/FreqUsingStrStatistic";
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
-import type { Container } from "inversify/lib/container/container";
-
+import { Container } from "inversify/lib/container/container";
+import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 
 
 let t: any;
 
-export interface IFinderFormProps {
-    diC?: Container | null;
+export interface IFinderFormProps extends IRenderedTemplateComponentProps {
     label?: string,
     title: string,
     finderDataProvider: FinderDataProvider
     historyResultTypeStorage?: EFinderFormHistoryResultTypeStorage,
     apiRequestTimeout?: number;
+    selectFormComponent?: any;// component of SelectFormTemplate
 }
 
 
@@ -27,72 +27,107 @@ export enum EFinderFormHistoryResultTypeStorage {
 }
 
 
-export abstract class FinderFormTemplate {
+export class FinderFormTemplate implements IRenderedTemplateComponent {
 
-    iocc = useContainer();
-    userCtx = this.iocc.get<UserContext>('UserContext');
-    searchStrStatistic = this.iocc.get(FreqUsingStrStatistic);
-    resultHistoryStatistic = this.iocc.get(FreqUsingStrStatistic);
-    loading = ref(false);
-    props: IFinderFormProps = null!;
-    ctx?: any | null = null;
+    protected _diC: Container;
+    protected _userCtx: UserContext;
+    protected _searchStrStatistic: FreqUsingStrStatistic;
+    protected _resultHistoryStatistic: FreqUsingStrStatistic;
+    protected _loading = ref(false);
+    protected _props: IFinderFormProps;
+    protected _ctx?: any | null = null;
 
-    valueList = ref(null as TDictViewVal[] | null);
-    searchingText = ref();
-    searchFieldRef = ref();
-    searchedStrLst = ref<(string | number)[]>([]);
-    historyResultLst = ref([] as TDictViewVal[]);
-    historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.none;
+    protected _valueList = ref(null as TDictViewVal[] | null);
+    protected _searchingText = ref();
+    protected _searchFieldRef = ref();
+    protected _searchedStrLst = ref<(string | number)[]>([]);
+    protected _historyResultLst = ref([] as TDictViewVal[]);
+    protected _historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.none;
 
-    lastFindRequestDate: number | null = null;
-    searchTimeout: any | null = null;
-    apiRequestTimeout = 1000;
+    protected _lastFindRequestDate: number | null = null;
+    protected _searchTimeout: any | null = null;
+    protected _apiRequestTimeout = 1000;
     //testprop:Ref<any>;
 
 
-    constructor() {
+    constructor(deps: Container, props: IFinderFormProps) {
         if (!t) t = useNuxtApp().$i18n.t;
+
+        this._diC = deps;
+        this._userCtx = this._diC.get<UserContext>('UserContext');
+        this._searchStrStatistic = this._diC.get(FreqUsingStrStatistic);
+        this._resultHistoryStatistic = this._diC.get(FreqUsingStrStatistic);
+
+        this._loading.value = false;
+        this._props = props;
+        this._searchStrStatistic.init(this._props.finderDataProvider.getInstName() || "default");
+        this._resultHistoryStatistic.init((this._props.finderDataProvider.getInstName() + "hist_res") || "default_hist_res");
+        this._historyResultTypeStorage = props.historyResultTypeStorage || EFinderFormHistoryResultTypeStorage.none;
+        this._apiRequestTimeout = props.apiRequestTimeout || 1000;
+        this._searchedStrLst.value = this._searchStrStatistic.getMostFreq(100).map(val => val.value);
     }
 
 
 
     async setup(props: IFinderFormProps, ctx?) {
-        this.loading.value = false;
-        this.props = props;
-        this.ctx = ctx;
-        this.searchStrStatistic.init(this.props.finderDataProvider.getInstName() || "default");
-        this.resultHistoryStatistic.init((this.props.finderDataProvider.getInstName() + "hist_res") || "default_hist_res");
-        this.historyResultTypeStorage = props.historyResultTypeStorage || EFinderFormHistoryResultTypeStorage.none;
-        this.apiRequestTimeout = props.apiRequestTimeout || 1000;
+
+        this._ctx = ctx;
+
+        ctx.expose(this.expose());
 
         onMounted(() => {
-            nextTick((() => setTimeout(() => { this.searchFieldRef.value.focus(); }, 10)));
+            nextTick((() => setTimeout(() => { this._searchFieldRef.value.focus(); }, 10)));
         });
 
-        this.searchedStrLst.value = this.searchStrStatistic.getMostFreq(100).map(val => val.value);
-
-        const histRes = this.resultHistoryStatistic.getMostFreq(20);
-        this.historyResultLst.value = [];
+        const histRes = this._resultHistoryStatistic.getMostFreq(20);
+        this._historyResultLst.value = [];
 
         for (let i = 0; i < histRes.length; i++)
-            this.historyResultLst.value.push({ value: histRes[i].value, title: histRes[i].title || await this.getTitleItemByVal(histRes[i].value) || '' })
-
+            this._historyResultLst.value.push({ value: histRes[i].value, title: histRes[i].title || await this.getTitleItemByVal(histRes[i].value) || '' })
         // this.testprop=computed(()=>[{value: 1, title:"wsdd"},{value: 2, title:"dfgfg"}])
     }
 
 
 
+    expose() {
+        return {
+            eventsHandler: (e, d) => { return this.eventsHandler(e, d) }
+        }
+    }
+
+
+
     async getTitleItemByVal(val: string | number) {
-        return await this.props.finderDataProvider.getTitle(val);
+        return await this._props.finderDataProvider.getTitle(val);
     }
 
 
     _onfindSingleExec = false;
 
     async getValueList() {
-        return await this.props.finderDataProvider.getList(this.searchingText.value);
+        return await this._props.finderDataProvider.getList(this._searchingText.value);
     }
 
+
+
+    catalogShow() {
+        if (this._props.selectFormComponent) {
+            openDialog(
+                this._props.selectFormComponent,
+                { width: "100%" },
+                true,
+                true,
+                (e, d) => {
+                    if (e == "onBeforeClose") {
+                        if (d) {
+                            nextTick(() => closeDialog(d));
+                        }
+                    }
+                    return true;
+                }
+            );
+        }
+    }
 
 
     async onFind() {
@@ -101,15 +136,15 @@ export abstract class FinderFormTemplate {
 
         this._onfindSingleExec = true;
         try {
-            if (this.searchingText.value) {
-                let diff = this.lastFindRequestDate ? Date.now() - this.lastFindRequestDate : this.apiRequestTimeout;
-                if (diff < this.apiRequestTimeout)
-                    await sleep(this.apiRequestTimeout - diff);
-                this.valueList.value = await this.getValueList();
-                this.lastFindRequestDate = Date.now();
+            if (this._searchingText.value) {
+                let diff = this._lastFindRequestDate ? Date.now() - this._lastFindRequestDate : this._apiRequestTimeout;
+                if (diff < this._apiRequestTimeout)
+                    await sleep(this._apiRequestTimeout - diff);
+                this._valueList.value = await this.getValueList();
+                this._lastFindRequestDate = Date.now();
             }
             else
-                this.valueList.value = null;
+                this._valueList.value = null;
         }
         finally {
             this._onfindSingleExec = false;
@@ -119,24 +154,24 @@ export abstract class FinderFormTemplate {
 
 
     async onSelect(e: TDictViewVal[]) {
-        if (this.searchingText.value)
-            this.searchStrStatistic.addItem(this.searchingText.value);
+        if (this._searchingText.value)
+            this._searchStrStatistic.addItem(this._searchingText.value);
 
-        if (this.historyResultTypeStorage != EFinderFormHistoryResultTypeStorage.none)
-            if (this.historyResultTypeStorage == EFinderFormHistoryResultTypeStorage.valOnly)
-                e.forEach(val => this.resultHistoryStatistic.addItem(val.value));
+        if (this._historyResultTypeStorage != EFinderFormHistoryResultTypeStorage.none)
+            if (this._historyResultTypeStorage == EFinderFormHistoryResultTypeStorage.valOnly)
+                e.forEach(val => this._resultHistoryStatistic.addItem(val.value));
             else
-                e.forEach(val => this.resultHistoryStatistic.addItem(val.value, val.title));
+                e.forEach(val => this._resultHistoryStatistic.addItem(val.value, val.title));
         closeDialog(e[0]);
     }
 
 
 
     onSearchTextInput() {
-        if (this.searchTimeout)
-            clearTimeout(this.searchTimeout);
+        if (this._searchTimeout)
+            clearTimeout(this._searchTimeout);
 
-        this.searchTimeout = setTimeout(() => {
+        this._searchTimeout = setTimeout(() => {
             this.onFind();
         }, 1000);
     }
@@ -145,8 +180,8 @@ export abstract class FinderFormTemplate {
 
     async onMostFreqChooseClear() {
         if (await useQU("Очистить список?")) {
-            this.historyResultLst.value.length = 0;
-            this.resultHistoryStatistic.clear();
+            this._historyResultLst.value.length = 0;
+            this._resultHistoryStatistic.clear();
         }
     }
 
@@ -163,11 +198,11 @@ export abstract class FinderFormTemplate {
                     return false;
                 }
                 if (d.key == 'Enter') {
-                    if (this.searchFieldRef.value.focused)
+                    if (this._searchFieldRef.value.focused)
                         this.onFind();
                 }
                 else
-                    this.searchFieldRef.value.focus();
+                    this._searchFieldRef.value.focus();
                 return true;
         }
     }
@@ -179,8 +214,8 @@ export abstract class FinderFormTemplate {
     /**Список найденных значений */
     getResultListField() {
         return <v-card class="overflow-y-auto w-100" style="height:90%;">
-            <v-list lines="one" density="compact" class="ma-0 pa-0" items={this.valueList.value}
-                onUpdate:selected={(e) => { this.onSelect(this.valueList.value!.filter(item => item.value == e[0])) }}
+            <v-list lines="one" density="compact" class="ma-0 pa-0" items={this._valueList.value}
+                onUpdate:selected={(e) => { this.onSelect(this._valueList.value!.filter(item => item.value == e[0])) }}
             />
         </v-card>
     }
@@ -196,14 +231,14 @@ export abstract class FinderFormTemplate {
                         <v-row no-gutters class='align-center'>
                             <p class='text-h6'>Часто используемые</p>
                             <v-spacer />
-                            <v-btn ripple={false} style={(this.historyResultLst.value.length == 0) ? "visibility:hidden;" : ""} icon="mdi-delete" variant="plain" color="secondary"
+                            <v-btn ripple={false} style={(this._historyResultLst.value.length == 0) ? "visibility:hidden;" : ""} icon="mdi-delete" variant="plain" color="primary"
                                 onClick={() => this.onMostFreqChooseClear()} />
                         </v-row>
                 }}
             </v-card-item>
 
-            <v-list bg-color="tertiary" lines="one" density="compact" class="ma-0 pa-0" items={this.historyResultLst.value}
-                onUpdate:selected={(e) => { this.onSelect(this.historyResultLst.value!.filter(item => item.value == e[0])) }}
+            <v-list bg-color="tertiary" lines="one" density="compact" class="ma-0 pa-0" items={this._historyResultLst.value}
+                onUpdate:selected={(e) => { this.onSelect(this._historyResultLst.value!.filter(item => item.value == e[0])) }}
             />
         </v-card>
     }
@@ -217,38 +252,49 @@ export abstract class FinderFormTemplate {
 
     /**Основная строка поиска */
     getMainSearchField() {
-        return <v-autocomplete ref={this.searchFieldRef} clearable label={this.props.label || ''}
-            variant="underlined" density="compact" modelValue={this.searchingText.value}
-            items={this.searchedStrLst.value}
-            prepend-icon="mdi-magnify" auto-select-first="exact"
-            autofocus
-            onInput={() => this.onSearchTextInput()}
-            //onUpdate:search={(val) => { if(val) this.ctx.emit("update:modelValue", val); }}
-            //onUpdate:search={(val) => {  if (val) this.searchFieldRef.value.$emit("update:modelValue", val); }}
-            onUpdate:search={(val) => { if (val) this.searchingText.value = val }}
-            onUpdate:modelValue={(val => { this.searchingText.value = val; if (val) this.onFind(); else this.valueList.value = null })}
-        >
-            {{
-                "no-data": () => undefined
-            }}
-        </v-autocomplete>;
+        return <v-row no-gutters>
+
+            <v-autocomplete ref={this._searchFieldRef} clearable label={this._props.label || ''}
+                variant="underlined" density="compact" modelValue={this._searchingText.value}
+                items={this._searchedStrLst.value}
+                prepend-icon="mdi-magnify" auto-select-first="exact"
+                autofocus
+                onInput={() => this.onSearchTextInput()}
+                //onUpdate:search={(val) => { if(val) this.ctx.emit("update:modelValue", val); }}
+                //onUpdate:search={(val) => {  if (val) this.searchFieldRef.value.$emit("update:modelValue", val); }}
+                onUpdate:search={(val) => { if (val) this._searchingText.value = val }}
+                onUpdate:modelValue={(val => { this._searchingText.value = val; if (val) this.onFind(); else this._valueList.value = null })}
+            >
+                {{
+                    "no-data": () => undefined
+                }}
+            </v-autocomplete>
+
+            {
+                this._props.selectFormComponent ?
+                    <v-btn ripple={false} icon="mdi-view-list" variant="plain" color="primary"
+                        onClick={() => this.catalogShow()} />
+                    :
+                    null
+            }
+        </v-row>
     }
 
 
 
     render() {
         return (createElement, context) =>
-            <WindowDialog diC={this.props.diC} frameHeaderData={{ title: this.props.title }} width="700" height="85dvh" okTitle={null}>
+            <WindowDialog diC={this._diC} frameHeaderData={{ title: this._props.title }} width="700" height="85dvh" okTitle={null}>
                 {this.getMainSearchField()}
 
                 {
-                    this.loading.value ?
+                    this._loading.value ?
                         <v-progress-linear style="width:98%" color="primary" class="ma-1" indeterminate />
                         :
-                        (this.historyResultTypeStorage != EFinderFormHistoryResultTypeStorage.none && this.valueList.value == null) ?
+                        (this._historyResultTypeStorage != EFinderFormHistoryResultTypeStorage.none && this._valueList.value == null) ?
                             this.getMostFreqChoose(90)
                             :
-                            (this.valueList.value != null && this.valueList.value.length > 0) ? this.getResultListField() : this.getEmptyResultListField()
+                            (this._valueList.value != null && this._valueList.value.length > 0) ? this.getResultListField() : this.getEmptyResultListField()
                 }
             </WindowDialog>
     }

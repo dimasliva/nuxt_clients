@@ -7,7 +7,7 @@ import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"
 import type { IDataTableDescription } from '~/componentComposables/dataTables/useDataTable';
 import { PositionRecord } from '~/lib/MoApi/Records/PositionRecord';
-import { ListTemplate } from '~/componentTemplates/listTemplates/listTemplate';
+import { ListTemplate, type IListTemplateProps } from '~/componentTemplates/listTemplates/listTemplate';
 import { PositionsViews } from '~/lib/MoApi/Views/PositionsViews';
 import { recognizeDataInString } from '~/lib/Utils';
 import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
@@ -35,7 +35,7 @@ export class PositionList extends ListTemplate<TPositionFilterVals> {
     protected _moApiClient: MoApiClient = null!;
 
 
-    constructor(deps: Container | Object, opts?: IRenderedTemplateComponentProps | null) {
+    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
         super(deps, opts);
 
         if (deps instanceof Container) {

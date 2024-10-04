@@ -86,13 +86,14 @@ interface IProps {
 const props = defineProps<IProps>();
 
 const eventsHandler = (e: string, d: any) => {
+    debugger;
     props.onEvent?.(e, d);
 };
 
 
 const windowStyle = {
     height: props.height || "90dvh",
-    "min-width": props.width
+    "min-width": props.width || 0
 }
 
 const close = async () => {

@@ -92,7 +92,7 @@ import TemplateFrame from '~/components/TemplateFrame.vue';
 import { VBtn } from 'vuetify/components';
 import MultiselectForm  from '~/components/forms/MultiselectForm.vue';
 import { PositionList } from '~/componentTemplates/listTemplates/positionListTemplate';
-import { MultiselectFormTemplate } from '~/componentTemplates/forms/multiselectFormTemplate';
+import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -758,18 +758,15 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 
 
 const openselect = () => {
-    const position = new PositionList(diC);
+    const position = new PositionList(diC, {selectStrategy:"single"});
     
-    const tmpl = new MultiselectFormTemplate(diC, { title: "ss", componentTemplate: position });
+    const tmpl = new SelectFormTemplate(diC, { title: "ss", componentTemplate: position });
     const MyComponent = defineComponent({
-        setup: (p,c)=>tmpl.setup(c),
-        render: tmpl.render,
+        setup: (p,c)=>tmpl.setup(p,c),
+        render: tmpl.render(),
         inheritAttrs: true
     })
-        
-       
-
-    openDialog(MyComponent, { title: "ss", componentTemplate: position, width: "100%", height:"100%" }, true, (e, d) => (e == "onBeforeClose") ? true : true)
+    openDialog(MyComponent, { title: "ss", componentTemplate: position, width: "100%", height:"100%" }, true, true, (e, d) => (e == "onBeforeClose") ? true : true)
 }
 
 

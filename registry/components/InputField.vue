@@ -54,7 +54,7 @@
 
     <!--Дата-->
     <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal"
-        :readonly="readonly" :dark="useTheme().global.current.value.dark" :enable-time-picker="false"
+        :readonly="readonly ? true : false" :dark="useTheme().global.current.value.dark" :enable-time-picker="false"
         model-type="yyyy-MM-dd" :locale="locale" auto-apply keep-action-row :min-date="constraints?.min"
         :max-date="constraints?.max"
         :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }"

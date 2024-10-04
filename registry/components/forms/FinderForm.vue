@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n"
 import { EFinderFormHistoryResultTypeStorage, FinderFormTemplate, type IFinderFormProps } from "~/componentTemplates/forms/finderFormTemplate"
 import type { FinderDataProvider } from "~/libVis/FinderDataProviders/FinderDataProvider";
 
-class FinderForm extends FinderFormTemplate { }
 
 
 export default {
@@ -37,6 +36,11 @@ export default {
         apiRequestTimeout: {
             type: Number,
             required: false
+        },
+
+        selectFormComponent: {
+            type: Object,
+            required: false
         }
     },
 
@@ -44,13 +48,9 @@ export default {
     async setup(props, ctx) {
 
         let t = useI18n().t;
-        const o = new FinderForm();
+        const diC= props.diC || useSessionContainer();
+        const o = new FinderFormTemplate(diC, props);
         await o.setup(props as IFinderFormProps, ctx);
-
-        ctx.expose({
-            eventsHandler: (e, d) => o.eventsHandler(e, d)
-        });
-
         return o.render();
     }
 }

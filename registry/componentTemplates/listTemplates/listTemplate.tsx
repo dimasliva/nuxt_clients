@@ -17,11 +17,16 @@ import type { SetupContext } from 'vue';
 
 let t: any;
 
+export interface IListTemplateProps extends IRenderedTemplateComponentProps {
+    selectStrategy?: 'page' | 'single' | 'all'
+}
+
+
 export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComponent {
 
     protected _recStore: RecordsStore = null!;
 
-    props: IRenderedTemplateComponentProps | null = null!;
+    props: IListTemplateProps | null = null!;
     filterVals = ref({}) as Ref<TFilterVals>;
     refDataTable = ref();
     refFilterForm = ref();
@@ -42,7 +47,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     abstract getApiData(queryParams: QueryParams): Promise<DataList>;
 
 
-    constructor(deps: Container | Object, opts?: IRenderedTemplateComponentProps | null) {
+    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
         if (!t) t = useNuxtApp().$i18n.t;
         if (deps instanceof Container) {
             this._recStore = deps.get("RecordsStore");
@@ -52,6 +57,8 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
         }
 
         this.props = opts || null;
+
+        this.dataTableVars.value.selectStrategy = this.props?.selectStrategy;
     }
 
 
@@ -60,7 +67,8 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
         rows: [] as any[],
         page: 1,
         selected: [] as any[],
-        columns: [] as Array<string>
+        columns: [] as Array<string>,
+        selectStrategy: this.props?.selectStrategy
     });
 
 
@@ -91,7 +99,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
 
-    async setup(ctx: SetupContext) {
+    async setup(props, ctx: SetupContext) {
         this.pageSettings = this.props?.settingsStorage?.getData() || this.defPageSettings;
         this.dataTableVars.value.columns = this.pageSettings.tcols;
 
@@ -108,13 +116,21 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
             }
         }
 
+        ctx.expose(this.expose());
 
         onMounted(() => {
             this.refFilterForm.value.show();
             this.loadData();
         })
+    }
 
-        ctx?.expose({ eventsHandler: (e,d)=>this.eventsHandler(e,d) })
+
+
+    expose() {
+        return {
+            eventsHandler: (e, d) => this.eventsHandler(e, d),
+            getSelected: () => this.getSelected()
+        }
     }
 
 
@@ -241,12 +257,12 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
     async add() {
-        openDialog(this.modelEditDialog, { recKey: null }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
+        openDialog(this.modelEditDialog, { recKey: null }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
     }
 
 
     async edit(key, index?) {
-        openDialog(this.modelEditDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
+        openDialog(this.modelEditDialog, { recKey: key }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
     }
 
 
@@ -258,47 +274,54 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
         }
     }
 
+
+    getSelected() {
+        return this.refDataTable.value.getSelected();
+    }
+
+
     render() {
-
         return () => <v-row class="ma-1 h-100 bg-background">
-                <v-col class="w-50 h-100 pt-0 pb-0" style="min-width: 400;">
-                    {
-                        (() => {
-                            if (this.loading.value == true)
-                                return <v-card max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка..."></v-card>
-                            else
-                                if (this.dataTableVars.value.rows.length == 0 && this.loading.value == false)
-                                    return <v-card max-width="400" class="mx-auto" elevation="0">
-                                        <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-                                        <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto" />
-                                    </v-card>
-                        })()
-                    }
-                    {
-                        (() => {
-                            const dt = <DataTable
-                                tableDescr={this.dataTableDescr.value}
-                                visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
-                                columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
-                                ref={this.refDataTable}
-                                rows={this.dataTableVars.value.rows}
-                                selected={this.dataTableVars.value.selected}
-                                onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
-                                onOnColumnsChanged={() => { this.loadData() }}
-                                onOnColumnsChangedDelayed={() => { this.saveSettings() }}
-                            />;
+            <v-col class="w-50 h-100 pt-0 pb-0" style="min-width: 400;">
+                {
+                    (() => {
+                        if (this.loading.value == true)
+                            return <v-card max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка..."></v-card>
+                        else
+                            if (this.dataTableVars.value.rows.length == 0 && this.loading.value == false)
+                                return <v-card max-width="400" class="mx-auto" elevation="0">
+                                    <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
+                                    <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto" />
+                                </v-card>
+                    })()
+                }
+                {
+                    (() => {
+                        const dt = <DataTable
+                            tableDescr={this.dataTableDescr.value}
+                            visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
+                            columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
+                            ref={this.refDataTable}
+                            rows={this.dataTableVars.value.rows}
+                            selected={this.dataTableVars.value.selected}
+                            selectStrategy={this.dataTableVars.value.selectStrategy}
+                            onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
+                            onOnColumnsChanged={() => { this.loadData() }}
+                            onOnColumnsChangedDelayed={() => { this.saveSettings() }}
 
-                            //return h(KeepAlive, dt);
-                            return dt;
-                        })()
-                    }
-                </v-col>
+                        />;
 
-                <v-expand-x-transition>
-                    <SimpleFilterForm v-model={this.filterVals} ref={this.refFilterForm} filterSettings={this.filterSetting} />
-                </v-expand-x-transition>
+                        //return h(KeepAlive, dt);
+                        return dt;
+                    })()
+                }
+            </v-col>
 
-            </v-row>
-       
+            <v-expand-x-transition>
+                <SimpleFilterForm v-model={this.filterVals} ref={this.refFilterForm} filterSettings={this.filterSetting} />
+            </v-expand-x-transition>
+
+        </v-row>
+
     }
 }

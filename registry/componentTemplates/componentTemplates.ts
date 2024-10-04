@@ -11,7 +11,10 @@ export interface IRenderedTemplateComponentProps {
 
 export interface IRenderedTemplateComponent {
     render();
-    setup(ctx: SetupContext): Promise<void>;
+    setup(props: any, ctx: SetupContext): Promise<void>;
+    emits?(): string[];
+    expose?(): any;
+
     getFrameHeaderData?(): IFrameHeaderData | null | undefined;
 }
 

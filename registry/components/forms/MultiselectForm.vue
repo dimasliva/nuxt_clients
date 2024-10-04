@@ -3,7 +3,7 @@
 import type { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import type { IRenderedTemplateComponent } from "~/componentTemplates/componentTemplates";
-import { MultiselectFormTemplate } from "~/componentTemplates/forms/multiselectFormTemplate"
+import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate"
 
 
 
@@ -39,7 +39,7 @@ export default {
     async setup(props, ctx) {
         let t = useI18n().t;
         const diC= props.diC || useSessionContainer();
-        const o = new MultiselectFormTemplate(diC, { title: props.title, componentTemplate: props.componentTemplate});
+        const o = new SelectFormTemplate(diC, { title: props.title, componentTemplate: props.componentTemplate});
         await o.setup(ctx);
         return o.render();
     }

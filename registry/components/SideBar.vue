@@ -134,6 +134,7 @@ interface DialogForm {
   comp: any;
   props: any;
   modal: boolean;
+  redirectEventsToForm: boolean;
   eventsHandler: ((eventName: string, eventData: any) => boolean) | null;
 
   refComp: any | null;
@@ -201,7 +202,8 @@ let dialogForms = ref<DialogForm[]>(Array(DIALOG_FORM_LEVELS_NUMBER).fill(
     modal: true,
     eventsHandler: null,
     refComp: null,
-    showDialog: false
+    showDialog: false,
+    redirectEventsToForm: false
   }));
 
 
@@ -252,10 +254,12 @@ onBeforeUnmount(() => {
   removeEventListener('keydown', onKeydown);
 })
 
-let addDiag = (val: { component: any; props: any; modal: boolean; eventsHandler: ((eventName: string, eventData: any) => boolean) | null }) => {
+let addDiag = (val: { component: any; props: any; modal: boolean; redirectEventsToForm: boolean, eventsHandler: ((eventName: string, eventData: any) => boolean) | null }) => {
 
   if (dialogFormsInx >= DIALOG_FORM_LEVELS_NUMBER)
     return;
+
+  const cr = ref();
 
   dialogForms.value[dialogFormsInx++] = markRaw({
     comp: val.component,
@@ -263,8 +267,15 @@ let addDiag = (val: { component: any; props: any; modal: boolean; eventsHandler:
     modal: val.modal,
     eventsHandler: val.eventsHandler,
     showDialog: true,
-    refComp: ref(),
+    refComp: cr,
+    redirectEventsToForm: val.redirectEventsToForm
   });
+
+  if (val.eventsHandler) {
+    ((r, eh) => nextTick(() => {
+      eh("onComponentRef", r.value[0]);
+    }))(cr, val.eventsHandler);
+  }
 };
 
 let closeDiag = (result: any, noEmit = false) => {
@@ -279,7 +290,8 @@ let closeDiag = (result: any, noEmit = false) => {
       modal: false,
       eventsHandler: null,
       showDialog: false,
-      refComp: null
+      refComp: null,
+      redirectEventsToForm: false
     };
 };
 
@@ -383,10 +395,16 @@ const navTo = (path: string) => {
 }
 
 
-const getEventsHandler = () => {
+const getEventsHandler = (allowRedirect: boolean) => {
   if (dialogFormsInx > 0) {
-    const eventsHandler = dialogForms.value[dialogFormsInx - 1].eventsHandler;
-    return eventsHandler;
+    const df = dialogForms.value[dialogFormsInx - 1];
+    if (allowRedirect && df.redirectEventsToForm) {
+      if (df.refComp.value[0].eventsHandler)
+        return df.refComp.value[0].eventsHandler;
+      else return null;
+    }
+    else
+      return df.eventsHandler;
   }
   else
     if (frameHeaderData) {
@@ -400,7 +418,7 @@ const getEventsHandler = () => {
 const onKeydown = (e: KeyboardEvent) => {
   if (dialogFormsInx == 0 && pInput.value.focused) return;
   let handled = false;
-  const handler = getEventsHandler();
+  const handler = getEventsHandler(true);
   if (handler)
     handled = handler("onKeydown", e);
 }
@@ -408,7 +426,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const onBeforePageDeactivate = (nextPath: string) => {
   let handled = false;
-  const handler = getEventsHandler();
+  const handler = getEventsHandler(true);
   if (handler)
     handled = handler("onBeforePageDeactivate", nextPath);
 }
@@ -416,7 +434,7 @@ const onBeforePageDeactivate = (nextPath: string) => {
 
 const onPageActivate = (route: RouteLocationNormalizedLoaded) => {
   let handled = false;
-  const handler = getEventsHandler();
+  const handler = getEventsHandler(true);
   if (handler)
     handled = handler("onPageActivate", route);
 }

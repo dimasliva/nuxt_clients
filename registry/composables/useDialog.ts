@@ -5,8 +5,9 @@ export const openDialog = (
     component: any,
     props: any,
     modal: boolean = true,
+    redirectEventsToForm: boolean = true,
     eventsHandler: ((eventName: string, eventData: any) => boolean) | null = null) => {
-    _addDiag({ component, props, modal, eventsHandler: eventsHandler })
+    _addDiag({ component, props, modal, redirectEventsToForm, eventsHandler: eventsHandler })
 }
 
 
@@ -28,9 +29,9 @@ export const onDialogEvents = (e: string, eData: any): boolean => {
 
 
 
-export async function showModal(component: any, props: any, onBeforeClose?: (res: any) => boolean) {
+export async function showModal(component: any, props: any, redirectEventsToForm: boolean, onBeforeClose?: (res: any) => boolean) {
     return new Promise((r) => {
-        openDialog(component, props, true, (e: string, d: any) => {
+        openDialog(component, props, true, redirectEventsToForm, (e: string, d: any) => {
             if (e == "onBeforeClose") {
                 let res = onBeforeClose ? onBeforeClose(d) : true;
                 if (res)

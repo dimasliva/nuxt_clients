@@ -1,6 +1,6 @@
 <template>
     <v-card class="h-100 w-100">
-        <v-card-title  v-if="showHeader" class="mx-2">
+        <v-card-title v-if="showHeader" class="mx-2">
             <v-row class="pt-1 pb-1 align-center">
                 <v-spacer></v-spacer>
                 <!--Пользовательские кнопки окна-->
@@ -30,7 +30,7 @@
         </v-card-title>
 
         <v-card-text class="pb-0 h-100">
-            <TemplateRenderer :templateInstance="templateInstance" />
+            <component :is="comp" v-bind="props" />
         </v-card-text>
     </v-card>
 </template>
@@ -41,7 +41,6 @@
 <script lang="ts">
 import type { SetupContext } from 'vue';
 import { StandartComponentEvents, type IRenderedTemplateComponent, type IRenderedTemplateComponentProps } from '~/componentTemplates/componentTemplates';
-import TemplateRenderer from '~/components/TemplateRenderer.vue'
 
 
 interface IProps {
@@ -69,9 +68,19 @@ export default {
 
 
     async setup(props: IProps, ctx: SetupContext) {
-        return {
-            frameHeaderData: props.templateInstance.getFrameHeaderData?.() || { title: "" }
-        }
+        const o = props.templateInstance;
+
+        const comp = defineComponent({
+            setup: async (p, c) => await o.setup(props, ctx),
+            render: o.render(),
+            emits: o.emits?.() 
+        });
+
+
+        return Object.assign({
+            comp,
+            props
+        }, o.expose?.());
     }
 }
 

@@ -30,7 +30,7 @@ export default {
     const settingStorage = diC.get(EmployeeAppProfilePageDataStorageCell);
     settingStorage.initPageSec(PAGE_PATH);
     const o = new ProductNavigatorTemplate(diC, null, { settingsStorage: settingStorage });
-    await o.setup(ctx);
+    await o.setup(props, ctx);
     diC.get<PageMap>("PageMap").setPageData(PAGE_PATH, { title: "Товары и услуги" });
     const del = () => { }
     return o.render();

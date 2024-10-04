@@ -155,7 +155,9 @@
 
         <!--Нижняя строка-->
         <v-row class="text-center pt-5" justify="center">
-            <v-col></v-col>
+            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">
+              Всего:{{content.rows.length }} Выбрано:{{ selected.length }}
+            </v-col>
             <v-col md="6">
                 <v-row justify="center">
                     <!--Номера Страниц-->
@@ -573,7 +575,13 @@ const addRow = (row: INavRow) => {
 }
 
 
-defineExpose({ addCurrPage, reset, update, setSelectedLine, addRow, eventsHandler });
+const getSelected=()=>{
+    debugger
+    return selected.value;
+}
+
+
+defineExpose({ addCurrPage, reset, update, setSelectedLine, addRow, eventsHandler, getSelected });
 
 //методы с await должны идти после специальных функций vue
 content.value = await props.onNavigate(0, 1, null, null);

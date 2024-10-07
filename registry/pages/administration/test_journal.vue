@@ -1,26 +1,25 @@
 <template>
-  <div class="d-flex flex-nowrap" style="height: 75vh;">
-    <wt class="rounded mx-1" style="width: 80%;" :on-event-create="eventDialog"
+  <div class="d-flex flex-nowrap" >
+    <wt class="rounded mx-1" style="width: 80%; height: 75vh "
         @cell-dblclick="currView === 'month' ? false : cumstomEventCreator($event)" :showTimeInCells="currView === 'day'"
         @event-focus="currView === 'month' ? openPopUp($event) : false "
         :on-event-click="currView === 'month' ? openCurrDay : editEvent"
         :cell-click-hold="false" :time-from="startDayHours * 60" :time-to="endDayHours * 60" :snap-to-time="15"
-        :time-step="timeStep" ref="vuecal" @event-mouse-enter=""
+        :time-step="timeStep" ref="vuecal"
         v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
         :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
         :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
         events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
-        @view-change="onViewChange($event)" :selected-date="selDate" :min-date="monthViewMinDate" :min-split-width="50"
+        @view-change="onViewChange($event)" :selected-date="selDate" :min-date="monthViewMinDate"
         :max-date="monthViewMaxDate">
       <template #title="{ view }">
         <span v-if="view.id === 'month'">С {{ view.firstCellDate.format('DD.MM.YYYY') }} по {{ view.lastCellDate.format('DD.MM.YYYY') }}
           <v-btn variant="text" icon="mdi-calendar-today" @click="changeDate(new Date())"></v-btn>
         </span>
       </template>
-
-      <template #split-label="{ split }">
-        <p>{{ split.title }}</p>
-      </template>
+<!--      <template #split-label="{ split, view }">-->
+<!--        <p>{{ split.title }}</p>-->
+<!--      </template>-->
       <template v-if="currView === 'month'" #event="{ event }">
         <div class="vuecal__event-title">{{ event.title }}</div>
         <v-menu activator="parent" location="top" close-on-content-click>
@@ -34,17 +33,17 @@
                   </v-btn>
                 </template>
                 <!-- style="resize: both;" -->
-                <v-card max-height="300" class="pa-4 " max-width="600">
+                <v-card  class="pa-4 " max-width="600">
                   <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)" :on-event-click="editEvent"
                            :on-event-create="eventDialog" :split-days="employeesArr" hide-view-selector
                            hide-title-bar :events="events" :selected-date="selectedCurrDate" locale="ru"
                            :cell-click-hold="false" :drag-to-create-event="false" :snap-to-time="5"
                            :time-step="30" ref="vuecal" :time-from="event.startTime * 60"
                            showTimeInCells
-                           :time-to="event.endTime * 60" sticky-split-labels style="width: fit-content;">
-                    <template #split-label="{ split }">
-                      <p>{{ split.title }}</p>
-                    </template>
+                           :time-to="event.endTime * 60" sticky-split-labels style="width: fit-content; max-height: 300px">
+<!--                    <template #split-label="{ split }">-->
+<!--                      <p>{{ split.title }}</p>-->
+<!--                    </template>-->
                   </vue-cal>
                 </v-card>
               </v-menu>
@@ -62,45 +61,44 @@
     <v-expand-x-transition>
       <VCard v-show="drawer" class="mb-auto mx-1" style="width: 20%;" flat>
         <VForm>
-          <vue-cal id="datapicker" class="vuecal--date-picker" xsmall hide-view-selector :time="false"
+          <vue-cal v-if="currView !== 'month'" id="datapicker" class="vuecal--date-picker" xsmall hide-view-selector :time="false"
                    active-view="month"
                    :disable-views="['day', 'week', 'year', 'years']" locale="ru" :min-date="minDate" :max-date="maxDate"
                    @cell-click="changeDate($event)"
                    style="background-color: white; border: none; text-align: center;">
           </vue-cal>
-          <InputField customVariant="underlined" :state="fieldsOptions" :type="EDataType.referenceMultiple"
+          <InputField customVariant="underlined" :state="fieldsOptions" :type="EDataType.referenceMultiple" class="my-2 pa-0" hide-details density="compact"
                       :disabled="(!!employees.length && !selectedSchedulerItemGroup?.title) || (!!products.length && !selectedSchedulerItemGroup?.title)"
                       v-model="selectedSchedulerItemGroup" label="Раздел расписания" :items="schedulerItemGroups"
                       :finderDataProvider="scheduleItemFinderDataProvider" @update:model-value="requestSchedule()"/>
 
-          <InputField customVariant="underlined" :state="fieldsOptions"
-                      :type="selectedSchedulerItemGroup || employees.title ? EDataType.strictstringarray : EDataType.referenceMultiple"
+          <InputField customVariant="underlined" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
+                      :type="selectedSchedulerItemGroup || employees.label ? EDataType.strictstringarray : EDataType.referenceMultiple"
                       v-model="products" label="Услуга"
-                      :items="selectedSchedulerItemGroup || employees.title ? productsArr : []"
+                      :items="selectedSchedulerItemGroup || employees.label ? productsArr : []"
                       :item-value="'id' || 'value'" :finderDataProvider="productFinderDataProvider" width="auto"
                       @update:model-value="(selectedSchedulerItemGroup || employees.title)? filterItems() : getSchedule()"/>
 
-
-          <InputField :type="EDataType.strictstring" :state="fieldsOptions" :disabled="!products.length"
+          <InputField :type="EDataType.strictstring" :state="fieldsOptions" :disabled="!products.length" hide-details class="my-2 pa-0" density="compact"
                       :items="kindOfDuration" item-value="time" v-model="productsDuration"
                       @update:model-value="filterProducts()" variant="underlined"
                       label="Искать по:"/>
 
-          <InputField customVariant="underlined" :state="fieldsOptions"
+          <InputField customVariant="underlined" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
                       :type="selectedSchedulerItemGroup || products.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
-                      v-model="employees" label="Сотрудники" :items="employeesArr" :item-value="'id' || 'value'"
+                      v-model="employees" label="Сотрудники" :items="employeesArr" :item-value="'id' || 'value'" item-title="label"
                       :finderDataProvider="emplFioFinderDataProvider" width="auto"
                       @update:model-value="(selectedSchedulerItemGroup || products.length) ? filterItems() : getSchedule()"/>
 
-          <InputField customVariant="underlined" :state="fieldsOptions"
+          <InputField customVariant="underlined" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
                       :type="selectedSchedulerItemGroup || products.length || employees.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
                       v-model="division" label="Филиал" :items="divisions" :item-value="'id' || 'value'"
                       :finderDataProvider="emplFioFinderDataProvider" width="auto"
                       :disabled="!employees.length && !products.length && !selectedSchedulerItemGroup"
                       @update:model-value="selectedSchedulerItemGroup ? filterItems() : false"/>
 
-          <InputField v-if="currView == 'day' || currView == 'week'" :type="EDataType.strictstring" :state="fieldsOptions"
-                      v-model="timeStep" :items="[5, 10, 15, 30, 60]" width="auto" label="Шаг времени" class="my-2"/>
+          <InputField v-if="currView == 'day' || currView == 'week'" :type="EDataType.strictstring" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
+                      v-model="timeStep" :items="[5, 10, 15, 30, 60]" width="auto" label="Шаг времени"/>
           <v-card-actions>
             <v-spacer></v-spacer>
             <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
@@ -217,7 +215,7 @@ let prodListTitle = ref<any>('')
 let catalogs = ref<any>([])
 let specialHours = ref()
 // { 7: { from: 6 * 60, to: 21 * 60, class: 'not_working_hours', title: '' } }
-let startDayHours = 6
+let startDayHours = 7
 let endDayHours = 21
 
 const productFinderDataProvider = iocc.get(ProductFinderDataProvider);
@@ -227,7 +225,7 @@ scheduleItemFinderDataProvider.init("scheduleItem");
 emplFioFinderDataProvider.init("fioEmployee");
 
 const eventsHandler = (e) => {
-  cumstomEventCreator(e);
+  // cumstomEventCreator(e);
   return false;
 };
 
@@ -259,107 +257,79 @@ const timeToMinutes = (time) => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 }
-
-// const openPopUp = (day_time: ScheduleEvent) => {
-//   let selectedDate = day_time.start.format('YYYY-MM-DD')
-//   prodsList.value = []
-//   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
-//   let foundedTimeSpan = currRangeData.value![selectedDate];
-//   let busyTimes = events.value.filter(ev => ev.start.slice(0, 10) == selectedDate && timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime && timeToMinutes(ev.end.slice(11))/60 < day_time.endTime)
-//   let availableTimes = freeTimeSpans.value.filter(ev => (ev.start.slice(0, 10) == selectedDate) && (timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime) && (timeToMinutes(ev.end.slice(11))/60  <= day_time.endTime))
-//   availableTimes = availableTimes.map(event => {
-//       return {
-//         start: timeToMinutes(event.start.slice(11)),
-//         end: timeToMinutes(event.end.slice(11)),
-//         duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
-//         products: event.products.map(prod => prod.id),
-//         split: event.split
-//       }
-//     });
-//   busyTimes = busyTimes.map(event => {
-//     if(event.products){
-//       return {
-//         start: timeToMinutes(event.start.slice(11)),
-//         end: timeToMinutes(event.end.slice(11)),
-//         duration: event.products.reduce((acc, prod) => acc + prod.duration, 0),
-//         products: event.products,
-//         split: event.split
-//       }
-//     } else {
-//       return {
-//         start: timeToMinutes(event.start.slice(11)),
-//         end: timeToMinutes(event.end.slice(11)),
-//         duration: timeToMinutes(event.end.slice(11)) - timeToMinutes(event.start.slice(11)),
-//         products: [],
-//         split: event.split
-//       }
-//     }
-//   });
-//   let splits = Array.from( new Set(busyTimes.map(time => time.split).concat(availableTimes.map(time => time.split))));
-//   let potentialFitTime = splits.flatMap(split => {
-//     let busy = busyTimes.filter(time => time.split === split)
-//     let free = availableTimes.filter(time => time.split === split)
-//
-//     return free.filter(currentFree => {
-//       for (let currentBusy of busy) {
-//         if (currentFree.start < currentBusy.end && currentFree.end > currentBusy.start) {
-//           return false;
-//         }
-//       }
-//       return true;
-//     }).map(currentFree => ({
-//       start: currentFree.start,
-//       end: currentFree.end,
-//       duration: currentFree.duration,
-//       products: currentFree.products,
-//       split: currentFree.split
-//     }));
-//   })
-//   day_time.products.map((product) => {
-//     const foundProduct = productsArr.value.find((prod) => prod.id === product.id);
-//     if (foundProduct !== undefined) {
-//       product.title = foundProduct.title;
-//       product.duration = foundProduct.duration;
-//       prodsList.value.push(product);
-//
-//       let totalMinutes = potentialFitTime.filter(slot =>  slot!.products.includes(product.id));
-//       if (!!totalMinutes.length) {
-//         let hours = Math.floor(totalMinutes[0].start / 60);
-//         let minutes = totalMinutes[0].start % 60;
-//         product.time = `${hours > 9 ? hours : hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-//         product.split = totalMinutes[0].split
-//         product.start = selectedDate +" "+product.time
-//       } else {
-//         let rProd = day_time.products.find(p => p.split === product.split && (p.time || p.start));
-//         product.time = rProd!.time;
-//         product.start = rProd!.start;
-//       }
-//     }
-//   });
-//
-// }
-
+// Всплывающее окно с расчетом ближайшего доступного времени, алгоритм надо вычленить в отдельную функцию и сделать переиспользуемой
 const openPopUp = (day_time: ScheduleEvent) => {
+  prodsList.value = [];
   let selDate = day_time.start.format('YYYY-MM-DD');
   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
-  prodsList.value = [];
-  let prods = day_time.products.map(pr => pr.id);
-  prods = prods.map(id => {return productsArr.value.find(pr => pr.id === id)});
-  let availableTimes = freeTimeSpans.value.filter(ev => (ev.start.slice(0, 10) == selDate) && (timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime) && (timeToMinutes(ev.end.slice(11))/60  <= day_time.endTime));
+  let prods = day_time.products.map(el => {
+    const product = productsArr.value.find(pr => pr.id === el.id);
+    return product ? JSON.parse(JSON.stringify(product)) : null;
+  }).filter(Boolean);
+  let splits = Array.from(new Set(day_time.products.map(el => el.split).map(sp => positions.value.find((pos) => pos.id === sp).employee)))
+  let busyTime = events.value.filter(ev => (ev.start.slice(0, 10) == selDate)&& ((timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime)) && (timeToMinutes(ev.end.slice(11))/60 <= day_time.endTime) && ev.products && splits.includes(ev.split))
+  let availableTimes = freeTimeSpans.value.filter(ev => (ev.start.slice(0, 10) == selDate) && (timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime));
+
   prodsList.value = prods.map(pr => {
-    let fitSlot = availableTimes.find(el => el.products.includes(pr) )
-    if(fitSlot){
-      pr.split = fitSlot.split;
-      pr.start = fitSlot.start;
-      pr.time = fitSlot.start.slice(11);
-    } else {
-      pr.start = null;
-      pr.time = null;
+
+    let fitSlots = availableTimes.filter(el =>
+        el.products.find(p => p.id == pr.id)
+        && ((timeToMinutes(el.end.slice(11))/60 <= (day_time.endTime + pr.duration/60)) || (timeToMinutes(el.start.slice(11))/60 + pr.duration/60 <= day_time.endTime))
+    )
+
+    fitSlots.map(f => {
+      let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
+      pr.split = f.split;
+
+      if(!!splitBusyTime.length){
+
+        let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
+        if(busy.length > 0){
+          busy.sort((a, b) => new Date(a.start) - new Date(b.start))
+
+          for (let i = 0; i < busy.length - 1; i++) {
+            const busy1End = new Date(busy[i].end);
+            const busy2Start = new Date(busy[i + 1].start);
+
+            const differenceInMinutes = (busy2Start.getTime() - busy1End.getTime()) / (1000 * 60);
+
+            if (differenceInMinutes >= pr.duration) {
+              pr.start = busy1End;
+              pr.time = busy1End.slice(11)
+              break;
+            }
+            }
+        }
+        if (!pr.start && busy.length > 0) {
+          const lastBusySlot = busy[busy.length - 1];
+
+          if ((new Date(f.end) - new Date(lastBusySlot.end))/60000 >= pr.duration) {
+            pr.start = lastBusySlot.end;
+            pr.time = lastBusySlot.end.slice(11); // Извлекаем время
+          }
+        }
+      } else {
+        if((timeToMinutes(f.end.slice(11)) - timeToMinutes(f.start.slice(11))) >= pr.duration){
+          pr.start = f.start;
+          pr.time = f.start.slice(11);
+        }
+      }
+    })
+    return pr
+  })
+  prodsList.value = prodsList.value.map(pr => {
+    if(!pr.time || !pr.start){
+      let findSplit = positions.value.find(pos => pos.id == day_time.products.find(p => p.id == pr.id).split).employee;
+      let fitProd = prodsList.value.find(p => p.split == findSplit && p.time);
+      if(fitProd){
+        pr.split = findSplit
+        pr.time = fitProd.time;
+        pr.start = fitProd.start;
+      }
     }
     return pr
   })
 }
-
 
 const clearMonthViewDates = () => {
   minDate.value = '';
@@ -367,23 +337,30 @@ const clearMonthViewDates = () => {
 }
 
 const changeDate = (date) => {
-  minDate.value = new Date(date);
   maxDate.value = new Date(date);
   maxDate.value.setDate(maxDate.value.getDate() + 30)
-  dateRange.value = `${minDate.value.format('DD.MM.YYYY')}`;
-  selDate.value = minDate.value;
+  selDate.value = new Date(date);
   dataPickerMenu.value = false;
   monthViewMinDate.value = minDate.value;
 }
 
-const cumstomEventCreator = (ev) => {
-  vuecal.value.createEvent(ev.date, quantum.value, {
+const cumstomEventCreator = async (ev) => {
+  let newEvent = {
+    start: ev.date,
+    end: ev.date,
     split: ev.split,
     title: 'Новая запись',
     duration: quantum.value,
     class: 'rounded',
-    content: 'Название услуги'
-  });
+    content: 'Название услуги',
+    created: false
+  };
+  let rec = await eventDialog(newEvent)
+
+  if (rec){
+    vuecal.value.createEvent(rec.start, rec.duration, rec);
+  }
+
 }
 
 function roundTime(selectedTime: string): string {
@@ -407,7 +384,6 @@ function checkTimeInIntervals(chosenTime, intervals) {
 }
 
 const eventDiagFromMonth = (i) => {
-  console.log(i);
   let event = {
     start: new Date(i.start),
     split: i.split,
@@ -425,12 +401,12 @@ const eventDiagFromMonth = (i) => {
     status: status.value,
     creation: true,
     mainAction: eventAlteration,
-    delFunc: ()=>{},
+
     clientData: null
   });
 }
 
-const eventDialog = async (event, deleteEventFunction, creating: boolean = true) => {
+const eventDialog = async (event, creating: boolean = true) => {
   let currDate = event.start.format('YYYY-MM-DD')
   let split = event.split
   let foundedSpans = spansInSplit(freeTimeSpans.value, split, currDate)
@@ -438,15 +414,17 @@ const eventDialog = async (event, deleteEventFunction, creating: boolean = true)
   currEvent.value = event;
 
   if(creating){
-    event.deleteEventFunction = deleteEventFunction;
+
     event.start.setMinutes(roundTime(event.start.formatTime()));
     event.end.setMinutes(roundTime(event.end.formatTime()));
     event.start.format('YYYY-MM-DD hh:mm');
     event.end.format('YYYY-MM-DD hh:mm');
   } else {
-    let clientConts = await recStore.fetch(ClientContactsRecord, currEvent.value.client.id);
-    if(clientConts){
-      currEvent.value.client.phone = clientConts.Data?.mainPhone
+    if(!currEvent.value.client.phone){
+      let clientConts = await recStore.fetch(ClientContactsRecord, currEvent.value.client.id);
+      if(clientConts){
+        currEvent.value.client.phone = clientConts.Data?.mainPhone
+      }
     }
     // let bookingRec = await recStore.fetch(BookingRecord, event.id);
     // deleteEventFunction = bookingRec.delete
@@ -458,29 +436,38 @@ const eventDialog = async (event, deleteEventFunction, creating: boolean = true)
     if(fitSpan.end < event.end){
       event.end = fitSpan.end
     }
-    openDialog(EventDialog, {
-      event: currEvent.value,
-      schGrid: {start: minDate.value, end: maxDate.value},
-      employees: employeesArr.value,
-      positions: positions.value,
-      products: foundedProducts,
-      status: status.value,
-      creation: creating,
-      mainAction: eventAlteration,
-      delFunc: deleteEventFunction,
-      clientData: creating ? null : currEvent.value.client
-    });
+    return new Promise(resolve => {
+      openDialog(EventDialog, {
+        event: currEvent.value,
+        schGrid: {start: minDate.value, end: maxDate.value},
+        employees: employeesArr.value,
+        positions: positions.value,
+        products: foundedProducts,
+        status: status.value,
+        creation: creating,
+        mainAction: eventAlteration,
+        clientData: creating ? null : currEvent.value.client
+      },
+          true,
+          (e, d) => {
+        if (e == "onBeforeClose")
+          resolve(d);
+        return true;
+      });
+    })
+
   } else {
     console.log('Невозможно создать запись на выбранную дату')
   }
+
   event = currEvent.value;
 
   return event
 }
 
 const editEvent = async (event) => {
-  const delFunc = () => {}
-  await eventDialog(event, delFunc, false)
+  console.log(event)
+  await eventDialog(event, false)
 }
 
 const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
@@ -499,7 +486,8 @@ const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
       class: status.value[currEl.status].class,
       duration: currEl.duration,
       client: {id: currEl.client!, name: currEl.clientName!, surname: currEl.clientSurname!, patronymic: currEl.clientPatronymic!, phone: '' },
-      id: currEl.id!
+      id: currEl.id!,
+      content: currEl.productTitle ? currEl.productTitle : undefined,
     }
     bookingsArr.push(event)
   }
@@ -545,7 +533,7 @@ const getScheduleByItemGroup = async () => {
     empls = Array.from(new Set(empls))
     employeesArr.value = Array.from(await getEmployeeList(empls))
     employeesArr.value.map((empl) =>
-        empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
+        empl.label = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
     )
   }
   await getBookings();
@@ -829,7 +817,7 @@ const hoursSpanAdder = (daytime) => {
   let end = 0
 
   if (daytime === 'Утро') {
-    start = 6
+    start = 7
     end = 12
   }
   if (daytime === 'День') {
@@ -860,7 +848,7 @@ const addToListOfProds = (arr, i) => {
     if (existingProduct) {
       existingProduct.quantity++;
     } else {
-      arr.push({id: product, title: '', quantity: 1, duration: 0});
+      arr.push({id: product, title: '', quantity: 1, duration: 0, split: i.position});
     }
   });
   return arr;
@@ -1052,4 +1040,5 @@ defineExpose({eventsHandler});
   background-color: #c0c0c049;
   z-index: 0;
 }
+
 </style>

@@ -65,7 +65,7 @@
               <v-card-title class="text-subtitle-1">СОТРУДНИК</v-card-title>
               <v-card-text class="pb-0">
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="ФИО"
-                            v-model="employee.title" readonly/>
+                            v-model="employee.label" readonly/>
               </v-card-text>
             </v-card>
             <v-card flat class="w-50 pb-0">
@@ -229,6 +229,7 @@ const recStore = iocc.get(RecordsStore);
 const clientView = iocc.get(ClientsViews);
 const props = defineProps<Props>()
 let availableTimeSlots = ref<any>([])
+console.log(props.clientData)
 let clientName = ref(props.clientData ? props.clientData.name : '')
 let clientSurname = ref(props.clientData ? props.clientData.surname : '')
 let clientPatronymic = ref(props.clientData ? props.clientData.patronymic : '')
@@ -242,13 +243,13 @@ let clientArr = ref<any[]>([])
 let client = ref(props.creation ? null : Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value)
 let employee = ref(findEmployeeById(props.event.split))
 let position = ref(emplChoice(props.positions, props.event.split))
-let product = ref(props.creation? null : props.event.products.map(id => props.products.find(prod => id == prod.id)))
+let product = ref(props.creation? (props.products.length > 1? null : [props.products[0]]) : props.event.products.map(id => props.products.find(prod => id == prod.id)))
 let products = ref(props.products)
 let placement = ref()
 let division = ref()
 let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
 let evTitle = ref(props.event.title)
-let duration = ref(props.creation ? 0 : product.value.reduce((total, currProd) => total + currProd.duration, 0))
+let duration = ref(props.creation ? (product.value? product.value[0].duration : 0) : product.value.reduce((total, currProd) => total + currProd.duration, 0))
 let start = ref<number>(props.event.start!.formatTime())
 let end = ref<number>(new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime())
 let startAndEnd = ref(start.value && end.value ? start.value + '-' + end.value : "-")
@@ -276,7 +277,7 @@ const onProductsChange = (ev) => {
 }
 
 const cancelAndClose = async () => {
-  await props.delFunc();
+  // await props.delFunc();
   closeDialog('');
 }
 
@@ -284,29 +285,36 @@ const saveChanges = async () => {
   if(props.creation){
     let rec = await createRec();
     let clientTitle = client.value.title.split(' ');
-    clientTitle = clientTitle[0] + " " + clientTitle[1];
     let timeStart =new Date( props.event.start.format('YYYY-MM-DD') + " " + start.value);
     let timeEnd = new Date( props.event.start.format('YYYY-MM-DD') + " " + end.value);
     let startMinutes = start.value.split(':')
     startMinutes = startMinutes[0] * 60 + startMinutes[1] * 1;
     let endMinutes = end.value.split(':')
     endMinutes = endMinutes[0] * 60 + endMinutes[1] * 1;
-    console.log(startMinutes, endMinutes)
+
     if(rec){
       props.event.start = timeStart;
       props.event.end = timeEnd;
-      props.event.title = clientTitle;
+      props.event.title = clientTitle[0] + " " + clientTitle[1];
       props.event.duration = duration.value;
       props.event.startTimeMinutes = startMinutes;
       props.event.endTimeMinutes = endMinutes;
       props.event.class = 'ordered';
       props.event.content = product.value.map(pr => pr.title).toString();
+      props.event.products = product.value.map(el => el.id);
       props.event.id = rec.id
+      props.event.client = {
+        id: client.value.value,
+        name: clientTitle[1],
+        surname: clientTitle[0],
+        patronymic: clientTitle[2],
+        phone: clientPhone.value
+      }
     }
   } else {
     await updateRec()
   }
-  closeDialog('');
+  closeDialog(props.event);
 }
 
 const checkInputLength = (e) => {
@@ -406,8 +414,11 @@ const createRec = async () => {
   let res = await schGrid.addBooking(rec, product.value, false);
 
   console.log(res, rec)
-
-  return rec;
+  if(res){
+    return rec;
+  } else {
+    return false
+  }
 };
 
 let translit = (word) => {
@@ -438,4 +449,5 @@ const fioOptions = {
     a: {pattern: /[a-я;,.']/, multiple: true}
   }
 }
+
 </script>

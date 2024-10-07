@@ -19,7 +19,7 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
 
 
-    async setup(props: IFinderFormSelectProps, ctx?) {
+    override async setup(props: IFinderFormSelectProps, ctx?) {
         await super.setup(props, ctx);
         if (props.selectedOptionsValues) {
             this.sections.value = props.selectedOptionsValues;
@@ -28,8 +28,8 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
 
 
-    async getValueList() {
-        return await this.props.finderDataProvider.getList(this.searchingText.value, this.selectedSections.value);
+    override async getValueList() {
+        return await this._props.finderDataProvider.getList(this._searchingText.value, this.selectedSections.value);
     }
 
 
@@ -66,9 +66,9 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
 
 
-    render() {
+    override render() {
         return (createElement, context) =>
-            <WindowDialog diC={this.props.diC} frameHeaderData={{ title: this.props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
+            <WindowDialog diC={this._props.diC} frameHeaderData={{ title: this._props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
                 {this.getMainSearchField()}
 
                 <v-row style="height: auto">
@@ -79,13 +79,13 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
                 <v-row style="height:40%;" class="overflow-y-auto" >
                     {
-                        this.loading.value ?
+                        this._loading.value ?
                             <v-progress-linear style="width:98%" color="primary" class="ma-1" indeterminate />
                             :
-                            this.valueList.value == null ?
+                            this._valueList.value == null ?
                                 this.getMostFreqChoose(95)
                                 :
-                                (this.valueList.value.length > 0) ? this.getResultListField() : this.getEmptyResultListField()
+                                (this._valueList.value.length > 0) ? this.getResultListField() : this.getEmptyResultListField()
                     }
                 </v-row>
 

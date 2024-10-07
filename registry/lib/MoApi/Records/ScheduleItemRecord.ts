@@ -30,10 +30,10 @@ export class ScheduleItemData extends ApiRecordChData {
 
 @injectable()
 export class ScheduleItemRecord extends ApiRecord<ScheduleItemData> {
-  static RightToken = "dbScheduleItem";
-  static RecCode = 1026;
-  static BatchGetRecDataPath="/Schedule/GetScheduleItems";
-  static RecordsFindPath = "/Schedule/FindScheduleItems";
+  static override RightToken = "dbScheduleItem";
+  static override RecCode = 1026;
+  static override BatchGetRecDataPath="/Schedule/GetScheduleItems";
+  static override RecordsFindPath = "/Schedule/FindScheduleItems";
 
   get RecCode() {
     return ScheduleItemRecord.RecCode;

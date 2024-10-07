@@ -1,7 +1,7 @@
 <template>
-  <div style="min-width: 1024px;">
+  <div style="min-width: 1024px; height: 100dvh;">
     <v-app>
-      <v-main>
+      <v-main class="h-100">
         <SideBar />
       </v-main>
     </v-app>

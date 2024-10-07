@@ -11,6 +11,8 @@ import { EmployeeRecord } from "~/lib/MoApi/Records/EmployeeRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from '~/components/forms/FinderForm.vue';
 import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+import { EmployeeListTemplate } from "~/componentTemplates/listTemplates/employeeListTemplate";
+import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 
 
 type fiotype = { name?: string, surname?: string, patronymic?: string } | null;
@@ -24,21 +26,31 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
     constructor(
         @inject("MoApiClient") _MoApiClient: MoApiClient,
         @inject("UserContext") _UserContext: UserContext,
-        @inject("diC") _diC: Container,
+        @inject("diC") protected _diC: Container,
         @inject("RecordsStore") protected _RecordsStore: RecordsStore,
         @inject(EmployeesViews) protected _EmployeesViews: EmployeesViews
     ) {
-        super(_MoApiClient, _UserContext, _diC);
+        super(_MoApiClient, _UserContext);
         this._historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.full;
         this._apiRequestTimeout = 2500;
     }
 
 
 
-    init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
+    override init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
         super.init(instName, multiselect ? FinderFormMultiple : FinderForm);
         this._instName = instName;
         this._listSizeLimit = sizeLimit;
+
+        const employeeTemplate = new EmployeeListTemplate(this._diC, { selectStrategy: multiselect ? "page" : "single" });
+        const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор сотрудника", componentTemplate: employeeTemplate });
+
+        const selComponent = defineComponent({
+            setup: (p, c) => selTemplate.setup(p, c),
+            render: selTemplate.render(),
+        })
+
+        this._selectFormComponent = selComponent;
     }
 
 

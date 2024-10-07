@@ -1,4 +1,6 @@
-import type{ IDataTableDescription } from "~/componentComposables/dataTables/useDataTable";
+import { Container, inject, injectable } from 'inversify';
+import { useI18n } from "vue-i18n"
+import type { IDataTableDescription } from "~/componentComposables/dataTables/useDataTable";
 import { QueryParams } from "~/lib/MoApi/RequestArgs";
 import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { type IFrameHeaderData, PageMap } from "~/lib/PageMap";
@@ -9,16 +11,22 @@ import { DataList } from "~/lib/DataList";
 import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
 import DataTable from "~/components/DataTable.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
+import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
+import type { SetupContext } from 'vue';
 
 
 let t: any;
 
-export abstract class ListTemplate<TFilterVals> {
-    iocc = useContainer();
-    userCtx = this.iocc.get<UserContext>('UserContext');
-    pageMap = this.iocc.get<PageMap>("PageMap");
-    recStore = this.iocc.get<RecordsStore>("RecordsStore");
+export interface IListTemplateProps extends IRenderedTemplateComponentProps {
+    selectStrategy?: 'page' | 'single' | 'all'
+}
 
+
+export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComponent {
+
+    protected _recStore: RecordsStore = null!;
+
+    props: IListTemplateProps | null = null!;
     filterVals = ref({}) as Ref<TFilterVals>;
     refDataTable = ref();
     refFilterForm = ref();
@@ -26,8 +34,7 @@ export abstract class ListTemplate<TFilterVals> {
 
     pageSettings: any;
 
-    abstract PAGE_PATH: string;
-    abstract PAGE_TITLE:string;
+    abstract PAGE_TITLE: string;
     abstract defPageSettings: any;
     abstract dataTableDescr: Ref<IDataTableDescription>;
     abstract filterFieldSetting: any;
@@ -40,23 +47,35 @@ export abstract class ListTemplate<TFilterVals> {
     abstract getApiData(queryParams: QueryParams): Promise<DataList>;
 
 
+    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
+        if (!t) t = useNuxtApp().$i18n.t;
+        if (deps instanceof Container) {
+            this._recStore = deps.get("RecordsStore");
+        }
+        else {
+            this._recStore = deps["RecordsStore"];
+        }
+
+        this.props = opts || null;
+
+        this.dataTableVars.value.selectStrategy = this.props?.selectStrategy;
+    }
+
 
     dataTableVars = ref({
         itemsPerPage: 10,
         rows: [] as any[],
         page: 1,
-        selected: [],
-        columns: null as any
+        selected: [] as any[],
+        columns: [] as Array<string>,
+        selectStrategy: this.props?.selectStrategy
     });
 
 
     filterSetting: any;
 
-    constructor() {
-        if (!t) t = useNuxtApp().$i18n.t;
-    }
 
-    setPageData() {
+    getFrameHeaderData() {
         let pageMapData: IFrameHeaderData = reactive({
             title: this.PAGE_TITLE, icon: "",
             mainBtnBar: [
@@ -75,14 +94,13 @@ export abstract class ListTemplate<TFilterVals> {
             ]
         });
 
-        this.pageMap.setPageData(this.PAGE_PATH, pageMapData);
+        return pageMapData;
     }
 
 
 
-    async setup() {
-        this.setPageData();
-        this.pageSettings = this.userCtx.EmployeeAppProfile?.getPageSettings(this.PAGE_PATH) || this.defPageSettings;
+    async setup(props, ctx: SetupContext) {
+        this.pageSettings = this.props?.settingsStorage?.getData() || this.defPageSettings;
         this.dataTableVars.value.columns = this.pageSettings.tcols;
 
         this.filterSetting = {
@@ -98,13 +116,23 @@ export abstract class ListTemplate<TFilterVals> {
             }
         }
 
+        ctx.expose(this.expose());
 
         onMounted(() => {
             this.refFilterForm.value.show();
             this.loadData();
         })
-
     }
+
+
+
+    expose() {
+        return {
+            eventsHandler: (e, d) => this.eventsHandler(e, d),
+            getSelected: () => this.getSelected()
+        }
+    }
+
 
 
     eventsHandler(e: string, d: any) {
@@ -157,14 +185,14 @@ export abstract class ListTemplate<TFilterVals> {
 
 
 
-    protected async _onDelModel(qustr:string, type: Class<ApiRecord>, key:string, index) {
+    protected async _onDelModel(qustr: string, type: Class<ApiRecord>, key: string, index) {
         let res = await useDelQU(qustr);
         if (res) {
-          let rec = await this.recStore.fetch(type, key);
-          vHelpers.action(()=>rec.delete())
-          .then(()=> this.dataTableVars.value.rows.splice(index,1));
+            let rec = await this._recStore.fetch(type, key);
+            vHelpers.action(() => rec.delete())
+                .then(() => this.dataTableVars.value.rows.splice(index, 1));
         }
-      }
+    }
 
 
 
@@ -229,56 +257,71 @@ export abstract class ListTemplate<TFilterVals> {
 
 
     async add() {
-        openDialog(this.modelEditDialog, { recKey: null }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
+        openDialog(this.modelEditDialog, { recKey: null }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
     }
 
 
     async edit(key, index?) {
-        openDialog(this.modelEditDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
+        openDialog(this.modelEditDialog, { recKey: key }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
     }
 
 
     saveSettings() {
-        this.userCtx.EmployeeAppProfile?.setPageSettings(this.PAGE_PATH, this.pageSettings);
-        this.userCtx.EmployeeAppProfile?.save();
+
+        if (this.props?.settingsStorage) {
+            this.props.settingsStorage.setData(this.pageSettings);
+            this.props.settingsStorage.flush();
+        }
     }
 
+
+    getSelected() {
+        return this.refDataTable.value.getSelected();
+    }
+
+
     render() {
+        return () => <v-row class="ma-1 h-100 bg-background">
+            <v-col class="w-50 h-100 pt-0 pb-0" style="min-width: 400;">
+                {
+                    (() => {
+                        if (this.loading.value == true)
+                            return <v-card max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка..."></v-card>
+                        else
+                            if (this.dataTableVars.value.rows.length == 0 && this.loading.value == false)
+                                return <v-card max-width="400" class="mx-auto" elevation="0">
+                                    <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
+                                    <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto" />
+                                </v-card>
+                    })()
+                }
+                {
+                    (() => {
+                        const dt = <DataTable
+                            tableDescr={this.dataTableDescr.value}
+                            visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
+                            columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
+                            ref={this.refDataTable}
+                            rows={this.dataTableVars.value.rows}
+                            selected={this.dataTableVars.value.selected}
+                            selectStrategy={this.dataTableVars.value.selectStrategy}
+                            onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
+                            onOnColumnsChanged={() => { this.loadData() }}
+                            onOnColumnsChangedDelayed={() => { this.saveSettings() }}
 
-        return () => <div  style="height: 100%;">
-            <v-row class="ma-1 bg-background">
-                <v-col class="w-50" style="min-width: 400; ">
-                    {
-                        (() => {
-                            if (this.loading.value == true)
-                                return <v-card max-width="400" class="mx-auto" elevation="0" loading title="Идет загрузка..."></v-card>
-                            else
-                                if (this.dataTableVars.value.rows.length == 0 && this.loading.value == false)
-                                    return <v-card max-width="400" class="mx-auto" elevation="0">
-                                        <v-card-text class="text-h6">Ничего не найдено, попробуйте изменить условия поиска</v-card-text>
-                                        <img src="/cat-laptop-notfound.jpg" alt="cat with laptop" class="w-50 d-inline mx-auto" />
-                                    </v-card>
-                        })()
-                    }
-                    {
-                        (() => {
-                            const dt = <DataTable table-descr={this.dataTableDescr.value} visibility={this.loading.value == false && this.dataTableVars.value.rows.length > 0}
-                                v-model:columns={this.dataTableVars.value.columns} //из-за этой строки не работает форматирование в vscode
-                                ref={this.refDataTable} rows={this.dataTableVars.value.rows}
-                                selected={this.dataTableVars.value.selected} onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
-                                onOnColumnsChanged={() => { this.loadData() }} onOnColumnsChangedDelayed={() => { this.saveSettings() }} />;
+                        />;
 
-                            //return h(KeepAlive, dt);
-                            return dt;
-                        })()
-                    }
-                </v-col>
+                        //return h(KeepAlive, dt);
+                        return dt;
+                    })()
+                }
+            </v-col>
 
-                <v-expand-x-transition>
-                    <SimpleFilterForm v-model={this.filterVals} ref={this.refFilterForm} filterSettings={this.filterSetting} />
-                </v-expand-x-transition>
+            <v-expand-x-transition>
+                <SimpleFilterForm v-model={this.filterVals} ref={this.refFilterForm} filterSettings={this.filterSetting} />
+            </v-expand-x-transition>
 
-            </v-row>
-        </div>
+        </v-row>
+
     }
 }

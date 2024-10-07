@@ -10,6 +10,8 @@ import * as Utils from '~/lib/Utils';
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from '~/components/forms/FinderForm.vue';
 import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+import { PositionList } from "~/componentTemplates/listTemplates/positionListTemplate";
+import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 
 
 @injectable()
@@ -20,9 +22,16 @@ export class DictsFinderDataProvider extends FinderDataProvider {
     protected _dictSection: number | undefined = undefined;
     protected _listSizeLimit = 20;
 
+    constructor(
+        @inject("MoApiClient") _MoApiClient: MoApiClient,
+        @inject("UserContext") _UserContext: UserContext,
+        @inject("diC") protected _diC: Container,
+    ) {
+        super(_MoApiClient, _UserContext);
+    }
 
 
-    init(instName: string | null, multiselect = false, dictId: EDictionaries, dictSection: number | undefined = undefined, sizeLimit: number = 20) {
+    override init(instName: string | null, multiselect = false, dictId: EDictionaries, dictSection: number | undefined = undefined, sizeLimit: number = 20) {
         super.init(instName, multiselect ? FinderFormMultiple : FinderForm);
         this._instName = instName;
         this._dictId = dictId;

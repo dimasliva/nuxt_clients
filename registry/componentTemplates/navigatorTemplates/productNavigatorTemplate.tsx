@@ -4,11 +4,10 @@ import type { UserContext } from "~/lib/UserContext";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
 import { DataList } from "~/lib/DataList";
-import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
 import Navigator from "~/components/navigators/Navigator.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { INavPathItem, INavigatorContent, IСoncreteNavigatorProps, INavRow } from "~/components/navigators/NavigatorTypes";
-import type { Container } from "inversify";
+import { Container } from "inversify";
 import { EWellKnownPageCaches, type PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { EDataType } from "~/lib/globalTypes";
@@ -22,6 +21,9 @@ import   ProductsCatalogSectionProfileDialog  from "~/components/forms/ProductsC
 import   ProductsCatalogProfileDialog  from "~/components/forms/ProductsCatalogProfileDialog.vue";
 import { ProductRecord, ProductRecordData } from "~/lib/MoApi/Records/ProductRecord";
 import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from "~/lib/MoApi/Records/ProductsCatalogSectionRecord";
+import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
+import type { SetupContext } from "vue";
+import type { IFrameHeaderData } from "~/lib/PageMap";
 
 
 let t: any;
@@ -53,11 +55,22 @@ interface IProductNavigatorSettings{
     visibleColsCat?:string[];
 }
 
+function dep(token: string | Object) {
+    return (obj, key) => {
+        const ctor = obj.constructor;
+        if (!ctor.$deps)
+            ctor.$deps = {} as any;
+        ctor.$deps[key] = token;
+    }
+}
 
-export class ProductNavigatorTemplate {
 
+export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
     protected _diC: Container = null!;
+    protected _props: IRenderedTemplateComponentProps | null | undefined = null;
+
+    @dep(ProductsApiSection)
     protected _MoApiClient: MoApiClient = null!;
     protected _UserContext: UserContext = null!;
     protected _RecordsStore: RecordsStore = null!;
@@ -80,23 +93,37 @@ export class ProductNavigatorTemplate {
     */
 
 
-    constructor() {
+    constructor(diC : Container, deps?: Object | null, opts?: IRenderedTemplateComponentProps | null) {
         if (!t) t = useNuxtApp().$i18n.t;
+        if (!deps) {
+            this._MoApiClient = diC.get("MoApiClient");
+            this._UserContext = diC.get("UserContext");
+            this._RecordsStore = diC.get("RecordsStore");
+            this._PageCacheStore = diC.get("PageCacheStore");
+            this._ProductsApiSection = diC.get(ProductsApiSection);
+        }
+        else {
+            this._MoApiClient = deps["MoApiClient"];
+            this._UserContext = deps["UserContext"];
+            this._RecordsStore = deps["RecordsStore"];
+            this._PageCacheStore = deps["PageCacheStore"];
+            this._ProductsApiSection = deps["ProductsApiSection"];
+        }
+
+        this._props=opts;
     }
 
 
 
-    async setup(props: IProductNavigatorTemplateProps, ctx?) {
-
-        const diC = this._diC = props.diC || useSessionContainer();
-        this._MoApiClient = diC.get("MoApiClient");
-        this._UserContext = diC.get("UserContext");
-        this._RecordsStore = diC.get("RecordsStore");
-        this._PageCacheStore = diC.get("PageCacheStore");
-        this._ProductsApiSection = diC.get(ProductsApiSection);
+    async setup(props, ctx: SetupContext) {
+        ctx?.expose({ 
+            eventsHandler: (e, d) => this.eventsHandler(e, d), 
+            getSelected: ()=>this.getSelected() 
+        });
 
         await this.loadSettings();
     }
+
 
 
     eventsHandler(e: string, d: any) {
@@ -115,6 +142,12 @@ export class ProductNavigatorTemplate {
 
 
 
+    getFrameHeaderData() {
+        return { title: "Товары и услуги" }
+    }
+
+
+    
     getRequestFilterFields(tableHeaders: any[], selColumns?: string[]) {
         let res: any[] = [];
         tableHeaders.forEach((item) => {
@@ -141,7 +174,7 @@ export class ProductNavigatorTemplate {
             data.productsCatalogSection = catalogSectionKey;
         });
 
-        openDialog(ProductProfileDialog, { recKey: null, rec: newrec}, true,
+        openDialog(ProductProfileDialog, { recKey: null, rec: newrec}, true, true,
             (e, d) => {
                 if (e == "onBeforeClose" && d) {
                     this._RefNavigator.value.update();
@@ -154,7 +187,7 @@ export class ProductNavigatorTemplate {
 
 
     async editProduct(row:IProductNavRow, index?) {
-        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
+        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
     }
 
 
@@ -193,7 +226,7 @@ export class ProductNavigatorTemplate {
             data.parent = catalogSectionKey;
         });
 
-        openDialog(ProductsCatalogSectionProfileDialog, { recKey: null, rec: newrec}, true,
+        openDialog(ProductsCatalogSectionProfileDialog, { recKey: null, rec: newrec}, true, true,
             (e, d) => {
                 if (e == "onBeforeClose" && d) {
                     this._RefNavigator.value.update();
@@ -206,7 +239,13 @@ export class ProductNavigatorTemplate {
 
 
     async editProductsCatalogSection(row:IProductNavRow, index?){
-        openDialog(ProductsCatalogSectionProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogSectionRow(row, index) : true : true)
+        openDialog(
+            ProductsCatalogSectionProfileDialog, 
+            { diC: this._diC, recKey: row.id }, 
+            true, 
+            true, 
+            (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogSectionRow(row, index) : true : true
+        );
     }
 
 
@@ -240,7 +279,7 @@ export class ProductNavigatorTemplate {
 
 
     async addProductsCatalog() {
-        openDialog(ProductsCatalogProfileDialog, { recKey: null }, true,
+        openDialog(ProductsCatalogProfileDialog, { recKey: null }, true, true,
             (e, d) => {
                 if (e == "onBeforeClose" && d) {
                     this._productCatalogRecs.value=null;
@@ -253,7 +292,13 @@ export class ProductNavigatorTemplate {
 
 
     async editProductsCatalog(row:IProductNavRow, index?){
-        openDialog(ProductsCatalogProfileDialog, { diC: this._diC, recKey: row.id }, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogRow(row, index) : true : true)
+        openDialog(
+            ProductsCatalogProfileDialog,
+            { diC: this._diC, recKey: row.id }, 
+            true, 
+            true,
+            (e, key) => (e == "onBeforeClose") ? key ? this.updateProductsCatalogRow(row, index) : true : true
+        );
     }
 
 
@@ -294,22 +339,27 @@ export class ProductNavigatorTemplate {
 
 
 
-    onVisibleColsChanged(name:string, visCols:string[]){
-        const sts=this._UserContext.EmployeeAppProfile!.getPropOfSection<IProductNavigatorSettings>(EEmployeeAppProfileSections.ComponentSettings, "ProductNav")||{};
+    onVisibleColsChanged(name: string, visCols: string[]) {
+        const sts = this._props?.settingsStorage?.getData() || {};
 
-        if(name=="cat")
-            sts.visibleColsCat=visCols;
+        if (name == "cat")
+            sts.visibleColsCat = visCols;
         else
-            sts.visibleCols=visCols;
+            sts.visibleCols = visCols;
 
-        this._UserContext.EmployeeAppProfile!.setPropOfSection(EEmployeeAppProfileSections.ComponentSettings, "ProductNav",sts);
-        this._UserContext.EmployeeAppProfile?.save();
+        if (this._props?.settingsStorage) {
+            this._props.settingsStorage.setData(sts);
+            this._props.settingsStorage.flush();
+        }
+        // this._UserContext.EmployeeAppProfile!.setPropOfSection(EEmployeeAppProfileSections.ComponentSettings, "ProductNav",sts);
+        // this._UserContext.EmployeeAppProfile?.save();
     }
 
 
 
     async loadSettings(){
-        const sts=await this._UserContext.EmployeeAppProfile?.getPropOfSection<IProductNavigatorSettings>(EEmployeeAppProfileSections.ComponentSettings, "ProductNav")||{};
+        const sts=this._props?.settingsStorage?.getData() || {};
+       // const sts=await this._UserContext.EmployeeAppProfile?.getPropOfSection<IProductNavigatorSettings>(EEmployeeAppProfileSections.ComponentSettings, "ProductNav")||{};
         this._visibleCols=sts.visibleCols || ["code","comments"];
         this._visibleColsCat=sts.visibleColsCat || ["code","comments"];
     }
@@ -534,11 +584,16 @@ export class ProductNavigatorTemplate {
     }
 
 
+    getSelected() {
+        return this._RefNavigator.value.getSelected();
+    }
+
+
 
     render() {
         return () => <div style="height: 100%;">
-            <v-row class="ma-1 bg-background">
-                <v-col class="w-50" style="min-width: 400; ">
+            <v-row class="ma-1 h-100 bg-background">
+                <v-col class="w-50 h-100 pt-0" style="min-width: 400; ">
                     {
                         (() => {
                             if (this._Loading.value == true)

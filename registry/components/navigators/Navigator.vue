@@ -1,159 +1,163 @@
 <template>
-    <div v-if="content">
-        <v-data-table ref="refDt" v-model:sortBy="sortBy" v-model="selected" show-select item-value="id"
-            v-model:items-per-page="itemsPerPage" hover :headers="_columns" hide-default-footer
-            v-model:page="currentPage" :items="content.rows" class="elevation-1" fixed-header height="68dvh"
-            disable-pagination>
+    <div v-if="content" style="height: 100%; " class="d-flex flex-column">
+        <div class="flex-grow-1" style="min-height:10rem; ">
+            <v-data-table ref="refDt" v-model:sortBy="sortBy" v-model="selected" show-select item-value="id"
+                v-model:items-per-page="itemsPerPage" hover :headers="_columns" hide-default-footer
+                v-model:page="currentPage" :items="content.rows" class="elevation-1 h-100" fixed-header height="68dvh"
+                disable-pagination>
 
-            <!--Верхняя строка перед основной таблицей-->
-            <template v-slot:top="props">
-                <v-row no-gutters>
-                    <!--Кнопка Обновить-->
-                    <v-btn color="primary" variant="text" icon="mdi-refresh" @click="async () => fullUpdate()">
-                        <v-icon>mdi-refresh</v-icon>
-                        <v-tooltip activator="parent" location="top">Обновить</v-tooltip>
-                    </v-btn>
-
-                    <!--Строка пути-->
-                    <v-breadcrumbs class="pb-0 pt-0" bg-color="" :items="path">
-                        <!--кнопка перехода на верхний уровень-->
-                        <template v-slot:prepend>
-                            <v-btn color="primary" variant="text" icon="mdi-folder-upload" :disabled="path.length <= 1"
-                                @click="async () => {
-                                    const stateInfo = path[path.length - 2].innerData;
-                                    content = await onNavigate(path.length, path.length - 1, path, null);
-                                    path.pop();
-                                    path[path.length - 1] = content.pathInfo;
-                                    setPageStateInfo(stateInfo);
-                                }" />
-                        </template>
+                <!--Верхняя строка перед основной таблицей-->
+                <template v-slot:top="props">
+                    <v-row no-gutters>
+                        <!--Кнопка Обновить-->
+                        <v-btn color="primary" variant="text" icon="mdi-refresh" @click="async () => fullUpdate()">
+                            <v-icon>mdi-refresh</v-icon>
+                            <v-tooltip activator="parent" location="top">Обновить</v-tooltip>
+                        </v-btn>
 
                         <!--Строка пути-->
-                        <template v-slot:item="props">
-                            <li class="v-breadcrumbs-item"><a class="v-breadcrumbs-item--link" href="#" @click.prevent="async () => {
-                                if (path.length != props.index + 1) {
-                                    const stateInfo = path[props.index].innerData;
-                                    content = await onNavigate(path.length, props.index + 1, path, null);
-                                    path.splice(props.index + 1);
-                                    path[path.length - 1] = content.pathInfo;
-                                    setPageStateInfo(stateInfo);
-                                }
-                            }">
-                                    {{ props.item.title }}</a></li>
+                        <v-breadcrumbs class="pb-0 pt-0" bg-color="" :items="path">
+                            <!--кнопка перехода на верхний уровень-->
+                            <template v-slot:prepend>
+                                <v-btn color="primary" variant="text" icon="mdi-folder-upload"
+                                    :disabled="path.length <= 1" @click="async () => {
+                                        const stateInfo = path[path.length - 2].innerData;
+                                        content = await onNavigate(path.length, path.length - 1, path, null);
+                                        path.pop();
+                                        path[path.length - 1] = content.pathInfo;
+                                        setPageStateInfo(stateInfo);
+                                    }" />
+                            </template>
+
+                            <!--Строка пути-->
+                            <template v-slot:item="props">
+                                <li class="v-breadcrumbs-item"><a class="v-breadcrumbs-item--link" href="#"
+                                        @click.prevent="async () => {
+                                            if (path.length != props.index + 1) {
+                                                const stateInfo = path[props.index].innerData;
+                                                content = await onNavigate(path.length, props.index + 1, path, null);
+                                                path.splice(props.index + 1);
+                                                path[path.length - 1] = content.pathInfo;
+                                                setPageStateInfo(stateInfo);
+                                            }
+                                        }">
+                                        {{ props.item.title }}</a></li>
+                            </template>
+
+                        </v-breadcrumbs>
+                    </v-row>
+                </template>
+
+
+                <!-- кнопка(меню) настройки колонок-->
+                <template v-slot:header.icons="{ column }">
+
+                    <v-menu :close-on-content-click="false">
+
+                        <template v-slot:activator="{ props }">
+                            <v-btn :disabled="!content.columns || content.columns.length == 0" v-bind="props"
+                                icon="mdi-cog" variant="text"> </v-btn>
                         </template>
 
-                    </v-breadcrumbs>
-                </v-row>
-            </template>
+                        <template v-slot:default="{ isActive }">
+                            <v-row class="mb-1" @mouseleave="(e) => { isActive.value = false }">
+                                <v-card class="mx-auto" max-width="400">
+                                    <v-list>
+                                        <v-list-item v-for="val in content.columns">
+                                            <template v-slot:prepend="{ isActive }">
+                                                <v-list-item-action start>
+                                                    <v-checkbox-btn
+                                                        :model-value="content.visibleCols.includes(val.key) ? true : false"
+                                                        @update:modelValue="(e) => toggleSelectColumn(e, val.key)">
+                                                    </v-checkbox-btn>
+                                                </v-list-item-action>
+                                            </template>
+                                            <v-list-item-title>{{ val.title || ""
+                                                }}</v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                    <v-row justify="center" no-gutters>
+                                        <VBtn class="mt-1 mb-3" color="primary" variant="text"
+                                            @click="() => { content!.visibleCols.length = 0; toggleSelectColumn(null, ''); }">
+                                            Сбросить
+                                        </VBtn>
+                                    </v-row>
+                                </v-card>
+                            </v-row>
+                        </template>
+                    </v-menu>
+                </template>
 
 
-            <!-- кнопка(меню) настройки колонок-->
-            <template v-slot:header.icons="{ column }">
+                <!-- кнопка общего меню в загаловке-->
+                <template v-slot:header.actions="{ column }">
 
-                <v-menu :close-on-content-click="false">
+                    <v-menu v-if="content.actionsMenu" scrollStrategy="close">
+                        <template v-slot:activator="{ props }">
+                            <v-btn v-bind="props" icon="mdi-menu" variant="text" />
+                        </template>
 
-                    <template v-slot:activator="{ props }">
-                        <v-btn :disabled="!content.columns || content.columns.length == 0" v-bind="props" icon="mdi-cog"
-                            variant="text"> </v-btn>
-                    </template>
-
-                    <template v-slot:default="{ isActive }">
-                        <v-row class="mb-1" @mouseleave="(e) => { isActive.value = false }">
-                            <v-card class="mx-auto" max-width="400">
-                                <v-list>
-                                    <v-list-item v-for="val in content.columns">
-                                        <template v-slot:prepend="{ isActive }">
-                                            <v-list-item-action start>
-                                                <v-checkbox-btn
-                                                    :model-value="content.visibleCols.includes(val.key) ? true : false"
-                                                    @update:modelValue="(e) => toggleSelectColumn(e, val.key)">
-                                                </v-checkbox-btn>
-                                            </v-list-item-action>
-                                        </template>
-                                        <v-list-item-title>{{ val.title || ""
-                                            }}</v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                                <v-row justify="center" no-gutters>
-                                    <VBtn class="mt-1 mb-3" color="primary" variant="text"
-                                        @click="() => { content!.visibleCols.length = 0; toggleSelectColumn(null, ''); }">
-                                        Сбросить
-                                    </VBtn>
-                                </v-row>
-                            </v-card>
-                        </v-row>
-                    </template>
-                </v-menu>
-            </template>
+                        <template v-slot:default="{ isActive }">
+                            <v-list @mouseleave="(e) => { isActive.value = false }">
+                                <v-list-item v-for=" action in commonTableMenu "
+                                    @click-once="() => action.action(path, selected)">
+                                    <v-icon v-if="action.icon" :icon="action.icon" color="primary" />
+                                    &nbsp
+                                    {{ action.title }}
+                                </v-list-item>
+                            </v-list>
+                        </template>
+                    </v-menu>
+                </template>
 
 
-            <!-- кнопка общего меню в загаловке-->
-            <template v-slot:header.actions="{ column }">
-
-                <v-menu v-if="content.actionsMenu" scrollStrategy="close">
-                    <template v-slot:activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-menu" variant="text" />
-                    </template>
-
-                    <template v-slot:default="{ isActive }">
-                        <v-list @mouseleave="(e) => { isActive.value = false }">
-                            <v-list-item v-for=" action in commonTableMenu "
-                                @click-once="() => action.action(path, selected)">
-                                <v-icon v-if="action.icon" :icon="action.icon" color="primary" />
-                                &nbsp
-                                {{ action.title }}
-                            </v-list-item>
-                        </v-list>
-                    </template>
-                </v-menu>
-            </template>
+                <!--строки-->
+                <template v-slot:item="{ internalItem, index }">
+                    <VDataTableRow :id="getUniqueId(internalItem.raw.id)" :index="index" :item="internalItem"
+                        :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
+                        @click="(e) => { onRowClick(internalItem, index) }">
 
 
-            <!--строки-->
-            <template v-slot:item="{ internalItem, index }">
-                <VDataTableRow :id="getUniqueId(internalItem.raw.id)" :index="index" :item="internalItem"
-                    :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
-                    @click="(e) => { onRowClick(internalItem, index) }">
+                        <!-- колонка меню действий-->
+                        <template v-slot:item.actions="{ item }">
+                            <v-menu scrollStrategy="close" v-if="internalItem.raw.$mdata.getRowActionsMenu">
+                                <template v-slot:activator="{ props }">
+                                    <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
+                                        @click="() => lineSelected = internalItem.raw.id"></v-btn>
+                                </template>
 
+                                <template v-slot:default="{ isActive }">
+                                    <v-list @mouseleave="(e) => { isActive.value = false }">
+                                        <v-list-item v-for=" action in getActionsMenu(internalItem) "
+                                            @click-once="() => action.action(internalItem)">
+                                            <v-icon :icon="action.icon" color="primary" />
+                                            &nbsp
+                                            {{ action.title }}
+                                        </v-list-item>
+                                    </v-list>
+                                </template>
+                            </v-menu>
+                        </template>
 
-                    <!-- колонка меню действий-->
-                    <template v-slot:item.actions="{ item }">
-                        <v-menu scrollStrategy="close" v-if="internalItem.raw.$mdata.getRowActionsMenu">
-                            <template v-slot:activator="{ props }">
-                                <v-btn v-bind="props" icon="mdi-dots-vertical" variant="text"
-                                    @click="() => lineSelected = internalItem.raw.id"></v-btn>
-                            </template>
+                        <!-- колонка иконки-->
+                        <template v-slot:item.icons="{ item }">
+                            <v-icon color="primary"
+                                :icon="item.$mdata.icon || item.$mdata.isFolder ? 'mdi-folder' : 'mdi-file-outline'"></v-icon>
+                        </template>
 
-                            <template v-slot:default="{ isActive }">
-                                <v-list @mouseleave="(e) => { isActive.value = false }">
-                                    <v-list-item v-for=" action in getActionsMenu(internalItem) "
-                                        @click-once="() => action.action(internalItem)">
-                                        <v-icon :icon="action.icon" color="primary" />
-                                        &nbsp
-                                        {{ action.title }}
-                                    </v-list-item>
-                                </v-list>
-                            </template>
-                        </v-menu>
-                    </template>
+                    </VDataTableRow>
+                </template>
 
-                    <!-- колонка иконки-->
-                    <template v-slot:item.icons="{ item }">
-                        <v-icon color="primary"
-                            :icon="item.$mdata.icon || item.$mdata.isFolder ? 'mdi-folder' : 'mdi-file-outline'"></v-icon>
-                    </template>
-
-                </VDataTableRow>
-            </template>
-
-            <template v-slot:no-data />
-            <template v-slot:bottom />
-        </v-data-table>
-
+                <template v-slot:no-data />
+                <template v-slot:bottom />
+            </v-data-table>
+        </div>
 
         <!--Нижняя строка-->
         <v-row class="text-center pt-5" justify="center">
-            <v-col></v-col>
+            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">
+              Всего:{{content.rows.length }} Выбрано:{{ selected.length }}
+            </v-col>
             <v-col md="6">
                 <v-row justify="center">
                     <!--Номера Страниц-->
@@ -571,7 +575,13 @@ const addRow = (row: INavRow) => {
 }
 
 
-defineExpose({ addCurrPage, reset, update, setSelectedLine, addRow, eventsHandler });
+const getSelected=()=>{
+    debugger
+    return selected.value;
+}
+
+
+defineExpose({ addCurrPage, reset, update, setSelectedLine, addRow, eventsHandler, getSelected });
 
 //методы с await должны идти после специальных функций vue
 content.value = await props.onNavigate(0, 1, null, null);

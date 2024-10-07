@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev --host --https --ssl-cert ./certs/cert.crt --ssl-key ./certs/certkey.key", 
+    "dev": "nuxt dev --host --https --ssl-cert ./certs/cert.crt --ssl-key ./certs/certkey.key",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -16,12 +16,14 @@
     "@vueuse/core": "^10.7.2",
     "@vueuse/nuxt": "^10.7.2",
     "h3": "^1.10.1",
-    "nuxt": "^3.11.2",
+    "nuxt": "3.13.1",
     "sass": "^1.70.0",
     "vue": "3.4.33",
     "vue-tsc": "^2.0.19"
   },
   "dependencies": {
+    "@babel/plugin-transform-class-properties": "^7.25.4",
+    "@babel/plugin-transform-class-static-block": "^7.24.7",
     "@microsoft/signalr": "^8.0.0",
     "@nuxt-alt/proxy": "^2.5.8",
     "@vuepic/vue-datepicker": "^6.1.0",
@@ -30,7 +32,7 @@
     "inversify-inject-decorators": "^3.1.0",
     "jssip": "^3.10.1",
     "maska": "^2.1.11",
-    "reflect-metadata": "^0.2.1",
+    "reflect-metadata": "^0.2.2",
     "sip.js": "^0.21.2",
     "uuid": "^9.0.1",
     "v-phone-input": "^4.1.2",

@@ -14,8 +14,10 @@
             <v-btn :loading="emplLoading.loading" type="submit" @click="createRecs(emplLoading)">Создать</v-btn>
         </VCol>
         <VCol style="max-width: 150px;">
-            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Название раздела расписания" hide-details="auto" />
-            <v-btn :loading="scheduleGroupLoading.loading" type="submit" @click="createRecS(scheduleGroupLoading)">Создать</v-btn>
+            <v-text-field v-model="scheduleItemGroup" variant="underlined" label="Название раздела расписания"
+                hide-details="auto" />
+            <v-btn :loading="scheduleGroupLoading.loading" type="submit"
+                @click="createRecS(scheduleGroupLoading)">Создать</v-btn>
         </VCol>
         <VCol style="max-width: 300px;">
             <v-text-field v-model="productsCatalogName" variant="underlined" label="Название прайса"
@@ -49,7 +51,15 @@
 
         </VCol>
     </VRow>
+
+    <VRow class="align-center">
+    
+            <VBtn @click="openselect()">select</VBtn>
+    
+    </VRow>
+
 </template>
+
 
 <script setup lang="ts">
 import { EmployeeRecord, EmployeeRecordData } from '~~/lib/MoApi/Records/EmployeeRecord';
@@ -77,7 +87,12 @@ import { QueryParams } from '~/lib/MoApi/RequestArgs';
 import { ProductViews } from '~/lib/MoApi/Views/ProductViews';
 import { RelationApiSection } from '~/lib/MoApi/ApiSectionsV1/RelationApiSection';
 import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
-
+import { ClientList } from '~/componentTemplates/listTemplates/clientListTemplate';
+import TemplateFrame from '~/components/TemplateFrame.vue';
+import { VBtn } from 'vuetify/components';
+import MultiselectForm  from '~/components/forms/MultiselectForm.vue';
+import { PositionList } from '~/componentTemplates/listTemplates/positionListTemplate';
+import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -87,7 +102,6 @@ let productsCatalogSectionQuantity = ref(0)
 let productsCatalogName = ref('')
 let scheduleItemGroup = ref('')
 let scheduleItemGroupLoader = ref(false)
-
 
 
 const createRecs = async (recLoading: typeof emplLoading) => {
@@ -194,7 +208,7 @@ const emplCreateTask = async (size: number) => {
         const day = Math.floor(Math.random() * 28) + 1;
         const birthdate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
         let emplkey = await addEmployee(name, surname, patronymic, gender, birthdate, generatePhoneNumber(), generateEmailAddress()); //1
-        
+
         await addPosition(emplkey);
     }
 }
@@ -234,22 +248,22 @@ let key = ref('')
 const addScheduleItem = async (size: number) => {
     for (let i = 0; i < size; i++) {
 
-    let rec = await recStore.createNew<ScheduleItemRecord, ScheduleItemData>(ScheduleItemRecord, (data) => {
-        data.position = randomPicker(tempPositionArr.value);
-        data.beginDate = new Date().toISOString().slice(0, 10);
-        data.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10);
-        data.activityDays = Math.floor(Math.random() * (8 - 3) + 3);
-        data.pauseDays = 7 - data.activityDays;
-        data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
-        data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
-        data.timespans = timeSpansCrtr();
-    });
-    await rec.save();
-    recCode.value = rec.RecCode;
-    key.value = rec.Key;
+        let rec = await recStore.createNew<ScheduleItemRecord, ScheduleItemData>(ScheduleItemRecord, (data) => {
+            data.position = randomPicker(tempPositionArr.value);
+            data.beginDate = new Date().toISOString().slice(0, 10);
+            data.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10);
+            data.activityDays = Math.floor(Math.random() * (8 - 3) + 3);
+            data.pauseDays = 7 - data.activityDays;
+            data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
+            data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
+            data.timespans = timeSpansCrtr();
+        });
+        await rec.save();
+        recCode.value = rec.RecCode;
+        key.value = rec.Key;
 
-    await scheduleGroupRec.value.addCoupling(key.value, recCode.value)
-    await rec.addChild(randomPicker(tempProdRecArr.value), 1024, 0)
+        await scheduleGroupRec.value.addCoupling(key.value, recCode.value)
+        await rec.addChild(randomPicker(tempProdRecArr.value), 1024, 0)
     }
 }
 
@@ -596,7 +610,7 @@ const bookingCreateTask = async (size: number = 500) => {
     const schGrid = diC.get(ScheduleGrid);
     const opts = new ScheduleGridOptions(begDate, endDate);
     opts.productIds = prods as string[];
-    opts.bookingStatuses=[BookingStatuses.ACTIVE];
+    opts.bookingStatuses = [BookingStatuses.ACTIVE];
 
     await schGrid.init(opts);
 
@@ -646,7 +660,7 @@ const bookingCreateTask = async (size: number = 500) => {
             }
 
             await createBooking(schGrid, dt, bp);
-           // await Utils.sleep(950);
+            // await Utils.sleep(950);
             size--;
         }
     }
@@ -705,7 +719,7 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
         d.position = bookingParams.position || null;
         d.division = bookingParams.division || null;
         d.placement = bookingParams.placement || null;
-        d.status=BookingStatuses.ACTIVE;
+        d.status = BookingStatuses.ACTIVE;
     });
 
 
@@ -742,6 +756,18 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 };
 
 
+
+const openselect = () => {
+    const position = new PositionList(diC, {selectStrategy:"single"});
+    
+    const tmpl = new SelectFormTemplate(diC, { title: "ss", componentTemplate: position });
+    const MyComponent = defineComponent({
+        setup: (p,c)=>tmpl.setup(p,c),
+        render: tmpl.render(),
+        inheritAttrs: true
+    })
+    openDialog(MyComponent, { title: "ss", componentTemplate: position, width: "100%", height:"100%" }, true, true, (e, d) => (e == "onBeforeClose") ? true : true)
+}
 
 
 

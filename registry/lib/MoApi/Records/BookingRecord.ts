@@ -31,10 +31,10 @@ export class BookingRecordData extends ApiRecordChData {
 
 @injectable()
 export class BookingRecord extends ApiRecord<BookingRecordData> {
-  static RightToken = "dbBooking";
-  static RecCode = 1028;
-  static BatchGetRecDataPath = "/Bookings/GetBookings";
-  static RecordsFindPath = "/Bookings/FindBookings";
+  static override RightToken = "dbBooking";
+  static override RecCode = 1028;
+  static override BatchGetRecDataPath = "/Bookings/GetBookings";
+  static override RecordsFindPath = "/Bookings/FindBookings";
 
   protected _newProductGroupPending: ProductGroupRecordData | undefined | null = null;
   protected _newClientGroupPending: ClientGroupRecordData | undefined | null = null;

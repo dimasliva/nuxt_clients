@@ -32,9 +32,9 @@ export class DealRecordData extends ApiRecordChData {
 @injectable()
 export class DealRecord extends ApiRecord<DealRecordData> {
 
-    static RightToken = "dbDeal";
-    static RecCode = 1029;
-    static BatchGetRecDataPath = "/Deals/GetDeals";
+    static override RightToken = "dbDeal";
+    static override RecCode = 1029;
+    static override BatchGetRecDataPath = "/Deals/GetDeals";
 
 
     get RecCode() { return DealRecord.RecCode; }

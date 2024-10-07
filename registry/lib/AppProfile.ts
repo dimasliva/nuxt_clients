@@ -5,7 +5,7 @@ import { injectable, inject } from "inversify";
 export abstract class AppProfile implements IAppSettingsStorage {
 
 
-    constructor(protected _profile: any) {
+    constructor(protected _profile?: any) {
         this._profile=_profile || {};
     }
 

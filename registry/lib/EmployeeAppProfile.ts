@@ -1,7 +1,8 @@
-import { injectable, inject } from "inversify";
+import { injectable, inject, unmanaged } from "inversify";
 import { MoApiClient } from "./MoApi/MoApiClient";
 import * as vHelpers from '~~/libVis/Helpers';
 import { AppProfile } from "./AppProfile";
+import { UserContext } from "./UserContext";
 
 
 export enum EEmployeeAppProfileSections {
@@ -15,7 +16,7 @@ export enum EEmployeeAppProfileSections {
 export class EmployeeAppProfile extends AppProfile {
 
 
-    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, _profile: any) {
+    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, @unmanaged() _profile?: any) {
         super(_profile || {
             pageSettings: {},
             compSettings: {}
@@ -30,13 +31,13 @@ export class EmployeeAppProfile extends AppProfile {
 
 
 
-    getSection<T = any>(sectionName: string): T {
+    override getSection<T = any>(sectionName: string): T {
         return this._profile[sectionName];
     }
 
 
 
-    setSection<T = any>(sectionName: string, val: T) {
+    override setSection<T = any>(sectionName: string, val: T) {
         this._profile[sectionName] = val;
     }
 
@@ -78,6 +79,53 @@ export class EmployeeAppProfile extends AppProfile {
         vHelpers.action(async () => {
             await this._MoApiClient.send("/Employees/UpdateAppProfile", this._profile);
         })
+    }
+
+}
+
+
+
+@injectable()
+export class EmployeeAppProfilePageDataStorageCell implements IDataStorageCell {
+
+    protected _section: EEmployeeAppProfileSections = null!;
+    protected _propName: string = "";
+    protected _EmployeeAppProfile: EmployeeAppProfile;
+
+    constructor(@inject("UserContext") userCtx: UserContext) {
+        this._EmployeeAppProfile = userCtx.EmployeeAppProfile!;
+    }
+
+
+
+    initPageSec(pagePath: string) {
+        this._section = EEmployeeAppProfileSections.PageSettings;
+        this._propName = pagePath;
+    }
+
+
+
+    init(propName: string) {
+        this._section = EEmployeeAppProfileSections.ComponentSettings;
+        this._propName = propName;
+    }
+
+
+
+    getData<T = any>() {
+        return this._EmployeeAppProfile.getPropOfSection<T>(this._section, this._propName);
+    }
+
+
+
+    setData<T = any>(data: T) {
+        this._EmployeeAppProfile.setPropOfSection(this._section, this._propName, data);
+    }
+
+
+
+    async flush() {
+        await this._EmployeeAppProfile.save();
     }
 
 }

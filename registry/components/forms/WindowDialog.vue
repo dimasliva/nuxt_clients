@@ -33,7 +33,7 @@
             </v-row>
         </v-card-title>
 
-        <v-card-text class="overflow-y-auto pb-0">
+        <v-card-text class="overflow-y-auto pb-0 h-100 pt-0">
             <slot>
 
             </slot>
@@ -86,12 +86,14 @@ interface IProps {
 const props = defineProps<IProps>();
 
 const eventsHandler = (e: string, d: any) => {
+    debugger;
     props.onEvent?.(e, d);
 };
 
 
 const windowStyle = {
-    height: props.height || "90dvh"
+    height: props.height || "90dvh",
+    "min-width": props.width || 0
 }
 
 const close = async () => {

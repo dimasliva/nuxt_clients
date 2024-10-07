@@ -20,9 +20,9 @@ export class ProductGroupRecordData extends ApiRecordChData{
 @injectable()
 export class ProductGroupRecord extends ApiRecord<ProductGroupRecordData>{
 
-    static RightToken = "dbProductGroup";
-    static RecCode = 1034;
-    static BatchGetRecDataPath="/Products/GetProductGroups";
+    static override RightToken = "dbProductGroup";
+    static override RecCode = 1034;
+    static override BatchGetRecDataPath="/Products/GetProductGroups";
 
 
     get RecCode() { return ProductGroupRecord.RecCode; }

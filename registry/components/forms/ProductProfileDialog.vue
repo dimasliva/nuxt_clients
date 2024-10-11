@@ -30,9 +30,6 @@ import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { Exception } from '~/lib/Exceptions';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 import { ProductRecord } from '~/lib/MoApi/Records/ProductRecord';
-import { QueryDictsFFParams } from '~/lib/MoApi/RequestArgs';
-import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
-import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 import type { Container } from 'inversify/lib/container/container';
 
@@ -43,17 +40,14 @@ const { t, locale } = useI18n();
 interface IProps {
   diC?: Container;
   recKey: string | null;
-  rec?: ProductRecord
+  rec?: ProductRecord,
+  readonly?: boolean
 }
 
 const props = defineProps<IProps>();
 
 const diC = props.diC || useSessionContainer();
 const recStore = diC.get<RecordsStore>("RecordsStore");
-
-let dictStore = diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
-let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
-let userCtx = diC.get<UserContext>("UserContext");
 
 
 const eventsHandler = (e: string, d: any) => {
@@ -66,7 +60,6 @@ defineExpose({ eventsHandler });
 
 
 let rec = ref<ProductRecord>();
-let emplRec = ref<EmployeeRecord>();
 
 
 if (props.rec)
@@ -84,7 +77,7 @@ else
   }
 
 
-const { isRecLock, readonly, close } = await useEditForm(rec);
+const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 
 

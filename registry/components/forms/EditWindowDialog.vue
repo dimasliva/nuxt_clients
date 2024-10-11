@@ -19,7 +19,7 @@
             </v-btn>
 
             <v-btn color="primary" variant="text" @click="() => close()">
-                {{ $t('close') }}
+                {{ t('close') }}
             </v-btn>
         </template>
     </WindowDialog>

@@ -6,6 +6,7 @@ import { FreqUsingStrStatistic } from "~/libVis/FreqUsingStrStatistic";
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
 import { Container } from "inversify/lib/container/container";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
+import { title } from "process";
 
 
 let t: any;
@@ -70,7 +71,6 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
 
 
     async setup(props: IFinderFormProps, ctx?) {
-
         this._ctx = ctx;
 
         ctx.expose(this.expose());
@@ -81,9 +81,11 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
 
         const histRes = this._resultHistoryStatistic.getMostFreq(20);
         this._historyResultLst.value = [];
-
-        for (let i = 0; i < histRes.length; i++)
-            this._historyResultLst.value.push({ value: histRes[i].value, title: histRes[i].title || await this.getTitleItemByVal(histRes[i].value) || '' })
+        for (let i = 0; i < histRes.length; i++) {
+            const title = histRes[i].title || await this.getTitleItemByVal(histRes[i].value);
+            if (title)
+                this._historyResultLst.value.push({ value: histRes[i].value, title: title })
+        }
         // this.testprop=computed(()=>[{value: 1, title:"wsdd"},{value: 2, title:"dfgfg"}])
     }
 
@@ -97,9 +99,16 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
 
 
 
+    async getTitleItemsByVals(vals: (string | number)[]) {
+        return await this._props.finderDataProvider.getTitles(vals);
+    }
+
+
+
     async getTitleItemByVal(val: string | number) {
         return await this._props.finderDataProvider.getTitle(val);
     }
+
 
 
     _onfindSingleExec = false;
@@ -120,7 +129,11 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
                 (e, d) => {
                     if (e == "onBeforeClose") {
                         if (d) {
-                            nextTick(() => closeDialog(d));
+                            nextTick(async () => {
+                                const names = await this.getTitleItemsByVals(d);
+                                const res = names.map((v, i) => { return { value: d[i], title: v } })
+                                this.onSelect(res as TDictViewVal[]);
+                            });
                         }
                     }
                     return true;
@@ -252,8 +265,7 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
 
     /**Основная строка поиска */
     getMainSearchField() {
-        return <v-row no-gutters>
-
+        return <v-row class="flex-0-1"> 
             <v-autocomplete ref={this._searchFieldRef} clearable label={this._props.label || ''}
                 variant="underlined" density="compact" modelValue={this._searchingText.value}
                 items={this._searchedStrLst.value}

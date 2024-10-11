@@ -41,17 +41,14 @@ const { t, locale } = useI18n();
 interface IProps {
   diC?: Container;
   recKey: string | null;
-  rec?: ProductsCatalogRecord
+  rec?: ProductsCatalogRecord,
+  readonly?: boolean
 }
 
 const props = defineProps<IProps>();
 
 const diC = props.diC || useSessionContainer();
 const recStore = diC.get<RecordsStore>("RecordsStore");
-
-let dictStore = diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
-let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
-let userCtx = diC.get<UserContext>("UserContext");
 
 
 const eventsHandler = (e: string, d: any) => {
@@ -80,7 +77,7 @@ else
   }
 
 
-const { isRecLock, readonly, close } = await useEditForm(rec);
+const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 
 

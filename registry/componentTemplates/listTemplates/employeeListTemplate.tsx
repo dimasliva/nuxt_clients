@@ -15,30 +15,29 @@ import { Container } from 'inversify';
 
 
 type TEmployeeFilterVals = {
-    fio?: string | null;
-    phone?: string | null;
-    email?: string | null;
-    snils?: string | null;
-  }
+  fio?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  snils?: string | null;
+}
 
-  
 
-export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals>
-{
+
+export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals> {
 
   protected _employeesViews: EmployeesViews = null!;
 
-  
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
-        super(deps, opts);
 
-        if (deps instanceof Container) {
-            this._employeesViews = deps.get(EmployeesViews);
-        }
-        else {
-            this._employeesViews = deps["EmployeesViews"];
-        }
+  constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
+    super(deps, opts);
+
+    if (deps instanceof Container) {
+      this._employeesViews = deps.get(EmployeesViews);
     }
+    else {
+      this._employeesViews = deps["EmployeesViews"];
+    }
+  }
 
 
   PAGE_TITLE = "Сотрудники";
@@ -59,7 +58,7 @@ export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals>
       //  { key: 'snils', title: 'СНИЛС', align: 'center', alignData: "center", sortable: true, traits: { dbEmployeeDocuments: "r" }, requestNames: ["snils"] }
     ],
 
-    actionsMenu: (item) => [
+    actionsMenu: this.props?.selectMode ? undefined : (item) => [
       { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbEmployee: "u" } },
       { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key, item.index) }, traits: { dbEmployee: "d" } },
 

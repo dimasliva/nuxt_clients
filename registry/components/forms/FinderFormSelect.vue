@@ -1,12 +1,9 @@
-
 <script lang="ts">
 import type { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { FinderFormSelectTemplate, type IFinderFormSelectProps } from "~/componentTemplates/forms/finderFormSelectTemplate"
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
 
-
-class FinderSelectForm extends FinderFormSelectTemplate { }
 
 
 export default {
@@ -45,19 +42,19 @@ export default {
             required: false
         },
 
+        selectFormComponent: {
+            type: Object,
+            required: false
+        }
+
     },
 
 
     async setup(props, ctx) {
-        
+        const diC = props.diC || useSessionContainer();
         let t = useI18n().t;
-        const o = new FinderSelectForm();
-        await o.setup(props as IFinderFormSelectProps, ctx);
-
-        ctx.expose({
-            eventsHandler: (e, d) => o.eventsHandler(e, d)
-        });
-
+        const o = new FinderFormSelectTemplate(diC, props as IFinderFormSelectProps);
+        await o.setup(props, ctx);
         return o.render();
     }
 }

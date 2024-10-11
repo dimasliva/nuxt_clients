@@ -11,6 +11,7 @@ export interface INavRowMetadata {
 
 export interface INavRow {
     $mdata: INavRowMetadata;
+    $isSelectable?:boolean;
     id: string;
     title: string;
 };

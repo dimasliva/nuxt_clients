@@ -69,7 +69,6 @@ export default {
 
     async setup(props: IProps, ctx: SetupContext) {
         const o = props.templateInstance;
-
         const comp = defineComponent({
             setup: async (p, c) => await o.setup(props, ctx),
             render: o.render(),

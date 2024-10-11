@@ -39,6 +39,6 @@
     "vite-plugin-vuetify": "^2.0.1",
     "vue-cal": "^4.8.1",
     "vue-sonner": "^1.1.2",
-    "vuetify": "^3.6.7"
+    "vuetify": "3.7.1"
   }
 }

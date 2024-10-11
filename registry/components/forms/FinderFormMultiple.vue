@@ -3,10 +3,8 @@
 import type { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { FinderFormMultipleTemplate, type IFinderFormMultipleProps } from "~/componentTemplates/forms/finderFormMultipleTemplate"
+import type { IFinderFormProps } from "~/componentTemplates/forms/finderFormTemplate";
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
-
-
-class FinderMultipleForm extends FinderFormMultipleTemplate { }
 
 
 export default {
@@ -39,20 +37,20 @@ export default {
             type: Array as  PropType<TDictViewVal[]>,
             required: false
         },
+
+        selectFormComponent: {
+            type: Object,
+            required: false
+        }
         
     },
 
 
     async setup(props, ctx) {
-
         let t = useI18n().t;
-        const o = new FinderMultipleForm();
-        await o.setup(props as IFinderFormMultipleProps, ctx);
-
-        ctx.expose({
-            eventsHandler: (e, d) => o.eventsHandler(e, d)
-        });
-
+        const diC= props.diC || useSessionContainer();
+        const o = new FinderFormMultipleTemplate(diC, props);
+        await o.setup(props as IFinderFormProps, ctx);
         return o.render();
     }
 }

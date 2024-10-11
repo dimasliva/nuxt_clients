@@ -4,6 +4,8 @@ import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { Exception } from "~/lib/Exceptions";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import type { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
+import { v1 } from "uuid";
+import * as Utils from '~/lib/Utils';
 
 export type TDictViewVal = { value: any, title: string }
 
@@ -26,6 +28,7 @@ export abstract class FinderDataProvider {
 
     abstract getList(text: string, ...args): Promise<TDictViewVal[]>;
     abstract getTitle(value: any, ...args): Promise<string | undefined>;
+
 
 
     init(instName: string | null, editFormComponent: any, ...args) {
@@ -60,5 +63,11 @@ export abstract class FinderDataProvider {
                     return true;
                 });
         })
+    }
+
+
+    
+    async getTitles(values: any[], ...args): Promise<(string | undefined)[]> {
+        return await Utils.mapAsync(values, (v) => this.getTitle(v));
     }
 }

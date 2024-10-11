@@ -10,6 +10,8 @@ import { ProductRecord } from "~/lib/MoApi/Records/ProductRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from "~/components/forms/FinderForm.vue";
 import FinderSelectForm from "~/components/forms/FinderFormSelect.vue";
+import { ProductNavigatorTemplate } from "~/componentTemplates/navigatorTemplates/productNavigatorTemplate";
+import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 
 @injectable()
 export class ProductFinderDataProvider extends FinderDataProvider {
@@ -20,37 +22,61 @@ export class ProductFinderDataProvider extends FinderDataProvider {
   constructor(
     @inject("MoApiClient") _MoApiClient: MoApiClient,
     @inject("UserContext") _UserContext: UserContext,
-    @inject("diC") _diC: Container,
+    @inject("diC") protected _diC: Container,
     @inject("RecordsStore") protected _RecordsStore: RecordsStore,
     @inject(ProductViews) protected _ProductViews: ProductViews
   ) {
-    super(_MoApiClient, _UserContext, _diC);
+    super(_MoApiClient, _UserContext);
     this._historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.full;
     this._apiRequestTimeout = 2500;
   }
 
-  init(instName: string | null, multiselect = false, sizeLimit: number = 20, cats: []) {
+
+
+  override init(instName: string | null, multiselect = false, sizeLimit: number = 20, cats: any[] = []) {
     super.init(instName, multiselect ? FinderSelectForm : FinderForm);
     this._instName = instName;
     this._listSizeLimit = sizeLimit;
     this._selectedOptionsValues = cats;
+
+
+    const navTemplate = new ProductNavigatorTemplate(
+      this._diC,
+      null, 
+      {
+      selectMode: true,
+      selectStrategy: multiselect ? "page" : "single",
+      selectableTypes: ["product"]
+    });
+
+    const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор услуги", componentTemplate: navTemplate });
+
+    const selComponent = defineComponent({
+      setup: (p, c) => selTemplate.setup(p, c),
+      render: selTemplate.render(),
+    })
+
+    this._selectFormComponent = selComponent;
   }
 
 
 
-  async edit(choosedValues?: any): Promise<any | null> {
+  override async edit(choosedValues?: any): Promise<any | null> {
     return new Promise((resolve) => {
       openDialog(
         this._editFormComponent,
         {
-          diC: this._diC,
+          //diC: this._diC,
           title: "Поиск товаров и услуг",
           finderDataProvider: this,
           apiRequestTimeout: this._apiRequestTimeout,
           choosedValues: choosedValues,
           selectedOptionsValues: this._selectedOptionsValues,
           historyResultTypeStorage: this._historyResultTypeStorage,
+          selectFormComponent: this._selectFormComponent,
+
         },
+        true,
         true,
         (e, d) => {
           if (e == "onBeforeClose") resolve(d);
@@ -58,6 +84,8 @@ export class ProductFinderDataProvider extends FinderDataProvider {
         });
     });
   }
+
+
 
   async getList(txt: string, cats: any): Promise<TDictViewVal[]> {
     if (txt) {
@@ -70,16 +98,18 @@ export class ProductFinderDataProvider extends FinderDataProvider {
         productCatalogs: cats,
         temporaryNotActive: false,
       });
-      let res = rdl.toArray().map((item) => { return { value: item.id, title: item.title! }});
+      let res = rdl.toArray().map((item) => { return { value: item.id, title: item.title! } });
       return res;
     }
 
     return [];
   }
 
+
+
   async getTitle(value: any, ...args: any[]): Promise<string | undefined> {
     if (!value) return undefined;
-    const rec = await this._RecordsStore.fetch(ProductRecord, value);
-    return rec.Data?.title;
+    const rec = await this._RecordsStore.tryFetch(ProductRecord, value);
+    return rec?.Data!.title;
   }
 }

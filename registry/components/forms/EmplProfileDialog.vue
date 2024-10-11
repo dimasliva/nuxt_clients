@@ -49,7 +49,7 @@
           <v-col sm="3">
             <!--Поле даты рождения-->
             <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
-              :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
+              :label="t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
 
 
             <!--Управление аккаунтом-->
@@ -107,11 +107,10 @@
     </template>
   </FormsEditWindowDialog>>
 </template>
- 
+
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
-import { PageMap } from '~/lib/PageMap';
 import { UserContext } from '~/lib/UserContext';
 import { EEmployeeAccountStatus, EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord'
 import { useI18n } from "vue-i18n"
@@ -119,22 +118,17 @@ import { EmployeeDocumentsRecord } from '~/lib/MoApi/Records/EmployeeDocumentsRe
 import { EmployeeContactsRecord } from '~/lib/MoApi/Records/EmployeeContactsRecord';
 import * as vHelpers from '~~/libVis/Helpers';
 import InputField from '~/components/InputField.vue';
-import AddressInput from '~/components/AddressInput.vue';
 import { EDataType } from '~/lib/globalTypes';
 import { MoApiClient } from '~/lib/MoApi/MoApiClient';
-import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
-import AddressEntity from '~/lib/MoApi/Records/DataEntities/AddressEntity';
-import { Dictionary } from "~/lib/Dicts/Dictionary";
-import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
-import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
 import { getNextSerialKey } from '~/lib/Utils';
 import { Exception } from '~/lib/Exceptions';
 import { chkTrait } from "~/lib/Utils";
 import { RolesRecord } from '~/lib/MoApi/Records/RolesRecord';
+import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 
 const { t, locale } = useI18n();
 
-class VisWrap<T>{
+class VisWrap<T> {
   modelValue: T;
   key: number = getNextSerialKey();
 
@@ -157,26 +151,19 @@ class VisWrap<T>{
 }
 
 interface IProps {
-  recKey: string | null
+  recKey: string | null,
+  readonly?: boolean
 }
 
 const props = defineProps<IProps>();
 
-const iocc = useContainer();
-const recStore = iocc.get(RecordsStore);
+const diC = useContainer();
+const recStore = diC.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
-const isRecLock = ref();
-const isAccount = ref(false);
-let readonly = ref(false);
 const accountStatus = ref(EEmployeeAccountStatus.NotPresent);
 
-let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
-let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
-let userCtx = iocc.get<UserContext>("UserContext");
-const persIdentDocLists = ref(Dictionary.itemsToValueTitle((await dictPersDocs.getItems(0))!));
-const persDocLists = ref(Dictionary.itemsToValueTitle(
-  Object.assign((await dictPersDocs.getItems(1 * Dictionary.DICT_SECTION_K))!, await dictPersDocs.getItems(Dictionary.DICT_USER_SECTION))));
+let userCtx = diC.get<UserContext>("UserContext");
 
 
 const capWordMask = {
@@ -242,33 +229,9 @@ for (let item in roles)
 
 
 const rolesVis = computed({
-  get: () =>  rec.value!.MData.roles ? rec.value!.MData.roles.split(",") : null,
-  set: (val) =>  rec.value!.MData.roles = (val!.length > 0) ? val!.join(",") : ""
+  get: () => rec.value!.MData.roles ? rec.value!.MData.roles.split(",") : null,
+  set: (val) => rec.value!.MData.roles = (val!.length > 0) ? val!.join(",") : ""
 });
-
-///Документы
-
-
-
-///Блокировка записей
-watch(isRecLock, (val) => {
-  if (!val) {
-    warnToast("Запись заблокирована для изменения. Редакция невозможна");
-    readonly.value = true;
-  }
-  else
-    readonly.value = false;
-});
-
-let pingLockInterval: any = null;
-if (!rec.value.IsNew) {
-  isRecLock.value = await rec.value.lock();
-
-  pingLockInterval = setInterval(async () => {
-    isRecLock.value = await rec.value!.lock();
-  }, 150 * 1000)
-}
-
 
 const setPhoto = async (file?: File) => {
   if (file) {
@@ -396,17 +359,9 @@ const eventsHandler = (e: string, d: any) => {
   }
 };
 
-
-const close = () => {
-  if (pingLockInterval) {
-    clearInterval(pingLockInterval);
-    rec.value!.unlock();
-  }
-  return rec.value?.Key;
-}
-
-
 defineExpose({ eventsHandler });
+
+const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 </script>
 

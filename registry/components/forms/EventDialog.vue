@@ -229,7 +229,6 @@ const recStore = iocc.get(RecordsStore);
 const clientView = iocc.get(ClientsViews);
 const props = defineProps<Props>()
 let availableTimeSlots = ref<any>([])
-console.log(props.clientData)
 let clientName = ref(props.clientData ? props.clientData.name : '')
 let clientSurname = ref(props.clientData ? props.clientData.surname : '')
 let clientPatronymic = ref(props.clientData ? props.clientData.patronymic : '')
@@ -243,7 +242,7 @@ let clientArr = ref<any[]>([])
 let client = ref(props.creation ? null : Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value)
 let employee = ref(findEmployeeById(props.event.split))
 let position = ref(emplChoice(props.positions, props.event.split))
-let product = ref(props.creation? (props.products.length > 1? null : [props.products[0]]) : props.event.products.map(id => props.products.find(prod => id == prod.id)))
+let product = ref(props.creation? (props.products.length == 1 || props.event.quick? [props.products[0]] : null) : props.event.products.map(id => props.products.find(prod => id == prod.id)))
 let products = ref(props.products)
 let placement = ref()
 let division = ref()
@@ -277,8 +276,16 @@ const onProductsChange = (ev) => {
 }
 
 const cancelAndClose = async () => {
-  // await props.delFunc();
-  closeDialog('');
+  if(!props.creation){
+    const bkRec = await recStore.get<BookingRecord>(BookingRecord, props.event.id)
+    let res = await bkRec.delete();
+    if(res){
+      props.event.deleting = true;
+      closeDialog(props.event);
+    }
+  } else {
+    closeDialog('');
+  }
 }
 
 const saveChanges = async () => {
@@ -291,7 +298,7 @@ const saveChanges = async () => {
     startMinutes = startMinutes[0] * 60 + startMinutes[1] * 1;
     let endMinutes = end.value.split(':')
     endMinutes = endMinutes[0] * 60 + endMinutes[1] * 1;
-
+    console.log(rec)
     if(rec){
       props.event.start = timeStart;
       props.event.end = timeEnd;
@@ -302,9 +309,9 @@ const saveChanges = async () => {
       props.event.class = 'ordered';
       props.event.content = product.value.map(pr => pr.title).toString();
       props.event.products = product.value.map(el => el.id);
-      props.event.id = rec.id
+      props.event.id = rec.MData.id;
       props.event.client = {
-        id: client.value.value,
+        id: rec.MData.client,
         name: clientTitle[1],
         surname: clientTitle[0],
         patronymic: clientTitle[2],
@@ -314,6 +321,7 @@ const saveChanges = async () => {
   } else {
     await updateRec()
   }
+
   closeDialog(props.event);
 }
 
@@ -413,7 +421,6 @@ const createRec = async () => {
 
   let res = await schGrid.addBooking(rec, product.value, false);
 
-  console.log(res, rec)
   if(res){
     return rec;
   } else {

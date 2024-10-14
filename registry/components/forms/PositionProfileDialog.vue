@@ -40,19 +40,14 @@ const { t, locale } = useI18n();
 
 
 interface IProps {
-  recKey: string | null
+  recKey: string | null,
+  readonly?: boolean
 }
 
 const props = defineProps<IProps>();
 
-const iocc = useSessionContainer();
-const recStore = iocc.get<RecordsStore>("RecordsStore");
-
-
-let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
-let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
-let userCtx = iocc.get<UserContext>("UserContext");
-
+const diC = useSessionContainer();
+const recStore = diC.get<RecordsStore>("RecordsStore");
 
 let rec = ref<PositionRecord>();
 let emplRec = ref<EmployeeRecord>();
@@ -72,7 +67,7 @@ else {
 
 
 
-const { isRecLock, readonly, close } = await useEditForm(rec);
+const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 
 
@@ -117,10 +112,10 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-const dictFinderDataProvider = iocc.get(DictsFinderDataProvider);
+const dictFinderDataProvider = diC.get(DictsFinderDataProvider);
 dictFinderDataProvider.init("serachPositions", false, EDictionaries.CompanyPositions);
 
-const emplFioFinderDataProvider = iocc.get(EmployeeFioFinderDataProvider);
+const emplFioFinderDataProvider = diC.get(EmployeeFioFinderDataProvider);
 emplFioFinderDataProvider.init("fioEmployyee");
 
 defineExpose({ eventsHandler });

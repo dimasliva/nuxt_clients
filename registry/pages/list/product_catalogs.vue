@@ -22,7 +22,7 @@ export default {
 
 
 
-  async setup(props: IProductNavigatorTemplateProps, ctx) {
+  async setup(props, ctx) {
     t = useI18n().t;
 
     const diC = props.diC || useSessionContainer();

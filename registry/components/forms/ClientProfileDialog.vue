@@ -49,7 +49,7 @@
           <v-col sm="3">
             <!--Поле даты рождения-->
             <InputField :state="fieldsOptions" class="pb-4" :type="EDataType.date" v-model="rec!.MData.birthdate"
-              :label="$t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
+              :label="t('birthdate')" :constraints="{ min: '1900-01-01', max: new Date() }" />
 
             <!--Поле выбора пола-->
             <InputField :state="fieldsOptions" :type="EDataType.strictstring" style=" max-width: 10dvh; height: 10px;"
@@ -226,6 +226,7 @@ import { Dictionary } from "~/lib/Dicts/Dictionary";
 import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
 import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
 import { getNextSerialKey } from '~/lib/Utils';
+import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 
 const { t, locale } = useI18n();
 
@@ -252,7 +253,8 @@ class VisWrap<T> {
 }
 
 interface IProps {
-  recKey: string | null
+  recKey: string | null,
+  readonly?: boolean
 }
 
 const props = defineProps<IProps>();
@@ -261,8 +263,6 @@ const iocc = useContainer();
 const recStore = iocc.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
-const isRecLock = ref();
-let readonly = ref(false);
 
 let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
 let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
@@ -377,27 +377,6 @@ const onAddDoc = (fieldsOptions, typeCode) => {
 
 
 
-///Блокировка записей
-watch(isRecLock, (val) => {
-  if (!val) {
-    warnToast("Запись заблокирована для изменения. Редакция невозможна");
-    readonly.value = true;
-  }
-  else
-    readonly.value = false;
-});
-
-let pingLockInterval: any = null;
-
-if (!rec.value.IsNew) {
-  isRecLock.value = await rec.value.lock();
-
-  pingLockInterval = setInterval(async () => {
-    isRecLock.value = await rec.value!.lock();
-  }, 150 * 1000)
-}
-
-
 const setPhoto = async (file?: File) => {
   if (file) {
     await recSd.value?.setMPhoto(file)
@@ -466,14 +445,7 @@ const eventsHandler = (e: string, d: any) => {
 };
 
 
-const close = () => {
-  if (pingLockInterval) {
-    clearInterval(pingLockInterval);
-    rec.value!.unlock();
-  }
-  return rec.value?.Key;
-}
-
+const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 defineExpose({ eventsHandler });
 

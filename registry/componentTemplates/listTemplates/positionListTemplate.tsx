@@ -74,7 +74,7 @@ export class PositionList extends ListTemplate<TPositionFilterVals> {
             { key: 'position', title: 'Должность', align: 'center', alignData: "start", width: "900", sortable: true, requestNames: ["position"] }
         ],
 
-        actionsMenu: (item) => [
+        actionsMenu: this.props?.selectMode ? undefined : (item) => [
             { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbPosition: "u" } },
             { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key, item.index) }, traits: { dbPosition: "d" } },
         ]

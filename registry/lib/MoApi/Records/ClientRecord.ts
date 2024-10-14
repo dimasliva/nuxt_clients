@@ -20,10 +20,10 @@ export class ClientRecordData extends ApiRecordChData {
 @injectable()
 export class ClientRecord extends ApiRecord<ClientRecordData>{
 
-    static RightToken = "dbClient";
-    static RecCode = 1010;
-    static BatchGetRecDataPath="/Clients/GetClients";
-    static RecordsFindPath = "/Clients/FindClients";
+    static override RightToken = "dbClient";
+    static override RecCode = 1010;
+    static override BatchGetRecDataPath="/Clients/GetClients";
+    static override RecordsFindPath = "/Clients/FindClients";
 
 
     get RecCode() { return ClientRecord.RecCode; }

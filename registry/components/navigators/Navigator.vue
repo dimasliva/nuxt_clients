@@ -4,7 +4,7 @@
             <v-data-table ref="refDt" v-model:sortBy="sortBy" v-model="selected" show-select item-value="id"
                 v-model:items-per-page="itemsPerPage" hover :headers="_columns" hide-default-footer
                 v-model:page="currentPage" :items="content.rows" class="elevation-1 h-100" fixed-header height="68dvh"
-                disable-pagination>
+                disable-pagination item-selectable="$isSelectable">
 
                 <!--Верхняя строка перед основной таблицей-->
                 <template v-slot:top="props">
@@ -576,7 +576,6 @@ const addRow = (row: INavRow) => {
 
 
 const getSelected=()=>{
-    debugger
     return selected.value;
 }
 

@@ -42,7 +42,12 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
         this._instName = instName;
         this._listSizeLimit = sizeLimit;
 
-        const employeeTemplate = new EmployeeListTemplate(this._diC, { selectStrategy: multiselect ? "page" : "single" });
+        const employeeTemplate = new EmployeeListTemplate(
+            this._diC,
+            {
+                selectStrategy: multiselect ? "page" : "single",
+                selectMode: true
+            });
         const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор сотрудника", componentTemplate: employeeTemplate });
 
         const selComponent = defineComponent({

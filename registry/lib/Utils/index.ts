@@ -61,7 +61,7 @@ export const normalizeFio = (fio?: string | null): string => Helpers.toTitleCase
 export const makeFioStr = (surname: string | null | undefined, name: string | null | undefined, patronymic: string | null | undefined, bd?: string): string => {
     let res = (surname || "") + " " + (name || "") + " " + (patronymic || "");
     if (bd)
-        res = " (" + new Intl.DateTimeFormat().format(new Date(bd)) + ")"
+        res += " (" + new Intl.DateTimeFormat().format(new Date(bd)) + ")"
     return res;
 }
 

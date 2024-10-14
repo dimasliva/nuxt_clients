@@ -27,8 +27,6 @@ export class SelectFormTemplate implements IRenderedTemplateComponent {
         if (!t) t = useNuxtApp().$i18n.t;
         this._diC = _diC;
         this._props = props;
-
-
     }
 
 

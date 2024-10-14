@@ -6,38 +6,56 @@
                 v-model:page="currentPage" :items="props.rows" class="elevation-1 h-100" fixed-header disable-paginatio
                 :selectStrategy="selectStrategy" style="width: 100%;">
 
-                <!-- настройка колонок-->
+                
+                <!-- меню действий-->
                 <template v-slot:header.actions="{ column }">
 
                     <v-menu :close-on-content-click="false">
 
                         <template v-slot:activator="{ props }">
-                            <v-btn v-bind="props" icon="mdi-cog" variant="text"> </v-btn>
+                            <v-btn v-bind="props" icon="mdi-menu" variant="text"> </v-btn>
                         </template>
 
                         <template v-slot:default="{ isActive }">
-                            <v-card class="mx-auto" max-width="400">
-                                <v-list>
-                                    <v-list-item v-for="val in accessibleColItems">
-                                        <template v-slot:prepend="{ isActive }">
-                                            <v-list-item-action start>
-                                                <v-checkbox-btn :model-value="columns.includes(val.key)"
-                                                    @update:modelValue="(e) => toggleSelectColumn(e, val.key)"></v-checkbox-btn>
-                                            </v-list-item-action>
-                                        </template>
-                                        <v-list-item-title>{{ val.title || "" }}</v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                                <VBtn class="ml-5 mb-5" color="primary" variant="text"
-                                    @click="$emit('onColumnsChanged', props.columns)">Обновить</VBtn>
-                                <VBtn class="mr-5 mb-5" color="primary" variant="text"
-                                    @click="() => columns.length = 0">
-                                    Сбросить
-                                </VBtn>
-                            </v-card>
+
+                            <v-list>
+                                <v-list-item link>
+                                    <v-list-item-title>Настрока столбцов</v-list-item-title>
+                                    <template v-slot:append>
+                                        <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
+                                    </template>
+
+                                    <!-- настройка колонок-->
+                                    <v-menu :open-on-focus="false" activator="parent" submenu
+                                        :close-on-content-click="false">
+                                        <v-card class="mx-auto" max-width="400">
+                                            <v-list>
+                                                <v-list-item v-for="val in accessibleColItems">
+                                                    <template v-slot:prepend="{ isActive }">
+                                                        <v-list-item-action start>
+                                                            <v-checkbox-btn :model-value="columns.includes(val.key)"
+                                                                @update:modelValue="(e) => toggleSelectColumn(e, val.key)"></v-checkbox-btn>
+                                                        </v-list-item-action>
+                                                    </template>
+                                                    <v-list-item-title>{{ val.title || "" }}</v-list-item-title>
+                                                </v-list-item>
+                                            </v-list>
+                                            <VBtn class="ml-5 mb-5" color="primary" variant="text"
+                                                @click="$emit('onColumnsChanged', props.columns)">
+                                                Обновить
+                                            </VBtn>
+                                            <VBtn class="mr-5 mb-5" color="primary" variant="text"
+                                                @click="() => columns.length = 0">
+                                                Сбросить
+                                            </VBtn>
+                                        </v-card>
+                                    </v-menu>
+                                </v-list-item>
+                            </v-list>
+
+
                         </template>
                     </v-menu>
-
 
                 </template>
 

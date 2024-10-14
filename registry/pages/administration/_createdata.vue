@@ -93,6 +93,8 @@ import { VBtn } from 'vuetify/components';
 import MultiselectForm  from '~/components/forms/MultiselectForm.vue';
 import { PositionList } from '~/componentTemplates/listTemplates/positionListTemplate';
 import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
+import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
+import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -757,7 +759,12 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 
 
 
-const openselect = () => {
+const openselect = async () => {
+    const prov= diC.get(ProductFinderDataProvider);
+    prov.init("ghhs",true);
+    const res= await prov.edit();
+
+    /*
     const position = new PositionList(diC, {selectStrategy:"single"});
     
     const tmpl = new SelectFormTemplate(diC, { title: "ss", componentTemplate: position });
@@ -767,6 +774,7 @@ const openselect = () => {
         inheritAttrs: true
     })
     openDialog(MyComponent, { title: "ss", componentTemplate: position, width: "100%", height:"100%" }, true, true, (e, d) => (e == "onBeforeClose") ? true : true)
+    */
 }
 
 

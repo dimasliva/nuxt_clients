@@ -19,6 +19,8 @@ let t: any;
 
 export interface IListTemplateProps extends IRenderedTemplateComponentProps {
     selectStrategy?: 'page' | 'single' | 'all'
+    selectableTypes?: string[];
+    selectMode?: boolean
 }
 
 
@@ -76,22 +78,30 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
     getFrameHeaderData() {
+
+        const btns = [] as IBtnMenu[];
+
+        btns.push({
+            id: "update", title: t("update"), icon: "mdi-autorenew", disabled: false, color: "primary", bkgColor: "blue",
+            action: () => this.updateData()
+        });
+
+        if (!this.props?.selectMode) {
+            btns.push({
+                id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "primary", bkgColor: "red",
+                action: () => this.add()
+            });
+        }
+
+        btns.push({
+            id: "filter", title: "", icon: "mdi-magnify", disabled: false, color: "primary", bkgColor: "red",
+            action: () => { this.refFilterForm.value.toggleVis() }
+        });
+
+        
         let pageMapData: IFrameHeaderData = reactive({
             title: this.PAGE_TITLE, icon: "",
-            mainBtnBar: [
-                {
-                    id: "update", title: t("update"), icon: "mdi-autorenew", disabled: false, color: "primary", bkgColor: "blue",
-                    action: () => this.updateData()
-                },
-                {
-                    id: "addClient", title: t("add"), icon: "mdi-account", disabled: false, color: "primary", bkgColor: "red",
-                    action: () => this.add()
-                },
-                {
-                    id: "filter", title: "", icon: "mdi-magnify", disabled: false, color: "primary", bkgColor: "red",
-                    action: () => { this.refFilterForm.value.toggleVis() }
-                },
-            ]
+            mainBtnBar: btns
         });
 
         return pageMapData;
@@ -257,12 +267,18 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
     async add() {
-        openDialog(this.modelEditDialog, { recKey: null }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
+        if (!this.props?.selectMode)
+            openDialog(this.modelEditDialog, { recKey: null }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
     }
 
 
     async edit(key, index?) {
-        openDialog(this.modelEditDialog, { recKey: key }, true, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
+        openDialog(
+            this.modelEditDialog,
+            { recKey: key, readonly: this.props?.selectMode },
+            true,
+            true,
+            (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
     }
 
 

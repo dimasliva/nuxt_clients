@@ -12,7 +12,7 @@ export interface IFinderFormSelectProps extends IFinderFormMultipleProps {
 let t: any;
 
 
-export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplate {
+export  class FinderFormSelectTemplate extends FinderFormMultipleTemplate {
 
     sections = ref([] as { id: string, title: string }[])
     selectedSections = ref<any>([])
@@ -47,7 +47,7 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
             }
         }
 
-        return <v-select chips closable-chips multiple label="Искать в:" items={this.sections.value} v-model={this.selectedSections.value}
+        return <v-select hide-details deta chips closable-chips multiple label="Искать в:" items={this.sections.value} v-model={this.selectedSections.value}
          item-title="title" item-value="id" variant="underlined">
               {{ 
                 "prepend-item": () => 
@@ -68,16 +68,21 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
 
     override render() {
         return (createElement, context) =>
-            <WindowDialog diC={this._props.diC} frameHeaderData={{ title: this._props.title }} width="700" height="85dvh" onOk={() => this.onOk()}>
-                {this.getMainSearchField()}
+            <WindowDialog diC={this._diC} frameHeaderData={{ title: this._props.title }} width="70%" height="100%" onOk={() => this.onOk()}>
+            
+            <div class="d-flex flex-column h-100">
 
-                <v-row style="height: auto">
+                <v-row class="flex-0-1" no-gutters>
                     {
                         this.getSelectPanel()
                     }
                 </v-row>
 
-                <v-row style="height:40%;" class="overflow-y-auto" >
+             
+                {this.getMainSearchField()}
+              
+
+                <v-row  class="overflow-y-auto flex-0-1" style="height:60%" >
                     {
                         this._loading.value ?
                             <v-progress-linear style="width:98%" color="primary" class="ma-1" indeterminate />
@@ -89,11 +94,13 @@ export abstract class FinderFormSelectTemplate extends FinderFormMultipleTemplat
                     }
                 </v-row>
 
-                <v-row style="height:27%;" >
+                <v-row class="flex-1-1"  no-gutters style="height:1%">
                     {
                         this.getChoosePanel()
                     }
                 </v-row>
+                </div>
+                
             </WindowDialog>
     }
 }

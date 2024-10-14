@@ -34,9 +34,9 @@ export enum EEmployeeAccountStatus {
 @injectable()
 export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
-    static RightToken = "dbEmployee";
-    static RecCode = 1004;
-    static BatchGetRecDataPath="/Employees/GetEmployees";
+    static override RightToken = "dbEmployee";
+    static override RecCode = 1004;
+    static override BatchGetRecDataPath="/Employees/GetEmployees";
 
 
     protected _photoFl: FilelinkRecord | null = null;
@@ -123,7 +123,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
     }
 
 
-    cancelModifingData() {
+    override cancelModifingData() {
         this._ModifiedData = null;
         if (this._photoFl)
             this._photoFl.cancelModifingData();
@@ -131,7 +131,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
 
 
-    isDataChanged() {
+    override isDataChanged() {
         if (this._photoFl && this._photoFl.isDataChanged())
             return true;
 
@@ -139,7 +139,7 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
     }
 
 
-    async save() {
+    override async save() {
         if (this._photoFl) {
             if (!this.Data!.photo) {
                 //новое фото

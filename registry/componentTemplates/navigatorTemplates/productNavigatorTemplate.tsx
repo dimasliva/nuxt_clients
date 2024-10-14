@@ -1,17 +1,13 @@
-import { QueryParams } from "~/lib/MoApi/RequestArgs";
+
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import type { UserContext } from "~/lib/UserContext";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
-import { DataList } from "~/lib/DataList";
 import Navigator from "~/components/navigators/Navigator.vue";
-import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { INavPathItem, INavigatorContent, IСoncreteNavigatorProps, INavRow } from "~/components/navigators/NavigatorTypes";
 import { Container } from "inversify";
 import { EWellKnownPageCaches, type PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
-import { EDataType } from "~/lib/globalTypes";
-import { EEmployeeAppProfileSections } from "~/lib/EmployeeAppProfile";
 import { ProductsCatalogRecord, ProductsCatalogRecordData } from "~/lib/MoApi/Records/ProductsCatalogRecord";
 import { ProductsApiSection } from "~/lib/MoApi/ApiSectionsV1/ProductsApiSection";
 import type { ProductCatalogSectionCache } from "~/lib/Cache/ProductCatalogSectionCache";
@@ -23,13 +19,14 @@ import { ProductRecord, ProductRecordData } from "~/lib/MoApi/Records/ProductRec
 import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from "~/lib/MoApi/Records/ProductsCatalogSectionRecord";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 import type { SetupContext } from "vue";
-import type { IFrameHeaderData } from "~/lib/PageMap";
+import type { IListTemplateProps } from "../listTemplates/listTemplate";
+
 
 
 let t: any;
 
-export interface IProductNavigatorTemplateProps {
-    diC?: Container
+export interface IProductNavigatorTemplateProps extends IListTemplateProps {
+    selectableTypes?: ("catalog" | "catalogSection" | "product")[]
 }
 
 
@@ -68,7 +65,7 @@ function dep(token: string | Object) {
 export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
     protected _diC: Container = null!;
-    protected _props: IRenderedTemplateComponentProps | null | undefined = null;
+    protected _props: IProductNavigatorTemplateProps | null | undefined = null;
 
     @dep(ProductsApiSection)
     protected _MoApiClient: MoApiClient = null!;
@@ -93,7 +90,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
     */
 
 
-    constructor(diC : Container, deps?: Object | null, opts?: IRenderedTemplateComponentProps | null) {
+    constructor(diC : Container, deps?: Object | null, props?: IProductNavigatorTemplateProps | null) {
         if (!t) t = useNuxtApp().$i18n.t;
         if (!deps) {
             this._MoApiClient = diC.get("MoApiClient");
@@ -110,18 +107,23 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
             this._ProductsApiSection = deps["ProductsApiSection"];
         }
 
-        this._props=opts;
+        this._props=props;
     }
 
 
 
     async setup(props, ctx: SetupContext) {
-        ctx?.expose({ 
+        ctx?.expose(this.expose());
+        await this.loadSettings();
+    }
+
+
+
+    expose() {
+        return  { 
             eventsHandler: (e, d) => this.eventsHandler(e, d), 
             getSelected: ()=>this.getSelected() 
-        });
-
-        await this.loadSettings();
+        }
     }
 
 
@@ -187,7 +189,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
     async editProduct(row:IProductNavRow, index?) {
-        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
+        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id, readonly:true }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
     }
 
 
@@ -379,6 +381,16 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
     async onNavigate(currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) {
 
+        const readonlymode=this._props?.selectMode;
+
+        let productSelectable=true, catalogSectionSelectable=true, catalogSelectable=true;
+
+        if(this._props?.selectMode && this._props.selectableTypes){
+           productSelectable =  this._props.selectableTypes.includes("product");
+           catalogSectionSelectable =  this._props.selectableTypes.includes("catalogSection");
+           catalogSelectable =  this._props.selectableTypes.includes("catalog");
+        }
+ 
         if (nextlevel <= 1) {
             //каталоги товаров и услуг
 
@@ -387,46 +399,56 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
             const pathtag: TPathTag = { type: "catalogs", catalogKey: null, catalogSectionKey: null };
 
-            return {
+            const res: INavigatorContent = {
+                filterTitle: "Фильтр по наименованию каталога",
                 pathInfo: { key: "0", title: "Каталоги", tag: pathtag } as INavPathItem,
                 columns: [{ key: "comments", align: 'center', width: "400", sortable: true, title: "Комментарий" },
                 { key: "code", align: 'center', width: "150", sortable: true, title: "Код" }],
                 visibleCols: this._visibleColsCat,
                 onVisibleColsChanged: (v) => this.onVisibleColsChanged("cat", v),
                 onUpdate: path=>this.onUpdateData(path),
-                actionsMenu: [{
+                actionsMenu: readonlymode? undefined : [{
                     id: "addCatalog",
                     icon: "mdi-folder-plus",
                     title: "Добавить каталог",
                     action: (path, selected) => this.addProductsCatalog()
                 }],
-                rows: this._productCatalogRecs.value?.map((prodCatRec) => {
-                    return {
+                rows: []
+            }
+
+            this._productCatalogRecs.value?.forEach((prodCatRec) => {
+
+                if (this._titleFilter.value && prodCatRec.Data?.title && !prodCatRec.Data?.title.toLowerCase().includes(this._titleFilter.value.toLowerCase()))
+                    return;
+
+                res.rows.push(
+                    {
                         $mdata: {
                             isFolder: true,
                             tag: "catalog",
-                            getRowActionsMenu: (row) => [
+                            getRowActionsMenu:  readonlymode? undefined : (row) => [
                                 {
                                     id: "editCatalog",
                                     title: "Редактировать",
-                                    icon:"mdi-folder-edit",
-                                    action: (row)=>this.editProductsCatalog(row.raw)
+                                    icon: "mdi-folder-edit",
+                                    action: (row) => this.editProductsCatalog(row.raw)
                                 },
                                 {
                                     id: "delCatalog",
                                     title: "Удалить",
-                                    icon:"mdi-delete",
-                                    action: (row)=>this.delProductsCatalog(row.raw)
+                                    icon: "mdi-delete",
+                                    action: (row) => this.delProductsCatalog(row.raw)
                                 }
                             ]
                         },
                         id: prodCatRec.Key,
                         title: prodCatRec.Data!.title,
                         comments: prodCatRec.Data!.comments || "",
-                        code: prodCatRec.Data!.code || ""
-                    }
-                }) || []
-            } as INavigatorContent
+                        code: prodCatRec.Data!.code || "",
+                        $isSelectable: catalogSelectable
+                    } as IProductNavRow);
+            });
+            return res;
         }
         else {
             const sectCache = this._PageCacheStore.getWellKnownCache(EWellKnownPageCaches.ProductCatalogSections) as ProductCatalogSectionCache;
@@ -473,7 +495,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                 visibleCols: this._visibleCols,
                 onVisibleColsChanged: (v) => this.onVisibleColsChanged("sect", v),
                 onUpdate: path=>this.onUpdateData(path),
-                actionsMenu: [{
+                actionsMenu:  readonlymode? undefined : [{
                     id: "addSection",
                     icon: "mdi-folder-plus",
                     title: "Добавить раздел",
@@ -504,7 +526,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
                 ],
                 rows: [],
-                onRowClick: (...args) => this.onRowClick(...args)
+                onRowClick: (...args) => this.onRowClick(...args),
             }
 
             //сначала добавляются разделы каталога
@@ -514,12 +536,15 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                 for (let item of sectIter) {
                     const sectData = await sectCache.getOrCreate(item);
 
+                    if (this._titleFilter.value && sectData.title && !sectData.title.toLowerCase().includes(this._titleFilter.value.toLowerCase()))
+                        continue;
+
                     const row: IProductNavRow =
                     {
                         $mdata: {
                             isFolder: true,
                             tag: "catalogSection",
-                            getRowActionsMenu: (row) => [
+                            getRowActionsMenu:  readonlymode? undefined : (row) => [
                                 {
                                     id: "editCatalogSection",
                                     title: "Редактировать",
@@ -538,6 +563,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                         title: sectData.title || "",
                         comments: sectData.comments||"",
                         code: sectData.code || "",
+                        $isSelectable: catalogSectionSelectable
                     }
                     res.rows.push(row);
                 }
@@ -557,7 +583,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                         $mdata: {
                             isFolder: false,
                             tag: "product",
-                            getRowActionsMenu: () => [
+                            getRowActionsMenu:  readonlymode? undefined : () => [
                                 {
                                     id: "editProduct",
                                     title: "Редактировать",
@@ -576,6 +602,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                         title: prodData.title || "",
                         comments: prodData.comments,
                         code: prodData.code || "",
+                        $isSelectable: productSelectable
                     }
                     res.rows.push(row);
                 }

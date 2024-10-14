@@ -16,7 +16,7 @@
     </template>
   </FormsEditWindowDialog>>
 </template>
- 
+
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
@@ -30,8 +30,6 @@ import { EDictionaries } from '~/lib/Dicts/DictionaryStore';
 import { Exception } from '~/lib/Exceptions';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 import { ProductsCatalogSectionRecord } from '~/lib/MoApi/Records/ProductsCatalogSectionRecord';
-import { QueryDictsFFParams } from '~/lib/MoApi/RequestArgs';
-import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
 import type { Container } from 'inversify/lib/container/container';
 
 
@@ -41,7 +39,8 @@ const { t, locale } = useI18n();
 interface IProps {
   diC?: Container;
   recKey: string | null;
-  rec?: ProductsCatalogSectionRecord
+  rec?: ProductsCatalogSectionRecord,
+  readonly?: boolean
 }
 
 const props = defineProps<IProps>();
@@ -49,10 +48,11 @@ const props = defineProps<IProps>();
 const diC = props.diC || useSessionContainer();
 const recStore = diC.get<RecordsStore>("RecordsStore");
 
+/*
 let dictStore = diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
 let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
 let userCtx = diC.get<UserContext>("UserContext");
-
+*/
 
 const eventsHandler = (e: string, d: any) => {
   switch (e) {
@@ -81,7 +81,7 @@ else
   }
 
 
-const { isRecLock, readonly, close } = await useEditForm(rec);
+const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 
 

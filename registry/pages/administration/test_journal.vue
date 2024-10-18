@@ -1,13 +1,13 @@
 <template>
   <div class="d-flex flex-nowrap" >
-    <wt class="rounded mx-1" style="width: 80%; height: 75vh "
-        @cell-dblclick="currView === 'month' ? false : cumstomEventCreator($event)" :showTimeInCells="currView === 'day'"
+    <wt class="rounded mx-1 vuecal--full-height-delete" style="width: 80%; height: 75vh "
+        @cell-dblclick="currView === 'month' ? false : eventCreator($event)" :on-event-create="currView === 'month' ? onEventCreate : null" :showTimeInCells="currView === 'day'"
         @event-focus="currView === 'month' ? openPopUp($event) : false "
         :on-event-click="currView === 'month' ? openCurrDay : editEvent"
         :cell-click-hold="false" :time-from="startDayHours * 60" :time-to="endDayHours * 60" :snap-to-time="15"
-        :time-step="timeStep" ref="vuecal"
+        :time-step="timeStep" ref="vuecal" @event-delete="deleteEvent($event)"
         v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
-        :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: true, delete: true, create: true }"
+        :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: false, delete: true, create: true }"
         :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
         events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
         @view-change="onViewChange($event)" :selected-date="selDate" :min-date="monthViewMinDate"
@@ -17,9 +17,6 @@
           <v-btn variant="text" icon="mdi-calendar-today" @click="changeDate(new Date())"></v-btn>
         </span>
       </template>
-<!--      <template #split-label="{ split, view }">-->
-<!--        <p>{{ split.title }}</p>-->
-<!--      </template>-->
       <template v-if="currView === 'month'" #event="{ event }">
         <div class="vuecal__event-title">{{ event.title }}</div>
         <v-menu activator="parent" location="top" close-on-content-click>
@@ -34,16 +31,13 @@
                 </template>
                 <!-- style="resize: both;" -->
                 <v-card  class="pa-4 " max-width="600">
-                  <vue-cal active-view="day" @cell-dblclick="cumstomEventCreator($event)" :on-event-click="editEvent"
+                  <vue-cal active-view="day" @cell-dblclick="eventCreator($event)" :on-event-click="editEvent"
                            :on-event-create="eventDialog" :split-days="employeesArr" hide-view-selector
                            hide-title-bar :events="events" :selected-date="selectedCurrDate" locale="ru"
                            :cell-click-hold="false" :drag-to-create-event="false" :snap-to-time="5"
                            :time-step="30" ref="vuecal" :time-from="event.startTime * 60"
                            showTimeInCells
                            :time-to="event.endTime * 60" sticky-split-labels style="width: fit-content; max-height: 300px">
-<!--                    <template #split-label="{ split }">-->
-<!--                      <p>{{ split.title }}</p>-->
-<!--                    </template>-->
                   </vue-cal>
                 </v-card>
               </v-menu>
@@ -143,6 +137,7 @@ import {
   ScheduleGridOptions,
   type TGridQuerySch
 } from '~/lib/Booking/ScheduleGrid';
+import {BookingRecord} from "~/lib/MoApi/Records/BookingRecord";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 
 let status = ref({
@@ -257,8 +252,10 @@ const timeToMinutes = (time) => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 }
+
 // Всплывающее окно с расчетом ближайшего доступного времени, алгоритм надо вычленить в отдельную функцию и сделать переиспользуемой
 const openPopUp = (day_time: ScheduleEvent) => {
+
   prodsList.value = [];
   let selDate = day_time.start.format('YYYY-MM-DD');
   prodListTitle.value = day_time.start.format('DD.MM.YYYY');
@@ -280,14 +277,20 @@ const openPopUp = (day_time: ScheduleEvent) => {
     fitSlots.map(f => {
       let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
       pr.split = f.split;
-
-      if(!!splitBusyTime.length){
-
+      if(splitBusyTime.length > 0){
         let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
+
         if(busy.length > 0){
           busy.sort((a, b) => new Date(a.start) - new Date(b.start))
-
           for (let i = 0; i < busy.length - 1; i++) {
+            const busy1Start = timeToMinutes(busy[0].start.slice(11));
+            const freeStart = timeToMinutes(f.start.slice(11));
+            if(busy1Start-freeStart >= pr.duration){
+              pr.start = f.start;
+              pr.time = f.start.slice(11);
+              break;
+            }
+
             const busy1End = new Date(busy[i].end);
             const busy2Start = new Date(busy[i + 1].start);
 
@@ -295,17 +298,21 @@ const openPopUp = (day_time: ScheduleEvent) => {
 
             if (differenceInMinutes >= pr.duration) {
               pr.start = busy1End;
-              pr.time = busy1End.slice(11)
+              pr.time = busy1End.formatTime()
               break;
             }
-            }
+          }
+        } else {
+          if((timeToMinutes(f.end.slice(11)) - timeToMinutes(f.start.slice(11))) >= pr.duration){
+            pr.start = f.start;
+            pr.time = f.start.slice(11);
+          }
         }
         if (!pr.start && busy.length > 0) {
           const lastBusySlot = busy[busy.length - 1];
-
           if ((new Date(f.end) - new Date(lastBusySlot.end))/60000 >= pr.duration) {
             pr.start = lastBusySlot.end;
-            pr.time = lastBusySlot.end.slice(11); // Извлекаем время
+            pr.time = lastBusySlot.end.slice(11);
           }
         }
       } else {
@@ -344,32 +351,17 @@ const changeDate = (date) => {
   monthViewMinDate.value = minDate.value;
 }
 
-const cumstomEventCreator = async (ev) => {
-  let newEvent = {
-    start: ev.date,
-    end: ev.date,
-    split: ev.split,
-    title: 'Новая запись',
-    duration: quantum.value,
-    class: 'rounded',
-    content: 'Название услуги',
-    created: false
-  };
-  let rec = await eventDialog(newEvent)
-
-  if (rec){
-    vuecal.value.createEvent(rec.start, rec.duration, rec);
-  }
-
-}
-
 function roundTime(selectedTime: string): string {
   const [hours, minutes] = selectedTime.split(':').map(Number);
+
+  if ([10, 20, 30, 40, 50].includes(minutes)) {
+    return minutes.toString(); // Возвращаем исходное время, если минуты равны 10, 20, 30, 40 или 50
+  }
   const roundedMinutes = Math.floor(minutes / timeStep.value) * timeStep.value;
-  const roundedHours = hours + Math.floor((hours * 60 + roundedMinutes) / 60);
 
   return `${roundedMinutes.toString().padStart(2, '0')}`;
 }
+
 
 function checkTimeInIntervals(chosenTime, intervals) {
   chosenTime = new Date(chosenTime);
@@ -383,27 +375,60 @@ function checkTimeInIntervals(chosenTime, intervals) {
   return false;
 }
 
-const eventDiagFromMonth = (i) => {
+const deleteEvent = async (ev) => {
+  let rec = await recStore.get<BookingRecord>(BookingRecord, ev.id)
+  let res = await rec.delete()
+  if(res){
+    events.value = events.value.filter(el => el.id !== ev.id)
+
+  }
+}
+
+const eventCreator = async (ev) => {
+  let newEvent = {
+    start: ev.date,
+    end: ev.date,
+    split: ev.split,
+    title: 'Новая запись',
+    duration: quantum.value,
+    class: 'rounded',
+    content: 'Название услуги',
+  };
+  let rec = await eventDialog(newEvent)
+  console.log(rec)
+  if (rec){
+    vuecal.value.createEvent(rec.start, rec.duration, rec);
+  }
+
+}
+
+const eventDiagFromMonth = async(i) => {
   let event = {
     start: new Date(i.start),
+    end: new Date(i.start),
+    date: new Date(i.start),
     split: i.split,
     title: 'Новая запись',
     duration: i.duration,
     class: 'rounded',
-    content: 'Название услуги'
+    content: i.title,
+    quick: true
   }
-  openDialog(EventDialog, {
-    event: event,
-    schGrid: {start: minDate.value, end: maxDate.value},
-    employees: employeesArr.value,
-    positions: positions.value,
-    products: productsArr.value.filter(el=> el.id === i.id),
-    status: status.value,
-    creation: true,
-    mainAction: eventAlteration,
 
-    clientData: null
-  });
+  let rec = await eventDialog(event)
+  console.log(rec)
+  if (rec){
+    vuecal.value.createEvent(rec.start, rec.duration, rec);
+  }
+}
+
+const onEventCreate = (event, deleteEventFunction) => {
+  let newEv = event;
+  // deleteEventFunction();
+  newEv.start = newEv.start.format('YYYY-MM-DD hh:mm');
+  newEv.end = newEv.end.format('YYYY-MM-DD hh:mm');
+  console.log(newEv)
+  events.value.push(newEv)
 }
 
 const eventDialog = async (event, creating: boolean = true) => {
@@ -414,9 +439,10 @@ const eventDialog = async (event, creating: boolean = true) => {
   currEvent.value = event;
 
   if(creating){
-
-    event.start.setMinutes(roundTime(event.start.formatTime()));
-    event.end.setMinutes(roundTime(event.end.formatTime()));
+    if(!event.quick){
+      event.start.setMinutes(roundTime(event.start.formatTime()));
+      event.end.setMinutes(roundTime(event.end.formatTime()));
+    }
     event.start.format('YYYY-MM-DD hh:mm');
     event.end.format('YYYY-MM-DD hh:mm');
   } else {
@@ -449,6 +475,7 @@ const eventDialog = async (event, creating: boolean = true) => {
         clientData: creating ? null : currEvent.value.client
       },
           true,
+          true,
           (e, d) => {
         if (e == "onBeforeClose")
           resolve(d);
@@ -461,13 +488,15 @@ const eventDialog = async (event, creating: boolean = true) => {
   }
 
   event = currEvent.value;
-
+  console.log(event)
   return event
 }
 
 const editEvent = async (event) => {
-  console.log(event)
-  await eventDialog(event, false)
+  let rec = await eventDialog(event, false);
+  if(rec.deleting){
+    events.value = events.value.filter(el => el.id !== rec.id)
+  }
 }
 
 const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
@@ -727,8 +756,7 @@ const buildRangeScheduler = (start, end) => {
       resizable: false
     };
     let currEl = rangeFreeTime[i]
-    let foundedSpans = spansInSplit(unavailableSlots, currEl.split, currEl.start.slice(0, -6))
-
+    let foundedSpans = spansInSplit(unavailableSlots, currEl.split!, currEl.start.slice(0, -6))
     if (foundedSpans.length > 0) {
       const lastSpan = foundedSpans[foundedSpans.length - 1];
       if (currEl.start >= lastSpan.start) {

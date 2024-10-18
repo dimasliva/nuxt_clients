@@ -518,7 +518,7 @@ const referVal = computedAsync(() => {
 
 const onReferEdit = async () => {
     if (!readonly.value) {
-        let res = await props.finderDataProvider?.edit(CurrModelVal.value);
+        let res = await props.finderDataProvider?.find(CurrModelVal.value);
         if (res != null) {
             CurrModelVal.value = res;
             onValChanged(true);

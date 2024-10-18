@@ -157,8 +157,14 @@ export default defineComponent({
 
 
 
+        const isFocused = () => {
+            return cRefs[lastField]?.value ? cRefs[lastField].value.focused : false
+        }
+
+
+
         ctx.expose({
-            show, hide, toggleVis, isVisible, eventsHandler, clear, blur, isFindable
+            show, hide, toggleVis, isVisible, eventsHandler, clear, blur, isFindable, isFocused
         });
 
 

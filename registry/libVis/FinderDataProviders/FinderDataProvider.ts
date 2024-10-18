@@ -1,10 +1,7 @@
 import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/lib/UserContext";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
-import { Exception } from "~/lib/Exceptions";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
-import type { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
-import { v1 } from "uuid";
 import * as Utils from '~/lib/Utils';
 
 export type TDictViewVal = { value: any, title: string }
@@ -14,7 +11,7 @@ export type TDictViewVal = { value: any, title: string }
 export abstract class FinderDataProvider {
 
     protected _instName: string | null = null;
-    protected _editFormComponent: any = null!; // component of FinderFormTemplate
+    protected _findFormComponent: any | null = null; // component of FinderFormTemplate
     protected _historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.none;
     protected _apiRequestTimeout = 1000;
     protected _selectFormComponent: any | null = null; // component of SelectFormTemplate | null=null;
@@ -31,9 +28,10 @@ export abstract class FinderDataProvider {
 
 
 
-    init(instName: string | null, editFormComponent: any, ...args) {
+    init(instName: string | null, findFormComponent: any | null, selectFormComponent: any | null, ...args) {
         this._instName = instName;
-        this._editFormComponent = editFormComponent;
+        this._findFormComponent = findFormComponent;
+        this._selectFormComponent = selectFormComponent
     }
 
 
@@ -42,11 +40,12 @@ export abstract class FinderDataProvider {
 
 
 
-    async edit(choosedValues?: any): Promise<any | null> {
+    async find(choosedValues?: any): Promise<any | null> {
         return new Promise(resolve => {
-            let ref: any = null;
+            if (!this._findFormComponent)
+                resolve(null);
 
-            openDialog(this._editFormComponent,
+            openDialog(this._findFormComponent,
                 {
                     //diC: this._diC,
                     title: 'Поиск',
@@ -66,7 +65,37 @@ export abstract class FinderDataProvider {
     }
 
 
-    
+
+    async select(): Promise<any | null> {
+        return new Promise(resolve => {
+            if (!this._selectFormComponent)
+                resolve(null);
+
+            openDialog(
+                this._selectFormComponent,
+                { width: "100%" },
+                true,
+                true,
+                (e, d) => {
+                    if (e == "onBeforeClose")
+                        resolve(d);
+                    return true;
+                }
+            );
+        })
+    }
+
+
+    isFindable() {
+        return !!this._findFormComponent;
+    }
+
+
+    isSelectable() {
+        return !!this._selectFormComponent;
+    }
+
+
     async getTitles(values: any[], ...args): Promise<(string | undefined)[]> {
         return await Utils.mapAsync(values, (v) => this.getTitle(v));
     }

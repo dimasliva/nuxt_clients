@@ -32,4 +32,9 @@ export class ProductsApiSection {
         return await this._MoApiClient.send<string | null, string[]>("/Products/FindProductsCatalogSections", where, false);
     }
 
+
+    async getProductPathRecs(productId: string) {
+        return await this._MoApiClient.send<{ productId: string }, { code: number, entity: any }[]>("/Products/GetProductPathRecs", { productId }, true);
+    }
+
 }

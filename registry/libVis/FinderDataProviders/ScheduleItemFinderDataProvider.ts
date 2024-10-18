@@ -26,7 +26,7 @@ export class ScheduleItemFinderDataProvider extends FinderDataProvider {
   }
 
   override init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
-    super.init(instName, multiselect ? FinderSelectForm : FinderForm);
+    super.init(instName, multiselect ? FinderSelectForm : FinderForm, null);
     this._historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.full;
     this._apiRequestTimeout = 2500;
     this._instName = instName;

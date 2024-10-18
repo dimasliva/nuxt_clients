@@ -98,7 +98,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
             action: () => { this.refFilterForm.value.toggleVis() }
         });
 
-        
+
         let pageMapData: IFrameHeaderData = reactive({
             title: this.PAGE_TITLE, icon: "",
             mainBtnBar: btns
@@ -153,9 +153,8 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
                         let inc = (d.key == 'ArrowLeft') ? -1 : (d.key == 'ArrowRight') ? 1 : 0;
 
                         if (inc != 0) {
-                            if (this.refFilterForm.value.isVisible())
-                                this.refFilterForm.value.blur();
-                            this.refDataTable.value.addCurrPage(inc);
+                            if (!this.refFilterForm.value.isFocused())
+                                this.refDataTable.value.addCurrPage(inc);
                             break;
                         }
                     }

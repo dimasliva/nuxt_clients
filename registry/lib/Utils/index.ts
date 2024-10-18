@@ -98,17 +98,23 @@ export const recognizeDataInString = (str: string) => {
                 if (dateRgx.test(item)) {
                     let date: Date = null!;
                     if (item.length >= 8) {
-                        //03.04.2010
-                        //03.04.10
+                        if (item.includes(".")) {
+                            //03.04.2010
+                            //03.04.10
 
-                        let arr = item.split('.');
-
-                        if (<any>arr[2] < 1000) {
-                            let curryy = (new Date()).getFullYear().toString().substring(2);
-                            res.date = new Date(`${((<any>arr[2] > curryy) ? '19' : '20') + arr[2]}-${arr[1]}-${arr[0]}`)
+                            let arr = item.split('.');
+                            if (<any>arr[2] < 1000) {
+                                let curryy = (new Date()).getFullYear().toString().substring(2);
+                                res.date = new Date(`${((<any>arr[2] > curryy) ? '19' : '20') + arr[2]}-${arr[1]}-${arr[0]}`)
+                            }
+                            else
+                                res.date = new Date(`${arr[2]}-${arr[1]}-${arr[0]}`)
                         }
                         else
-                            res.date = new Date(`${arr[2]}-${arr[1]}-${arr[0]}`)
+                        {
+                              //03042010
+                              res.date = new Date(`${item.substring(4, 8)}-${item.substring(2, 4)}-${item.substring(0, 2)}`)
+                        }
                     }
                     else
                         if (item.length == 6) {

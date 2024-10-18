@@ -38,7 +38,7 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
 
 
     override init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
-        super.init(instName, multiselect ? FinderFormMultiple : FinderForm);
+        super.init(instName, multiselect ? FinderFormMultiple : FinderForm, null);
         this._instName = instName;
         this._listSizeLimit = sizeLimit;
 

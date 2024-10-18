@@ -262,7 +262,7 @@ let addDiag = (val: { component: any; props: any; modal: boolean; redirectEvents
   const cr = ref();
 
   dialogForms.value[dialogFormsInx++] = markRaw({
-    comp: val.component,
+    comp: toRaw(val.component),
     props: val.props,
     modal: val.modal,
     eventsHandler: val.eventsHandler,

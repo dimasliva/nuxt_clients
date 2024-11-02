@@ -1,10 +1,8 @@
 import { Exception } from "~/lib/Exceptions";
-import type { UserContext } from "../../UserContext";
-import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
 import { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
-import type { RecordsStore } from "./RecordsStore";
 import { injectable } from "inversify";
+import { makeFioStr, makeInitialsStr } from "~/lib/Utils";
 
 @injectable()
 export class EmployeeRecordData extends ApiRecordChData {
@@ -211,4 +209,15 @@ export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     protected _getApiRecordPathDelete = () => "/Employees/DeleteEmployee";
 
+
+
+    async getEmployeeFIO() {
+        return makeFioStr(this.Data!.surname, this.Data!.name, this.Data!.patronymic);
+    }
+
+
+    
+    async getEmployeeInitials() {
+        return makeInitialsStr(this.Data!.surname, this.Data!.name, this.Data!.patronymic);
+    }
 }

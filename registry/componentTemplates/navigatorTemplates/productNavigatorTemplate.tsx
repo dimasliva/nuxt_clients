@@ -20,7 +20,6 @@ import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from "
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 import type { SetupContext } from "vue";
 import type { IListTemplateProps } from "../listTemplates/listTemplate";
-import   EditFinderForm  from "~/components/forms/EditFinderForm.vue"
 import { ProductFinderDataProvider } from "~/libVis/FinderDataProviders/ProductFinderDataProvider";
 
 
@@ -190,8 +189,8 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
 
-    async editProduct(row:IProductNavRow, index?) {
-        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id, readonly:true }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
+    async editProduct(row: IProductNavRow, index?) {
+        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id, readonly: this._props?.selectMode }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
     }
 
 

@@ -1,8 +1,11 @@
-import { injectable } from "inversify";
+import { injectable, inject } from "inversify";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
+import { EDictionaries } from "~/lib/Dicts/DictionaryStore";
+import { EmployeeRecord } from "./EmployeeRecord";
+import { makeFioStr, makeInitialsStr } from "~/lib/Utils";
 
 
 @injectable()
@@ -17,18 +20,27 @@ export class PositionRecordData extends ApiRecordChData {
 
 
 @injectable()
-export class PositionRecord extends ApiRecord<PositionRecordData>{
+export class PositionRecord extends ApiRecord<PositionRecordData> {
 
-    static RightToken = "dbPosition";
-    static RecCode = 1017;
-    static BatchGetRecDataPath="/Positions/GetPositions";
+    static override RightToken = "dbPosition";
+    static override RecCode = 1017;
+    static override BatchGetRecDataPath = "/Positions/GetPositions";
+
+
+    constructor(
+        @inject("MoApiClient") _MoApiClient: MoApiClient,
+        @inject("UserContext") _UserContext: UserContext,
+        @inject("RecordsStore") protected _RecordsStore: RecordsStore,
+    ) {
+        super(_MoApiClient, _UserContext);
+    }
 
 
     get RecCode() { return PositionRecord.RecCode; }
 
- 
+
     protected _createNewData() {
-        return   this._RecStore.dataEntityFactory(PositionRecordData, null,this.Key);
+        return this._RecStore.dataEntityFactory(PositionRecordData, null, this.Key);
     }
 
 
@@ -43,4 +55,24 @@ export class PositionRecord extends ApiRecord<PositionRecordData>{
 
     protected _getApiRecordPathDelete = () => "/Positions/DeletePosition";
 
+
+
+    async getPositionTitle() {
+        let dictposs = this._MoApiClient.getDictionaryStore().getDictionary(EDictionaries.CompanyPositions);
+        return await dictposs.getValByCode(this.Data!.position);
+    }
+
+
+
+    async getEmployeeFIO() {
+        const emplrec = await this._RecordsStore.fetch(EmployeeRecord, this.Data!.employee);
+        return emplrec.getEmployeeFIO();
+    }
+
+
+    async getEmployeeInitials() {
+        const emplrec = await this._RecordsStore.fetch(EmployeeRecord, this.Data!.employee);
+        return emplrec.getEmployeeInitials();
+    }
+  
 }

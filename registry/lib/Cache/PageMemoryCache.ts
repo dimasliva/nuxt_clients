@@ -45,8 +45,13 @@ export class PageMemoryCache {
             this._pages.set(pagekey, new Page(pagekey, this._ttl));
 
         const page = this._pages.get(pagekey)!;
-        this.checkPageExpiration(page);
-        return page;
+        if (this.checkPageExpiration(page))
+            return page;
+        else {
+            const newpage = new Page(pagekey, this._ttl);
+            this._pages.set(pagekey, newpage);
+            return newpage;
+        }
     }
 
 
@@ -106,8 +111,8 @@ export class PageMemoryCache {
 
 
     clear() {
-       this._pages.clear();
-       this._index.clear();
+        this._pages.clear();
+        this._index.clear();
     }
 
 
@@ -203,7 +208,7 @@ export class Page {
     }
 
 
-    getKey(){
+    getKey() {
         return this._key;
     }
 }

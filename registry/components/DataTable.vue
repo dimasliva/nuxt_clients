@@ -6,7 +6,7 @@
                 v-model:page="currentPage" :items="props.rows" class="elevation-1 h-100" fixed-header disable-paginatio
                 :selectStrategy="selectStrategy" style="width: 100%;">
 
-                
+
                 <!-- меню действий-->
                 <template v-slot:header.actions="{ column }">
 
@@ -60,11 +60,20 @@
                 </template>
 
 
+                <!-- строки таблицы -->
                 <template v-slot:item="{ internalItem, index }">
                     <VDataTableRow :index="index" :item="internalItem"
                         :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
                         @click="(e) => { onRowClick(internalItem) }">
 
+                          <!-- чекбокс селекта. Нужен только что-бы отлавливать события -->
+                        <template v-slot:item.data-table-select="{ internalItem, isSelected, toggleSelect }">
+                            <v-checkbox-btn
+                                :modelValue="isSelected({ value: internalItem.key, selectable: internalItem.selectable })"
+                                @update:modelValue="(v) => { toggleSelect({ value: internalItem.key, selectable: internalItem.selectable }) }" />
+                        </template>
+
+                         <!-- Колонка "actions". Кнопка меню возможных действий -->
                         <template v-slot:item.actions="{ item }">
                             <v-menu scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
                                 <template v-slot:activator="{ props }">

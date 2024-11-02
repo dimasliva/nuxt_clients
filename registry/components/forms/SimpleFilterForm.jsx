@@ -92,24 +92,31 @@ export default defineComponent({
                 let val = filterValues[settingsItem];
                 const partype = filterFields[settingsItem].type;
 
-                if (partype == EDataType.reference || partype == EDataType.referenceMultiple) {
-                    if ((!(val instanceof Array) && val != null) || (val instanceof Array && val.length > 0))
+                if (partype == EDataType.datetime || partype == EDataType.date) {
+                    if (val)
                         isAllValsEmpty = false;
-
                     if (fieldsOptions.errCnt)
                         return false;
                 }
-                else {
-                    if (filterFields[settingsItem].type == EDataType.string) {
-                        if (val) {
+                else
+                    if (partype == EDataType.reference || partype == EDataType.referenceMultiple) {
+                        if ((!(val instanceof Array) && val != null) || (val instanceof Array && val.length > 0))
                             isAllValsEmpty = false;
-                            if (constraints.min && val.length < constraints.min)
-                                return false;
+
+                        if (fieldsOptions.errCnt)
+                            return false;
+                    }
+                    else {
+                        if (filterFields[settingsItem].type == EDataType.string) {
+                            if (val) {
+                                isAllValsEmpty = false;
+                                if (constraints.min && val.length < constraints.min)
+                                    return false;
+                            }
                         }
                     }
-                }
 
-                if (val != null && constraints.check && !constraints.check(val))
+                if (val != null && constraints?.check && !constraints.check(val))
                     return false;
             }
             return !isAllValsEmpty;
@@ -211,16 +218,25 @@ export default defineComponent({
                         break;
 
 
+                    case EDataType.date:
+                    case EDataType.datetime:
+                        node = <InputField state={fieldsOptions} class="pb-4" type={val.type} key={item} v-model={filterValues[item]}
+                            label={val.title}
+                            constraints={val.constraints} />
+                        res.push(node);
+                        break;
+
+
                     default:
                         if (val.constraints["mask"]) {
                             node = <VTextField v-model={maskaValues[item]} key={item} variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules}
+                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules || []}
                                 onMaska={(e) => { filterValues[item] = e.detail.unmasked }} />
                             res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
                         }
                         else {
                             node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
+                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules || []} />
                             res.push(node);
                         }
                         break;

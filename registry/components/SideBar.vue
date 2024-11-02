@@ -141,7 +141,7 @@ interface DialogForm {
   showDialog: boolean;
 }
 
-const DIALOG_FORM_LEVELS_NUMBER = 3;
+const DIALOG_FORM_LEVELS_NUMBER = 4;
 
 const { name } = useDisplay();
 let drawerWidth = computed(() => {

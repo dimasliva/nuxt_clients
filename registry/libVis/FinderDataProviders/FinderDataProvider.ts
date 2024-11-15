@@ -3,6 +3,8 @@ import type { UserContext } from "~/lib/UserContext";
 import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import * as Utils from '~/lib/Utils';
+import * as vHelpers from "~/libVis/Helpers";
+import { title } from "process";
 
 export type TDictViewVal = { value: any, title: string }
 
@@ -77,8 +79,15 @@ export abstract class FinderDataProvider {
                 true,
                 true,
                 (e, d) => {
-                    if (e == "onBeforeClose")
-                        resolve(d);
+                    if (e == "onBeforeClose") {
+                        if (d) {
+                            vHelpers.action(async () => {
+                                resolve(await this.getTitles(d));
+                            });
+                        }
+                        else
+                            resolve(d);
+                    }
                     return true;
                 }
             );
@@ -96,7 +105,9 @@ export abstract class FinderDataProvider {
     }
 
 
-    async getTitles(values: any[], ...args): Promise<(string | undefined)[]> {
-        return await Utils.mapAsync(values, (v) => this.getTitle(v));
+    async getTitles(values: any[], ...args): Promise<TDictViewVal[]> {
+        return await Utils.mapAsync(values, async (v) => {
+            return { value: v, title: await this.getTitle(v) }
+        });
     }
 }

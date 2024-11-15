@@ -595,7 +595,7 @@ const getDefDateTime = () => {
 
 const onReferEdit = async () => {
     if (!readonly.value && props.finderDataProvider) {
-        let res=null;
+        let res = null;
         if (props.finderDataProvider.isFindable())
             res = await props.finderDataProvider.find(CurrModelVal.value);
         else

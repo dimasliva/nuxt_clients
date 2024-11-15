@@ -41,7 +41,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     abstract dataTableDescr: Ref<IDataTableDescription>;
     abstract filterFieldSetting: any;
     abstract modelEditDialog: any;
-
+    abstract titleColName:string;
 
     abstract getWhereFromFilter(filterVals: TFilterVals): string;
     abstract convertRow(rawData): Promise<any>;
@@ -70,7 +70,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
         page: 1,
         selected: [] as any[],
         columns: [] as Array<string>,
-        selectStrategy: this.props?.selectStrategy
+        selectStrategy: this.props?.selectStrategy,
     });
 
 
@@ -320,6 +320,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
                             rows={this.dataTableVars.value.rows}
                             selected={this.dataTableVars.value.selected}
                             selectStrategy={this.dataTableVars.value.selectStrategy}
+                            titleColName= {this.titleColName}
                             onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
                             onOnColumnsChanged={() => { this.loadData() }}
                             onOnColumnsChangedDelayed={() => { this.saveSettings() }}

@@ -56,7 +56,8 @@ export class FinderFormMultipleTemplate extends FinderFormTemplate {
             this._resultHistoryStatistic.addItem(item.value);
             return item
         });
-        closeDialog(res);
+        //closeDialog(res);
+        return res;
     }
 
 
@@ -71,8 +72,7 @@ export class FinderFormMultipleTemplate extends FinderFormTemplate {
                     if (e == "onBeforeClose") {
                         if (d) {
                             nextTick(async () => {
-                                const names = await this.getTitleItemsByVals(d);
-                                const res = names.map((v, i) => { return { value: d[i], title: v } })
+                                const res = await this.getTitleItemsByVals(d);
                                 if (res.length > 0) {
                                     res.forEach((v) => {
                                         if (v.title != undefined)

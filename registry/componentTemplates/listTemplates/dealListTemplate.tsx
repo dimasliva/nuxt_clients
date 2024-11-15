@@ -67,7 +67,7 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
         this._clientFinderDataProvider.init("serachClients", true);
         this.filterFieldSetting.fields.clients.finderDataProvider = this._clientFinderDataProvider;
 
-        this._positionFinderDataProvider.init("serachProducts", true);
+        this._productFinderDataProvider.init("serachProducts", true);
         this.filterFieldSetting.fields.products.finderDataProvider = this._productFinderDataProvider;
     }
 
@@ -85,11 +85,11 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
     dataTableDescr = ref<IDataTableDescription>({
         headers: [
             {
-                key: 'title', title: 'Название сделки', align: 'center', alignData: "start", width: "400", sortable: true,
+                key: 'title', title: 'Название сделки', align: 'center', alignData: "start", width: "600", sortable: true,
                 requestNames: ["title"], traits: { "dbDeal": "r" }
             },
 
-            { key: 'beginDate', title: 'Дата начала', align: 'center', alignData: "start", width: "900", sortable: true, requestNames: ["beginDate"] }
+            { key: 'beginDate', title: 'Дата начала', align: 'center', alignData: "center", width: "100", sortable: true, requestNames: ["beginDate"] }
         ],
 
         actionsMenu: this.props?.selectMode ? undefined : (item) => [

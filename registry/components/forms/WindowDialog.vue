@@ -45,7 +45,7 @@
 
             <slot name="buttons" :props="buttonsSlotProps">
 
-                <v-btn v-if="okTitle !== null" color="primary" variant="text" @click="() => ok(onOk?.() || null)">
+                <v-btn v-if="okTitle !== null" color="primary" variant="text" @click="() => ok(onOk?.())">
                     {{ okTitle || 'Ок' }}
                 </v-btn>
 
@@ -98,10 +98,10 @@ const windowStyle = {
 
 const close = async () => {
     if (!props.onClose || props.onClose && await props.onClose())
-        closeDialog(null);
+        closeDialog(undefined);
 }
 
-const ok = async (res) => closeDialog(res);
+const ok = async (res) => closeDialog(res || null);
 
 
 const buttonsSlotProps = {

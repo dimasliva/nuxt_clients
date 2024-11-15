@@ -66,14 +66,7 @@
                         :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
                         @click="(e) => { onRowClick(internalItem) }">
 
-                          <!-- чекбокс селекта. Нужен только что-бы отлавливать события -->
-                        <template v-slot:item.data-table-select="{ internalItem, isSelected, toggleSelect }">
-                            <v-checkbox-btn
-                                :modelValue="isSelected({ value: internalItem.key, selectable: internalItem.selectable })"
-                                @update:modelValue="(v) => { toggleSelect({ value: internalItem.key, selectable: internalItem.selectable }) }" />
-                        </template>
-
-                         <!-- Колонка "actions". Кнопка меню возможных действий -->
+                        <!-- Колонка "actions". Кнопка меню возможных действий -->
                         <template v-slot:item.actions="{ item }">
                             <v-menu scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
                                 <template v-slot:activator="{ props }">
@@ -108,12 +101,25 @@
             </v-data-table>
         </div>
 
-        <v-row class="text-center pt-5 w-100 mb-1 pr-0" justify="center" style="min-height: 6rem; max-height: 6rem; ">
-            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">Всего:{{ props.rows.length }} Выбрано:{{
-                selected.length }}</v-col>
-            <v-col lg="7" md="8" sm="9" xs="10" class="pl-0 pr-0" style="min-width: 650px;">
+        <!-- Нижняя строка статистики -->
+        <v-row class="text-center pt-5 w-100 mb-1 pr-0" justify="start" style="min-height: 6rem; max-height: 6rem; ">
+            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">
+                Всего:{{ props.rows.length }}
+                <!-- Кнопка отображения выбранных элементов -->
+                <SelectedItemsView :items="rowsToSelectViewDictVal()">
+                    <template #activator="{ props }">
+                        <v-btn :disabled="!titleColName" v-bind="props" variant="text" size="small"
+                            style="text-transform:none; padding-bottom: 2px;"
+                            class="font-italic text-body-2 pl-0 pr-0">Выбрано:{{ selected.length }}
+                        </v-btn>
+                    </template>
+                </SelectedItemsView>
+            </v-col>
+
+            <!--Выбор текущей страницы -->
+            <v-col lg="6" md="7" sm="8" xs="9" class="pl-0 pr-0" style="min-width: 650px;">
                 <v-row justify="center">
-                    <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
+                    <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="6"
                         @update:modelValue="() => scrollTo(0, 0)" />
                     <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
                         :items="[10, 12, 25, 50, 100]" variant="solo"
@@ -132,30 +138,23 @@ import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
 import type { IDataTableDescription } from '~/componentComposables/dataTables/useDataTable';
+import SelectedItemsView from '~/components/SelectedItemsView.vue'
+import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 
 
 export interface IDataTableProps {
     tableDescr: IDataTableDescription;
     rows: any[];
-    selected: any[],
+    selected: string[],
     visibility: Boolean,
     columns: string[],
-    selectStrategy?: 'page' | 'single' | 'all'
+    selectStrategy?: 'page' | 'single' | 'all',
+    titleColName?: string;
 }
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
 
 const props = defineProps<IDataTableProps>();
-/*
-const props = defineProps({
-    tableDescr: { type: Object, required: true },
-    rows: { type: Array<any>, required: true },
-    selected: Array<any>,
-    visibility: Boolean,
-    columns: { type: Array<string>, required: true }
-});
-*/
-
 
 let itemsPerPage = ref(12);
 let currentPage = ref(1);
@@ -268,9 +267,9 @@ const onRowClick = (dtitem: any) => {
 };
 
 
-const reset = () => {
+const reset = (inclSelected = false) => {
     currentPage.value = 1;
-    selected.value.length = 0;
+    if (inclSelected) selected.value.length = 0;
     lineSelected.value = null;
     scrollTo(0, 0);
 }
@@ -303,6 +302,17 @@ const toggleSelectColumn = (e, colName: string) => {
 
 const getSelected = () => {
     return selected.value;
+}
+
+
+const rowsToSelectViewDictVal = () => {
+    //debugger;
+    const mapRows = new Map(props.rows.map(obj => [obj.id, props.titleColName ? obj[props.titleColName] : ""]));
+    const res: TDictViewVal[] = [];
+
+    return selected.value.map(v => {
+        return { value: v, title: mapRows.get(v) }
+    });
 }
 
 

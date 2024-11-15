@@ -35,7 +35,7 @@ export class ClientFinderDataProvider extends FinderDataProvider {
 
 
     override init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
-        super.init(instName, multiselect ? FinderFormMultiple : FinderForm, null);
+        super.init(instName, null, null);
         this._instName = instName;
         this._listSizeLimit = sizeLimit;
 
@@ -59,7 +59,7 @@ export class ClientFinderDataProvider extends FinderDataProvider {
 
     async getList(txt: string): Promise<TDictViewVal[]> {
         return [];
-      }
+    }
 
 
 

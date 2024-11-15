@@ -4,9 +4,10 @@ import { Exception } from "~/lib/Exceptions";
 
 
 @injectable()
-export class ProductSnapshotRecordData extends ApiRecordChData {
+export class DealProductRecordData extends ApiRecordChData {
     extListId: string = '';
     source: string = '';
+    quantity: number = 1;
     title: string = '';
     fullTitle?: string | null = null;
     code?: string | null = null;
@@ -19,22 +20,22 @@ export class ProductSnapshotRecordData extends ApiRecordChData {
 
 
 @injectable()
-export class ProductSnapshotRecord extends ApiRecord<ProductSnapshotRecordData> {
+export class DealProductRecord extends ApiRecord<DealProductRecordData> {
 
-    static RightToken = "dbProductSnapshot";
-    static RecCode = 1043;
-    static BatchGetRecDataPath = "/Products/GetProductSnapshots";
+    static override RightToken = "dbDealProduct";
+    static override RecCode = 1043;
+    static override BatchGetRecDataPath = "";
 
 
-    get RecCode() { return ProductSnapshotRecord.RecCode; }
+    get RecCode() { return DealProductRecord.RecCode; }
 
 
     protected _createNewData() {
-        return this._RecStore.dataEntityFactory(ProductSnapshotRecordData, null, this.Key);
+        return this._RecStore.dataEntityFactory(DealProductRecordData, null, this.Key);
     }
 
 
-    protected _getApiRecordPathGet = () => "/Products/GetProductSnapshots";
+    protected _getApiRecordPathGet = () => { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" };
 
 
     protected _getApiRecordPathAdd = () => { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" }

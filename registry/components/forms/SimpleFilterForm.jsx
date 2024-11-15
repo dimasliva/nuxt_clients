@@ -250,26 +250,28 @@ export default defineComponent({
 
         // return the render function
         return () => {
-            console.debug("rId: " + rId + " render: " + visiblity.value)
             updateBtnsState();
 
             if (visiblity.value) {
-                return <VCard class="mx-auto mb-auto" width="300">
-                    <VForm>
-                        <VCol>
-                            <v-row key={updateKey.value} class="text-body-1 ma-2" style="min-width: 200pt;">{filterSettings.title || "Поиск"} <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon></v-row>
+                return <VCard class="mx-auto mb-auto" width="23rem" style="height:100%">
+                    <VCol class="h-100 d-flex flex-column">
 
-                            <v-sheet class="overflow-y-auto overflow-x-hidden" style="max-height:70dvh !important;">
-                                {createFileds()}
-                            </v-sheet>
 
-                            <v-row class="ma-1" style="min-width: 200pt;" justify="center">
+                        <v-row class="ma-1 flex-grow-0" style="min-width: 200pt;" justify="center">
 
-                                <VBtn color="primary" variant="text" disabled={isBtnFindDisabled.value} onClick={() => filterSettings.onFind(filterValues)} >Поиск</VBtn>
-                                <VBtn color="primary" variant="text" onClick={() => { clear() }} > Сбросить</VBtn>
-                            </v-row>
-                        </VCol>
-                    </VForm>
+                            <VBtn color="primary" variant="text" prependIcon="mdi-magnify" size="small" disabled={isBtnFindDisabled.value} onClick={() => filterSettings.onFind(filterValues)} >Поиск</VBtn>
+                            <VBtn color="primary" variant="text" prependIcon="mdi-close" size="small" onClick={() => { clear() }} > Сбросить</VBtn>
+                            <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon>
+                        </v-row>
+
+                        <v-sheet class="overflow-y-auto overflow-x-hidden flex-grow-1" >
+                            {createFileds()}
+                        </v-sheet>
+
+
+
+
+                    </VCol>
                 </VCard>
             }
 

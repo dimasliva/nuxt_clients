@@ -600,7 +600,7 @@ const onReferEdit = async () => {
             res = await props.finderDataProvider.find(CurrModelVal.value);
         else
             if (props.finderDataProvider.isSelectable())
-                res = await props.finderDataProvider.select();
+                res = await props.finderDataProvider.select(CurrModelVal.value);
 
         if (res != null) {
             CurrModelVal.value = res;

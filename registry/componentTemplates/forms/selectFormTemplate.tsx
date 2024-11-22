@@ -5,6 +5,7 @@ import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from
 import type { Container } from "inversify";
 import TemplateFrame from "~/components/TemplateFrame.vue"
 import type { SetupContext } from "vue";
+import type { IListTemplateProps } from "../listTemplates/listTemplate";
 
 
 let t: any;
@@ -12,6 +13,7 @@ let t: any;
 export interface ISelectFormProps extends IRenderedTemplateComponentProps {
     title: string;
     componentTemplate: IRenderedTemplateComponent;
+    choosedValues?: any;
 }
 
 
@@ -31,11 +33,16 @@ export class SelectFormTemplate implements IRenderedTemplateComponent {
 
 
     async setup(props, ctx: SetupContext) {
+        this._props.choosedValues =  props.choosedValues;
         ctx.expose(this.expose())
         //if (this.props.choosedValues) {
         //    this.selected.value = await Utils.mapAsync(props.choosedValues, async (val, inx) => { return { value: val.value, title: val.title || await this.getTitleItemByVal(val) || "" } });
         // }
     }
+
+
+    sprops = () => ["choosedValues"];
+
 
 
     expose() {
@@ -83,7 +90,7 @@ export class SelectFormTemplate implements IRenderedTemplateComponent {
             <WindowDialog diC={this._diC} frameHeaderData={this._getFrameHeaderData()} onOk={() => { return this._templateFrameRef.value.getSelected(); }}>
                 <v-col class="h-100">
                     <v-row class="overflow-y-auto h-100" no-gutters >
-                        <TemplateFrame ref={this._templateFrameRef} templateInstance={this._props.componentTemplate} />
+                        <TemplateFrame ref={this._templateFrameRef} templateInstance={this._props.componentTemplate} props={{ choosedValues: this._props.choosedValues } as IListTemplateProps} />
                     </v-row>
                 </v-col>
             </WindowDialog>

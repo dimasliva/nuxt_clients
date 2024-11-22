@@ -58,7 +58,7 @@ export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals> {
       //  { key: 'snils', title: 'СНИЛС', align: 'center', alignData: "center", sortable: true, traits: { dbEmployeeDocuments: "r" }, requestNames: ["snils"] }
     ],
 
-    actionsMenu: this.props?.selectMode ? undefined : (item) => [
+    actionsMenu: this.sprops?.selectMode ? undefined : (item) => [
       { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbEmployee: "u" } },
       { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key, item.index) }, traits: { dbEmployee: "d" } },
 

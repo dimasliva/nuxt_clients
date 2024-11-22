@@ -14,6 +14,7 @@ export interface IRenderedTemplateComponent {
     setup(props: any, ctx: SetupContext): Promise<void>;
     emits?(): string[];
     expose?(): any;
+    sprops?(): any | null | undefined;
 
     getFrameHeaderData?(): IFrameHeaderData | null | undefined;
 }

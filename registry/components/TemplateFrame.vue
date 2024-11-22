@@ -45,7 +45,7 @@ import { StandartComponentEvents, type IRenderedTemplateComponent, type IRendere
 
 interface IProps {
     templateInstance: IRenderedTemplateComponent,
-    //props?: IRenderedTemplateComponentProps
+    props?: IRenderedTemplateComponentProps
     showHeader: boolean;
 }
 
@@ -60,6 +60,12 @@ export default {
             required: true
         },
 
+        props: {
+            type: Object as PropType<IRenderedTemplateComponentProps>,
+            required: false
+        },
+
+
         showHeader: {
             type: Boolean,
             required: false
@@ -70,9 +76,9 @@ export default {
     async setup(props: IProps, ctx: SetupContext) {
         const o = props.templateInstance;
         const comp = defineComponent({
-            setup: async (p, c) => await o.setup(props, ctx),
+            setup: async (p, c) => await o.setup(props.props, ctx),
             render: o.render(),
-            emits: o.emits?.() 
+            emits: o.emits?.()
         });
 
 

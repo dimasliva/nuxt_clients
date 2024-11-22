@@ -68,14 +68,17 @@ export abstract class FinderDataProvider {
 
 
 
-    async select(): Promise<any | null> {
+    async select(choosedValues?: any): Promise<any | null> {
         return new Promise(resolve => {
             if (!this._selectFormComponent)
                 resolve(null);
 
             openDialog(
                 this._selectFormComponent,
-                { width: "100%" },
+                {
+                    width: "100%",
+                    choosedValues: choosedValues
+                },
                 true,
                 true,
                 (e, d) => {

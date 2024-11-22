@@ -8,6 +8,7 @@ import { PositionList } from "~/componentTemplates/listTemplates/positionListTem
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 import { PositionRecord } from "~/lib/MoApi/Records/PositionRecord";
 import * as vHelpers from '~/libVis/Helpers';
+import type { IRenderedTemplateComponentProps } from "~/componentTemplates/componentTemplates";
 
 
 @injectable()
@@ -36,6 +37,7 @@ export class PositionFinderDataProvider extends FinderDataProvider {
     const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор должности", componentTemplate: positionTemplate });
 
     const selComponent = defineComponent({
+      props: selTemplate.sprops(),
       setup: (p, c) => selTemplate.setup(p, c),
       render: selTemplate.render(),
     })

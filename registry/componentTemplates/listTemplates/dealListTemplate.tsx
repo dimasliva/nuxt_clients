@@ -192,7 +192,7 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
 
     //Конвертация данных из формата апи в формат для таблицы
     convertRow = async (rawData: IDealListView) => {
-        debugger;
+        //debugger;
         return {
             id: rawData.id,
             title: rawData.title || "",

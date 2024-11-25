@@ -15,15 +15,7 @@
 <script setup lang="ts">
 
 interface Props {
-  schGrid: { start: any, end: any },
-  duration: number,
-  position: string,
-  product: string,
-  onSelectFunc: Function
+
 }
-
-const props = defineProps<Props>();
-
-
 
 </script>

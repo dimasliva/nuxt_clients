@@ -71,7 +71,7 @@
                       v-model="products" label="Услуга"
                       :items="selectedSchedulerItemGroup || employees.label ? productsArr : []"
                       :item-value="'id' || 'value'" :finderDataProvider="productFinderDataProvider" width="auto"
-                      @update:model-value="(selectedSchedulerItemGroup || employees.title)? filterItems() : getSchedule()"/>
+                      @update:model-value="(selectedSchedulerItemGroup || employees.title)? filterItems() : requestSchedule()"/>
 
           <InputField :type="EDataType.strictstring" :state="fieldsOptions" :disabled="!products.length" hide-details class="my-2 pa-0" density="compact"
                       :items="kindOfDuration" item-value="time" v-model="productsDuration"
@@ -82,7 +82,7 @@
                       :type="selectedSchedulerItemGroup || products.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
                       v-model="employees" label="Сотрудники" :items="employeesArr" :item-value="'id' || 'value'" item-title="label"
                       :finderDataProvider="emplFioFinderDataProvider" width="auto"
-                      @update:model-value="(selectedSchedulerItemGroup || products.length) ? filterItems() : getSchedule()"/>
+                      @update:model-value="(selectedSchedulerItemGroup || products.length) ? filterItems() : requestSchedule()"/>
 
           <InputField customVariant="underlined" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
                       :type="selectedSchedulerItemGroup || products.length || employees.length ? EDataType.strictstringarray : EDataType.referenceMultiple"
@@ -120,7 +120,7 @@ import {EmployeeRecord} from '~/lib/MoApi/Records/EmployeeRecord';
 import {ScheduleEvent} from '~/components/customMonthView/SchedulerTypes';
 import type {IApiDataListResult, IApiResult} from '~/lib/MoApi/RequestResults';
 import {ProductsCatalogRecord} from '~/lib/MoApi/Records/ProductsCatalogRecord';
-import {ScheduleApiSection} from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
+import {ScheduleApiSection, type TDatedScheduleTimespanItems} from '~/lib/MoApi/ApiSectionsV1/SchedulerApiSection';
 import {ClientContactsRecord} from "~/lib/MoApi/Records/ClientContactsRecord";
 import {ProductRecord, ProductRecordData} from '~/lib/MoApi/Records/ProductRecord';
 import {BookingsViews, type IBookingListView} from '~/lib/MoApi/Views/BookingViews';
@@ -138,6 +138,7 @@ import {
   type TGridQuerySch
 } from '~/lib/Booking/ScheduleGrid';
 import {BookingRecord} from "~/lib/MoApi/Records/BookingRecord";
+import {Scheduler} from "~/components/customMonthView/scheduler";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 
 let status = ref({
@@ -159,7 +160,7 @@ const recStore = iocc.get(RecordsStore);
 const apiClient = iocc.get<MoApiClient>('MoApiClient');
 const pageMap = iocc.get<PageMap>("PageMap");
 const schItemGroup = iocc.get(ScheduleApiSection);
-const positionviews = iocc.get(PositionsViews);
+const positionViews = iocc.get(PositionsViews);
 const bookingViews = iocc.get(BookingsViews);
 // const scheduleGridInfo = iocc.get(ScheduleGridInfo);
 let currView = ref('month');
@@ -219,6 +220,8 @@ const scheduleItemFinderDataProvider = iocc.get(ScheduleItemFinderDataProvider);
 scheduleItemFinderDataProvider.init("scheduleItem");
 emplFioFinderDataProvider.init("fioEmployee");
 
+let scheduler: Scheduler;
+
 const eventsHandler = (e) => {
   // cumstomEventCreator(e);
   return false;
@@ -267,63 +270,8 @@ const openPopUp = (day_time: ScheduleEvent) => {
   let busyTime = events.value.filter(ev => (ev.start.slice(0, 10) == selDate)&& ((timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime)) && (timeToMinutes(ev.end.slice(11))/60 <= day_time.endTime) && ev.products && splits.includes(ev.split))
   let availableTimes = freeTimeSpans.value.filter(ev => (ev.start.slice(0, 10) == selDate) && (timeToMinutes(ev.start.slice(11))/60 >= day_time.startTime));
 
-  prodsList.value = prods.map(pr => {
+  prodsList.value = scheduler.findNearestTime(day_time, prods, availableTimes, busyTime)
 
-    let fitSlots = availableTimes.filter(el =>
-        el.products.find(p => p.id == pr.id)
-        && ((timeToMinutes(el.end.slice(11))/60 <= (day_time.endTime + pr.duration/60)) || (timeToMinutes(el.start.slice(11))/60 + pr.duration/60 <= day_time.endTime))
-    )
-
-    fitSlots.map(f => {
-      let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
-      pr.split = f.split;
-      if(splitBusyTime.length > 0){
-        let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
-
-        if(busy.length > 0){
-          busy.sort((a, b) => new Date(a.start) - new Date(b.start))
-          for (let i = 0; i < busy.length - 1; i++) {
-            const busy1Start = timeToMinutes(busy[0].start.slice(11));
-            const freeStart = timeToMinutes(f.start.slice(11));
-            if(busy1Start-freeStart >= pr.duration){
-              pr.start = f.start;
-              pr.time = f.start.slice(11);
-              break;
-            }
-
-            const busy1End = new Date(busy[i].end);
-            const busy2Start = new Date(busy[i + 1].start);
-
-            const differenceInMinutes = (busy2Start.getTime() - busy1End.getTime()) / (1000 * 60);
-
-            if (differenceInMinutes >= pr.duration) {
-              pr.start = busy1End;
-              pr.time = busy1End.formatTime()
-              break;
-            }
-          }
-        } else {
-          if((timeToMinutes(f.end.slice(11)) - timeToMinutes(f.start.slice(11))) >= pr.duration){
-            pr.start = f.start;
-            pr.time = f.start.slice(11);
-          }
-        }
-        if (!pr.start && busy.length > 0) {
-          const lastBusySlot = busy[busy.length - 1];
-          if ((new Date(f.end) - new Date(lastBusySlot.end))/60000 >= pr.duration) {
-            pr.start = lastBusySlot.end;
-            pr.time = lastBusySlot.end.slice(11);
-          }
-        }
-      } else {
-        if((timeToMinutes(f.end.slice(11)) - timeToMinutes(f.start.slice(11))) >= pr.duration){
-          pr.start = f.start;
-          pr.time = f.start.slice(11);
-        }
-      }
-    })
-    return pr
-  })
   prodsList.value = prodsList.value.map(pr => {
     if(!pr.time || !pr.start){
       let findSplit = positions.value.find(pos => pos.id == day_time.products.find(p => p.id == pr.id).split).employee;
@@ -336,11 +284,6 @@ const openPopUp = (day_time: ScheduleEvent) => {
     }
     return pr
   })
-}
-
-const clearMonthViewDates = () => {
-  minDate.value = '';
-  maxDate.value = '';
 }
 
 const changeDate = (date) => {
@@ -361,7 +304,6 @@ function roundTime(selectedTime: string): string {
 
   return `${roundedMinutes.toString().padStart(2, '0')}`;
 }
-
 
 function checkTimeInIntervals(chosenTime, intervals) {
   chosenTime = new Date(chosenTime);
@@ -466,6 +408,7 @@ const eventDialog = async (event, creating: boolean = true) => {
       openDialog(EventDialog, {
         event: currEvent.value,
         schGrid: {start: minDate.value, end: maxDate.value},
+        scheduler: scheduler,
         employees: employeesArr.value,
         positions: positions.value,
         products: foundedProducts,
@@ -516,7 +459,7 @@ const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
       duration: currEl.duration,
       client: {id: currEl.client!, name: currEl.clientName!, surname: currEl.clientSurname!, patronymic: currEl.clientPatronymic!, phone: '' },
       id: currEl.id!,
-      content: currEl.productTitle ? currEl.productTitle : undefined,
+      content: currEl.productTitle ? currEl.productTitle : currEl.productGroupTitle,
     }
     bookingsArr.push(event)
   }
@@ -541,58 +484,6 @@ const getBookings = async () => {
   createBookingsFromApi(bookingArr)
 }
 
-const getScheduleByItemGroup = async () => {
-  monthViewMinDate.value = minDate.value;
-  monthViewMaxDate.value = maxDate.value;
-  if (selectedSchedulerItemGroup.value) {
-    let res = await schItemGroup.getScheduleByItemGroup(minDate.value, maxDate.value, (selectedSchedulerItemGroup.value as {
-      value: string
-    }).value)
-    let sch: any = res
-    currRangeData.value = res
-    buildMonthScheduler(sch);
-    let prods: any = [];
-    let empls: any = [];
-    Object.values(sch).flat().map((el: any) => {
-      prods.push(el.products)
-      empls.push(el.position)
-    });
-    prods = Array.from(new Set(prods.flat()))
-    productsArr.value = await getProductsList(prods)
-    empls = Array.from(new Set(empls))
-    employeesArr.value = Array.from(await getEmployeeList(empls))
-    employeesArr.value.map((empl) =>
-        empl.label = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
-    )
-  }
-  await getBookings();
-}
-
-
-const getProductsList = async (k) => {
-  const chunkSize = 500; // Устанавливаем размер чанка
-  const keys = k.map((id) => id.replaceAll(`'`, `"`));
-  const chunks = Array.from({length: Math.ceil(keys.length / chunkSize)}, (_, index) =>
-      keys.slice(index * chunkSize, (index + 1) * chunkSize)
-  );
-
-  let recs: any[] = [];
-  for (const chunk of chunks) {
-    const chunkRecs = await Promise.all(chunk.map(async (i) => {
-      try {
-        let record = await recStore.getRecordsM([{id: {key: i, type: ProductRecord}}]);
-        return record[0].MData;
-      } catch (error) {
-        console.error(`An error occurred while fetching record with key ${i}:`, error);
-        return null; // Возвращаем null для не найденных записей
-      }
-    }));
-    recs.push(...chunkRecs);
-  }
-
-  return recs.filter((i) => i !== null);
-}
-
 const getEmployeeList = async (k) => {
   let keys = k.map((id) => id.replaceAll(`'`, `"`))
   let emplsRec: any[] = [];
@@ -612,46 +503,6 @@ const getEmployeeList = async (k) => {
   return emplsRec.map(i => i.MData);
 }
 
-const getSchedule = async () => {
-  let prodsIds: any = null;
-  let positionsIds: any = null;
-  if (employees.value.value) {
-    let select = "id"
-    let where = `employee='${employees.value.value}'`
-    positionsIds = await positionviews.getPositionListView({select, where, limit: 0})
-    positionsIds = positionsIds._data.flat()
-  }
-  if (products.value.length) {
-    prodsIds = products.value.map((i: any) => i.value)
-  }
-
-  let res = await schItemGroup.getSchedule({
-    begDate: minDate.value,
-    endDate: maxDate.value,
-    productIds: prodsIds,
-    positionIds: positionsIds,
-    divisionIds: division.value ? division.value : null,
-    placementIds: null
-  });
-
-  let sch: any = res
-  currRangeData.value = res
-  buildMonthScheduler(sch);
-  let prods: any = [];
-  let empls: any = [];
-  Object.values(sch).flat().map((el: any) => {
-    prods.push(el.products)
-    empls.push(el.position)
-  });
-  prods = Array.from(new Set(prods.flat()))
-  productsArr.value = await getProductsList(prods)
-  empls = Array.from(new Set(empls))
-  employeesArr.value = Array.from(await getEmployeeList(empls))
-  employeesArr.value.map((empl) =>
-      empl.title = empl.surname + ' ' + (empl.name[0].toUpperCase()) + '.' + (empl.patronymic ? empl.patronymic[0] + '.' : '')
-  )
-}
-
 const spansInSplit = (arr: ScheduleEvent[], split: string, date: string) => {
   return arr.map(i => {
     if (i.split === split && i.start.slice(0, -6) === date) {
@@ -660,258 +511,18 @@ const spansInSplit = (arr: ScheduleEvent[], split: string, date: string) => {
   }).filter(Boolean);
 }
 
-const buildRangeScheduler = (start, end) => {
-  let startDay = Utils.getDateStr(start).toString();
-  let endDay = Utils.getDateStr(end).toString();
-
-  const keys = Object.keys(currRangeData.value).sort();
-  const keysInRange = keys.filter(key => key >= startDay && key <= endDay);
-
-  const result = keysInRange.reduce((acc, key) => {
-    acc[key] = currRangeData.value[key];
-    return acc;
-  }, {});
-
-  const dates: string[] = Object.keys(result);
-  const times: ScheduleTimespanItem[][] = Object.values(result);
-  const unavailableSlots: ScheduleEvent[] = [];
-  const rangeFreeTime: ScheduleEvent[] = [];
-
-  const newStart = '0' + startDayHours + ':00';
-  const newEnd = endDayHours + ':00';
-
-  for (let i = 0; i < dates.length; i++) {
-    const date = dates[i];
-    const timeItems = times[i];
-
-    timeItems.forEach((item) => {
-      const freeTime: ScheduleEvent = {
-        start: '',
-        end: '',
-        products: productsArr.value.filter(i => item.products?.includes(i.id)),
-        title: '',
-        class: 'free_hours',
-        background: true,
-        split: '',
-        resizable: false,
-        duration: 0
-      };
-      const startTime = item.timespan!.time;
-      const endTime = startTime + item.timespan!.duration;
-      const startHours = Math.floor(startTime / 60);
-      const startMinutes = startTime % 60;
-      const endHours = Math.floor(endTime / 60);
-      const endMinutes = endTime % 60;
-
-      const start = `${date + ' '}${startHours < 10 ? '0' + startHours : startHours}:${startMinutes < 10 ? '0' + startMinutes : startMinutes}`;
-      const end = `${date + ' '}${endHours < 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`;
-      const split = positions.value.find((pos) => pos.id === item.position).employee;
-      const spans = spansInSplit(rangeFreeTime, split, date)
-      if (spans.length > 0) {
-        const lastSpan = spans[spans.length - 1];
-
-        if(lastSpan!.end >= start && lastSpan!.end <= end) {
-          lastSpan!.end = end;
-        } else if (lastSpan!.end >= end && lastSpan!.start <= start) {
-          return
-        } else if( lastSpan!.end < end && lastSpan!.start < start) {
-          freeTime.start = start;
-          freeTime.end = end;
-          freeTime.split = split;
-          rangeFreeTime.push(freeTime);
-        }
-      } else {
-        freeTime.start = start;
-        freeTime.end = end;
-        freeTime.split = split;
-        rangeFreeTime.push(freeTime);
-      }
-
-    });
-
-    for (let j = 0; j < employeesArr.value.length; j++) {
-      const busyTime: ScheduleEvent = {
-        start: date + ' ' + newStart,
-        end: date + ' ' + newEnd,
-        title: '',
-        class: 'not_working_hours',
-        background: true,
-        split: employeesArr.value[j].id,
-        resizable: false
-      };
-      unavailableSlots.push(busyTime)
-    }
-  }
-  freeTimeSpans.value = rangeFreeTime
-  // events.value = rangeFreeTime
-
-  for (let i = 0; i < rangeFreeTime.length - 1; i++) {
-    const busyTime: ScheduleEvent = {
-      start: rangeFreeTime[i].start.slice(0, -6) + ' ' + newStart,
-      end: rangeFreeTime[i].end.slice(0, -6) + ' ' + newEnd,
-      title: '',
-      class: 'not_working_hours',
-      background: true,
-      split: '',
-      resizable: false
-    };
-    let currEl = rangeFreeTime[i]
-    let foundedSpans = spansInSplit(unavailableSlots, currEl.split!, currEl.start.slice(0, -6))
-    if (foundedSpans.length > 0) {
-      const lastSpan = foundedSpans[foundedSpans.length - 1];
-      if (currEl.start >= lastSpan.start) {
-        lastSpan.end = currEl.start
-        busyTime.start = currEl.end
-        busyTime.split = currEl.split
-        unavailableSlots.push(busyTime)
-      }
-    }
-
-  }
-
-  events.value = unavailableSlots;
-  events.value.push(...bookings.value)
-}
-
-
-const buildMonthScheduler = (ts) => {
-  const start = performance.now()
-  monthView.value = [];
-  const dates: string[] = Object.keys(ts);
-  const times: ScheduleTimespanItem[][] = Object.values(ts);
-  const monthViewSet = new Set<ScheduleEvent>();
-
-  for (let i = 0; i < dates.length; i++) {
-    const date = dates[i];
-    const timeItems = times[i];
-
-    if (timeItems.length > 0) {
-      let quantity = 0;
-      let list: { id: string, title: string, quantity: number, duration: number }[] = [];
-
-      for (let ind = 0; ind < timeItems.length; ind++) {
-        const item = timeItems[ind];
-        const nextItem = timeItems[ind + 1];
-        const dayTimeSpan = timeOfDay(item.timespan!.time);
-        const dayTimeSpanNext = nextItem ? timeOfDay(nextItem.timespan!.time) : null;
-        const isSameDayTime = dayTimeSpan == dayTimeSpanNext;
-        const {start, end} = hoursSpanAdder(dayTimeSpan);
-
-        const adderFunc = (cond: boolean) => {
-          if (cond) {
-            quantity++
-            list = addToListOfProds(list, item);
-          }
-          if (!isSameDayTime) {
-            let status = crtStatus(quantity);
-            monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan, start, end, status))
-            quantity = 0
-            list = []
-          }
-        }
-        const adderDefFunc = () => {
-          quantity++
-          list = addToListOfProds(list, item);
-          let status = crtStatus(quantity);
-          if (!isSameDayTime) {
-            monthViewSet.add(new ScheduleEvent(date, date, list, dayTimeSpan, start, end, status))
-            quantity = 0
-            list = []
-          }
-        }
-        if (selectedSchedulerItemGroup.value) {
-          if (products.value.length > 0 && !(employees.value.length > 0)) {
-            adderFunc(hasProdInTimes(products.value, item))
-          } else if (employees.value.length > 0 && !(products.value.length > 0)) {
-            adderFunc(hasEmplsInTimes(employees.value, item))
-          } else if (products.value.length > 0 && employees.value.length > 0) {
-            adderFunc(hasEmplsInTimes(employees.value, item) && hasProdInTimes(products.value, item))
-          } else {
-            adderDefFunc();
-          }
-        } else {
-          adderDefFunc();
-        }
-      }
-    }
-  }
-  monthView.value = Array.from(monthViewSet);
-  console.log(`Время загрузки расписания: ${performance.now() - start}`)
-}
-
-
-const hoursSpanAdder = (daytime) => {
-  let start = 0
-  let end = 0
-
-  if (daytime === 'Утро') {
-    start = 7
-    end = 12
-  }
-  if (daytime === 'День') {
-    start = 12
-    end = 17
-  }
-  if (daytime === 'Вечер') {
-    start = 17
-    end = 21
-  }
-
-  return {start, end}
-}
-
-const crtStatus = (q) => {
-  let sts = ''
-  if (q > 0) {
-    sts = 'available'
-  } else {
-    sts = 'none'
-  }
-  return sts;
-}
-
-const addToListOfProds = (arr, i) => {
-  i.products?.forEach((product) => {
-    const existingProduct = arr.find((prod) => prod.id === product);
-    if (existingProduct) {
-      existingProduct.quantity++;
-    } else {
-      arr.push({id: product, title: '', quantity: 1, duration: 0, split: i.position});
-    }
-  });
-  return arr;
-}
-
 let durationCondition = ref<number | null>(null)
-
-const hasEmplsInTimes = (arr, i) => positions.value.some((pos) => arr.some(empl => empl.id === pos.employee) && pos.id === i.position);
-
-const hasProdInTimes = (arr, i) => arr.some(prod => i.products?.includes(prod.id!) && (prod.duration <= (durationCondition.value ? durationCondition.value : i.timespan.duration)));
-
-const timeOfDay = (mins: number) => {
-  if (mins < 720) {
-    return 'Утро'
-  }
-
-  if (mins < 1080) {
-    return 'День'
-  }
-
-  if (mins < 1440) {
-    return 'Вечер'
-  }
-
-}
 
 const filterItems = async () => {
   if (products.value.length && !employees.value.length) {
     employeesArr.value = await filterOtherField(products.value, currRangeData.value!)
     products.value = products.value.map(productId => productsArr.value.find(product => product.id === productId));
+    monthView.value = scheduler.buildMonthScheduler(employees.value, products.value)
   }
   if (employees.value.length) {
     employees.value = employees.value.map(employeeId => employeesArr.value.find(employee => employee.id === employeeId));
+    monthView.value = scheduler.buildMonthScheduler(employees.value, products.value)
   }
-  buildMonthScheduler(currRangeData.value)
 }
 
 const filterOtherField = async (ids: string[], currdata: any[]) => {
@@ -948,7 +559,7 @@ const filterProducts = () => {
     durationCondition.value = sum;
   }
 
-  buildMonthScheduler(currRangeData.value)
+  scheduler.buildMonthScheduler(employees.value, products.value)
 }
 
 // сброс фильтров поиска бокового меню
@@ -962,7 +573,6 @@ const clearFilters = () => {
   changeDate(new Date)
   // getSchedule();
 }
-
 
 const onViewChange = (ev) => {
   if (ev.view === 'month') {
@@ -983,13 +593,45 @@ const onViewChange = (ev) => {
 const requestSchedule = async () => {
   schdLoad.value = true
   if (selectedSchedulerItemGroup.value) {
-    await getScheduleByItemGroup()
-    buildRangeScheduler(minDate.value, maxDate.value)
+
+    scheduler = new Scheduler(startDayHours, endDayHours)
+
+    let res = await scheduler.getScheduleByItemGroup(selectedSchedulerItemGroup.value, minDate.value, maxDate.value)
+    employeesArr.value = res.empArr
+    productsArr.value = res.prodArr
+    positions.value = res.positions
+
+    let data = res.buildRangeScheduler(minDate.value, maxDate.value);
+    freeTimeSpans.value = data.availableSlots;
+    events.value = data.unavailableSlots;
+
+    await getBookings();
+
+    events.value.push(...bookings.value)
+    console.log(bookings.value)
   }
   if (!selectedSchedulerItemGroup.value && (products.value || employees.value)) {
-    await getSchedule()
+    let prodsIds: any = null;
+    let positionsIds: any = null;
+
+    if (employees.value) {
+      const select = "id";
+      const where = `employee='${employees}'`;
+      positionsIds = await positionViews.getPositionListView({select, where, limit: 0});
+      positionsIds = positionsIds._data.flat();
+    }
+
+    if (products.value) {
+      prodsIds = products.value.map((i: any) => i.value);
+    }
+
+    scheduler = new Scheduler(startDayHours, endDayHours)
+
+    let res = await scheduler.getScheduler(minDate.value.format('YYYY-MM-DD'), maxDate.value.format('YYYY-MM-DD'), positionsIds, prodsIds, divisions.value)
+    console.log(res)
   }
   schdLoad.value = false
+  monthView.value = scheduler.buildMonthScheduler(employees.value, products.value)
 }
 
 let pageMapData: IFrameHeaderData = reactive({

@@ -88,7 +88,7 @@
                           v-model="duration" readonly/>
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string"
                           label="Начало-окончание" v-model="startAndEnd" readonly/>
-              <v-btn v-if="!props.creation && !showQuicks" color="primary" variant="text" @click="showQuicks = true">ИЗМЕНИТЬ</v-btn>
+              <v-btn v-if="!props.creation" color="primary" variant="text" @click="useQuick()">{{showQuicks? 'ОТМЕНА' : 'ИЗМЕНИТЬ'}}</v-btn>
             </v-card-text>
           </v-card>
           <QuickTimeOffer v-if="showQuicks"></QuickTimeOffer>
@@ -136,8 +136,8 @@ import {ProductGroupRecordData, ProductGroupRecord} from '~/lib/MoApi/Records/Pr
 import {EEmployeeTimeTypes} from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
 import {ProductRecord} from '~/lib/MoApi/Records/ProductRecord';
 import QuickTimeOffer from "~/components/QuickTimeOffer.vue";
-
-
+import type {Scheduler} from "~/components/customMonthView/scheduler";
+import type {ScheduleEvent} from "~/components/customMonthView/SchedulerTypes";
 // import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
 
 let tab = ref('option-1')
@@ -207,14 +207,13 @@ const createNewClient = async () => {
   clientCreationPop.value = false;
 }
 const findEmployeeById = (id: string) => {
-  return props.employees.find(employee => employee.id === id);
+  return props.scheduler.empArr.find(employee => employee.id === id);
 }
 
 interface Props {
   event: any,
   schGrid: { start: any, end: any },
-  employees: any[],
-  positions: any[],
+  scheduler: Scheduler,
   products: any[],
   status: any,
   creation: boolean,
@@ -239,16 +238,16 @@ let clientCreationPop = ref(false)
 let clientGender = ref()
 let addClient = 'Добавить клиента'
 let clientArr = ref<any[]>([])
-let client = ref(props.creation ? null : Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value)
+let client = ref<string | null | Client>(props.creation ? null : Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value)
 let employee = ref(findEmployeeById(props.event.split))
-let position = ref(emplChoice(props.positions, props.event.split))
+let position = ref(emplChoice(props.scheduler.positions, props.event.split))
 let product = ref(props.creation? (props.products.length == 1 || props.event.quick? [props.products[0]] : null) : props.event.products.map(id => props.products.find(prod => id == prod.id)))
 let products = ref(props.products)
 let placement = ref()
 let division = ref()
 let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
 let evTitle = ref(props.event.title)
-let duration = ref(props.creation ? (product.value? product.value[0].duration : 0) : product.value.reduce((total, currProd) => total + currProd.duration, 0))
+let duration = ref(props.creation ? (product.value? product.value[0].duration : 0) : props.event.duration)
 let start = ref<number>(props.event.start!.formatTime())
 let end = ref<number>(new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime())
 let startAndEnd = ref(start.value && end.value ? start.value + '-' + end.value : "-")
@@ -257,6 +256,9 @@ let addDescr = ref(false)
 let showQuicks = ref(false)
 let inputText = ref('')
 let inputFocus = ref()
+let timerId: NodeJS.Timeout | undefined;
+let scheduler = props.scheduler;
+let availableTimesArr = ref<ScheduleEvent[]>([])
 let changedEvent = ref({
   title: clientSurname.value + ' ' + clientName.value,
   employee: employee.value,
@@ -264,15 +266,17 @@ let changedEvent = ref({
   class: props.event.class,
 })
 
-const onProductsChange = (ev) => {
-   if(ev.length > 1){
-     duration.value = ev.reduce((acc, prod) => acc + prod.duration, 0)
-   } else {
-     duration.value = ev[0].duration
+const onProductsChange = (prs) => {
+  if(prs.length == 0){
+    duration.value = 0
+  } else if(prs.length > 1){
+    duration.value = prs.reduce((acc, prod) => acc + prod.duration, 0)
+  } else {
+    duration.value = prs[0].duration
   }
   end.value = new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime()
   startAndEnd.value = start.value + '-' + end.value
-  // console.log(ev)
+
 }
 
 const cancelAndClose = async () => {
@@ -286,19 +290,20 @@ const cancelAndClose = async () => {
   } else {
     closeDialog('');
   }
+
 }
 
 const saveChanges = async () => {
   if(props.creation){
     let rec = await createRec();
-    let clientTitle = client.value.title.split(' ');
+    let clientTitle = client.value!.title.split(' ');
     let timeStart =new Date( props.event.start.format('YYYY-MM-DD') + " " + start.value);
     let timeEnd = new Date( props.event.start.format('YYYY-MM-DD') + " " + end.value);
     let startMinutes = start.value.split(':')
     startMinutes = startMinutes[0] * 60 + startMinutes[1] * 1;
     let endMinutes = end.value.split(':')
+
     endMinutes = endMinutes[0] * 60 + endMinutes[1] * 1;
-    console.log(rec)
     if(rec){
       props.event.start = timeStart;
       props.event.end = timeEnd;
@@ -320,19 +325,19 @@ const saveChanges = async () => {
     }
   } else {
     await updateRec()
-  }
 
+  }
   closeDialog(props.event);
+
 }
 
 const checkInputLength = (e) => {
-
   if (inputText.value.length === 0) {
     addDescr.value = false;
   }
+
 };
 
-let timerId: NodeJS.Timeout | undefined;
 const getList = async (text: string, ...args: any[]) => {
   let whereArr: string[] = [];
   let str = Utils.normalizeFio(text);
@@ -378,23 +383,46 @@ const getList = async (text: string, ...args: any[]) => {
 
 }
 
-
 const addProductsToGroup = async (rec: ProductGroupRecord, products: string[]) => {
   var promises: Promise<void>[] = [];
   for (let y = 0; y < products.length; y++) {
-    promises.push(rec.addCoupling(products[y], ProductRecord.RecCode));
+    promises.push(rec.addCoupling(products[y].id, ProductRecord.RecCode));
   }
   await Promise.all(promises);
 }
 
+const addProductGroup = async () => {
+  let rec = await recStore.createNew<ProductGroupRecord, ProductGroupRecordData>(ProductGroupRecord, (data) => {
+    data.title = product.value.map(product => product.title).join(', ');
+  })
+  await rec.save();
+
+  return rec;
+}
+
 const updateRec = async () => {
-  console.log(props.event)
+
   let updRec = await recStore.fetch<BookingRecord>(BookingRecord, props.event.id)
-  console.log(updRec)
+
+  if (product.value.length == 1){
+    updRec.MData.product = product.value[0].id;
+    updRec.MData.duration = duration.value;
+    props.event.products = product.value[0].id
+    props.event.duration = duration.value;
+  } else {
+    updRec.MData.product = null;
+
+    let rec = await addProductGroup();
+    await addProductsToGroup(rec, product.value);
+    updRec.MData.productGroup = rec.MData.id
+  }
+
+  let res = await updRec.save()
+  console.log(res)
 }
 
 const createRec = async () => {
-  const positions = props.positions.map(pos => pos.id)
+  const positions = props.scheduler.positions.map(pos => pos.id)
   const schGrid = iocc.get(ScheduleGrid);
   const opts = new ScheduleGridOptions(props.schGrid.start, props.schGrid.end, positions);
 
@@ -427,6 +455,20 @@ const createRec = async () => {
     return false
   }
 };
+
+const useQuick = () => {
+  showQuicks.value = !showQuicks.value
+  if(showQuicks.value){
+    findFreeTime()
+  }
+}
+
+const findFreeTime = async () => {
+  let reqProds = product.value.map(pr => pr.id)
+  await scheduler.getScheduler(props.schGrid.start.format('YYYY-MM-DD'), props.schGrid.end.format('YYYY-MM-DD'), null, reqProds);
+  let events = scheduler.buildRangeScheduler(props.schGrid.start, props.schGrid.end);
+  console.log(events)
+}
 
 let translit = (word) => {
   const converter = {

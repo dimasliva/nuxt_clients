@@ -9,6 +9,10 @@
                 <!--Верхняя строка перед основной таблицей-->
                 <template v-slot:top="props">
                     <v-row no-gutters>
+                        <v-btn v-if="content.finderDataProvider" icon="" variant="text" @click="openFinder">
+                            <v-icon>mdi-magnify</v-icon>
+                            <v-tooltip activator="parent" location="top">{{ "Поиск" }}</v-tooltip>
+                        </v-btn>
                         <!--Кнопка Обновить-->
                         <v-btn color="primary" variant="text" icon="mdi-refresh" @click="async () => fullUpdate()">
                             <v-icon>mdi-refresh</v-icon>
@@ -156,7 +160,7 @@
         <!--Нижняя строка-->
         <v-row class="text-center pt-5" justify="center">
             <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">
-              Всего:{{content.rows.length }} Выбрано:{{ selected.length }}
+                Всего:{{ content.rows.length }} Выбрано:{{ selected.length }}
             </v-col>
             <v-col md="6">
                 <v-row justify="center">
@@ -187,6 +191,8 @@ import { useScroll } from "~/componentComposables/dataTables/useScroll"
 import type { INavActionMenuItem, INavColumn, INavPathItem, INavRow, INavigatorContent, INavigatorProps } from "./NavigatorTypes"
 import * as Helpers from '~/lib/Helpers';
 import { v4 as uuidv4 } from 'uuid';
+import { toRaw } from "vue";
+import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 
 type TPageStateInfo = { page: number, pageCount: number, itemsPerPage: number, selectedId?: string | null, sortBy: any | null, sx?: number, sy?: number };
 
@@ -309,13 +315,26 @@ const goToRowByKey = (key: string) => {
 
     nextTick(() => {
         currentPage.value = page;
-        const element = document.getElementById(getUniqueId(key));
-        if (element) {
-            element.scrollIntoView({ block: "center" });
-            lineSelected.value = key;
-        }
+        nextTick(() => {
+            const element = document.getElementById(getUniqueId(key));
+            if (element) {
+                element.scrollIntoView({ block: "center" });
+                lineSelected.value = key;
+            }
+        });
     });
 }
+
+
+const goToRowByKeyA = async (key: string) => {
+    if (props.getPathByKey) {
+        const p = await props.getPathByKey(key);
+        path.value = p.path;
+        lineSelected.value = p.targetRow.id;
+        await update();
+    }
+};
+
 
 //отслеживание сортировки для перехода на выделенную строку
 watch(sortBy, () => {
@@ -433,6 +452,26 @@ const setPageStateInfo = (info: TPageStateInfo | null) => {
 const getUniqueId = (id: string) => {
     return compuuid + "_" + id;
 }
+
+
+
+const openFinder = async () => {
+    const fp = content.value?.finderDataProvider;
+    if (fp) {
+        let keyval: TDictViewVal | null;
+
+        if (fp?.isFindable())
+            keyval = await fp.find();
+        else
+            keyval = await fp.select();
+
+        if (keyval) {
+            await goToRowByKeyA(keyval.value);
+        }
+    }
+}
+
+
 
 const onRowClick = (DataTableItemINavRow: any, index) => {
 
@@ -575,7 +614,7 @@ const addRow = (row: INavRow) => {
 }
 
 
-const getSelected=()=>{
+const getSelected = () => {
     return selected.value;
 }
 

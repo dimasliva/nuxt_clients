@@ -32,10 +32,10 @@ export class ProductRecordData extends ApiRecordChData {
 
 @injectable()
 export class ProductRecord extends ApiRecord<ProductRecordData> {
-  static RightToken = "dbProduct";
-  static RecCode = 1024;
-  static BatchGetRecDataPath = "/Products/GetProducts";
-  static RecordsFindPath = "/Products/FindProducts";
+  static override RightToken = "dbProduct";
+  static override RecCode = 1024;
+  static override BatchGetRecDataPath = "/Products/GetProducts";
+  static override RecordsFindPath = "/Products/FindProducts";
 
   constructor(
     @inject("MoApiClient") _MoApiClient: MoApiClient,

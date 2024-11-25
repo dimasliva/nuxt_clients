@@ -78,6 +78,7 @@
   "err_msg_FrequentRequests": "Слишком частые запросы. Немного подождите и повторите попытку",
   "err_msg_undefined": "Неопределенная ошибка",
   "err_msg_ERR:RecordIsUsed":"Запись используется другими записями",
+  "err_msg_ERR":"Ошибка. Что-то пошло не так",
   "phone.phoneCountry":"Страна",
   "phone.invalidPhone":"Некорректный номер. Пример: {0}"
 }

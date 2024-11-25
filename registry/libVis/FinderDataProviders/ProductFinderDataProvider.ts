@@ -33,38 +33,42 @@ export class ProductFinderDataProvider extends FinderDataProvider {
 
 
 
-  override init(instName: string | null, multiselect = false, sizeLimit: number = 20, cats: any[] = []) {
-    super.init(instName, multiselect ? FinderSelectForm : FinderForm);
+  override init(instName: string | null, multiselect = false, sizeLimit: number = 20, cats: any[] = [], selectComponentTemplate?: any | null) {
+    super.init(instName, multiselect ? FinderSelectForm: FinderForm, null);
     this._instName = instName;
     this._listSizeLimit = sizeLimit;
     this._selectedOptionsValues = cats;
 
 
-    const navTemplate = new ProductNavigatorTemplate(
-      this._diC,
-      null, 
-      {
-      selectMode: true,
-      selectStrategy: multiselect ? "page" : "single",
-      selectableTypes: ["product"]
-    });
+    if (selectComponentTemplate !== null) {
+      const navTemplate = selectComponentTemplate ||
+        new ProductNavigatorTemplate(
+          this._diC,
+          null,
+          {
+            selectMode: true,
+            selectStrategy: multiselect ? "page" : "single",
+            selectableTypes: ["product"]
+          });
 
-    const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор услуги", componentTemplate: navTemplate });
+      const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор услуги", componentTemplate: navTemplate });
 
-    const selComponent = defineComponent({
-      setup: (p, c) => selTemplate.setup(p, c),
-      render: selTemplate.render(),
-    })
+      const selComponent = defineComponent({
+        setup: (p, c) => selTemplate.setup(p, c),
+        render: selTemplate.render(),
+      })
 
-    this._selectFormComponent = selComponent;
+      this._selectFormComponent = selComponent;
+    }
+    return this;
   }
 
 
 
-  override async edit(choosedValues?: any): Promise<any | null> {
+  override async find(choosedValues?: any): Promise<any | null> {
     return new Promise((resolve) => {
       openDialog(
-        this._editFormComponent,
+        this._findFormComponent,
         {
           //diC: this._diC,
           title: "Поиск товаров и услуг",

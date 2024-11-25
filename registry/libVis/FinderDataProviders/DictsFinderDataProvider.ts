@@ -32,7 +32,7 @@ export class DictsFinderDataProvider extends FinderDataProvider {
 
 
     override init(instName: string | null, multiselect = false, dictId: EDictionaries, dictSection: number | undefined = undefined, sizeLimit: number = 20) {
-        super.init(instName, multiselect ? FinderFormMultiple : FinderForm);
+        super.init(instName, multiselect ? FinderFormMultiple : FinderForm, null);
         this._instName = instName;
         this._dictId = dictId;
         this._dictSection = dictSection;

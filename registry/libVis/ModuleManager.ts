@@ -60,8 +60,11 @@ export class ModuleManager {
         if (chkRights(null, { "dbClient": "r" }))
             menuItem.childs!.push({ id: "clients", title: "Клиенты", getPagePath: () => "/list/clients", icon: "mdi-account-circle" })
 
-         if (chkRights(null, { "dbPosition": "r" }))
+        if (chkRights(null, { "dbPosition": "r" }))
             menuItem.childs!.push({ id: "positions", title: "Должности", getPagePath: () => "/list/positions", icon: "mdi-account-circle" })
+
+        if (chkRights(null, { "dbDeal": "r" }))
+            menuItem.childs!.push({ id: "deals", title: "Сделки", getPagePath: () => "/list/deals", icon: "mdi-handshake-outline" })
 
 
         if (menuItem.childs!.length > 0)

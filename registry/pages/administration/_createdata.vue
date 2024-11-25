@@ -762,7 +762,7 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 const openselect = async () => {
     const prov= diC.get(ProductFinderDataProvider);
     prov.init("ghhs",true);
-    const res= await prov.edit();
+    const res= await prov.find();
 
     /*
     const position = new PositionList(diC, {selectStrategy:"single"});

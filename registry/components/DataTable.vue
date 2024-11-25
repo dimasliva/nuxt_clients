@@ -3,10 +3,10 @@
         <div class="flex-grow-1" style="min-height:10rem; ">
             <v-data-table ref="refDt" v-model="selected" show-select item-value="id"
                 v-model:items-per-page="itemsPerPage" hover :headers="_headers" hide-default-footer
-                v-model:page="currentPage" :items="props.rows" class="elevation-1 h-100" fixed-header disable-paginatio
+                v-model:page="currentPage" :items="props.rows" class="elevation-1 h-100" fixed-header
                 :selectStrategy="selectStrategy" style="width: 100%;">
 
-                
+
                 <!-- меню действий-->
                 <template v-slot:header.actions="{ column }">
 
@@ -53,18 +53,19 @@
                                 </v-list-item>
                             </v-list>
 
-
                         </template>
                     </v-menu>
 
                 </template>
 
 
+                <!-- строки таблицы -->
                 <template v-slot:item="{ internalItem, index }">
                     <VDataTableRow :index="index" :item="internalItem"
                         :class="internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''"
                         @click="(e) => { onRowClick(internalItem) }">
 
+                        <!-- Колонка "actions". Кнопка меню возможных действий -->
                         <template v-slot:item.actions="{ item }">
                             <v-menu scrollStrategy="close" v-if="props.tableDescr.actionsMenu">
                                 <template v-slot:activator="{ props }">
@@ -99,12 +100,26 @@
             </v-data-table>
         </div>
 
-        <v-row class="text-center pt-5 w-100 mb-1 pr-0" justify="center" style="min-height: 6rem; max-height: 6rem; ">
-            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">Всего:{{ props.rows.length }} Выбрано:{{
-                selected.length }}</v-col>
-            <v-col lg="7" md="8" sm="9" xs="10" class="pl-0 pr-0" style="min-width: 650px;">
+        <!-- Нижняя строка статистики -->
+        <v-row class="text-center pt-5 w-100 mb-1 pr-0" justify="start" style="min-height: 6rem; max-height: 6rem; ">
+            <v-col align="start" class="font-italic text-body-2 pr-0 pt-0">
+                Всего:{{ props.rows.length }}
+                <!-- Кнопка отображения выбранных элементов -->
+                <SelectedItemsView :items="rowsToSelectViewDictVal()"
+                    @onRemoveItem="(item, inx) => selected.splice(inx, 1)" @onClearList="() => selected.length = 0">
+                    <template #activator="{ props }">
+                        <v-btn :disabled="!titleColName" v-bind="props" variant="text" size="small"
+                            style="text-transform:none; padding-bottom: 2px;"
+                            class="font-italic text-body-2 pl-0 pr-0">Выбрано:{{ selected.length }}
+                        </v-btn>
+                    </template>
+                </SelectedItemsView>
+            </v-col>
+
+            <!--Выбор текущей страницы -->
+            <v-col lg="6" md="7" sm="8" xs="9" class="pl-0 pr-0" style="min-width: 650px;">
                 <v-row justify="center">
-                    <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="7"
+                    <v-pagination ref="refPag" v-model="currentPage" :length="pagesCount" :total-visible="6"
                         @update:modelValue="() => scrollTo(0, 0)" />
                     <v-select style="max-width: 15dvh; height: 10px;" :model-value="itemsPerPage" label="На странице"
                         :items="[10, 12, 25, 50, 100]" variant="solo"
@@ -123,34 +138,28 @@ import { VDataTable, VDataTableRow } from 'vuetify/components/VDataTable'
 import { chkRights } from "~/lib/Utils"
 import { useScroll } from "~/componentComposables/dataTables/useScroll"
 import type { IDataTableDescription } from '~/componentComposables/dataTables/useDataTable';
+import SelectedItemsView from '~/components/SelectedItemsView.vue'
+import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 
 
 export interface IDataTableProps {
     tableDescr: IDataTableDescription;
     rows: any[];
-    selected: any[],
+    selected: TDictViewVal[],
     visibility: Boolean,
     columns: string[],
-    selectStrategy?: 'page' | 'single' | 'all'
+    selectStrategy?: 'page' | 'single' | 'all',
+    titleColName?: string;
 }
 
 const emit = defineEmits(['onRowDblClick', 'onRowClick', "onColumnsChanged", "onColumnsChangedDelayed"])
 
 const props = defineProps<IDataTableProps>();
-/*
-const props = defineProps({
-    tableDescr: { type: Object, required: true },
-    rows: { type: Array<any>, required: true },
-    selected: Array<any>,
-    visibility: Boolean,
-    columns: { type: Array<string>, required: true }
-});
-*/
-
 
 let itemsPerPage = ref(12);
 let currentPage = ref(1);
-let selected = ref([]);
+let selected = ref(props.selected?.map(v => v.value) || []);
+let selectedValTitleMap = new Map(props.selected?.map(obj => [obj.value, obj.title || ""]));
 let refDt = ref(null);
 let refPag = ref();
 const classMap = { "start": "d-flex justify-start", "center": "d-flex justify-center mr-5", "end": "d-flex justify-end" }
@@ -215,7 +224,6 @@ const _headersMap = computed(() => {
 
 
 
-
 const getActionsMenu = (item: any) => {
     const res: any[] = [];
     let menu = props.tableDescr.actionsMenu!(item);
@@ -259,9 +267,9 @@ const onRowClick = (dtitem: any) => {
 };
 
 
-const reset = () => {
+const reset = (inclSelected = false) => {
     currentPage.value = 1;
-    selected.value.length = 0;
+    if (inclSelected) selected.value.length = 0;
     lineSelected.value = null;
     scrollTo(0, 0);
 }
@@ -294,6 +302,34 @@ const toggleSelectColumn = (e, colName: string) => {
 
 const getSelected = () => {
     return selected.value;
+}
+
+
+let mapRows: Map<string, string> = new Map();
+
+watch(() => props.rows, () => {
+    mapRows = new Map(props.rows.map(obj => [obj.id, props.titleColName ? obj[props.titleColName] : ""]));
+}, { deep: true });
+
+
+const rowsToSelectViewDictVal = () => {
+    if (selected.value.length == 0)
+        selectedValTitleMap.clear();
+
+    const res: TDictViewVal[] = [];
+
+    return selected.value.map(v => {
+
+        let title = selectedValTitleMap.get(v as string);
+
+        if (!title) {
+            title = mapRows.get(v) || "";
+            selectedValTitleMap.set(v as string, title);
+        }
+
+
+        return { value: v, title }
+    });
 }
 
 

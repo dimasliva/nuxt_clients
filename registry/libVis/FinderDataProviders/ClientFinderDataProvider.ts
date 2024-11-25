@@ -4,21 +4,19 @@ import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { Exception } from "~/lib/Exceptions";
 import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
-import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import * as Utils from '~/lib/Utils';
-import { EmployeesViews } from "~/lib/MoApi/Views/EmployeesViews";
-import { EmployeeRecord } from "~/lib/MoApi/Records/EmployeeRecord";
+import { ClientRecord } from "~/lib/MoApi/Records/ClientRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from '~/components/forms/FinderForm.vue';
 import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
-import { EmployeeListTemplate } from "~/componentTemplates/listTemplates/employeeListTemplate";
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
+import { ClientList } from "~/componentTemplates/listTemplates/clientListTemplate";
 
 
 type fiotype = { name?: string, surname?: string, patronymic?: string } | null;
 
 @injectable()
-export class EmployeeFioFinderDataProvider extends FinderDataProvider {
+export class ClientFinderDataProvider extends FinderDataProvider {
 
     protected _listSizeLimit = 20;
 
@@ -28,7 +26,6 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
         @inject("UserContext") _UserContext: UserContext,
         @inject("diC") protected _diC: Container,
         @inject("RecordsStore") protected _RecordsStore: RecordsStore,
-        @inject(EmployeesViews) protected _EmployeesViews: EmployeesViews
     ) {
         super(_MoApiClient, _UserContext);
         this._historyResultTypeStorage = EFinderFormHistoryResultTypeStorage.full;
@@ -38,17 +35,17 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
 
 
     override init(instName: string | null, multiselect = false, sizeLimit: number = 20) {
-        super.init(instName, multiselect ? FinderFormMultiple : FinderForm, null);
+        super.init(instName, null, null);
         this._instName = instName;
         this._listSizeLimit = sizeLimit;
 
-        const employeeTemplate = new EmployeeListTemplate(
+        const clientTemplate = new ClientList(
             this._diC,
             {
                 selectStrategy: multiselect ? "page" : "single",
                 selectMode: true
             });
-        const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор сотрудника", componentTemplate: employeeTemplate });
+        const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор клиента", componentTemplate: clientTemplate });
 
         const selComponent = defineComponent({
             setup: (p, c) => selTemplate.setup(p, c),
@@ -60,24 +57,7 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
 
 
 
-    async getList(text: string, ...args: any[]): Promise<TDictViewVal[]> {
-        let whereArr: string[] = [];
-        let fioStr = Utils.normalizeFio(text);
-
-        if (fioStr) {
-            let recdata = Utils.recognizeDataInString(fioStr);
-            let fioArr = recdata.words;
-            fioArr[fioArr.length - 1] += '%';
-            whereArr.push(`surname like '${fioArr[0]}'`);
-            if (fioArr[1]) whereArr.push(`name like '${fioArr[1]}'`);
-            if (fioArr[2]) whereArr.push(`patronymic like '${fioArr[2]}'`);
-            //if (recdata.date)
-            //    whereArr.push(`birthdate= '${recdata.date.toISOString()}'`);
-            let rdl = await this._EmployeesViews.getEmployeeListView({ select: "id,name,surname,patronymic", where: whereArr.join(" and "), limit: this._listSizeLimit })
-            let res = rdl.toArray().map((item) => { return { value: item.id, title: Utils.makeFioStr(item.surname, item.name, item.patronymic) } });
-            return res.sort((a, b) => a.title.localeCompare(b.title));
-        }
-
+    async getList(txt: string): Promise<TDictViewVal[]> {
         return [];
     }
 
@@ -86,7 +66,7 @@ export class EmployeeFioFinderDataProvider extends FinderDataProvider {
     async getTitle(value: any, ...args: any[]): Promise<string | undefined> {
         if (!value)
             return undefined;
-        const rec = await this._RecordsStore.fetch(EmployeeRecord, value);
+        const rec = await this._RecordsStore.fetch(ClientRecord, value);
         return Utils.makeFioStr(rec.Data!.surname, rec.Data!.name, rec.Data!.patronymic)
     }
 }

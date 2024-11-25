@@ -53,8 +53,8 @@
 
 
     <!--Дата-->
-    <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal"
-        :readonly="readonly ? true : false" :dark="useTheme().global.current.value.dark" :enable-time-picker="false"
+    <VueDatePicker v-if="type == EDataType.date && visible" v-bind="$attrs" :modelValue="CurrModelVal" :teleport="true"
+        :readonly="readonly" :dark="useTheme().global.current.value.dark" :enable-time-picker="false"
         model-type="yyyy-MM-dd" :locale="locale" auto-apply keep-action-row :min-date="constraints?.min"
         :max-date="constraints?.max"
         :action-row="{ showNow: true, showSelect: false, showCancel: false, showPreview: false }"
@@ -64,6 +64,30 @@
             <v-text-field v-model="CurrModelVal" type="date" ref="refField" :variant='customVariant || "underlined"'
                 :clearable="!readonly" density="compact" :readonly="readonly" @blur="(d) => onValChanged()"
                 @keydown.stop="(k) => onKeydown(k)" :rules="DatePickerRules">
+                <template v-slot:label>
+                    <span>
+                        {{ label || "" }} <span v-if="required" class="text-error">*</span>
+                    </span>
+                </template>
+            </v-text-field>
+        </template>
+    </VueDatePicker>
+
+
+    <!--Дата и время-->
+    <VueDatePicker v-if="type == EDataType.datetime && visible" v-bind="$attrs"
+        :modelValue="dateTimeVal || getDefDateTime()" :teleport="true" :readonly="readonly"
+        :dark="useTheme().global.current.value.dark" :enable-time-picker="true" model-type="yyyy-MM-dd HH:mm"
+        :locale="locale" :min-date="convertDateTimeInInnerFormat(constraints?.min)"
+        :max-date="convertDateTimeInInnerFormat(constraints?.max)"
+        :action-row="{ showNow: true, showSelect: true, showCancel: true, showPreview: false }"
+        now-button-label="Сегодня" selectText="ОК" cancelText="Отмена"
+        @update:modelValue="(d) => { dateTimeVal = d; onValChanged(true); }" six-weeks="center" :offset="-25">
+
+        <template #trigger>
+            <v-text-field v-model="dateTimeVal" type="datetime-local" ref="refField"
+                :variant='customVariant || "underlined"' :clearable="!readonly" density="compact" :readonly="readonly"
+                @blur="(d) => onValChanged()" @keydown.stop="(k) => onKeydown(k)" :rules="DatePickerRules">
                 <template v-slot:label>
                     <span>
                         {{ label || "" }} <span v-if="required" class="text-error">*</span>
@@ -156,7 +180,7 @@
 
 <script setup lang="ts" inherit-attrs="true">
 import { EDataType } from '~/lib/globalTypes';
-import { chkTrait } from "~/lib/Utils"
+import { chkTrait, getLocalISODateTime } from "~/lib/Utils"
 import { useI18n } from "vue-i18n"
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -167,6 +191,7 @@ import 'v-phone-input/dist/v-phone-input.css';
 import { isEqualData } from '~/lib/Helpers';
 import type { FinderDataProvider } from '~/libVis/FinderDataProviders/FinderDataProvider';
 import * as Utils from '~/lib/Utils';
+import { el } from 'vuetify/locale';
 
 
 const { t, locale } = useI18n();
@@ -204,7 +229,7 @@ interface IProps {
 const props = defineProps<IProps>();
 
 const visible = ref(props.tokens ? chkTrait(props.tokens, "r") : true);
-const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.state?.readonly || props.readonly);
+const readonly = ref(!(props.tokens ? chkTrait(props.tokens, "u") || chkTrait(props.tokens, "c") : true) || !!props.state?.readonly || props.readonly || false);
 const refField = ref();
 
 let OldModelVal = ref();
@@ -293,14 +318,18 @@ const DatePickerRules = [
 
         if (props.constraints?.max) {
             let maxdate = new Date(props.constraints?.max);
-            if (d > maxdate)
-                return setErr(`Дата должна быть не больше ${maxdate.toLocaleDateString()}`);
+            if (d > maxdate) {
+                let fmtDate = (props.type == EDataType.datetime) ? maxdate.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : maxdate.toLocaleDateString();
+                return setErr(`Дата должна быть не больше ${fmtDate}`);
+            }
         }
 
         if (props.constraints?.min) {
             let mindate = new Date(props.constraints?.min);
-            if (d < mindate)
-                return setErr(`Дата должна быть не меньше ${mindate.toLocaleDateString()}`);
+            if (d < mindate) {
+                let fmtDate = (props.type == EDataType.datetime) ? mindate.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : mindate.toLocaleDateString();
+                return setErr(`Дата должна быть не меньше ${fmtDate}`);
+            }
         }
 
         return resetErr(true);
@@ -516,9 +545,63 @@ const referVal = computedAsync(() => {
 });
 
 
+const dateTimeVal = computed({
+    get: (ov: string | null | undefined) => {
+        if (!CurrModelVal.value)
+            return CurrModelVal.value;
+
+        const date = new Date(CurrModelVal.value);
+        return getDateTimeInInnerFormat(date);
+    },
+
+    set: (nv: string | null | undefined) => {
+        if (!nv)
+            CurrModelVal.value = nv;
+        else {
+            const date = new Date(nv.replace(' ', 'T'));
+            CurrModelVal.value = Utils.getLocalISODateTimeWoTz(date);
+        }
+    }
+});
+
+
+const convertDateTimeInInnerFormat = (isodt: string) => {
+    if (!isodt)
+        return isodt;
+    const date = new Date(isodt);
+    return getDateTimeInInnerFormat(date);
+}
+
+
+const getDateTimeInInnerFormat = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+
+const getDefDateTime = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day} 00:00`;
+}
+
+
+
 const onReferEdit = async () => {
-    if (!readonly.value) {
-        let res = await props.finderDataProvider?.edit(CurrModelVal.value);
+    if (!readonly.value && props.finderDataProvider) {
+        let res = null;
+        if (props.finderDataProvider.isFindable())
+            res = await props.finderDataProvider.find(CurrModelVal.value);
+        else
+            if (props.finderDataProvider.isSelectable())
+                res = await props.finderDataProvider.select(CurrModelVal.value);
+
         if (res != null) {
             CurrModelVal.value = res;
             onValChanged(true);

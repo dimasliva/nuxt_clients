@@ -92,24 +92,31 @@ export default defineComponent({
                 let val = filterValues[settingsItem];
                 const partype = filterFields[settingsItem].type;
 
-                if (partype == EDataType.reference || partype == EDataType.referenceMultiple) {
-                    if ((!(val instanceof Array) && val != null) || (val instanceof Array && val.length > 0))
+                if (partype == EDataType.datetime || partype == EDataType.date) {
+                    if (val)
                         isAllValsEmpty = false;
-
                     if (fieldsOptions.errCnt)
                         return false;
                 }
-                else {
-                    if (filterFields[settingsItem].type == EDataType.string) {
-                        if (val) {
+                else
+                    if (partype == EDataType.reference || partype == EDataType.referenceMultiple) {
+                        if ((!(val instanceof Array) && val != null) || (val instanceof Array && val.length > 0))
                             isAllValsEmpty = false;
-                            if (constraints.min && val.length < constraints.min)
-                                return false;
+
+                        if (fieldsOptions.errCnt)
+                            return false;
+                    }
+                    else {
+                        if (filterFields[settingsItem].type == EDataType.string) {
+                            if (val) {
+                                isAllValsEmpty = false;
+                                if (constraints.min && val.length < constraints.min)
+                                    return false;
+                            }
                         }
                     }
-                }
 
-                if (val != null && constraints.check && !constraints.check(val))
+                if (val != null && constraints?.check && !constraints.check(val))
                     return false;
             }
             return !isAllValsEmpty;
@@ -157,8 +164,14 @@ export default defineComponent({
 
 
 
+        const isFocused = () => {
+            return cRefs[lastField]?.value ? cRefs[lastField].value.focused : false
+        }
+
+
+
         ctx.expose({
-            show, hide, toggleVis, isVisible, eventsHandler, clear, blur, isFindable
+            show, hide, toggleVis, isVisible, eventsHandler, clear, blur, isFindable, isFocused
         });
 
 
@@ -205,16 +218,25 @@ export default defineComponent({
                         break;
 
 
+                    case EDataType.date:
+                    case EDataType.datetime:
+                        node = <InputField state={fieldsOptions} class="pb-4" type={val.type} key={item} v-model={filterValues[item]}
+                            label={val.title}
+                            constraints={val.constraints} />
+                        res.push(node);
+                        break;
+
+
                     default:
                         if (val.constraints["mask"]) {
                             node = <VTextField v-model={maskaValues[item]} key={item} variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules}
+                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules || []}
                                 onMaska={(e) => { filterValues[item] = e.detail.unmasked }} />
                             res.push(withDirectives(node, [[vMaska, null, val.constraints]]));
                         }
                         else {
                             node = <VTextField v-model={filterValues[item]} key={item} class="ma-1" variant="underlined" color="secondary" label={(isFucused ? "*" : "") + val.title}
-                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules} />
+                                clearable hint={hint} ref={cRefs[item]} onfocus={() => { lastField = item; forcesUpdate() }} rules={val.rules || []} />
                             res.push(node);
                         }
                         break;
@@ -228,26 +250,28 @@ export default defineComponent({
 
         // return the render function
         return () => {
-            console.debug("rId: " + rId + " render: " + visiblity.value)
             updateBtnsState();
 
             if (visiblity.value) {
-                return <VCard class="mx-auto mb-auto" width="300">
-                    <VForm>
-                        <VCol>
-                            <v-row key={updateKey.value} class="text-body-1 ma-2" style="min-width: 200pt;">{filterSettings.title || "Поиск"} <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon></v-row>
+                return <VCard class="mx-auto mb-auto" width="23rem" style="height:100%">
+                    <VCol class="h-100 d-flex flex-column">
 
-                            <v-sheet class="overflow-y-auto overflow-x-hidden" style="max-height:70dvh !important;">
-                                {createFileds()}
-                            </v-sheet>
 
-                            <v-row class="ma-1" style="min-width: 200pt;" justify="center">
+                        <v-row class="ma-1 flex-grow-0" style="min-width: 200pt;" justify="center">
 
-                                <VBtn color="primary" variant="text" disabled={isBtnFindDisabled.value} onClick={() => filterSettings.onFind(filterValues)} >Поиск</VBtn>
-                                <VBtn color="primary" variant="text" onClick={() => { clear() }} > Сбросить</VBtn>
-                            </v-row>
-                        </VCol>
-                    </VForm>
+                            <VBtn color="primary" variant="text" prependIcon="mdi-magnify" size="small" disabled={isBtnFindDisabled.value} onClick={() => filterSettings.onFind(filterValues)} >Поиск</VBtn>
+                            <VBtn color="primary" variant="text" prependIcon="mdi-close" size="small" onClick={() => { clear() }} > Сбросить</VBtn>
+                            <v-spacer></v-spacer><v-icon onClick={() => hide()}>mdi-close</v-icon>
+                        </v-row>
+
+                        <v-sheet class="overflow-y-auto overflow-x-hidden flex-grow-1" >
+                            {createFileds()}
+                        </v-sheet>
+
+
+
+
+                    </VCol>
                 </VCard>
             }
 

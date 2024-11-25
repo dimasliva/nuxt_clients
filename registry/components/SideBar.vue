@@ -141,7 +141,7 @@ interface DialogForm {
   showDialog: boolean;
 }
 
-const DIALOG_FORM_LEVELS_NUMBER = 3;
+const DIALOG_FORM_LEVELS_NUMBER = 4;
 
 const { name } = useDisplay();
 let drawerWidth = computed(() => {
@@ -262,7 +262,7 @@ let addDiag = (val: { component: any; props: any; modal: boolean; redirectEvents
   const cr = ref();
 
   dialogForms.value[dialogFormsInx++] = markRaw({
-    comp: val.component,
+    comp: toRaw(val.component),
     props: val.props,
     modal: val.modal,
     eventsHandler: val.eventsHandler,

@@ -20,7 +20,7 @@ import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from "
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 import type { SetupContext } from "vue";
 import type { IListTemplateProps } from "../listTemplates/listTemplate";
-
+import { ProductFinderDataProvider } from "~/libVis/FinderDataProviders/ProductFinderDataProvider";
 
 
 let t: any;
@@ -92,6 +92,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
     constructor(diC : Container, deps?: Object | null, props?: IProductNavigatorTemplateProps | null) {
         if (!t) t = useNuxtApp().$i18n.t;
+        this._diC=diC;
         if (!deps) {
             this._MoApiClient = diC.get("MoApiClient");
             this._UserContext = diC.get("UserContext");
@@ -188,8 +189,8 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
 
 
 
-    async editProduct(row:IProductNavRow, index?) {
-        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id, readonly:true }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
+    async editProduct(row: IProductNavRow, index?) {
+        openDialog(ProductProfileDialog, { diC: this._diC, recKey: row.id, readonly: this._props?.selectMode }, true, true, (e, key) => (e == "onBeforeClose") ? key ? this.updateProductRow(row, index) : true : true)
     }
 
 
@@ -413,7 +414,8 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                     title: "Добавить каталог",
                     action: (path, selected) => this.addProductsCatalog()
                 }],
-                rows: []
+                rows: [],
+                finderDataProvider: this._diC.get(ProductFinderDataProvider).init("product_navigator",false,undefined,undefined,null)
             }
 
             this._productCatalogRecs.value?.forEach((prodCatRec) => {
@@ -527,6 +529,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                 ],
                 rows: [],
                 onRowClick: (...args) => this.onRowClick(...args),
+                finderDataProvider: this._diC.get(ProductFinderDataProvider).init("product_navigator",false,undefined,undefined,null)
             }
 
             //сначала добавляются разделы каталога
@@ -611,6 +614,53 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
     }
 
 
+
+    async getPathByKey(key: string, recCode?: number) {
+        let path: INavPathItem[] = [];
+        const rawrecs = await this._ProductsApiSection.getProductPathRecs(key);
+        let row: INavRow;
+
+        rawrecs.forEach(v => {
+
+            switch (v.code) {
+
+                case ProductsCatalogRecord.RecCode:
+                    path.push({
+                        key: "0",
+                        title: "Каталоги",
+                        tag: { type: "catalogs", catalogKey: null, catalogSectionKey: null }
+                    });
+                    break;
+
+
+                case ProductsCatalogSectionRecord.RecCode:
+                    let d = v.entity as ProductsCatalogSectionRecordData;
+                    path.push({
+                        key: d.id!,
+                        title: d.title,
+                        tag: { type: "catalogSection", catalogKey: d.productsCatalog, catalogSectionKey: d.parent }
+                    });
+                    break;
+
+                    case ProductRecord.RecCode:
+                        let pd = v.entity as ProductRecordData;
+                        row ={
+                            $mdata: {
+                                isFolder: false,
+                                tag: "product"
+                            },
+                            id: pd.id!,
+                            title: pd.title || ""
+                        }
+                        break;
+            }
+        });
+
+        return { path, targetRow: row! }
+    }
+
+
+   
     getSelected() {
         return this._RefNavigator.value.getSelected();
     }
@@ -631,7 +681,8 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
                         (() => {
                             const dt = <Navigator ref={this._RefNavigator} v-model:filterValue={this._titleFilter.value}
                                 onNavigate={(level: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) =>
-                                    this.onNavigate(level, nextlevel, currPath, row)} />;
+                                    this.onNavigate(level, nextlevel, currPath, row)} 
+                                    getPathByKey={(key: string, recCode?: number)=>this.getPathByKey(key, recCode)}/>;
 
                             //return h(KeepAlive, dt);
                             return dt;

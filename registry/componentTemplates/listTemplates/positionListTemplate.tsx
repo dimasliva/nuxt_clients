@@ -63,6 +63,9 @@ export class PositionList extends ListTemplate<TPositionFilterVals> {
     //Указание компонента формы редакции модели
     modelEditDialog = PositionProfileDialog;
 
+   //колонка, значения из которой будут отображаться в списке выбранных
+    titleColName="fio";
+
     //Настрока таблицы
     dataTableDescr = ref<IDataTableDescription>({
         headers: [

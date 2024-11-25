@@ -6,7 +6,6 @@ import { FreqUsingStrStatistic } from "~/libVis/FreqUsingStrStatistic";
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
 import { Container } from "inversify/lib/container/container";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
-import { title } from "process";
 
 
 let t: any;
@@ -130,9 +129,8 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
                     if (e == "onBeforeClose") {
                         if (d) {
                             nextTick(async () => {
-                                const names = await this.getTitleItemsByVals(d);
-                                const res = names.map((v, i) => { return { value: d[i], title: v } })
-                                this.onSelect(res as TDictViewVal[]);
+                                const res = await this.getTitleItemsByVals(d);
+                                this.onSelect(res);
                             });
                         }
                     }
@@ -265,7 +263,7 @@ export class FinderFormTemplate implements IRenderedTemplateComponent {
 
     /**Основная строка поиска */
     getMainSearchField() {
-        return <v-row class="flex-0-1"> 
+        return <v-row class="flex-0-1 pt-1">
             <v-autocomplete ref={this._searchFieldRef} clearable label={this._props.label || ''}
                 variant="underlined" density="compact" modelValue={this._searchingText.value}
                 items={this._searchedStrLst.value}

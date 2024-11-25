@@ -18,7 +18,7 @@
     "h3": "^1.10.1",
     "nuxt": "3.13.1",
     "sass": "^1.70.0",
-    "vue": "3.4.33",
+    "vue": "3.5.12",
     "vue-tsc": "^2.0.19"
   },
   "dependencies": {
@@ -38,7 +38,7 @@
     "v-phone-input": "^4.1.2",
     "vite-plugin-vuetify": "^2.0.1",
     "vue-cal": "^4.8.1",
-    "vue-sonner": "^1.1.2",
+    "vue-sonner": "^1.2.5",
     "vuetify": "3.7.1"
   }
 }

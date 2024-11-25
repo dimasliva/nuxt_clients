@@ -66,6 +66,12 @@ export const makeFioStr = (surname: string | null | undefined, name: string | nu
 }
 
 
+/**Инициалы фио*/
+export const makeInitialsStr = (surname: string | null | undefined, name: string | null | undefined, patronymic: string | null | undefined): string => {
+    let res = (surname || "") + " " + (name?.charAt(0).toLocaleUpperCase() || "") + " " + (patronymic?.charAt(0).toLocaleUpperCase() || "");
+    return res;
+}
+
 
 
 let numberForKeys = 0;
@@ -98,17 +104,22 @@ export const recognizeDataInString = (str: string) => {
                 if (dateRgx.test(item)) {
                     let date: Date = null!;
                     if (item.length >= 8) {
-                        //03.04.2010
-                        //03.04.10
+                        if (item.includes(".")) {
+                            //03.04.2010
+                            //03.04.10
 
-                        let arr = item.split('.');
-
-                        if (<any>arr[2] < 1000) {
-                            let curryy = (new Date()).getFullYear().toString().substring(2);
-                            res.date = new Date(`${((<any>arr[2] > curryy) ? '19' : '20') + arr[2]}-${arr[1]}-${arr[0]}`)
+                            let arr = item.split('.');
+                            if (<any>arr[2] < 1000) {
+                                let curryy = (new Date()).getFullYear().toString().substring(2);
+                                res.date = new Date(`${((<any>arr[2] > curryy) ? '19' : '20') + arr[2]}-${arr[1]}-${arr[0]}`)
+                            }
+                            else
+                                res.date = new Date(`${arr[2]}-${arr[1]}-${arr[0]}`)
                         }
-                        else
-                            res.date = new Date(`${arr[2]}-${arr[1]}-${arr[0]}`)
+                        else {
+                            //03042010
+                            res.date = new Date(`${item.substring(4, 8)}-${item.substring(2, 4)}-${item.substring(0, 2)}`)
+                        }
                     }
                     else
                         if (item.length == 6) {
@@ -162,8 +173,10 @@ export function getUtcDateStr(date: Date) {
 
 export function getLocalISODateTime(date: Date): string {
     const offset = date.getTimezoneOffset();
+    const timezoneOffset = Math.abs(offset / 60);
+    const formattedTimezone = `${timezoneOffset.toFixed(2).replace(".",":").padStart(5,"0")}`;
     const localISOTime = new Date(date.getTime() - offset * 60000).toISOString();
-    return localISOTime;
+    return `${localISOTime.slice(0, 19)}${offset>0?"-":"+" }${formattedTimezone}`;
 }
 
 

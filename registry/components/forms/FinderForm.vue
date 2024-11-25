@@ -2,7 +2,7 @@
 <script lang="ts">
 import { Container } from "inversify";
 import { useI18n } from "vue-i18n"
-import { EFinderFormHistoryResultTypeStorage, FinderFormTemplate, type IFinderFormProps } from "~/componentTemplates/forms/finderFormTemplate"
+import { FinderFormTemplate, type IFinderFormProps } from "~/componentTemplates/forms/finderFormTemplate"
 import type { FinderDataProvider } from "~/libVis/FinderDataProviders/FinderDataProvider";
 
 

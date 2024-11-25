@@ -1,4 +1,6 @@
 import type { Container } from "inversify";
+import type { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
+import type { FinderDataProvider } from "~/libVis/FinderDataProviders/FinderDataProvider";
 
 
 export interface INavRowMetadata {
@@ -11,7 +13,7 @@ export interface INavRowMetadata {
 
 export interface INavRow {
     $mdata: INavRowMetadata;
-    $isSelectable?:boolean;
+    $isSelectable?: boolean;
     id: string;
     title: string;
 };
@@ -54,7 +56,7 @@ export interface INavActionMenuItem {
     title: string;
     icon?: string;
     disabled?: boolean;
-    action: (path:INavPathItem[], selected: string[]) => Promise<any>;
+    action: (path: INavPathItem[], selected: string[]) => Promise<any>;
 }
 
 
@@ -63,17 +65,19 @@ export interface INavigatorContent {
     columns?: INavColumn[];
     rows: INavRow[];
     visibleCols: string[];
-    onVisibleColsChanged?: (visCols:string[])=>void;
+    onVisibleColsChanged?: (visCols: string[]) => void;
     onRowClick?: (level: number, currPathItem: INavPathItem, row: INavRow, index?: number) => Promise<void>;
-    onUpdate?: (path:INavPathItem[]) => Promise<void>;
-    actionsMenu?: (INavActionMenuItem | ((sel:string[])=>INavActionMenuItem))[];
-    pathInfo: INavPathItem;
+    onUpdate?: (path: INavPathItem[]) => Promise<void>;
+    actionsMenu?: (INavActionMenuItem | ((sel: string[]) => INavActionMenuItem))[];
+    pathInfo: INavPathItem,
+    finderDataProvider?:  FinderDataProvider;
 }
 
 
 export interface INavigatorProps {
     filterValue?: string | null,
     onNavigate: (currlevel: number, nextlevel: number, currPath: readonly INavPathItem[] | null, row: INavRow | null) => Promise<INavigatorContent>;
+    getPathByKey?: (key: string, recCode?: number) => Promise<{ path: INavPathItem[], targetRow: INavRow }>;
 }
 
 

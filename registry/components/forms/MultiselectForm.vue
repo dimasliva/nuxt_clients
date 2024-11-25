@@ -40,7 +40,7 @@ export default {
         let t = useI18n().t;
         const diC= props.diC || useSessionContainer();
         const o = new SelectFormTemplate(diC, { title: props.title, componentTemplate: props.componentTemplate});
-        await o.setup(ctx);
+        await o.setup(props,ctx);
         return o.render();
     }
 }

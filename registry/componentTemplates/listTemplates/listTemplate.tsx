@@ -4,7 +4,6 @@ import type { IDataTableDescription } from "~/componentComposables/dataTables/us
 import { QueryParams } from "~/lib/MoApi/RequestArgs";
 import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { type IFrameHeaderData, PageMap } from "~/lib/PageMap";
-import { UserContext } from "~/lib/UserContext";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
 import { DataList } from "~/lib/DataList";
@@ -13,6 +12,7 @@ import DataTable from "~/components/DataTable.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 import type { SetupContext } from 'vue';
+import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 
 
 let t: any;
@@ -20,7 +20,8 @@ let t: any;
 export interface IListTemplateProps extends IRenderedTemplateComponentProps {
     selectStrategy?: 'page' | 'single' | 'all'
     selectableTypes?: string[];
-    selectMode?: boolean
+    selectMode?: boolean,
+    choosedValues?: TDictViewVal[]
 }
 
 
@@ -28,7 +29,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
     protected _recStore: RecordsStore = null!;
 
-    props: IListTemplateProps | null = null!;
+    props: IListTemplateProps = {};
     filterVals = ref({}) as Ref<TFilterVals>;
     refDataTable = ref();
     refFilterForm = ref();
@@ -41,7 +42,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     abstract dataTableDescr: Ref<IDataTableDescription>;
     abstract filterFieldSetting: any;
     abstract modelEditDialog: any;
-
+    abstract titleColName: string;
 
     abstract getWhereFromFilter(filterVals: TFilterVals): string;
     abstract convertRow(rawData): Promise<any>;
@@ -58,19 +59,20 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
             this._recStore = deps["RecordsStore"];
         }
 
-        this.props = opts || null;
+        this.props = opts || {};
 
-        this.dataTableVars.value.selectStrategy = this.props?.selectStrategy;
+        this.dataTableVars.value.selectStrategy = this.props.selectStrategy;
+        this.dataTableVars.value.selected = this.props.choosedValues || [];
     }
 
 
     dataTableVars = ref({
         itemsPerPage: 10,
-        rows: [] as any[],
+        rows: reactive([]) as any[],
         page: 1,
-        selected: [] as any[],
+        selected: [] as TDictViewVal[],
         columns: [] as Array<string>,
-        selectStrategy: this.props?.selectStrategy
+        selectStrategy: this.props?.selectStrategy,
     });
 
 
@@ -98,7 +100,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
             action: () => { this.refFilterForm.value.toggleVis() }
         });
 
-        
+
         let pageMapData: IFrameHeaderData = reactive({
             title: this.PAGE_TITLE, icon: "",
             mainBtnBar: btns
@@ -109,9 +111,11 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
 
-    async setup(props, ctx: SetupContext) {
-        this.pageSettings = this.props?.settingsStorage?.getData() || this.defPageSettings;
+    async setup(props: IListTemplateProps, ctx: SetupContext) {
+        this.pageSettings = this.props.settingsStorage?.getData() || this.defPageSettings;
         this.dataTableVars.value.columns = this.pageSettings.tcols;
+        this.props.choosedValues = props.choosedValues;
+        this.dataTableVars.value.selected = props.choosedValues || [];
 
         this.filterSetting = {
             getFields: () => this.filterFieldSetting.fields,
@@ -136,6 +140,12 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
 
 
 
+    sprops() {
+        return ["choosedValues"];
+    }
+
+
+
     expose() {
         return {
             eventsHandler: (e, d) => this.eventsHandler(e, d),
@@ -153,9 +163,8 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
                         let inc = (d.key == 'ArrowLeft') ? -1 : (d.key == 'ArrowRight') ? 1 : 0;
 
                         if (inc != 0) {
-                            if (this.refFilterForm.value.isVisible())
-                                this.refFilterForm.value.blur();
-                            this.refDataTable.value.addCurrPage(inc);
+                            if (!this.refFilterForm.value.isFocused())
+                                this.refDataTable.value.addCurrPage(inc);
                             break;
                         }
                     }
@@ -321,6 +330,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
                             rows={this.dataTableVars.value.rows}
                             selected={this.dataTableVars.value.selected}
                             selectStrategy={this.dataTableVars.value.selectStrategy}
+                            titleColName={this.titleColName}
                             onOnRowDblClick={(rowitem) => this.edit(rowitem.key, rowitem.index)}
                             onOnColumnsChanged={() => { this.loadData() }}
                             onOnColumnsChangedDelayed={() => { this.saveSettings() }}

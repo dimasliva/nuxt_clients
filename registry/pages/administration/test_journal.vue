@@ -139,6 +139,7 @@ import {
 } from '~/lib/Booking/ScheduleGrid';
 import {BookingRecord} from "~/lib/MoApi/Records/BookingRecord";
 import {Scheduler} from "~/components/customMonthView/scheduler";
+import {Bookings} from "~/lib/Booking/Bookings";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';
 
 let status = ref({
@@ -284,6 +285,7 @@ const openPopUp = (day_time: ScheduleEvent) => {
     }
     return pr
   })
+  console.log(prodsList.value)
 }
 
 const changeDate = (date) => {
@@ -442,46 +444,9 @@ const editEvent = async (event) => {
   }
 }
 
-const createBookingsFromApi = (bookingArr: IBookingListView[]) => {
-  let bookingsArr: ScheduleEvent[] = [];
-
-  for(let i = 0; i < bookingArr.length; i++){
-    let currEl = bookingArr[i]
-
-    let event: ScheduleEvent = {
-      start: new Date(currEl.begDate!).format('YYYY-MM-DD HH:mm'),
-      end: new Date(new Date(currEl.begDate!).getTime() + currEl.duration * 60000).format('YYYY-MM-DD HH:mm'),
-      products: currEl.product ? currEl.product.split(',') : [currEl.productGroup],
-      background: false,
-      title: currEl.client && !currEl.clientGroup ? currEl.clientSurname!+ ' ' + currEl.clientName! : 'Группа',
-      split: positions.value.find((pos) => pos.id === currEl.position).employee,
-      class: status.value[currEl.status].class,
-      duration: currEl.duration,
-      client: {id: currEl.client!, name: currEl.clientName!, surname: currEl.clientSurname!, patronymic: currEl.clientPatronymic!, phone: '' },
-      id: currEl.id!,
-      content: currEl.productTitle ? currEl.productTitle : currEl.productGroupTitle,
-    }
-    bookingsArr.push(event)
-  }
-  bookings.value = bookingsArr
-}
-
 const getBookings = async () => {
-  const positionsIds = positions.value.map(pos => pos.id)
-  const bookingArr: IBookingListView[] = []
-
-  let res = await bookingViews.getBookings({
-    begDate: Utils.getDateStr(minDate.value),
-    endDate: Utils.getDateStr(maxDate.value),
-    positionIds: positionsIds,
-    includeNames: true,
-    includePlace: true,
-    includeStatus: true,
-  })
-  for(let i = 0; i< res.getLength(); i++){
-    bookingArr.push(res.getRow(i)!)
-  }
-  createBookingsFromApi(bookingArr)
+  const booking = new Bookings(minDate.value, maxDate.value, positions.value);
+  bookings.value = await booking.getBookingsRecs()
 }
 
 const getEmployeeList = async (k) => {
@@ -608,7 +573,6 @@ const requestSchedule = async () => {
     await getBookings();
 
     events.value.push(...bookings.value)
-    console.log(bookings.value)
   }
   if (!selectedSchedulerItemGroup.value && (products.value || employees.value)) {
     let prodsIds: any = null;

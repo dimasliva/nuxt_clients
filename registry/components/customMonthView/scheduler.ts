@@ -21,7 +21,6 @@ export class Scheduler {
     private recStore: RecordsStore;
     private apiClient: MoApiClient;
     private schItemGroup: ScheduleApiSection;
-    private bookingViews: BookingsViews;
     private slctdSchItemGroupData: ScheduleItemGroupData | { value: string, title: string } | null;
     private currRangeData: TDatedScheduleTimespanItems | null;
     public positions: PositionRecordData[];
@@ -35,7 +34,6 @@ export class Scheduler {
         this.recStore = iocc.get(RecordsStore);
         this.apiClient = iocc.get<MoApiClient>("MoApiClient");
         this.schItemGroup = iocc.get(ScheduleApiSection);
-        this.bookingViews = iocc.get(BookingsViews);
         this.slctdSchItemGroupData = null;
         this.currRangeData = null;
         this.positions = [];
@@ -215,6 +213,7 @@ export class Scheduler {
                 const end = `${date + ' '}${endHours < 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`;
                 const split = this.positions.find((pos) => pos.id === item.position)?.employee;
                 const spans = this.spansInSplit(availableSlots, split!, date)
+
                 if (spans.length > 0) {
                     const lastSpan = spans[spans.length - 1];
 
@@ -277,40 +276,53 @@ export class Scheduler {
         return {availableSlots, unavailableSlots}
     };
 
-    public findNearestTime (selData: ScheduleEvent, prods: ProductDataSchedule[], availableTimes: ScheduleEvent[], busyTime: ScheduleEvent[]) {
-       return prods.map(pr => {
-
+    public findNearestTime (selData: ScheduleEvent, prods: ProductDataSchedule[], availableTimes: ScheduleEvent[], busyTime: ScheduleEvent[], single: boolean = true) {
+        return prods.map(pr => {
             let fitSlots = availableTimes.filter(el =>
                 el.products.find(p => typeof p === 'object' && p.id == pr.id)
                 && ((this.timeToMinutes(el.end.slice(11))/60 <= (selData.endTime + pr.duration/60)) || (this.timeToMinutes(el.start.slice(11))/60 + pr.duration/60 <= selData.endTime))
             )
+            if(single){
+                fitSlots.map(f => {
 
-            fitSlots.map(f => {
-                let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
-                pr.split = f.split!.toString();
-                if(splitBusyTime.length > 0){
-                    let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
+                    let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
+                    pr.split = f.split!.toString();
+                    if(splitBusyTime.length > 0){
+                        let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
 
-                    if(busy.length > 0){
-                        busy.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-                        for (let i = 0; i < busy.length - 1; i++) {
-                            const busy1Start = this.timeToMinutes(busy[0].start.slice(11));
-                            const freeStart = this.timeToMinutes(f.start.slice(11));
-                            if(busy1Start-freeStart >= pr.duration){
+                        if(busy.length > 0){
+                            busy.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+                            for (let i = 0; i < busy.length - 1; i++) {
+                                const busy1Start = this.timeToMinutes(busy[0].start.slice(11));
+                                const freeStart = this.timeToMinutes(f.start.slice(11));
+                                if(busy1Start-freeStart >= pr.duration){
+                                    pr.start = f.start;
+                                    pr.time = f.start.slice(11);
+                                    break;
+                                }
+
+                                const busy1End = new Date(busy[i].end);
+                                const busy2Start = new Date(busy[i + 1].start);
+
+                                const differenceInMinutes = (busy2Start.getTime() - busy1End.getTime()) / (1000 * 60);
+
+                                if (differenceInMinutes >= pr.duration) {
+                                    pr.start = busy1End;
+                                    pr.time = busy1End.toString().slice(11, 16)
+                                    break;
+                                }
+                            }
+                        } else {
+                            if((this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(f.start.slice(11))) >= pr.duration){
                                 pr.start = f.start;
                                 pr.time = f.start.slice(11);
-                                break;
                             }
-
-                            const busy1End = new Date(busy[i].end);
-                            const busy2Start = new Date(busy[i + 1].start);
-
-                            const differenceInMinutes = (busy2Start.getTime() - busy1End.getTime()) / (1000 * 60);
-
-                            if (differenceInMinutes >= pr.duration) {
-                                pr.start = busy1End;
-                                pr.time = busy1End.toString().slice(11, 16)
-                                break;
+                        }
+                        if (!pr.start && busy.length > 0) {
+                            const lastBusySlot = busy[busy.length - 1];
+                            if ((new Date(f.end).getTime() - new Date(lastBusySlot.end).getTime())/60000 >= pr.duration) {
+                                pr.start = lastBusySlot.end;
+                                pr.time = lastBusySlot.end.slice(11);
                             }
                         }
                     } else {
@@ -319,21 +331,11 @@ export class Scheduler {
                             pr.time = f.start.slice(11);
                         }
                     }
-                    if (!pr.start && busy.length > 0) {
-                        const lastBusySlot = busy[busy.length - 1];
-                        if ((new Date(f.end).getTime() - new Date(lastBusySlot.end).getTime())/60000 >= pr.duration) {
-                            pr.start = lastBusySlot.end;
-                            pr.time = lastBusySlot.end.slice(11);
-                        }
-                    }
-                } else {
-                    if((this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(f.start.slice(11))) >= pr.duration){
-                        pr.start = f.start;
-                        pr.time = f.start.slice(11);
-                    }
-                }
-            })
-            return pr
+                })
+                return pr
+            } else {
+                return fitSlots
+            }
         })
     }
 

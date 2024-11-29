@@ -91,7 +91,7 @@
               <v-btn v-if="!props.creation" color="primary" variant="text" @click="useQuick()">{{showQuicks? 'ОТМЕНА' : 'ИЗМЕНИТЬ'}}</v-btn>
             </v-card-text>
           </v-card>
-          <QuickTimeOffer v-if="showQuicks"></QuickTimeOffer>
+          <QuickTimeOffer v-if="showQuicks" :schedule-data="availableTimesArr"></QuickTimeOffer>
           <v-card flat>
             <v-card-title class="text-subtitle-1">ПРИМЕЧАНИЕ
               <v-btn v-if="!addDescr" color="primary" variant="text" @click="addDescr = true">ДОБАВИТЬ</v-btn>
@@ -138,6 +138,7 @@ import {ProductRecord} from '~/lib/MoApi/Records/ProductRecord';
 import QuickTimeOffer from "~/components/QuickTimeOffer.vue";
 import type {Scheduler} from "~/components/customMonthView/scheduler";
 import type {ScheduleEvent} from "~/components/customMonthView/SchedulerTypes";
+import {Bookings} from "~/lib/Booking/Bookings";
 // import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
 
 let tab = ref('option-1')
@@ -456,10 +457,10 @@ const createRec = async () => {
   }
 };
 
-const useQuick = () => {
-  showQuicks.value = !showQuicks.value
-  if(showQuicks.value){
-    findFreeTime()
+const useQuick = async () => {
+  if(!showQuicks.value){
+    await findFreeTime()
+    showQuicks.value = !showQuicks.value
   }
 }
 
@@ -467,7 +468,21 @@ const findFreeTime = async () => {
   let reqProds = product.value.map(pr => pr.id)
   await scheduler.getScheduler(props.schGrid.start.format('YYYY-MM-DD'), props.schGrid.end.format('YYYY-MM-DD'), null, reqProds);
   let events = scheduler.buildRangeScheduler(props.schGrid.start, props.schGrid.end);
-  console.log(events)
+  let booking = new Bookings(props.schGrid.start, props.schGrid.end, null);
+  events.unavailableSlots.push( ...await booking.getBookingsRecs())
+
+  let busyTime =  events.unavailableSlots
+  let availableTimes = events.availableSlots
+  let quickDate: ScheduleEvent = {
+    end: "",
+    products: product.value,
+    start: undefined,
+    startTime: 0,
+    title: "",
+    endTime: 21
+  }
+  availableTimesArr.value = scheduler.findNearestTime(quickDate, product.value, availableTimes, busyTime, false)[0]
+
 }
 
 let translit = (word) => {

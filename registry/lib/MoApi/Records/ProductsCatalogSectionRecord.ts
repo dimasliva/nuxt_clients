@@ -1,10 +1,12 @@
+
 import { injectable, inject } from "inversify";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
-import { ApiRecord, ApiRecordChData, } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 import { EWellKnownPageCaches, type PageMemoryCacheStore } from "~/lib/Cache/PageMemoryCacheStore";
 import type { ProductCatalogSectionCache } from "~/lib/Cache/ProductCatalogSectionCache";
+import { ApiRecord, ApiRecordChData } from "./ApiRecord";
+
 
 @injectable()
 export class ProductsCatalogSectionRecordData extends ApiRecordChData {

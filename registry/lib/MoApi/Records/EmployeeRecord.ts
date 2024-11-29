@@ -4,6 +4,7 @@ import { FilelinkRecord, FilelinkRecordData } from "./FilelinkRecord";
 import { injectable } from "inversify";
 import { makeFioStr, makeInitialsStr } from "~/lib/Utils";
 
+
 @injectable()
 export class EmployeeRecordData extends ApiRecordChData {
     name: string = "";

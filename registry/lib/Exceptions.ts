@@ -30,7 +30,7 @@ export class NetException extends  Exception{
         this.bodyData = bodyData;
     }
 
-     toLog(excIn:string=""){
+     override toLog(excIn:string=""){
        let bd= "";
        if(this.bodyData)
         bd= (typeof this.bodyData=="string")? this.bodyData: JSON.stringify(this.bodyData);

@@ -18,6 +18,7 @@ export class ScheduleItemData extends ApiRecordChData {
   exceptions: string = "";
   workExceptions: string = "";
   timespans: ScheduleTimeSpanEntity[] = [];
+  defDuration: number | null = null;
   notActive?: boolean | null = null;
   advData?: any | null = null;
 
@@ -32,7 +33,7 @@ export class ScheduleItemData extends ApiRecordChData {
 export class ScheduleItemRecord extends ApiRecord<ScheduleItemData> {
   static override RightToken = "dbScheduleItem";
   static override RecCode = 1026;
-  static override BatchGetRecDataPath="/Schedule/GetScheduleItems";
+  static override BatchGetRecDataPath = "/Schedule/GetScheduleItems";
   static override RecordsFindPath = "/Schedule/FindScheduleItems";
 
   get RecCode() {

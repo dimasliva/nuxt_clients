@@ -53,9 +53,9 @@
     </VRow>
 
     <VRow class="align-center">
-    
-            <VBtn @click="openselect()">select</VBtn>
-    
+
+        <VBtn @click="openselect()">select</VBtn>
+
     </VRow>
 
 </template>
@@ -90,7 +90,7 @@ import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
 import { ClientList } from '~/componentTemplates/listTemplates/clientListTemplate';
 import TemplateFrame from '~/components/TemplateFrame.vue';
 import { VBtn } from 'vuetify/components';
-import MultiselectForm  from '~/components/forms/MultiselectForm.vue';
+import MultiselectForm from '~/components/forms/MultiselectForm.vue';
 import { PositionList } from '~/componentTemplates/listTemplates/positionListTemplate';
 import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
@@ -165,7 +165,7 @@ const patronymicsF = ["Ивановна", "Петровна", "Сергеевн�
 const pricesA = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 10000,];
 
 const fullTitles = ProductTitles;
-const durations = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 90, 120];
+const durations = [0, 5, 10, 15, 20, 25, 30, 40, 60, 90, 120];
 let scheduleGroupRec = ref();
 let tempProdRecArr = ref<any>([])
 let tempPositionArr = ref<any>([])
@@ -259,6 +259,7 @@ const addScheduleItem = async (size: number) => {
             data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
             data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
             data.timespans = timeSpansCrtr();
+            data.defDuration = durations[Math.floor(Math.random() * durations.length)];
         });
         await rec.save();
         recCode.value = rec.RecCode;
@@ -654,7 +655,7 @@ const bookingCreateTask = async (size: number = 500) => {
 
         if (dt) {
             const bp: TBookingParams = {
-                duration,
+                duration:  duration || dt.duration,
                 position: bookingparam.position,
                 division: bookingparam.division,
                 placement: bookingparam.placement,
@@ -713,11 +714,11 @@ const getBookingParams = async (begDate: Date, endDate: Date) => {
 
 
 
-const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBookingParams) => {
+const createBooking = async (sg: ScheduleGrid, bd: { date: Date, duration: number }, bookingParams: TBookingParams) => {
 
     let rec = await recStore.createNew<BookingRecord, BookingRecordData>(BookingRecord, d => {
-        d.beginDate = Utils.getLocalISODateTimeWoTz(date);
-        d.duration = bookingParams.duration;
+        d.beginDate = Utils.getLocalISODateTimeWoTz(bd.date);
+        d.duration = bookingParams.duration || bd.duration;
         d.position = bookingParams.position || null;
         d.division = bookingParams.division || null;
         d.placement = bookingParams.placement || null;
@@ -760,9 +761,9 @@ const createBooking = async (sg: ScheduleGrid, date: Date, bookingParams: TBooki
 
 
 const openselect = async () => {
-    const prov= diC.get(ProductFinderDataProvider);
-    prov.init("ghhs",true);
-    const res= await prov.find();
+    const prov = diC.get(ProductFinderDataProvider);
+    prov.init("ghhs", true);
+    const res = await prov.find();
 
     /*
     const position = new PositionList(diC, {selectStrategy:"single"});

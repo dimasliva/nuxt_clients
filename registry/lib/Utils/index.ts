@@ -262,3 +262,9 @@ export async function getHashHex(str: string, alg: "SHA-1" | "SHA-256" | "SHA-38
 export function CloneData<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj));
 }
+
+
+
+export function getQuotesString(arr: string[]): string {
+    return arr.map(item => `'${item.replace(/'/g, "''")}'`).join(', ');
+}

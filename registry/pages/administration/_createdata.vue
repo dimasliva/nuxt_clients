@@ -259,7 +259,7 @@ const addScheduleItem = async (size: number) => {
             data.exceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
             data.workExceptions = new Date(new Date().setDate(new Date().getDate() + Math.floor(Math.random() * (365 - 2) + 2))).toLocaleDateString().slice(0, 5);
             data.timespans = timeSpansCrtr();
-            data.defDuration = durations[Math.floor(Math.random() * durations.length)];
+            data.defDuration = durations[Math.floor(Math.random() * durations.length)] || 5;
         });
         await rec.save();
         recCode.value = rec.RecCode;

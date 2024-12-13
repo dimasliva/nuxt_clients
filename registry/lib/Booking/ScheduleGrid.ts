@@ -225,7 +225,6 @@ export class ScheduleGrid {
             let minDuration = bk.duration;
             let gridPerDay = this._grid[grDate];
 
-            //не проверено
             let currTime = normTime;
 
             while (currTime < gridPerDay.length) {

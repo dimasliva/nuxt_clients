@@ -185,6 +185,11 @@ export class MoApiClient {
                     }
                     else
                         if (response.status == 429) {
+                            const contType = response.headers.get("content-type")?.split(";") || [];
+                            if (contType[0] == "application/json" &&  (bodyData = await response.json())) {
+                                await sleep((<any>bodyData).await || 1000);
+                            }
+                            else
                             if (ATTEMPS - attemp == 1)
                                 await sleep(1000);
                             else

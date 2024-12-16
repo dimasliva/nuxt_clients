@@ -73,9 +73,11 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
 
 
     PAGE_TITLE = "Сделки";
+    //колонка, значения из которой будут отображаться в списке выбранных
+    titleColName = "id";
 
     //Настройки по умолчанию
-    defPageSettings = { tcols: ["fio", "deal"] };
+    defPageSettings = { tcols: ["beginDate", "endDate", "productsText", "clientsText", "positionsText"] };
 
 
     //Указание компонента формы редакции модели
@@ -85,11 +87,19 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
     dataTableDescr = ref<IDataTableDescription>({
         headers: [
             {
+                key: 'id', title: 'Ид', align: 'center', alignData: "start", width: "300", sortable: true,
+                requestNames: ["id"], traits: { "dbDeal": "r" }
+            },
+            {
                 key: 'title', title: 'Название сделки', align: 'center', alignData: "start", width: "600", sortable: true,
                 requestNames: ["title"], traits: { "dbDeal": "r" }
             },
-
-            { key: 'beginDate', title: 'Дата начала', align: 'center', alignData: "center", width: "100", sortable: true, requestNames: ["beginDate"] }
+            { key: 'beginDate', title: 'Дата начала', align: 'center', alignData: "center", width: "100", sortable: true, requestNames: ["beginDate"] },
+            { key: 'endDate', title: 'Дата завершения', align: 'center', alignData: "center", width: "100", sortable: true, requestNames: ["endDate"] },
+            { key: 'clientsText', title: 'Получатели', align: 'center', alignData: "center", width: "300", sortable: true, requestNames: ["clientsText"] },
+            { key: 'positionsText', title: 'Ответственные', align: 'center', alignData: "center", width: "300", sortable: true, requestNames: ["positionsText"] },
+            { key: 'productsText', title: 'Товары и услуги', align: 'center', alignData: "center", width: "600", sortable: true, requestNames: ["productsText"] },
+            { key: 'dealStatus', title: 'Статус', align: 'center', alignData: "center", width: "150", sortable: true, requestNames: ["status"] }
         ],
 
         actionsMenu: this.props?.selectMode ? undefined : (item) => [
@@ -136,7 +146,7 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
 
             positions: {
                 type: EDataType.referenceMultiple,
-                title: "Должности",
+                title: "Ответственные",
                 hint: null,
                 rules: [],
                 //constraints: { min: 2, max: 64 },
@@ -147,7 +157,7 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
 
             clients: {
                 type: EDataType.referenceMultiple,
-                title: "Клиенты",
+                title: "Получатели",
                 hint: null,
                 rules: [],
                 //constraints: { min: 2, max: 64 },
@@ -176,15 +186,23 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
         let whereArr: string[] = [];
 
         let tmp = filterVals.title?.trim();
-        if (tmp) {
+        if (tmp)
             whereArr.push(`title like '${tmp}%'`);
-        }
 
-        debugger;
-        if (filterVals.beginDate) {
-            //whereArr.push(`beginDate >=''`)
-        }
+        if (filterVals.beginDate)
+            whereArr.push(`beginDate >='${filterVals.beginDate}'`);
 
+        if (filterVals.endDate)
+            whereArr.push(`endDate >='${filterVals.beginDate}'`);
+
+        if (filterVals.positions)
+            whereArr.push(`positionId in (${Utils.getQuotesString(filterVals.positions.map(v => v.value))})`);
+
+        if (filterVals.clients)
+            whereArr.push(`clientId in (${Utils.getQuotesString(filterVals.clients.map(v => v.value))})`);
+
+        if (filterVals.products)
+            whereArr.push(`productId in (${Utils.getQuotesString(filterVals.products.map(v => v.value))})`);
 
         if (whereArr.length == 0) return "";
         return whereArr.join(" and ");
@@ -192,11 +210,17 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
 
     //Конвертация данных из формата апи в формат для таблицы
     convertRow = async (rawData: IDealListView) => {
+        const statusDict = this._moApiClient.getDictionaryStore().getDictionary(EDictionaries.DealStatus);
         //debugger;
         return {
             id: rawData.id,
             title: rawData.title || "",
-            beginDate: rawData.beginDate ? new Intl.DateTimeFormat().format(new Date(rawData.beginDate)) : ""
+            beginDate: rawData.beginDate ? new Intl.DateTimeFormat().format(new Date(rawData.beginDate)) : "",
+            endDate: rawData.endDate ? new Intl.DateTimeFormat().format(new Date(rawData.endDate)) : "",
+            clientsText: rawData.clientsText || "",
+            productsText: rawData.productsText || "",
+            positionsText: rawData.positionsText || "",
+            dealStatus: await statusDict.tryGetValByCode(rawData.status) || "неопределен"
         }
     };
 

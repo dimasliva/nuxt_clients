@@ -130,7 +130,9 @@ export class Dictionary {
 
 
 
-    async tryGetValByCode(code: string | number) {
+    async tryGetValByCode(code: string | number | null | undefined) {
+        if(!code) 
+            return undefined;
         return (await this.getItemByCode(code))?.value;
     }
 

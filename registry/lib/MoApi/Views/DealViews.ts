@@ -23,6 +23,9 @@ export interface IDealListView {
     clientId: string | null | undefined;
     positionId: string | null | undefined;
     productId: string | null | undefined;
+    clientsText: string | null | undefined;
+    positionsText: string | null | undefined;
+    productsText: string | null | undefined;
 }
 
 

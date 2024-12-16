@@ -119,10 +119,10 @@ export class ScheduleGrid {
             let gridPerDay = this._grid[U.getDateStr(currDate)];
             let timeCnt = 0;
             let begTime = 0;
+            let minDuration = bk.duration;
 
             const normBegTime = ~~(params.begTime / this._resolution);
             const normEndTime = ~~(params.endTime / this._resolution);
-            const normDuration = Math.ceil(bk.duration / this._resolution);
 
             for (let i = normBegTime; i <= normEndTime && i < gridPerDay.length; i++) {
 
@@ -131,34 +131,56 @@ export class ScheduleGrid {
                 const bookings = sgItem.bookings;
                 let matchable = false;
 
+                //не проверено
+                //если есть хотя бы один подходящий элемент расписания на текущее время, то бронирование подходит к ячейке
                 for (let schi = 0; schi < schedule.length; schi++)
                     if (this._checkSchBookingMatch(schedule[schi].source, bk)) {
-                        if (bookings.every(v => !this._checkOverlayBooking(v.source, bk))) {
-                            matchable = true;
+                        matchable = true;
+                        //если длительность не задана в params, то берется минимальная из первых подходящих элементов расписания
+                        if (!bk.duration && timeCnt == 0) {
+                            const defDur = schedule[schi].source.defDuration || 1;
+                            minDuration = minDuration ? Math.min(minDuration, defDur) : defDur;
                         }
-                        break;
+                        else
+                            break;
                     }
+
+                //если бронь походит к расписанию, проверяем наложение с уже существующими бронями
+                if (matchable && bookings.every(v => this._checkOverlayBooking(v.source, bk, minDuration)))
+                    matchable = false;
 
                 if (matchable) {
                     if (++timeCnt == 1)
                         begTime = i * this._resolution;
 
-                    if (timeCnt >= normDuration) {
+                    //если timeCnt достиг требуемой длительности, значит подходящее время найдено
+                    if (timeCnt >= Math.ceil(minDuration / this._resolution)) {
                         const resDate = new Date(currDate);
                         resDate.setHours(Math.trunc(begTime / 60));
                         resDate.setMinutes(begTime % 60);
                         resDate.setSeconds(0);
-                        return resDate;
+                        return { date: resDate, duration: minDuration };
                     }
                 }
                 else
                     timeCnt = 0;
-
             }
             currDate = U.addDaysToDate(currDate, 1);
         }
 
         return null;
+    }
+
+
+    //не проверено
+    /**Возвращает минимальную длительность из подходящих к брони элементов расписания. Возвращает -1 если ни одного подходящего элемента не было найдено */
+    getMinSchedulerDuration(sch: ScheduleGridInfo[], bk: TBookingParams) {
+        let minDuration = -1;
+        //если есть хотя бы один подходящий элемент расписания на текущее время, то бронирование подходит к ячейке
+        for (let schi = 0; schi < sch.length; schi++)
+            if (this._checkSchBookingMatch(sch[schi].source, bk))
+                minDuration = (minDuration > 0) ? Math.min(minDuration, schi[schi].source.defDuration) : schi[schi].source.defDuration || 1;
+        return minDuration;
     }
 
 
@@ -183,7 +205,7 @@ export class ScheduleGrid {
      * При forceUpdate==true будет производится получение блокировки и обновление данных.
      * Если задана func, то если бронь подходит проверку, будет вызвана func при действующей блокировке(если forceUpdate==true)
      */
-    async checkEmptySch(date: Date, bk: TBookingParams, func?: () => Promise<any>, forceUpdate = false) {
+    async checkEmptySch(date: Date, bk: TBookingParams, func?: (number) => Promise<any>, forceUpdate = false) {
 
         const lock = await this._Locks.getBookingLock(date, bk);
 
@@ -200,32 +222,40 @@ export class ScheduleGrid {
             const grDate = U.getDateStr(date);
             const grTime = this._getMinutesFromBeginDay(date);
             const normTime = ~~(grTime / this._resolution);
-            const normDuration = Math.ceil(bk.duration / this._resolution);
-
+            let minDuration = bk.duration;
             let gridPerDay = this._grid[grDate];
 
-            for (let i = normTime; i < normTime + normDuration && i < gridPerDay.length; i++) {
+            let currTime = normTime;
 
-                const sgItem = gridPerDay[i];
+            while (currTime < gridPerDay.length) {
+
+                const sgItem = gridPerDay[currTime];
                 const schedule = sgItem.schedule;
                 const bookings = sgItem.bookings;
                 let matchable = false;
 
                 for (let schi = 0; schi < schedule.length; schi++)
                     if (this._checkSchBookingMatch(schedule[schi].source, bk)) {
-                        if (bookings.every(v => !this._checkOverlayBooking(v.source, bk))) {
-                            matchable = true;
+                        matchable = true;
+                        //если длительность не задана в params, то берется минимальная из первых подходящих элементов расписания
+                        if (!bk.duration && currTime == normTime) {
+                            const defDur = schedule[schi].source.defDuration || 1;
+                            minDuration = minDuration ? Math.min(minDuration, defDur) : defDur;
                         }
-                        break;
+                        else
+                            break;
                     }
 
-                if (!matchable)
+                if (!matchable || bookings.every(v => this._checkOverlayBooking(v.source, bk, minDuration)))
                     return false;
-            }
-            if (func)
-                await func();
 
-            return true;
+                if (++currTime >= normTime + Math.ceil(minDuration / this._resolution)) {
+                    if (func)
+                        await func(minDuration);
+                    return true;
+                }
+            }
+            return false;
         }
         finally {
             await lock.unlock();
@@ -268,7 +298,8 @@ export class ScheduleGrid {
         }
 
         //проверка свободного времени и сохраняем запись брони, если оно успешно
-        const res = await this.checkEmptySch(bookingDate, bk, async () => {
+        const res = await this.checkEmptySch(bookingDate, bk, async (duration) => {
+            bookingRec.MData!.duration = duration;
             await bookingRec.save();
         }, forceUpdate);
 
@@ -276,7 +307,7 @@ export class ScheduleGrid {
             const bookingDateStr = U.getDateStr(bookingDate);
             const gridDay = this._grid[bookingDateStr];
             const normTime = ~~(bk.begTime! / this._resolution);
-            const normDuration = ~~(bk.duration / this._resolution);
+            const normDuration = Math.ceil(bk.duration / this._resolution);
 
             //заносим данные брони в текущий grid
             for (let i = normTime; i < normTime + normDuration; i++)
@@ -320,14 +351,14 @@ export class ScheduleGrid {
 
 
     /**Проверка наложения пз */
-    protected _checkOverlayBooking(b1: IBookingListView, b2: IBookingListView) {
+    protected _checkOverlayBooking(b1: IBookingListView, b2: IBookingListView, defDuration: number) {
 
         if (b2.begDate) {
             //не проверено
             const b1b = new Date(b1.begDate!).getTime();
             const b1e = b1b + (b1.duration || 0);
             const b2b = new Date(b2.begDate!).getTime();
-            const b2e = b2b + (b2.duration || 0);
+            const b2e = b2b + (b2.duration || defDuration || 0);
 
             if (b1b < b2e && b1e > b2b)
                 return true;
@@ -367,7 +398,7 @@ export class ScheduleGrid {
             const sche = schb + sch.getTimespan()!.duration;
 
             const bkb = bk.begTime;
-            const bke = bkb + (bk.duration || 0);
+            const bke = bkb + (bk.duration || sch.defDuration || 0);
 
             if (bkb < schb || bke > sche)
                 return false;
@@ -422,7 +453,7 @@ export class BookingGridInfo {
 
 export class ScheduleGridInfo {
     timespan: ScheduleTimeSpanEntity = null!;
-    source: any;
+    source: ScheduleTimespanItem = null!;
 
 
     static fromScheduleTimespanItemFactory(item: ScheduleTimespanItem, _RecordsStore: RecordsStore) {

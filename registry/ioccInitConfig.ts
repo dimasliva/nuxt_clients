@@ -8,7 +8,6 @@ import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { EventBus } from "~/lib/EventBus";
 import MemoryCache from "./lib/Cache/MemoryCache";
 import { PageMemoryCacheStore } from "./lib/Cache/PageMemoryCacheStore";
-import { ProductCache } from "./lib/Cache/ProductCache";
 
 
 export default (container: Container) => {

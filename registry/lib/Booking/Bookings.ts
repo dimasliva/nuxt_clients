@@ -55,7 +55,7 @@ export class Bookings {
                 products: currEl.product ? currEl.product.split(',') : [currEl.productGroup],
                 background: false,
                 title: currEl.client && !currEl.clientGroup ? currEl.clientSurname!+ ' ' + currEl.clientName : 'Группа',
-                split: this.positions ? this.positions.find((pos) => pos.id === currEl.position).employee! : null,
+                split: this.positions ? this.positions.find((pos) => pos.id === currEl.position).employee! : currEl.position,
                 class: status[currEl.status!].class,
                 duration: currEl.duration,
                 client: {id: currEl.client!, name: currEl.clientName!, surname: currEl.clientSurname!, patronymic: currEl.clientPatronymic!, phone: '' },

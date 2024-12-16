@@ -2,7 +2,7 @@ export class ScheduleEvent {
   /**Начало события, если вид месяц то формат "YYYY-MM-DD", если виды неделя и день, то формат "YYYY-MM-DD HH:mm"*/
   start: string | any = "";
   /** Конец события, если вид месяц то формат "YYYY-MM-DD", если виды неделя и день, то формат "YYYY-MM-DD HH:mm"*/
-  end: string = "";
+  end: string | any = "";
   /**Список услуг для отображения в виде на месяц*/
   products: { id: string; title: string; quantity: number; duration: number; time: string }[] | string[] = [];
   /** Если вид месяц, то значения "Утро, День, Вечер"*/

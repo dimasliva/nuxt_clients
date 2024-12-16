@@ -4,8 +4,8 @@
     <v-list class="border-md rounded-lg">
       <v-list-item  v-for="slot in freeTimeQuicks" :key="slot.date">
         <v-list-item-title> {{slot.date}} - {{slot.employee}} </v-list-item-title>
-        <v-list-item-action>
-          <v-btn v-for="time in slot.freeSlots" rounded="xl" variant="outlined" color="primary" class="mx-1">{{ time }}</v-btn>
+        <v-list-item-action class="d-flex flex-wrap">
+          <v-btn v-for="time in slot.freeSlots" rounded="xl" variant="outlined" color="primary" class="ma-1" @click="onSlotSelect(slot, time)">{{ time }}</v-btn>
         </v-list-item-action>
       </v-list-item>
     </v-list>
@@ -36,6 +36,7 @@ const findEmployeeById = async (data: ScheduleEvent[]) => {
 const props = defineProps<Props>()
 const iocc = useContainer();
 const recStore = iocc.get(RecordsStore);
+const emit = defineEmits(["selectedSlot", "changed"])
 const employees = ref()
 let freeTimeQuicks = ref()
 
@@ -47,25 +48,27 @@ const createScheduleForRendering = async() => {
     const employee = employees.value.find(emp => emp.id === schedule.split);
     if (employee) {
       const date = new Date(schedule.start);
-      const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+      const formattedDate = date.format('DD.MM.YYYY');
       const fullName = `${employee.name} ${employee.surname} ${employee.patronymic.charAt(0)}.`;
       const freeSlots = props.scheduleData.filter(d => d.start.slice(0, 10) === schedule.start.slice(0, 10) && d.split === schedule.split).map(slot => slot.start.slice(11));
 
-      if(!scheduleForRendering.includes(el => el.date === formattedDate && el.employee === fullName)){
+      if (!scheduleForRendering.some(el => el.date === formattedDate && el.employee === fullName)) {
         scheduleForRendering.push({
           date: formattedDate,
           employee: fullName,
+          employeeId: schedule.split,
           freeSlots: freeSlots
         });
       }
     }
   });
 
-  console.log(scheduleForRendering);
   freeTimeQuicks.value = scheduleForRendering
 }
 
 createScheduleForRendering()
 
-
+const onSlotSelect = (sl, tm) => {
+  emit('selectedSlot', {sl, tm})
+}
 </script>

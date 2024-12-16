@@ -91,7 +91,7 @@
               <v-btn v-if="!props.creation" color="primary" variant="text" @click="useQuick()">{{showQuicks? 'ОТМЕНА' : 'ИЗМЕНИТЬ'}}</v-btn>
             </v-card-text>
           </v-card>
-          <QuickTimeOffer v-if="showQuicks" :schedule-data="availableTimesArr"></QuickTimeOffer>
+          <QuickTimeOffer v-if="showQuicks" :schedule-data="availableTimesArr" @selected-slot="updBookingTime($event)"></QuickTimeOffer>
           <v-card flat>
             <v-card-title class="text-subtitle-1">ПРИМЕЧАНИЕ
               <v-btn v-if="!addDescr" color="primary" variant="text" @click="addDescr = true">ДОБАВИТЬ</v-btn>
@@ -401,9 +401,11 @@ const addProductGroup = async () => {
   return rec;
 }
 
-const updateRec = async () => {
+const updateRec = async (date?) => {
 
   let updRec = await recStore.fetch<BookingRecord>(BookingRecord, props.event.id)
+
+  console.log(updRec)
 
   if (product.value.length == 1){
     updRec.MData.product = product.value[0].id;
@@ -416,6 +418,10 @@ const updateRec = async () => {
     let rec = await addProductGroup();
     await addProductsToGroup(rec, product.value);
     updRec.MData.productGroup = rec.MData.id
+  }
+
+  if(date){
+    updRec.MData.beginDate = date
   }
 
   let res = await updRec.save()
@@ -467,8 +473,10 @@ const useQuick = async () => {
 const findFreeTime = async () => {
   let reqProds = product.value.map(pr => pr.id)
   await scheduler.getScheduler(props.schGrid.start.format('YYYY-MM-DD'), props.schGrid.end.format('YYYY-MM-DD'), null, reqProds);
-  let events = scheduler.buildRangeScheduler(props.schGrid.start, props.schGrid.end);
-  let booking = new Bookings(props.schGrid.start, props.schGrid.end, null);
+  let newEndDate = new Date(props.schGrid.start.getTime());
+  newEndDate.setDate(newEndDate.getDate() + 14);
+  let events = scheduler.buildRangeScheduler(props.schGrid.start, newEndDate);
+  let booking = new Bookings(props.schGrid.start, props.schGrid.end, scheduler.positions);
   events.unavailableSlots.push( ...await booking.getBookingsRecs())
 
   let busyTime =  events.unavailableSlots
@@ -482,7 +490,19 @@ const findFreeTime = async () => {
     endTime: 21
   }
   availableTimesArr.value = scheduler.findNearestTime(quickDate, product.value, availableTimes, busyTime, false)[0]
+}
 
+const updBookingTime = async (t) => {
+  let dateParts = t.sl.date.split('.')
+  let day = dateParts[0];
+  let month = dateParts[1];
+  let year = dateParts[2];
+  let timeParts = t.tm.split(':')
+  let hours = timeParts[0];
+  let minutes = timeParts[1];
+  let updTime = Utils.getLocalISODateTimeWoTz(new Date(year, month - 1, day, hours, minutes))
+  await updateRec(updTime)
+  closeDialog(props.event);
 }
 
 let translit = (word) => {

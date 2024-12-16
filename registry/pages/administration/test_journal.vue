@@ -1,7 +1,8 @@
 <template>
   <div class="d-flex flex-nowrap" >
     <wt class="rounded mx-1 vuecal--full-height-delete" style="width: 80%; height: 75vh "
-        @cell-dblclick="currView === 'month' ? false : eventCreator($event)" :on-event-create="currView === 'month' ? onEventCreate : null" :showTimeInCells="currView === 'day'"
+        @cell-dblclick="currView === 'month' || currView === 'week' ? false : eventCreator($event)"
+        :on-event-create="currView === 'month' ? onEventCreate : null" :showTimeInCells="currView === 'day'"
         @event-focus="currView === 'month' ? openPopUp($event) : false "
         :on-event-click="currView === 'month' ? openCurrDay : editEvent"
         :cell-click-hold="false" :time-from="startDayHours * 60" :time-to="endDayHours * 60" :snap-to-time="15"
@@ -201,7 +202,6 @@ let monthViewMinDate = ref<any>(new Date())
 let monthViewMaxDate = ref<any>('')
 let selDate = ref(monthViewMinDate.value)
 let dateRange = ref(`${minDate.value.format('DD.MM.YYYY')}`)
-let currRangeData = ref<any>()
 let prodsLoad = ref(false)
 let schdLoad = ref(false)
 let empLoad = ref(false)
@@ -442,6 +442,7 @@ const editEvent = async (event) => {
   if(rec.deleting){
     events.value = events.value.filter(el => el.id !== rec.id)
   }
+  await requestSchedule()
 }
 
 const getBookings = async () => {
@@ -479,6 +480,7 @@ const spansInSplit = (arr: ScheduleEvent[], split: string, date: string) => {
 let durationCondition = ref<number | null>(null)
 
 const filterItems = async () => {
+
   if (products.value.length && !employees.value.length) {
     employeesArr.value = await filterOtherField(products.value, currRangeData.value!)
     products.value = products.value.map(productId => productsArr.value.find(product => product.id === productId));

@@ -4,11 +4,11 @@
       <v-row class="bg-primary ma-0 pa-1" justify="center">
         <div class="text-h3">{{ $t('signin') }}</div>
       </v-row>
-      <div class="d-flex flex-row-reverse ma-0 pa-0">
-        <v-select v-model="$i18n.locale" :items="['ru', 'en']" style="max-width: 95px;" prepend-inner-icon="mdi-earth"
-          density="compact" class="ma-4 " variant="solo">
+      <v-row class="ma-0 pa-2 justify-end">
+        <v-select v-model="$i18n.locale" :items="['ru', 'en']" prepend-inner-icon="mdi-earth"
+          density="compact" max-width="110" hide-details class="pa-0" variant="solo">
         </v-select>
-      </div>
+      </v-row>
       <v-form v-model="form" @submit.prevent="onSubmit">
 
         <v-row class="pa-6">

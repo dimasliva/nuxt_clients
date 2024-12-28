@@ -5,14 +5,14 @@ import { MoApiClient } from "../MoApi/MoApiClient";
 
 
 export const enum EDictionaries {
-    FileTypes = "343B3C76-9BD8-441B-9F40-A1726EC0601C",
-    Countries = "4A1F6EE3-E6CE-4F15-AFAC-A5EDBD0FBDBA",
-    Regions = "BF5496DE-7CD1-48D5-91A2-E886B103AD36",
-    SettlementTypes = "44B7270B-1095-460A-A955-6B312CA3F148",
-    PersonalDocumentTypes = "3D96E0A2-6756-4E1E-BC88-D78C36E6C218",
-    CompanyPositions = "B70888E4-7D19-4D39-943A-8E6D36612111",
-    PriceTypes="28AE29AD-3C57-4310-B016-492C72E949CE",
-    DealStatus="83288470-4D2A-4E7A-8187-94F911B76D5C"
+    FileTypes = "11",
+    Countries = "2",
+    Regions = "7",
+    SettlementTypes = "18",
+    PersonalDocumentTypes = "4",
+    CompanyPositions = "21",
+    PriceTypes="20",
+    DealStatus="17"
 }
 
 

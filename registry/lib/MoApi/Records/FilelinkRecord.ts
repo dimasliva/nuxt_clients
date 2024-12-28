@@ -29,9 +29,9 @@ export class FilelinkRecordData extends ApiRecordChData {
 @injectable()
 export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
 
-    static RightToken = "dbFilelink";
-    static RecCode = 1019;
-    static BatchGetRecDataPath="/Files/GetFilelinks";
+    static override RightToken = "dbFilelink";
+    static override RecCode = 1019;
+    static override BatchGetRecDataPath="/Files/GetFilelinks";
 
     protected _blob: Blob | null = null;
 
@@ -54,7 +54,7 @@ export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
     }
 
 
-    cancelModifingData() {
+    override cancelModifingData() {
         this._ModifiedData = null;
         this._mblob = null;
     }
@@ -80,14 +80,14 @@ export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
     }
 
 
-    isDataChanged() {
+    override isDataChanged() {
         if (this._mblob)
             return true;
         return super.isDataChanged()
     }
 
 
-    async save() {
+    override async  save() {
         if (!this.isDataChanged()) {
             this.cancelModifingData();
             return;

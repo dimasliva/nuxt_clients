@@ -146,7 +146,7 @@ export class ScheduleGrid {
                     }
 
                 //если бронь походит к расписанию, проверяем наложение с уже существующими бронями
-                if (matchable && bookings.every(v => this._checkOverlayBooking(v.source, bk, minDuration)))
+                if (matchable && !bookings.every(v => this._checkOverlayBooking(v.source, bk, minDuration)))
                     matchable = false;
 
                 if (matchable) {
@@ -246,7 +246,7 @@ export class ScheduleGrid {
                             break;
                     }
 
-                if (!matchable || bookings.every(v => this._checkOverlayBooking(v.source, bk, minDuration)))
+                if (!matchable || !bookings.every(v => this._checkOverlayBooking(v.source, bk, minDuration)))
                     return false;
 
                 if (++currTime >= normTime + Math.ceil(minDuration / this._resolution)) {

@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-nowrap" >
-    <wt class="rounded mx-1 vuecal--full-height-delete" style="width: 80%; height: 75vh "
+    <wt class="rounded mx-1 vuecal--full-height-delete" style="width: 80%; height: 75vh;" id="scheduler"
         @cell-dblclick="currView === 'month' || currView === 'week' ? false : eventCreator($event)"
         :on-event-create="currView === 'month' ? onEventCreate : null" :showTimeInCells="currView === 'day'"
         @event-focus="currView === 'month' ? openPopUp($event) : false "
@@ -94,6 +94,8 @@
 
           <InputField v-if="currView == 'day' || currView == 'week'" :type="EDataType.strictstring" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
                       v-model="timeStep" :items="[5, 10, 15, 30, 60]" width="auto" label="Шаг времени"/>
+<!--          <v-btn variant="text" @click="scrollFn()">scroll</v-btn>-->
+
           <v-card-actions>
             <v-spacer></v-spacer>
             <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
@@ -224,7 +226,6 @@ emplFioFinderDataProvider.init("fioEmployee");
 let scheduler: Scheduler;
 
 const eventsHandler = (e) => {
-  // cumstomEventCreator(e);
   return false;
 };
 
@@ -287,6 +288,7 @@ const openPopUp = (day_time: ScheduleEvent) => {
   })
   console.log(prodsList.value)
 }
+
 
 const changeDate = (date) => {
   maxDate.value = new Date(date);
@@ -554,7 +556,22 @@ const onViewChange = (ev) => {
       })
     }, 200)
   }
+  else if(ev.view === 'week'){
+    nextTick(() =>{
+      const headerScroll = document.querySelector('.vuecal__flex.vuecal__weekdays-headings')
+      const bodyScroll  = document.querySelector('.vuecal__flex.vuecal__cells.week-view')
+      const falseScroll = document.getElementById('scheduler')
+      console.dir(falseScroll)
 
+      headerScroll.addEventListener('scroll', function() {
+        bodyScroll.scrollLeft = headerScroll.scrollLeft;
+      });
+
+      bodyScroll.addEventListener('scroll', function() {
+        headerScroll.scrollLeft = bodyScroll.scrollLeft;
+      });
+    })
+  }
 }
 
 const requestSchedule = async () => {
@@ -641,7 +658,6 @@ let pageMapData: IFrameHeaderData = reactive({
   ]
 });
 
-
 // getScheduleItemGroupIds();
 getCatalogs();
 
@@ -652,6 +668,12 @@ defineExpose({eventsHandler});
 </script>
 
 <style scoped>
+
+.custom-scroll{
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
 .not_paid {
   background-color: #fff2f2;
 }

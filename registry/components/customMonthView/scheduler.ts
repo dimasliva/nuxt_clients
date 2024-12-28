@@ -239,7 +239,6 @@ export class Scheduler {
                         end.setHours(Math.floor(frstBs.endTime / 60))
                         end.setMinutes(frstBs.endTime % 60)
                         frstBs.end = end.format('YYYY-MM-DD HH:mm')
-                        console.log(frstBs)
                         unavailableSlots.push(frstBs)
                     }
                 }

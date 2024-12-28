@@ -441,7 +441,7 @@
   position: relative;
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: left;
   align-items: center;
   text-align: center;
   transition: 0.15s ease-in-out background-color;
@@ -709,8 +709,6 @@
   width: 4em;
 }
 .vuecal__bg {
-  overflow: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   min-height: 60px;
   position: relative;
@@ -777,6 +775,7 @@
   right: 0;
   border-top: 1px solid rgba(196, 196, 196, 0.3);
 }
+
 .vuecal__cells {
   margin: 0 1px 1px 0;
 }
@@ -998,10 +997,74 @@
 
 /* Ниже идут прописанные стили, требуют доработки и оптимизации */
 
+$splitWidth: 130px;
+
+.vuecal__flex.vuecal__heading.clickable .vuecal__flex{
+  flex: 1 0 auto;
+  min-width: fit-content;
+}
+
+.vuecal__flex.vuecal__weekdays-headings{
+  width: 100%;
+  overflow: hidden;
+}
+
+.vuecal__no-event{
+  width: $splitWidth;
+}
+
+.vuecal__split-days-headers .day-split-header{
+  width: $splitWidth;
+}
+
+.vuecal__flex.vuecal__heading.clickable{
+  min-width: fit-content;
+}
+
+.vuecal__flex.vuecal__cells.week-view .vuecal__cell-events{
+  min-width: $splitWidth;
+}
+
+//.vuecal__bg{
+//  overflow: auto;
+//}
+
+.vuecal__bg{
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.vuecal__flex.vuecal__cells.week-view{
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+.vuecal__flex.weekday-label > *{
+  position: sticky;
+  left: 40%;
+}
+
+.vuecal__flex.vuecal__cells.week-view::-webkit-scrollbar{
+  //display: none;
+
+}
+
+//.vuecal__flex.vuecal__cell-content.vuecal__cell-split {
+//  flex: 1 0 50px;
+//}
+
+.vuecal__cells.week-view .vuecal__cell{
+  min-width: fit-content;
+}
+
+.vuecal__flex.vuecal__cells.week-view .vuecal__flex{
+  flex-wrap: nowrap;
+}
+
 .vuecal__event {
   margin: 3px auto;
   border-radius: 10px;
-  max-width: 95%;
+  //max-width: 95%;
 }
 
 .vuecal--short-events .vuecal__event-title {
@@ -1034,7 +1097,6 @@
 
 .vuecal .day-split-header {
   box-sizing: border-box;
-  word-break: break-all;
   padding-left: 1px;
 }
 
@@ -1105,6 +1167,7 @@
 
 .not_working_hours.vuecal__event{
   max-width: 100%;
+  min-width: 50px;
 }
 
 .ordered{

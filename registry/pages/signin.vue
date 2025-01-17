@@ -18,7 +18,7 @@
           sm="6"
           >
           <v-text-field
-            variant="underlined" v-on:keyup.enter="$event.target.blur()" v-model= "login"  :readonly="loading" :rules="nameRules" required clearable class="ma-1" @click="err = false"  > 
+            variant="underlined" v-on:keyup.enter="$event.target.blur()" v-model= "login"  :readonly="loading" :rules="nameRules" required clearable class="ma-1" @click="err = false"  >
             <template v-slot:label>
               <span>
                 {{ $t('login') }}
@@ -64,7 +64,7 @@ const { t } = useI18n()
 let form = ref(false)
 const login = ref("")
 const password = ref("")
-let loading = ref(false)  
+let loading = ref(false)
 let show = ref(false)
 let err = ref(false)
 

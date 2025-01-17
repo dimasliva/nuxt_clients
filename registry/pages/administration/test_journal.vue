@@ -10,7 +10,7 @@
         v-model:active-view="currView" hide-view-selector locale="ru" :special-hours="specialHours"
         :editable-events="currView === 'month' ? false : { title: false, drag: true, resize: false, delete: true, create: true }"
         :events="currView === 'month' ? monthView : events" :split-days="employeesArr" sticky-split-labels
-        events-on-month-view="short" :disable-views="['year', 'years']" :drag-to-create-event="false"
+        events-on-month-view="short" :disable-views="['year', 'years', 'week']" :drag-to-create-event="false"
         @view-change="onViewChange($event)" :selected-date="selDate" :min-date="monthViewMinDate"
         :max-date="monthViewMaxDate">
       <template #title="{ view }">
@@ -94,8 +94,6 @@
 
           <InputField v-if="currView == 'day' || currView == 'week'" :type="EDataType.strictstring" :state="fieldsOptions" hide-details class="my-2 pa-0" density="compact"
                       v-model="timeStep" :items="[5, 10, 15, 30, 60]" width="auto" label="Шаг времени"/>
-<!--          <v-btn variant="text" @click="scrollFn()">scroll</v-btn>-->
-
           <v-card-actions>
             <v-spacer></v-spacer>
             <VBtn variant="text" @click="clearFilters()">Очистить</VBtn>
@@ -103,6 +101,9 @@
         </VForm>
       </VCard>
     </v-expand-x-transition>
+  </div>
+  <div v-if=" currView == 'day' " class="custom-scroll">
+    <div class="overflow-el"></div>
   </div>
   <v-progress-linear v-if="schdLoad" color="primary" indeterminate rounded></v-progress-linear>
 </template>
@@ -556,20 +557,32 @@ const onViewChange = (ev) => {
       })
     }, 200)
   }
-  else if(ev.view === 'week'){
+  else if(ev.view === 'day'){
     nextTick(() =>{
-      const headerScroll = document.querySelector('.vuecal__flex.vuecal__weekdays-headings')
-      const bodyScroll  = document.querySelector('.vuecal__flex.vuecal__cells.week-view')
-      const falseScroll = document.getElementById('scheduler')
-      console.dir(falseScroll)
+      const headerScroll = document.querySelector('.vuecal__flex.vuecal__split-days-headers')
+      const bodyScroll  = document.querySelector('.vuecal__flex.vuecal__cells.day-view .vuecal__flex')
+      const overflowEl = document.querySelector('.overflow-el')
+      const customScroll = document.querySelector('.custom-scroll')
+      console.log(bodyScroll, headerScroll)
 
-      headerScroll.addEventListener('scroll', function() {
-        bodyScroll.scrollLeft = headerScroll.scrollLeft;
-      });
+      if(overflowEl && bodyScroll && headerScroll && customScroll){
+        overflowEl.style.width = bodyScroll.scrollWidth + 'px';
 
-      bodyScroll.addEventListener('scroll', function() {
-        headerScroll.scrollLeft = bodyScroll.scrollLeft;
-      });
+        customScroll.addEventListener('scroll', function() {
+          bodyScroll.scrollLeft = customScroll.scrollLeft;
+          headerScroll.scrollLeft = customScroll.scrollLeft;
+        });
+
+        bodyScroll.addEventListener('scroll', function() {
+          headerScroll.scrollLeft = bodyScroll.scrollLeft;
+          customScroll.scrollLeft = bodyScroll.scrollLeft;
+        });
+
+        headerScroll.addEventListener('scroll', function() {
+          bodyScroll.scrollLeft = headerScroll.scrollLeft;
+          customScroll.scrollLeft = headerScroll.scrollLeft;
+        });
+      }
     })
   }
 }
@@ -668,10 +681,14 @@ defineExpose({eventsHandler});
 </script>
 
 <style scoped>
-
 .custom-scroll{
-  overflow-x: scroll;
+  margin-right: 20%;
   overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+.overflow-el{
+  height: 1px;
 }
 
 .not_paid {

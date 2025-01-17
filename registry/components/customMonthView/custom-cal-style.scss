@@ -999,13 +999,7 @@
 
 $splitWidth: 130px;
 
-.vuecal__flex.vuecal__heading.clickable .vuecal__flex{
-  flex: 1 0 auto;
-  min-width: fit-content;
-}
-
-.vuecal__flex.vuecal__weekdays-headings{
-  width: 100%;
+.vuecal__flex.vuecal__split-days-headers{
   overflow: hidden;
 }
 
@@ -1021,13 +1015,18 @@ $splitWidth: 130px;
   min-width: fit-content;
 }
 
-.vuecal__flex.vuecal__cells.week-view .vuecal__cell-events{
+.vuecal__flex.vuecal__cells.day-view .vuecal__cell-events{
   min-width: $splitWidth;
 }
 
-//.vuecal__bg{
-//  overflow: auto;
-//}
+.day-split-header {
+  min-width: $splitWidth;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
 
 .vuecal__bg{
   overflow-x: hidden;
@@ -1039,32 +1038,18 @@ $splitWidth: 130px;
   overflow-x: auto;
 }
 
-.vuecal__flex.weekday-label > *{
-  position: sticky;
-  left: 40%;
-}
-
-.vuecal__flex.vuecal__cells.week-view::-webkit-scrollbar{
-  //display: none;
-
-}
-
-//.vuecal__flex.vuecal__cell-content.vuecal__cell-split {
-//  flex: 1 0 50px;
-//}
-
-.vuecal__cells.week-view .vuecal__cell{
+.vuecal__cells.day-view .vuecal__cell{
   min-width: fit-content;
 }
 
-.vuecal__flex.vuecal__cells.week-view .vuecal__flex{
+.vuecal__flex.vuecal__cells.day-view .vuecal__flex{
   flex-wrap: nowrap;
+  overflow-x: hidden;
 }
 
 .vuecal__event {
   margin: 3px auto;
   border-radius: 10px;
-  //max-width: 95%;
 }
 
 .vuecal--short-events .vuecal__event-title {

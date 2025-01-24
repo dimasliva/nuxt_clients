@@ -16,7 +16,8 @@ export interface IClientListView {
     "birthdate": string | null;
     "mainPhone": string | undefined | null,
     "mainEmail": string | undefined | null,
-    "snils": string | undefined | null
+    "snils": string | undefined | null,
+    "notActive": boolean | undefined | null
 }
 
 

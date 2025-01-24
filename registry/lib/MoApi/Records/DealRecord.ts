@@ -1,32 +1,36 @@
-import { injectable } from "inversify";
+import { injectable,inject } from "inversify";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
-import { client } from "process";
+import { Exception } from "~/lib/Exceptions";
+
 
 
 @injectable()
 export class DealRecordData extends ApiRecordChData {
     title: string | null = null;
-    organization: string | null = null;
-    division: string | null = null;
-    placement: string | null = null;
+    organization: eid | null = null;
+    division: eid | null = null;
+    placement: eid | null = null;
     beginDate: string = '';
     endDate: string | null = null;
     status: number = 0;
     paymentStatus: number | null = null;
     failureCause: number | null = null;
-    fullPrice: number | null = null;
-    prices: any = null;
-    booking: string | null = null;
-    snapshot: string = '';
+    fullPrice: number = 0;
+    prices: any | null = null;
+    booking: eid | null = null;
+    extListId: string = null!;
+    clientsExtListId: string = null!;
+    dealOrder: eid | null = null;
     notActive: boolean | null = null;
-    advData: any = null;
-    clients: string[] | null = null;
-    positions: string[] | null = null;
-    products: string[] | null = null;
+    advData: any | null = null;
+    clients: eid[] | null = null;
+    positions: eid[] | null = null;
+    products: eid[] | null = null;
 }
+
 
 
 @injectable()
@@ -48,13 +52,18 @@ export class DealRecord extends ApiRecord<DealRecordData> {
     protected _getApiRecordPathGet = () => "/Deals/GetDeals";
 
 
-    protected _getApiRecordPathAdd = () => "/Deals/AddDeal";
+   protected _getApiRecordPathAdd() { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" };
 
 
     protected _getApiRecordPathUpdate = () => "/Deals/UpdateDeal";
 
 
     protected _getApiRecordPathDelete = () => "/Deals/DeleteDeal";
+
+
+    static async AddDealOrderRecord(_MoApiClient: MoApiClient, args: AddDealArgs) {
+        return await _MoApiClient.send<AddDealArgs, { id: string; changedAt: string }>("/Deals/AddDeal", args);
+    }
 
 
 
@@ -92,4 +101,16 @@ export class DealRecord extends ApiRecord<DealRecordData> {
         this._Data!.products = res.products;
     }
 
+}
+
+
+@injectable()
+export class AddDealArgs {
+    Deal: DealRecordData;
+    Positions: eid[] = [];
+    Products: eid[] = [];
+
+    constructor(@inject("RecordsStore") RecordsStore: RecordsStore) {
+        this.Deal = RecordsStore.dataEntityFactory(DealRecordData);
+    }
 }

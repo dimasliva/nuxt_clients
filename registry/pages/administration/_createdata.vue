@@ -48,6 +48,11 @@
             <v-text-field v-model="bookingLoading.size" variant="underlined" label="Предварительная запись"
                 hide-details="auto" />
             <v-btn :loading="bookingLoading.loading" type="submit" @click="createRecS(bookingLoading)">Создать</v-btn>
+        </VCol>
+
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="orderLoading.size" variant="underlined" label="Заказы" hide-details="auto" />
+            <v-btn :loading="orderLoading.loading" type="submit" @click="createRecs(orderLoading)">Создать</v-btn>
 
         </VCol>
     </VRow>
@@ -83,6 +88,7 @@ import { BookingRecord, BookingRecordData } from '~/lib/MoApi/Records/BookingRec
 import { Locks } from '~/lib/MoApi/Locks';
 import { ApiLock } from '~/lib/MoApi/ApiLock';
 import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
+import { PositionsViews } from '~/lib/MoApi/Views/PositionsViews';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
 import { ProductViews } from '~/lib/MoApi/Views/ProductViews';
 import { RelationApiSection } from '~/lib/MoApi/ApiSectionsV1/RelationApiSection';
@@ -95,6 +101,9 @@ import { PositionList } from '~/componentTemplates/listTemplates/positionListTem
 import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
+import { AddDealArgs } from '~/lib/MoApi/Records/DealRecord';
+import { AddDealOrderArgs, DealOrderRecord } from '~/lib/MoApi/Records/DealOrderRecord';
+import { PriceSetup } from '~/lib/MoApi/Records/Finance/PriceSetup';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -162,7 +171,7 @@ const surnamesF = ["Сергеева", "Кузьмина", "Новикова", "
 const patronymicsM = ["Иванович", "Петрович", "Сергеевич", "Андреевич", "Дмитриевич", "Александрович", "Михайлович", "Николаевич", "Владимирович", "Олегович", "Артемович", "Алексеевич", "Константинович", "Викторович", "Геннадьевич", "Григорьевич", "Евгеньевич", "Егорович", "Захарович", "Игоревич", "Кириллович", "Леонидович", "Максимович", "Романович", "Русланович", "Семенович", "Станиславович", "Тимофеевич", "Федорович", "Юрьевич", "Ярославович"];
 const patronymicsF = ["Ивановна", "Петровна", "Сергеевна", "Андреевна", "Дмитриевна", "Александровна", "Михайловна", "Николаевна", "Владимировна", "Олеговна", "Артемовна", "Алексеевна", "Константиновна", "Викторовна", "Геннадьевна", "Григорьевна", "Евгеньевна", "Егоровна", "Захаровна", "Игоревна", "Кирилловна", "Леонидовна", "Максимовна", "Романовна", "Руслановна", "Семеновна", "Станиславовна", "Тимофеевна", "Федоровна", "Юрьевна", "Ярославовна"]
 
-const pricesA = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 10000,];
+const pricesA = [10000, 20000, 30000, 40000, 50000, 60000, 70000, 85039, 92348, 100000, 125000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 600000, 700000, 800000, 1000000,];
 
 const fullTitles = ProductTitles;
 const durations = [0, 5, 10, 15, 20, 25, 30, 40, 60, 90, 120];
@@ -655,7 +664,7 @@ const bookingCreateTask = async (size: number = 500) => {
 
         if (dt) {
             const bp: TBookingParams = {
-                duration:  duration || dt.duration,
+                duration: duration || dt.duration,
                 position: bookingparam.position,
                 division: bookingparam.division,
                 placement: bookingparam.placement,
@@ -760,10 +769,85 @@ const createBooking = async (sg: ScheduleGrid, bd: { date: Date, duration: numbe
 
 
 
+const orderCreateTask = async (size: number = 500) => {
+    const PERIOD_DAYS = 31;
+    const begDate = new Date();
+    const endDate = Utils.addDaysToDate(begDate, PERIOD_DAYS);
+
+    //загрузка случайных товаров
+    var pv = diC.get(ProductViews);
+    var products = await pv.getProductsListView(new QueryParams("id", "notActive is not true and changedAt>'2024-01-01'"));
+
+    //загрузка случайных клиентов
+    var cv = diC.get(ClientsViews);
+    var clients = await cv.getClientListView(new QueryParams("id", "notActive is not true and changedAt>'2024-01-01'"));
+
+    //загрузка случайных должностей
+    var psv = diC.get(PositionsViews);
+    var positions = await psv.getPositionListView(new QueryParams("id", "notActive is not true and changedAt>'2024-01-01'"));
+
+    while (size--) {
+
+        var obegDate = Utils.addDaysToDate(begDate, ~~(Math.random() * PERIOD_DAYS));
+
+        var dealOrdrerArg = diC.get(AddDealOrderArgs);
+
+        const dateString = Utils.getLocalISODateTimeWoTz(obegDate);
+        dealOrdrerArg.Order.date = dateString;
+        dealOrdrerArg.Order.organization="1";
+
+        dealOrdrerArg.PriceSetup=new PriceSetup();
+        dealOrdrerArg.PriceSetup.NdsRate=2000;
+        dealOrdrerArg.PriceSetup.DiscountProc=500;
+
+        var cnt = ~~(Math.random() * 4);
+        while (cnt--)
+            dealOrdrerArg.Clients.push(clients.getAt(~~(Math.random() * (clients.getLength() - 1)))!.id!);
+
+        cnt = ~~(Math.random() * 4);
+        while (cnt--) {
+            const dealArgs = diC.get(AddDealArgs);
+
+            dealArgs.Deal.beginDate = dateString;
+            dealArgs.Deal.endDate = dateString;
+
+            let cnt2 = ~~(Math.random() * 4);
+            while (cnt2--)
+                dealArgs.Positions.push(positions.getAt(~~(Math.random() * (positions.getLength() - 1)))!.id!);
+
+            cnt2 = ~~(Math.random() * 4);
+            while (cnt2--)
+                dealArgs.Products.push(products.getAt(~~(Math.random() * (products.getLength() - 1)))!.id!);
+
+            if (!dealOrdrerArg.Deals)
+                dealOrdrerArg.Deals = [dealArgs];
+            else
+                dealOrdrerArg.Deals.push(dealArgs);
+        }
+
+        let addInfo = await DealOrderRecord.AddDealOrderRecord(diC.get("MoApiClient"), dealOrdrerArg);
+    }
+}
+
+
+
 const openselect = async () => {
+    let a=123456789.78;
+    let b=0.01;
+    let s= (a+b).toString();
+let acc=0;
+
+    for (let i = 0; i < 1000; i++) {
+        acc += b;
+    }
+   s=acc.toString();
+
+    debugger;
+    /*
     const prov = diC.get(ProductFinderDataProvider);
     prov.init("ghhs", true);
     const res = await prov.find();
+    */
 
     /*
     const position = new PositionList(diC, {selectStrategy:"single"});
@@ -784,5 +868,6 @@ const clientGroupLoading = reactive({ size: 0, loading: false, recName: "client 
 const productGroupLoading = reactive({ size: 0, loading: false, recName: "product groups", createTask: productGroupsCreateTask });
 const bookingLoading = reactive({ size: 0, loading: false, recName: "booking groups", createTask: bookingCreateTask });
 const scheduleGroupLoading = reactive({ size: 1, loading: false, recName: "schedule groups", createTask: scheduleCreateTask });
+const orderLoading = reactive({ size: 0, loading: false, recName: "orders", createTask: orderCreateTask });
 
 </script>

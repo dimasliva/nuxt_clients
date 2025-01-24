@@ -12,7 +12,7 @@ import { injectable, inject, Container } from "inversify";
 
 @injectable()
 export abstract class ApiRecordData extends DataEntity {
-  id: string | null = null;
+  id: eid | null = null;
 
   constructor(
     @inject("MoApiClient") protected __MoApiClient: MoApiClient,
@@ -36,7 +36,7 @@ export abstract class ApiRecordChData extends ApiRecordData {
 }
 
 export abstract class ApiRecordCompanyData extends ApiRecordChData {
-  "company"?: string | undefined;
+  "company"?: eid | undefined;
 }
 
 

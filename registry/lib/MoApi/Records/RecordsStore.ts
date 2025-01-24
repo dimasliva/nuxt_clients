@@ -260,4 +260,14 @@ export class RecordsStore {
         return <T>inst;
     }
 
+
+//не проверено
+    invalidateRecs(frids: IFullRecordIdT<Class>[])
+    {
+        frids.forEach(v=>{
+           if(this._store[v.type.name]?.[v.key])
+            delete this._store[v.type.name][v.key];
+        });
+    }
+
 }

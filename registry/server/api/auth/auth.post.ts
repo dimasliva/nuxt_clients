@@ -1,4 +1,4 @@
-import { IUserCredentials, IUserCredentialsServer } from "@/lib/Security";
+import type { IUserCredentials, IUserCredentialsServer } from "@/lib/Security";
 import { MoApiClient } from "@/lib/MoApi/MoApiClient";
 import { MoApiClientSettings } from "~~/lib/MoApi/MoApiClientSettings";
 import "reflect-metadata";

@@ -332,10 +332,11 @@ const delAccount = async () => {
 
 const save = async () => {
 
+  debugger
   if (rec.value!.IsNew) {
     await rec.value!.save();
-    recDoc.value!.Key = rec.value!.Key;
-    recCont.value!.Key = rec.value!.Key;
+    recDoc.value!.MData.id = rec.value!.Key;
+    recCont.value!.MData.id = rec.value!.Key;
   }
   else
     await rec.value!.save();

@@ -40,7 +40,9 @@ export class RecordsStore {
         if (!this._store[type.name])
             this._store[type.name] = {};
 
-        if (!this._store[type.name][Key]) {
+        const rec = this._store[type.name][Key];
+
+        if (!rec || rec.IsInvalid) {
             var newrec = this._diC.get(type);
             newrec.init(this, type, Key);
             this._store[type.name][Key] = newrec;
@@ -57,6 +59,18 @@ export class RecordsStore {
             await rec.loadAllData();
         return <T>rec;
     }
+
+
+    //не проверено
+    /**Получение записи если она присутствует и загружена в кэше */
+    tryFetchFromCache<T extends ApiRecord>(type: Class<T>, Key: string) {
+        const rec = <T>this._store[type.name]?.[Key];
+        if (rec?.Data && !rec.IsInvalid)
+            return rec;
+
+        return null;
+    }
+
 
 
     async tryFetch<T extends ApiRecord>(type: Class<T>, Key: string) {
@@ -261,12 +275,14 @@ export class RecordsStore {
     }
 
 
-//не проверено
-    invalidateRecs(frids: IFullRecordIdT<Class>[])
-    {
-        frids.forEach(v=>{
-           if(this._store[v.type.name]?.[v.key])
-            delete this._store[v.type.name][v.key];
+    //не проверено
+    invalidateRecs(frids: IFullRecordIdT<Class>[]) {
+        frids.forEach(v => {
+            if (this._store[v.type.name]?.[v.key]) {
+                const rec = this._store[v.type.name]?.[v.key];
+                rec.IsInvalid = true;
+                delete this._store[v.type.name][v.key];
+            }
         });
     }
 

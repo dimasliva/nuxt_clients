@@ -47,6 +47,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   public static BatchGetRecDataPath = "";
   public static RecordsFindPath = "";
 
+
   protected _RecordType: Function = null!;
   public get RecordType(): Function {
     return this._RecordType;
@@ -54,6 +55,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   public set RecordType(value: Function) {
     this._RecordType = value;
   }
+
 
   protected _Key: string = null!;
   public get Key(): string {
@@ -63,24 +65,38 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
     this._Key = value;
   }
 
+
   abstract get RecCode(): number;
+
 
   protected _Data: T | null = null;
   public get Data(): T | null {
+    if (this._isInvalid)
+      Exception.throw("RecIsInvalid", `Запись ${this._Key}  некорректна`);
     return this._Data;
   }
-  //public set Data(value: T | null) { this._Data = value; }
+
 
   protected _ModifiedData: T | null = null;
   public get MData(): T {
     return this._ModifiedData ? this._ModifiedData : (this._ModifiedData = <T>new Proxy(this._Data!.clone(), this._getModifingProxyHanlders()));
   }
-  //public set MData(value: T | null) { this._ModifiedData = value; }
+
 
   protected _isNewData: boolean = true;
   get IsNew() {
     return this._isNewData;
   }
+
+
+  protected _isInvalid: boolean = false;
+  public get IsInvalid() {
+    return this._isInvalid;
+  }
+  public set IsInvalid(value: boolean) {
+    this._isInvalid = value;
+  }
+
 
   protected _childsData: { [code: number]: IRelData[] } = {};
   protected _parentsData: { [code: number]: IRelData[] } = {};
@@ -201,6 +217,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   async loadAllData() {
     await this._loadData();
     this._isNewData = false;
+    this.IsInvalid = false;
   }
 
 

@@ -12,7 +12,8 @@ export const enum EDictionaries {
     PersonalDocumentTypes = "4",
     CompanyPositions = "21",
     PriceTypes="20",
-    DealStatus="17"
+    DealStatus="17",
+    CashFlowPurpose="26"
 }
 
 

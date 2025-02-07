@@ -1,31 +1,32 @@
-import { injectable,inject } from "inversify";
+import { injectable, inject } from "inversify";
 import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 import { Exception } from "~/lib/Exceptions";
+import { DealProductRecord } from "./DealProduct";
 
 
 
 @injectable()
 export class DealRecordData extends ApiRecordChData {
-    title: string | null = null;
-    organization: eid | null = null;
-    division: eid | null = null;
-    placement: eid | null = null;
+    title?: string | null = null;
+    organization?: eid | null = null;
+    division?: eid | null = null;
+    placement?: eid | null = null;
     beginDate: string = '';
-    endDate: string | null = null;
+    endDate?: string | null = null;
     status: number = 0;
-    paymentStatus: number | null = null;
-    failureCause: number | null = null;
-    fullPrice: number = 0;
-    prices: any | null = null;
-    booking: eid | null = null;
+    paymentStatus?: number | null = null;
+    failureCause?: number | null = null;
+    fullPrice?: number | null | undefined = null;
+    booking?: eid | null = null;
     extListId: string = null!;
     clientsExtListId: string = null!;
-    dealOrder: eid | null = null;
-    notActive: boolean | null = null;
-    advData: any | null = null;
+    dealOrder?: eid | null = null;
+    notActive?: boolean | null = null;
+    advData?: any | null = null;
+
     clients: eid[] | null = null;
     positions: eid[] | null = null;
     products: eid[] | null = null;
@@ -52,7 +53,7 @@ export class DealRecord extends ApiRecord<DealRecordData> {
     protected _getApiRecordPathGet = () => "/Deals/GetDeals";
 
 
-   protected _getApiRecordPathAdd() { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" };
+    protected _getApiRecordPathAdd() { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" };
 
 
     protected _getApiRecordPathUpdate = () => "/Deals/UpdateDeal";
@@ -99,6 +100,15 @@ export class DealRecord extends ApiRecord<DealRecordData> {
         this._Data!.clients = res.clients;
         this._Data!.positions = res.positions;
         this._Data!.products = res.products;
+    }
+
+
+
+    invalidateOnAjustPrice() {
+        this._RecStore.invalidateRecs([{ key: this.Key, type: DealRecord }]);
+        const invs = this.Data!.products?.map(v => { return { key: v, type: DealProductRecord } });
+        if (invs)
+            this._RecStore.invalidateRecs(invs);
     }
 
 }

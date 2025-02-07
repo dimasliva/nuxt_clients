@@ -7,7 +7,9 @@ import type { EmployeeRecordData } from "./MoApi/Records/EmployeeRecord";
 import type { IRecordsRestricions } from "./MoApi/ApiInterfaces";
 import { EmployeeAppProfile } from "./EmployeeAppProfile";
 import { CompanyAppProfile } from "./CompanyAppProfile";
+import { BitList } from "./BitList";
 
+export  const FEATURES_SIZE = 128;
 
 @injectable()
 export class UserContext {
@@ -28,6 +30,9 @@ export class UserContext {
 
   private _userRights: any | null = null;
   public get UserRights(): any | null { return this._userRights; }
+
+  private _userFeatureAccess: any | null = null;
+  public get UserFeatureAccess(): any | null { return this._userFeatureAccess; }
 
   private _EmployeeData: EmployeeRecordData | null = null;
   public get EmployeeData(): EmployeeRecordData | null { return this._EmployeeData; }
@@ -66,6 +71,7 @@ export class UserContext {
         this._CompanyProfile = new CompanyAppProfile(this._moApiClient, appEmployeeContext.companyAppProfile);
       this._CompanyLicense = appEmployeeContext.companyLicenseData;
       this._userRights = appEmployeeContext.userRecordsRights;
+      this._userFeatureAccess =  new BitList(FEATURES_SIZE).fromBase64(appEmployeeContext.userFeatureAccess);
       this._RecordsRestricions = appEmployeeContext.recordRestrictions;
       this._AuthorityData = authorityData;
     }

@@ -103,7 +103,9 @@ import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/Empl
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
 import { AddDealArgs } from '~/lib/MoApi/Records/DealRecord';
 import { AddDealOrderArgs, DealOrderRecord } from '~/lib/MoApi/Records/DealOrderRecord';
-import { PriceSetup } from '~/lib/MoApi/Records/Finance/PriceSetup';
+import type { IPaymentParams } from '~/lib/MoApi/Records/Finance/IPaymentParams';
+import { ECashFlowInstrumentCodes, ECashFlowOperationTypes, ECashFlowTypes } from '~/lib/MoApi/Records/Finance/FinanceEnums';
+import { rand } from '@vueuse/core';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -794,12 +796,14 @@ const orderCreateTask = async (size: number = 500) => {
 
         const dateString = Utils.getLocalISODateTimeWoTz(obegDate);
         dealOrdrerArg.Order.date = dateString;
-        dealOrdrerArg.Order.organization="1";
+        dealOrdrerArg.Order.organization = "1";
 
-        dealOrdrerArg.PriceSetup=new PriceSetup();
-        dealOrdrerArg.PriceSetup.NdsRate=2000;
-        dealOrdrerArg.PriceSetup.DiscountProc=500;
-
+        dealOrdrerArg.PriceSetup = {
+            priceType: 1,
+            ndsRate: 2000,
+            discountProc: 500
+        }
+       
         var cnt = ~~(Math.random() * 4);
         while (cnt--)
             dealOrdrerArg.Clients.push(clients.getAt(~~(Math.random() * (clients.getLength() - 1)))!.id!);
@@ -826,21 +830,37 @@ const orderCreateTask = async (size: number = 500) => {
         }
 
         let addInfo = await DealOrderRecord.AddDealOrderRecord(diC.get("MoApiClient"), dealOrdrerArg);
+        var dealOrderRec = await recStore.fetch(DealOrderRecord, addInfo.id);
+ 
+        if (dealOrderRec.Data!.fullPrice! > 0 && Math.random() > 0.1) {
+            const ppars: IPaymentParams = {
+                targetId: dealOrderRec.Key,
+                operationType: ECashFlowOperationTypes.PaymentCash,
+                value: dealOrderRec.Data!.fullPrice!,
+                flowType: ECashFlowTypes.NonСashMoney,
+                instrumentCode: ECashFlowInstrumentCodes.None
+            }
+
+            await dealOrderRec.AddPayment(ppars);
+        }
+
+
+
     }
 }
 
 
 
 const openselect = async () => {
-    let a=123456789.78;
-    let b=0.01;
-    let s= (a+b).toString();
-let acc=0;
+    let a = 123456789.78;
+    let b = 0.01;
+    let s = (a + b).toString();
+    let acc = 0;
 
     for (let i = 0; i < 1000; i++) {
         acc += b;
     }
-   s=acc.toString();
+    s = acc.toString();
 
     debugger;
     /*

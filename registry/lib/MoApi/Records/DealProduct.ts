@@ -11,7 +11,7 @@ export class DealProductRecordData extends ApiRecordChData {
     title: string = '';
     fullTitle?: string | null = null;
     code?: string | null = null;
-    prices?: { [key: number]: number } | null = null;
+    fullPrice?: number | null | undefined=null;
     duration: number = 0;
     notActive?: boolean | null = null;
     advData?: any | null = null;

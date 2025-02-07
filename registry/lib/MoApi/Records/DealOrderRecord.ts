@@ -1,11 +1,11 @@
 import { injectable, inject } from "inversify";
-import type { UserContext } from "../../UserContext";
 import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
-import type { AddDealArgs } from "./DealRecord";
+import { DealRecord, type AddDealArgs } from "./DealRecord";
 import { Exception } from "~/lib/Exceptions";
-import type { PriceSetup } from "./Finance/PriceSetup";
+import {type IPriceSetup } from "./Finance/IPriceSetup";
+import type { IPaymentParams } from "./Finance/IPaymentParams";
 
 
 
@@ -13,8 +13,9 @@ import type { PriceSetup } from "./Finance/PriceSetup";
 export class DealOrderRecordData extends ApiRecordChData {
     date: string = '';
     organization: eid = null!;
-    fullPrice: number | null = null;
+    fullPrice?: number | null = null;
     contract?: eid | null = null;
+    payment: number = 0;
     clientsExtListId: string = null!;
     failureCause: number | null = null;
     advData: any | null = null;
@@ -56,7 +57,42 @@ export class DealOrderRecord extends ApiRecord<DealOrderRecordData> {
         return await _MoApiClient.send<AddDealOrderArgs, { id: string; changedAt: string }>("/DealOrders/AddDealOrder", args);
     }
 
+
+
+    async AjustPrice(priceSetup: IPriceSetup) {
+        debugger;
+        const arg = {
+            "recId": this.Key,
+            "priceSetup": priceSetup
+        }
+        await this._MoApiClient.send("/DealOrders/AdjustProductPrices",arg);
+
+        this._RecStore.invalidateRecs([{ type: DealOrderRecord, key: this.Key }]);
+        this.Data!.deals?.forEach(v => this._RecStore.tryFetchFromCache(DealRecord, v)?.invalidateOnAjustPrice());
+    }
+
+
+
+    async AddPayment(params: IPaymentParams) {
+        params.targetId = this.Key;
+        params.companyOrganization = this.Data!.organization;
+
+        await this._MoApiClient.send("/DealOrders/AddPaymentForDealOrder",params);
+        this._RecStore.invalidateRecs([{ type: DealOrderRecord, key: this.Key }]);
+    }
+
+
+
+    async AddRefund(params: IPaymentParams) {
+        debugger;
+        params.targetId = this.Key;
+        params.companyOrganization = this.Data!.organization;
+
+        await this._MoApiClient.send("/DealOrders/AddRefundForDealOrder",params);
+        this._RecStore.invalidateRecs([{ type: DealOrderRecord, key: this.Key }]);
+    }
 }
+
 
 
 @injectable()
@@ -64,7 +100,7 @@ export class AddDealOrderArgs {
     Order: DealOrderRecordData;
     Clients: eid[] = [];
     Deals?: AddDealArgs[] | null = undefined;
-    PriceSetup?: PriceSetup | null = undefined;
+    PriceSetup?: IPriceSetup | null = undefined;
 
     constructor(@inject("RecordsStore") RecordsStore: RecordsStore) {
         this.Order = RecordsStore.dataEntityFactory(DealOrderRecordData);

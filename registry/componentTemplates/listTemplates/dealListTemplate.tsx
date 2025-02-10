@@ -1,7 +1,6 @@
 
 import { Container } from 'inversify';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
-//import DealProfileDialog from '~/components/forms/DealProfileDialog.vue';
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"
@@ -19,7 +18,7 @@ import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvid
 import { PositionFinderDataProvider } from '~/libVis/FinderDataProviders/PositionFinderDataProvider';
 import { ClientFinderDataProvider } from '~/libVis/FinderDataProviders/ClientFinderDataProvider';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
-
+import DealProfileDialog from '~/components/forms/DealProfileDialog.vue';
 
 
 let t: any;
@@ -81,7 +80,7 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
 
 
     //Указание компонента формы редакции модели
-    modelEditDialog = null// DealProfileDialog;
+    modelEditDialog = DealProfileDialog;
 
     //Настрока таблицы
     dataTableDescr = ref<IDataTableDescription>({

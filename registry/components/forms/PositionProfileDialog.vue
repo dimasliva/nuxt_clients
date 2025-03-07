@@ -16,7 +16,7 @@
     </template>
   </FormsEditWindowDialog>>
 </template>
- 
+
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
 import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
@@ -59,7 +59,8 @@ if (props.recKey) {
   ]);
 
   rec.value = recs[0] as PositionRecord;
-  emplRec.value = await recStore.fetch(EmployeeRecord, rec.value.Data!.employee);
+  if (rec.value.Data!.employee)
+    emplRec.value = await recStore.fetch(EmployeeRecord, rec.value.Data!.employee);
 }
 else {
   rec.value = await recStore.createNew(PositionRecord, (data) => { });

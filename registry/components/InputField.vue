@@ -121,7 +121,7 @@
     <v-select width="300px" v-if="type == EDataType.strictstringarray && visible" ref="refField" v-bind="$attrs"
         v-model="CurrModelVal" multiple clearable hide-details :readonly="readonly" :label="label || ''" :items="items"
         :item-props="itemProps" :variant='customVariant || "solo"' :rules="MultipleStrSelectRules"
-        @update:menu="(o) => { isMenuActive = o; if (!o) onValChanged(); }"
+        @update:menu="(o) => { isMenuActive = <false>o; if (!o) onValChanged(); }"
         @click:clear="() => { if (!isMenuActive) onValChanged(); }" :menuProps="{ scrollStrategy: 'close' }">
         <template v-slot:label>
             <span>
@@ -464,10 +464,11 @@ watch(props, (rval: any) => {
         if (props.type == EDataType.float) {
             let val = parseFloat(rval.modelValue);
 
-            if (!isNaN(val) && props.constraints?.fixed && props.constraints?.numAfterPoint) {
-                let val = parseFloat(props.modelValue).toFixed(props.constraints.numAfterPoint);
-
-                CurrModelVal.value = <any>val;
+            if (!isNaN(val)) {
+                if (props.constraints?.fixed && props.constraints?.numAfterPoint)
+                    CurrModelVal.value = parseFloat(props.modelValue).toFixed(props.constraints.numAfterPoint);
+                else
+                    CurrModelVal.value = val;
             }
             else
                 CurrModelVal.value = null;

@@ -1,7 +1,7 @@
 
 
 import type { UserContext } from "@/lib/UserContext";
-import   ioccAfterAuthConfig  from "@/ioccAuthConfig";
+import ioccAfterAuthConfig from "@/ioccAuthConfig";
 
 
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -9,10 +9,17 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         if (nuxtApp.payload.error) {
                 return;
         }
+
+        /*
+        nuxtApp.vueApp.config.errorHandler = (error, instance, info) => {
+                nuxtApp.$snackbar.showMessage({ timeout: 10000, text: error, color: 'error' })
+              }
+         */
+
         const iocc = useContainer();
         const userCtx = iocc.get<UserContext>("UserContext");
         await userCtx.tryAuthorize();
-        ioccAfterAuthConfig(userCtx,iocc);
+        ioccAfterAuthConfig(userCtx, iocc);
 
         addRouteMiddleware('auth.global', (to, from) => {
                 console.debug("middleware auth")

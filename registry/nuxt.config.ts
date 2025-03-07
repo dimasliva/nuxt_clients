@@ -8,7 +8,7 @@ import vuetify from "vite-plugin-vuetify";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; //разрешение для nodejs принимать самоподписанные сертификаты https
 process.env.DEBUG = "1";
 
-const mainApiServer = "172.16.121.60";
+const mainApiServer = "172.16.121.39";
 const mainApiServerPort = 7132;
 const { resolve } = createResolver(import.meta.url);
 

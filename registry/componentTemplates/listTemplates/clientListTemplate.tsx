@@ -6,7 +6,7 @@ import * as vHelpers from '~/libVis/Helpers';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
 import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord';
 import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord';
-import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
+import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSdRecord';
 import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate, type IListTemplateProps } from '~/componentTemplates/listTemplates/listTemplate';
@@ -25,7 +25,7 @@ type TClientFilterVals = {
 
 
 export class ClientList extends ListTemplate<TClientFilterVals> {
-
+    
     protected _clientsViews: ClientsViews = null!;
 
     constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
@@ -44,6 +44,9 @@ export class ClientList extends ListTemplate<TClientFilterVals> {
 
     //Настройки по умолчанию
     defPageSettings = { tcols: ["fio", "bd", "mainPhone", "mainEmail"] };
+
+    //колонка, значения из которой будут отображаться в списке выбранных
+    override titleColName="fio";
 
     //Указание компонента формы редакции модели
     modelEditDialog = ClientProfileDialog;

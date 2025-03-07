@@ -4,7 +4,7 @@ import type { MoApiClient } from "~/lib/MoApi/MoApiClient";
 import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
 import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
-import { PositionList } from "~/componentTemplates/listTemplates/positionListTemplate";
+import { PositionListTemplate } from "~/componentTemplates/listTemplates/positionListTemplate";
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 import { PositionRecord } from "~/lib/MoApi/Records/PositionRecord";
 import * as vHelpers from '~/libVis/Helpers';
@@ -33,7 +33,7 @@ export class PositionFinderDataProvider extends FinderDataProvider {
     this._listSizeLimit = sizeLimit;
 
 
-    const positionTemplate = new PositionList(this._diC, { selectStrategy: multiselect ? "page" : "single" });
+    const positionTemplate = new PositionListTemplate(this._diC, { selectStrategy: multiselect ? "page" : "single" });
     const selTemplate = new SelectFormTemplate(this._diC, { title: "Выбор должности", componentTemplate: positionTemplate });
 
     const selComponent = defineComponent({
@@ -57,7 +57,7 @@ export class PositionFinderDataProvider extends FinderDataProvider {
     if (!value) return undefined;
     try {
       const rec = await this._RecordsStore.fetch(PositionRecord, value);
-      return `${await rec.getPositionTitle()} (${await rec.getEmployeeInitials()})`
+      return `${await rec.getPositionTitle()} (${await rec.getEmployeeInitials()}|| "")`
     }
     catch (exc) {
       return ""

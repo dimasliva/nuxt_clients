@@ -1,15 +1,8 @@
 <template>
-  <v-card class="h-screen" width="730">
-    <v-toolbar color="primary">
-      <v-toolbar-title>{{
-          props.creation ? 'Новая запись на ' + date : 'Запись на ' + (date + " в " + start)
-        }}
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn icon="mdi-close" class="mt-2" @click="props.creation? cancelAndClose() : closeDialog('')"></v-btn>
-    </v-toolbar>
-
-    <div class="d-flex flex-row">
+  <FormsEditWindowDialog :title="props.creation ? 'Новая запись на ' + date : 'Запись на ' + (date + ' в ' + start)"
+                         :on-save="saveChanges" :on-close=" () => {created ? closeDialog(props.event) : closeDialog('')}" :readonly="false">
+    <template #default="{ fieldsOptions }">
+    <div class="d-flex flex-row pa-0">
       <v-tabs v-model="tab" color="primary" direction="vertical">
         <v-tab prepend-icon="mdi-calendar-text" text="Детали записи" value="option-1"></v-tab>
         <v-tab prepend-icon="mdi-account" text="Данные клиента" value="option-2"></v-tab>
@@ -18,17 +11,25 @@
       <v-tabs-window v-model="tab" class="flex-grow-1 pa-1">
         <v-tabs-window-item value="option-1">
           <v-card flat>
+
             <v-card-title class="text-subtitle-1">УСЛУГИ</v-card-title>
             <v-card-text>
-              <InputField custom-variant="underlined" class="w-100" :state="fieldsOptions" @update:model-value="onProductsChange($event)"
-                          :type="EDataType.strictstringarray" label="Наименование" v-model="product" :items="products" return-object/>
+              <InputField custom-variant="underlined" class="w-100" :state="fieldsOptions"
+                          @update:model-value="onProductsChange($event)" required
+                          :type="EDataType.strictstringarray" label="Наименование" v-model="product" :items="products"
+                          return-object/>
             </v-card-text>
           </v-card>
           <v-card flat>
             <v-card-title class="text-subtitle-1">КЛИЕНТ</v-card-title>
             <v-card-text>
-              <v-combobox variant="underlined" label="ФИО, моб.телефон" v-model="client" @input="getList(client)"
-                          :items="clientArr" clearable :hide-no-data="false">
+              <v-combobox variant="underlined" :state="fieldsOptions" v-model="client" @input="getList(client)"
+                          :items="clientArr" clearable :hide-no-data="false" :rules="[v => (!v ? (fieldsOptions.errCnt++, '') : (fieldsOptions.errCnt > 0 && fieldsOptions.errCnt--, !!v || ''))]">
+                <template v-slot:label>
+                  <span>
+                      {{ "ФИО, моб.телефон" || "" }} <span class="text-error">*</span>
+                  </span>
+                </template>
                 <template v-slot:no-data>
                   <v-list-item v-if="!clientCreationPop">
                     <v-list-item-title>
@@ -65,16 +66,16 @@
               <v-card-title class="text-subtitle-1">СОТРУДНИК</v-card-title>
               <v-card-text class="pb-0">
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="ФИО"
-                            v-model="employee.label" readonly/>
+                            v-model="employee.label" readonly required/>
               </v-card-text>
             </v-card>
             <v-card flat class="w-50 pb-0">
               <v-card-title class="text-subtitle-1">МЕСТО</v-card-title>
               <v-card-text class="d-flex justify-start pb-0">
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Филиал"
-                            v-model="division" readonly/>
+                            v-model="division" readonly />
                 <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Кабинет"
-                            v-model="placement" readonly/>
+                            v-model="placement" readonly />
               </v-card-text>
             </v-card>
           </div>
@@ -83,15 +84,18 @@
             <v-card-title class="text-subtitle-1">ВРЕМЯ</v-card-title>
             <v-card-text class="d-flex justify-start ">
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Дата"
-                          v-model="date" readonly/>
+                          v-model="date" readonly required/>
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string" label="Длительность"
-                          v-model="duration" readonly/>
+                          v-model="duration" readonly required/>
               <InputField custom-variant="plain" :state="fieldsOptions" :type="EDataType.string"
-                          label="Начало-окончание" v-model="startAndEnd" readonly/>
-              <v-btn v-if="!props.creation" color="primary" variant="text" @click="useQuick()">{{showQuicks? 'ОТМЕНА' : 'ИЗМЕНИТЬ'}}</v-btn>
+                          label="Начало-окончание" v-model="startAndEnd" readonly required/>
+              <v-btn v-if="!props.creation" color="primary" variant="text" @click="useQuick()">
+                {{ showQuicks ? 'ОТМЕНА' : 'ИЗМЕНИТЬ' }}
+              </v-btn>
             </v-card-text>
           </v-card>
-          <QuickTimeOffer v-if="showQuicks" :schedule-data="availableTimesArr" @selected-slot="updBookingTime($event)"></QuickTimeOffer>
+          <QuickTimeOffer v-if="showQuicks" :schedule-data="availableTimesArr"
+                          @selected-slot="updBookingTime($event)"></QuickTimeOffer>
           <v-card flat>
             <v-card-title class="text-subtitle-1">ПРИМЕЧАНИЕ
               <v-btn v-if="!addDescr" color="primary" variant="text" @click="addDescr = true">ДОБАВИТЬ</v-btn>
@@ -113,14 +117,8 @@
       </v-tabs-window>
 
     </div>
-    <v-spacer></v-spacer>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn class="ma-1" variant="text" @click="saveChanges()">Сохранить</v-btn>
-      <v-btn class="ma-1" variant="text" @click="cancelAndClose()">{{ props.creation ? 'Отменить' : 'Удалить' }}</v-btn>
-      <v-btn v-if="!props.creation" class="ma-1" variant="text" @click="currStatus()">Копировать</v-btn>
-    </v-card-actions>
-  </v-card>
+    </template>
+  </FormsEditWindowDialog>
 </template>
 
 <script setup lang="ts">
@@ -139,14 +137,9 @@ import QuickTimeOffer from "~/components/QuickTimeOffer.vue";
 import type {Scheduler} from "~/components/customMonthView/scheduler";
 import type {ScheduleEvent} from "~/components/customMonthView/SchedulerTypes";
 import {Bookings} from "~/lib/Booking/Bookings";
-// import GroupEventDialog from '~~/components/forms/GroupEventDialog.vue'
+import {useDelQU} from "~/composables/useActionDialog";
 
 let tab = ref('option-1')
-const fieldsOptions = reactive({
-  errCnt: 0,
-  changedCnt: 0,
-  readonly: false
-})
 
 const emplChoice = (positions, employee) => {
   return positions.find((pos) => pos.employee == employee).id;
@@ -220,7 +213,7 @@ interface Props {
   creation: boolean,
   delFunc?: Function,
   mainAction: Function,
-  clientData?: { id: string, name: string, surname: string, patronymic: string, phone: string}
+  clientData?: { id: string, name: string, surname: string, patronymic: string, phone: string }
 }
 
 const iocc = useContainer();
@@ -242,13 +235,13 @@ let clientArr = ref<any[]>([])
 let client = ref<string | null | Client>(props.creation ? null : Utils.makeFioStr(clientSurname.value, clientName.value, clientPatronymic.value) + ' ' + clientPhone.value)
 let employee = ref(findEmployeeById(props.event.split))
 let position = ref(emplChoice(props.scheduler.positions, props.event.split))
-let product = ref(props.creation? (props.products.length == 1 || props.event.quick? [props.products[0]] : null) : props.event.products.map(id => props.products.find(prod => id == prod.id)))
+let product = ref(props.creation ? (props.products.length == 1 || props.event.quick ? [props.products[0]] : null) : props.event.products.map(id => props.products.find(prod => id == prod.id)))
 let products = ref(props.products)
 let placement = ref()
 let division = ref()
 let status = ref(currStatus())//Статус приходит с API, по названию статуса проходимся по массиву с иконками и берем иконку соответсвующую названию, добавляем иконку в класс события
 let evTitle = ref(props.event.title)
-let duration = ref(props.creation ? (product.value? product.value[0].duration : 0) : props.event.duration)
+let duration = ref(props.creation ? (product.value ? product.value[0].duration : 0) : props.event.duration)
 let start = ref<number>(props.event.start!.formatTime())
 let end = ref<number>(new Date(new Date(props.event.start).getTime() + duration.value * 60000).formatTime())
 let startAndEnd = ref(start.value && end.value ? start.value + '-' + end.value : "-")
@@ -266,11 +259,13 @@ let changedEvent = ref({
   position: position.value,
   class: props.event.class,
 })
+let created = ref(false)
 
 const onProductsChange = (prs) => {
-  if(prs.length == 0){
+  console.log(prs)
+  if (prs.length == 0) {
     duration.value = 0
-  } else if(prs.length > 1){
+  } else if (prs.length > 1) {
     duration.value = prs.reduce((acc, prod) => acc + prod.duration, 0)
   } else {
     duration.value = prs[0].duration
@@ -280,32 +275,32 @@ const onProductsChange = (prs) => {
 
 }
 
-const cancelAndClose = async () => {
-  if(!props.creation){
+const deleteRecord = async () => {
+  let choice = await useDelQU("Удалить эту запись?")
+  if (!props.creation && choice) {
     const bkRec = await recStore.get<BookingRecord>(BookingRecord, props.event.id)
     let res = await bkRec.delete();
-    if(res){
+    if (res) {
       props.event.deleting = true;
       closeDialog(props.event);
     }
-  } else {
-    closeDialog('');
   }
-
 }
 
+
 const saveChanges = async () => {
-  if(props.creation){
+  if (props.creation) {
     let rec = await createRec();
     let clientTitle = client.value!.title.split(' ');
-    let timeStart =new Date( props.event.start.format('YYYY-MM-DD') + " " + start.value);
-    let timeEnd = new Date( props.event.start.format('YYYY-MM-DD') + " " + end.value);
+    let timeStart = new Date(props.event.start.format('YYYY-MM-DD') + " " + start.value);
+    let timeEnd = new Date(props.event.start.format('YYYY-MM-DD') + " " + end.value);
     let startMinutes = start.value.split(':')
     startMinutes = startMinutes[0] * 60 + startMinutes[1] * 1;
     let endMinutes = end.value.split(':')
 
     endMinutes = endMinutes[0] * 60 + endMinutes[1] * 1;
-    if(rec){
+    if (rec) {
+      created.value = true
       props.event.start = timeStart;
       props.event.end = timeEnd;
       props.event.title = clientTitle[0] + " " + clientTitle[1];
@@ -323,13 +318,12 @@ const saveChanges = async () => {
         patronymic: clientTitle[2],
         phone: clientPhone.value
       }
+      props.event.status = rec.MData.status
     }
   } else {
     await updateRec()
 
   }
-  closeDialog(props.event);
-
 }
 
 const checkInputLength = (e) => {
@@ -407,7 +401,7 @@ const updateRec = async (date?) => {
 
   console.log(updRec)
 
-  if (product.value.length == 1){
+  if (product.value.length == 1) {
     updRec.MData.product = product.value[0].id;
     updRec.MData.duration = duration.value;
     props.event.products = product.value[0].id
@@ -420,7 +414,7 @@ const updateRec = async (date?) => {
     updRec.MData.productGroup = rec.MData.id
   }
 
-  if(date){
+  if (date) {
     updRec.MData.beginDate = date
   }
 
@@ -446,7 +440,7 @@ const createRec = async () => {
 
   rec.MData.client = client.value.value
 
-  if (product.value.length == 1){
+  if (product.value.length == 1) {
     rec.MData.product = product.value[0].id;
   } else {
     const pgr = recStore.dataEntityFactory(ProductGroupRecordData);
@@ -456,7 +450,7 @@ const createRec = async () => {
 
   let res = await schGrid.addBooking(rec, product.value, false);
 
-  if(res){
+  if (res) {
     return rec;
   } else {
     return false
@@ -464,7 +458,7 @@ const createRec = async () => {
 };
 
 const useQuick = async () => {
-  if(!showQuicks.value){
+  if (!showQuicks.value) {
     await findFreeTime()
     showQuicks.value = !showQuicks.value
   }
@@ -477,9 +471,9 @@ const findFreeTime = async () => {
   newEndDate.setDate(newEndDate.getDate() + 14);
   let events = scheduler.buildRangeScheduler(props.schGrid.start, newEndDate);
   let booking = new Bookings(props.schGrid.start, props.schGrid.end, scheduler.positions);
-  events.unavailableSlots.push( ...await booking.getBookingsRecs())
+  events.unavailableSlots.push(...await booking.getBookingsRecs())
 
-  let busyTime =  events.unavailableSlots
+  let busyTime = events.unavailableSlots
   let availableTimes = events.availableSlots
   let quickDate: ScheduleEvent = {
     end: "",

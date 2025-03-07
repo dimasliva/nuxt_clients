@@ -212,7 +212,7 @@ import { UserContext } from '~/lib/UserContext';
 import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord'
 import { useI18n } from "vue-i18n"
 import { ClientDocumentsRecord } from '~/lib/MoApi/Records/ClientDocumentsRecord';
-import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSd';
+import { ClientSdRecord } from '~/lib/MoApi/Records/ClientSdRecord';
 import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import * as vHelpers from '~~/libVis/Helpers';
@@ -259,12 +259,12 @@ interface IProps {
 
 const props = defineProps<IProps>();
 
-const iocc = useContainer();
-const recStore = iocc.get(RecordsStore);
+const diC = useContainer();
+const recStore = diC.get(RecordsStore);
 const foto = ref("");
 const gender = ref("");
 
-let dictStore = iocc.get<MoApiClient>("MoApiClient").getDictionaryStore();
+let dictStore = diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
 let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
 const persIdentDocLists = ref(Dictionary.itemsToValueTitle((await dictPersDocs.getItems(0))!));
 const persDocLists = ref(Dictionary.itemsToValueTitle(

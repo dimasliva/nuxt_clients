@@ -25,6 +25,8 @@ type TEmployeeFilterVals = {
 
 export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals> {
 
+
+
   protected _employeesViews: EmployeesViews = null!;
 
 
@@ -45,6 +47,8 @@ export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals> {
   //Настройки по умолчанию
   defPageSettings = { tcols: ["fio", "bd", "mainPhone", "mainEmail"] };
 
+  //Название колонки, по которой будет осуществляться сортировка
+  override titleColName ="fio";
 
   //Указание компонента формы редакции модели
   modelEditDialog = EmployeeProfileDialog;
@@ -58,7 +62,7 @@ export class EmployeeListTemplate extends ListTemplate<TEmployeeFilterVals> {
       //  { key: 'snils', title: 'СНИЛС', align: 'center', alignData: "center", sortable: true, traits: { dbEmployeeDocuments: "r" }, requestNames: ["snils"] }
     ],
 
-    actionsMenu: this.sprops?.selectMode ? undefined : (item) => [
+    actionsMenu: this.props?.selectMode  ? undefined : (item) => [
       { id: "1", title: "Редакировать", icon: "mdi-pencil", disabled: false, action: () => this.edit(item.key, item.index), traits: { dbEmployee: "u" } },
       { id: "2", title: "Удалить", icon: "mdi-delete", disabled: false, action: () => { this.del(item.key, item.index) }, traits: { dbEmployee: "d" } },
 

@@ -76,7 +76,7 @@ import { ProductRecord, ProductRecordData } from '~~/lib/MoApi/Records/ProductRe
 import { ProductsCatalogRecord, ProductsCatalogRecordData } from '~~/lib/MoApi/Records/ProductsCatalogRecord';
 import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from '~~/lib/MoApi/Records/ProductsCatalogSectionRecord';
 import { ScheduleItemRecord, ScheduleItemData } from '~/lib/MoApi/Records/ScheduleItemRecord';
-import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/SchedulerItemGroupRecord';
+import { ScheduleItemGroupData, ScheduleItemGroupRecord } from '~/lib/MoApi/Records/ScheduleItemGroupRecord';
 import ProductTitles from '~/public/ProductTitles';
 import { PositionRecord, PositionRecordData } from '~/lib/MoApi/Records/PositionRecord';
 import ScheduleTimeSpanEntity, { EEmployeeTimeTypes } from '~/lib/MoApi/Records/DataEntities/ScheduleTimeSpanEntity';
@@ -97,7 +97,7 @@ import { ClientList } from '~/componentTemplates/listTemplates/clientListTemplat
 import TemplateFrame from '~/components/TemplateFrame.vue';
 import { VBtn } from 'vuetify/components';
 import MultiselectForm from '~/components/forms/MultiselectForm.vue';
-import { PositionList } from '~/componentTemplates/listTemplates/positionListTemplate';
+import { PositionListTemplate } from '~/componentTemplates/listTemplates/positionListTemplate';
 import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
@@ -851,6 +851,34 @@ const orderCreateTask = async (size: number = 500) => {
 
 
 
+const contractCreateTask = async (size) => {
+  const PERIOD_DAYS = 31;
+  const begDate = new Date();
+  const endDate = Utils.addDaysToDate(begDate, PERIOD_DAYS);
+
+  // Load random clients and products
+  const clients = await getRandomClients(size);
+  const products = await diC.get(ProductViews).getProductsListView(new QueryParams("id", "notActive is not true and changedAt>'2024-01-01'"));
+
+  for (let i = 0; i < size; i++) {
+    const client = clients[i];
+    const product = products.getAt(~~(Math.random() * (products.getLength() - 1)))!.id!;
+
+    // Create a new contract record
+    const contractRec = await recStore.createNew<ContractRecord, ContractRecordData>(ContractRecord, d => {
+      d.client = client;
+      d.product = product;
+      d.startDate = Utils.getLocalISODateTimeWoTz(begDate);
+      d.endDate = Utils.getLocalISODateTimeWoTz(endDate);
+      d.status = ContractStatuses.ACTIVE;
+    });
+
+    // Additional contract setup logic can be added here
+  }
+}
+
+
+
 const openselect = async () => {
     let a = 123456789.78;
     let b = 0.01;
@@ -889,5 +917,6 @@ const productGroupLoading = reactive({ size: 0, loading: false, recName: "produc
 const bookingLoading = reactive({ size: 0, loading: false, recName: "booking groups", createTask: bookingCreateTask });
 const scheduleGroupLoading = reactive({ size: 1, loading: false, recName: "schedule groups", createTask: scheduleCreateTask });
 const orderLoading = reactive({ size: 0, loading: false, recName: "orders", createTask: orderCreateTask });
+const contractLoading = reactive({ size: 0, loading: false, recName: "contracts", createTask: contractCreateTask });
 
 </script>

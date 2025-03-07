@@ -17,6 +17,7 @@ import { EDataType } from '~/lib/globalTypes';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
 import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 import type { IRenderedTemplateComponentProps } from '../componentTemplates';
+import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
 
 
 
@@ -28,7 +29,7 @@ type TPositionFilterVals = {
 }
 
 
-export class PositionList extends ListTemplate<TPositionFilterVals> {
+export class PositionListTemplate extends ListTemplate<TPositionFilterVals> {
 
     protected _positionsViews: PositionsViews = null!;
     protected _finderDataProvider: DictsFinderDataProvider = null!;
@@ -64,7 +65,7 @@ export class PositionList extends ListTemplate<TPositionFilterVals> {
     modelEditDialog = PositionProfileDialog;
 
    //колонка, значения из которой будут отображаться в списке выбранных
-    titleColName="fio";
+    titleColName="title_text";
 
     //Настрока таблицы
     dataTableDescr = ref<IDataTableDescription>({
@@ -147,10 +148,13 @@ export class PositionList extends ListTemplate<TPositionFilterVals> {
     //Конвертация данных из формата апи в формат для таблицы
     convertRow = async (rawData) => {
         let dictstore = this._moApiClient.getDictionaryStore();
+        const  positionDictVal=await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) || "";
+    
         return {
             id: rawData.id,
             fio: (rawData.employeeSurname || "") + " " + (rawData.employeeName || "") + " " + (rawData.employeePatronymic || ""),
-            position: await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) || ""
+            position: positionDictVal,
+            title_text:  `${Utils.makeInitialsStr(rawData.employeeSurname, rawData.employeeName, rawData.employeePatronymic)} ${positionDictVal}`
         }
     };
 
@@ -168,6 +172,7 @@ export class PositionList extends ListTemplate<TPositionFilterVals> {
                 let dictstore = this._moApiClient.getDictionaryStore();
                 let rec = await this._recStore.fetch(PositionRecord, key);
                 row.position = await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rec.Data!.position) || ""
+                row.title_text=await rec.getTitleText();
             }
         })();
 

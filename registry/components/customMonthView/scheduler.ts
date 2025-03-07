@@ -6,11 +6,14 @@ import {RecordsStore} from "~/lib/MoApi/Records/RecordsStore";
 import type {MoApiClient} from "~/lib/MoApi/MoApiClient";
 import {ScheduleApiSection} from "~/lib/MoApi/ApiSectionsV1/SchedulerApiSection";
 import {BookingsViews} from "~/lib/MoApi/Views/BookingViews";
-import {ScheduleItemGroupData} from "~/lib/MoApi/Records/SchedulerItemGroupRecord";
+import {ScheduleItemGroupData} from "~/lib/MoApi/Records/ScheduleItemGroupRecord";
 import {ProductRecord, ProductRecordData} from "~/lib/MoApi/Records/ProductRecord";
 import {PositionRecord, PositionRecordData} from "~/lib/MoApi/Records/PositionRecord";
 import {EmployeeRecord} from "~/lib/MoApi/Records/EmployeeRecord";
+import {sleep} from "~/lib/Helpers";
 import positions from "~/pages/list/positions.vue";
+
+
 
 interface ProductDataSchedule extends ProductRecordData{
     start: string | Date;
@@ -27,8 +30,8 @@ export class Scheduler {
     public positions: PositionRecordData[];
     public empArr: any[];
     public prodArr: any[];
-    private startHours: number;
-    private endHours: number;
+    private startDayHours: number;
+    private endDayHours: number;
 
     constructor(start: number, end: number) {
         const iocc = useContainer();
@@ -40,8 +43,8 @@ export class Scheduler {
         this.positions = [];
         this.empArr = [];
         this.prodArr = [];
-        this.startHours = start;
-        this.endHours = end;
+        this.startDayHours = start;
+        this.endDayHours = end;
     }
 
     public async getScheduler(minDate: string, maxDate: string, employees?: string[] | null, products?: string[] | null, divisions?: string[] | null) {
@@ -92,8 +95,9 @@ export class Scheduler {
             empl.label = `${empl.surname} ${empl.name[0].toUpperCase()}. ${empl.patronymic ? empl.patronymic[0] + '.' : ''}`;
         });
 
-        return this
-    }
+
+    return this
+}
 
     public buildMonthScheduler (employees?: string[], products?: string[]) {
         const start = performance.now()
@@ -155,21 +159,21 @@ export class Scheduler {
                 }
             }
         }
-        console.log(`Время загрузки расписания: ${performance.now() - start}`)
+        console.log(`Время построения, месяц: ${(performance.now() - start) / 1000} секунд`)
         return Array.from(monthViewSet);
     }
 
-    public buildRangeScheduler(
-        start: Date,
-        end: Date,
-    ) {
+    public buildRangeScheduler() {
+        const startBuild = performance.now()
         let availableSlots: ScheduleEvent[] = [];
         let unavailableSlots: ScheduleEvent[] = [];
 
         for (let key in this.currRangeData!) {
-
+            let startHours = `${String(Math.floor(this.startDayHours / 60)).padStart(2, '0')}:${String(this.startDayHours % 60).padStart(2, '0')}`
+            let endHours = `${String(Math.floor(this.endDayHours / 60)).padStart(2, '0')}:${String(this.endDayHours % 60).padStart(2, '0')}`
             let date = key;
             let dayData = this.currRangeData[key];
+            let currDayData: ScheduleEvent[] = []
 
             dayData.map(el =>{
                 const startTime = el.timespan!.time;
@@ -190,7 +194,7 @@ export class Scheduler {
                     endTime: endTime,
                     start: `${date + ' '}${startHours < 10 ? '0' + startHours : startHours}:${startMinutes < 10 ? '0' + startMinutes : startMinutes}`,
                     end: `${newDate + ' '}${endHours < 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`,
-                    products: this.prodArr.filter(i => el.products?.includes(i.id)),
+                    products: this.prodArr.filter(i => el.products?.includes(i.id.toString())),
                     title: '',
                     class: 'free_hours',
                     background: true,
@@ -198,73 +202,54 @@ export class Scheduler {
                     resizable: false,
                     duration: 0
                 };
+                currDayData.push(freeTime)
                 availableSlots.push(freeTime)
             })
-        }
 
-        let splits = Array.from(new Set(availableSlots.map(el => el.split)))
-        splits.forEach( sp => {
-            let srtdSlts = availableSlots.filter( el => el.split === sp)
+            let splits = Array.from(new Set(currDayData.map(el => el.split)))
+            splits.forEach( sp => {
+                let srtdSlts = currDayData.filter( el => el.split === sp && el.start.slice(0, 10) === date)
+                srtdSlts.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 
-            srtdSlts.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-
-            for(let i = 0; i < srtdSlts.length-1; i++){
-                let slt = srtdSlts[i];
-                let nxtSlt = srtdSlts[i+1];
-                let isSlotting = slt.endTime >= nxtSlt.startTime
-
-                let bs: ScheduleEvent = {
-                    startTime: slt.endTime,
-                    endTime: isSlotting ? nxtSlt.endTime : nxtSlt.startTime,
-                    start: slt.end,
-                    end: isSlotting ? nxtSlt.end : nxtSlt.start ,
-                    products: slt.products,
+                let frstBusy: ScheduleEvent = {
+                    startTime: this.startDayHours,
+                    endTime: srtdSlts[0].startTime,
+                    start: key + ' ' + startHours,
+                    end: srtdSlts[0].start ,
+                    products: srtdSlts[0].products,
                     title: '',
                     class: 'not_working_hours',
                     background: true,
                     split: sp,
                     resizable: false,
-                    duration: 0
+                    duration: srtdSlts[0].startTime - this.startDayHours
                 }
-                if(i == 0){
-                    if(bs.startTime > this.startHours * 60){
-                        let frstBs = {...bs}
-                        frstBs.startTime = 0
-                        frstBs.endTime = this.startHours * 60
-                        frstBs.start = new Date(bs.start)
-                        frstBs.start.setHours(0)
-                        frstBs.start.setMinutes(0)
-                        frstBs.start = frstBs.start.format('YYYY-MM-DD HH:mm')
-                        let end: any = new Date(bs.end)
-                        end.setHours(Math.floor(frstBs.endTime / 60))
-                        end.setMinutes(frstBs.endTime % 60)
-                        frstBs.end = end.format('YYYY-MM-DD HH:mm')
-                        unavailableSlots.push(frstBs)
+
+                unavailableSlots.push(frstBusy)
+
+                for(let i = 0; i < srtdSlts.length-1; i++) {
+                    let slt = srtdSlts[i];
+                    let nxtSlt = srtdSlts[i + 1];
+
+                    let bs: ScheduleEvent = {
+                        startTime: slt.endTime,
+                        endTime: nxtSlt.startTime,
+                        start: slt.end,
+                        end: nxtSlt.start ,
+                        products: slt.products,
+                        title: '',
+                        class: 'not_working_hours',
+                        background: true,
+                        split: sp,
+                        resizable: false,
+                        duration: nxtSlt.startTime - slt.endTime
                     }
+                    unavailableSlots.push(bs)
                 }
-                if(isSlotting){
-                    i++
-                }
-                unavailableSlots.push(bs)
-                if(i == srtdSlts.length-1){
-                    if(bs.endTime < this.endHours * 60) {
-                        let lstBs = {...bs}
-                        lstBs.startTime = this.endHours * 60
-                        lstBs.endTime = 1439
-                        let start: any = new Date(bs.start)
-                        start.setHours(Math.floor(lstBs.startTime / 60))
-                        start.setMinutes(lstBs.startTime % 60)
-                        lstBs.start = start.format('YYYY-MM-DD HH:mm')
-                        lstBs.end = new Date(bs.end)
-                        lstBs.end.setHours(23)
-                        lstBs.end.setMinutes(59)
-                        lstBs.end.format('YYYY-MM-DD HH:mm')
-                        console.log(lstBs)
-                        unavailableSlots.push(lstBs)
-                    }
-                }
-            }
-        })
+            })
+
+        }
+
         for(let i = 0; i < unavailableSlots.length-1; i++){
             let bs = unavailableSlots[i];
             let nxtBs = unavailableSlots[i+1];
@@ -276,231 +261,229 @@ export class Scheduler {
                 }
             }
         }
-        console.log(unavailableSlots)
-        // let startDay = Utils.getDateStr(start).toString();
-        // let endDay = Utils.getDateStr(end).toString();
-        //
-        // const keys = Object.keys(this.currRangeData!).sort();
-        // const keysInRange = keys.filter(key => key >= startDay && key <= endDay);
-        //
-        // const result = keysInRange.reduce((acc, key) => {
-        //     acc[key] = this.currRangeData![key];
-        //     return acc;
-        // }, {});
-        //
-        // const dates: string[] = Object.keys(result);
-        // const times: ScheduleTimespanItem[][] = Object.values(result);
-        // const unavailableSlots: ScheduleEvent[] = [];
-        // const availableSlots: ScheduleEvent[] = [];
-        //
-        // const newStart = '0' + this.startHours + ':00';
-        // const newEnd = this.endHours + ':00';
-        //
-        // for (let i = 0; i < dates.length; i++) {
-        //     let date = dates[i];
-        //     const timeItems = times[i];
-        //
-        //     timeItems.forEach((item) => {
-        //
-        //         const startTime = item.timespan!.time;
-        //         const endTime = startTime + item.timespan!.duration;
-        //         const startHours = Math.floor(startTime / 60);
-        //         const startMinutes = startTime % 60;
-        //         let endHours = Math.floor(endTime / 60);
-        //         const endMinutes = endTime % 60;
-        //         const freeTime: ScheduleEvent = {
-        //             endTime: endTime,
-        //             startTime: startTime,
-        //             start: '',
-        //             end: '',
-        //             products: this.prodArr.filter(i => item.products?.includes(i.id)),
-        //             title: '',
-        //             class: 'free_hours',
-        //             background: true,
-        //             split: '',
-        //             resizable: false,
-        //             duration: 0
-        //         };
-        //
-        //         const start = `${date + ' '}${startHours < 10 ? '0' + startHours : startHours}:${startMinutes < 10 ? '0' + startMinutes : startMinutes}`;
-        //         let newDate = new Date(date).format('YYYY-MM-DD')
-        //         if(endHours == 24){
-        //             newDate = new Date(newDate).addDays(1).format('YYYY-MM-DD')
-        //             endHours = 0
-        //         }
-        //         const end = `${newDate + ' '}${endHours < 10 ? '0' + endHours : endHours}:${endMinutes < 10 ? '0' + endMinutes : endMinutes}`;
-        //
-        //         const split = this.positions.find((pos) => pos.id === item.position)?.employee;
-        //         const spans = this.spansInSplit(availableSlots, split!, date)
-        //
-        //         if (spans.length > 0) {
-        //             const lastSpan = spans[spans.length - 1];
-        //             if (lastSpan!.end >= start && lastSpan!.end <= end) {
-        //                 lastSpan!.end = end;
-        //             } else if (lastSpan!.end >= end && lastSpan!.start <= start) {
-        //                 return
-        //             } else if (lastSpan!.end < end && lastSpan!.start < start) {
-        //                 freeTime.start = start;
-        //                 freeTime.end = end;
-        //                 freeTime.split = split;
-        //                 availableSlots.push(freeTime);
-        //             }
-        //         } else {
-        //             freeTime.start = start;
-        //             freeTime.end = end;
-        //             freeTime.split = split;
-        //             availableSlots.push(freeTime);
-        //         }
-        //
-        //     });
-        //
-        //     for (let j = 0; j < this.empArr.length; j++) {
-        //         const busyTime: ScheduleEvent = {
-        //             start: date + ' ' + newStart,
-        //             end: date + ' ' + newEnd,
-        //             title: '',
-        //             class: 'not_working_hours',
-        //             background: true,
-        //             split: this.empArr[j].id,
-        //             resizable: false
-        //         };
-        //         unavailableSlots.push(busyTime)
-        //     }
-        // }
-        //
-        // for (let i = 0; i < availableSlots.length - 1; i++) {
-        //     const busyTime: ScheduleEvent = {
-        //         start: availableSlots[i].start.slice(0, -6) + ' ' + newStart,
-        //         end: availableSlots[i].end.slice(0, -6) + ' ' + newEnd,
-        //         title: '',
-        //         class: 'not_working_hours',
-        //         background: true,
-        //         split: '',
-        //         resizable: false
-        //     };
-        //     let currEl = availableSlots[i]
-        //     let foundedSpans = this.spansInSplit(unavailableSlots, currEl.split!, currEl.start.slice(0, -6))
-        //     if (foundedSpans.length > 0) {
-        //         const lastSpan = foundedSpans[foundedSpans.length - 1];
-        //         if (currEl.start >= lastSpan.start) {
-        //             lastSpan.end = currEl.start
-        //             busyTime.start = currEl.end
-        //             busyTime.split = currEl.split
-        //             unavailableSlots.push(busyTime)
-        //         }
-        //     }
-        //
-        // }
+        console.log(`Время построения, неделя: ${(performance.now() - startBuild) / 1000} секунд`)
         return {availableSlots, unavailableSlots}
     };
 
-    public findNearestTime (selData: ScheduleEvent, prods: ProductDataSchedule[], availableTimes: ScheduleEvent[], busyTime: ScheduleEvent[], single: boolean = true) {
+    // public findNearestTime (selData: ScheduleEvent, prods: ProductDataSchedule[], availableTimes: ScheduleEvent[], busyTime: ScheduleEvent[], single: boolean = true) {
+    //     return prods.map(pr => {
+    //         let fitSlots = availableTimes.filter(el =>
+    //             el.products.find(p => typeof p === 'object' && p.id == pr.id)
+    //             && ((this.timeToMinutes(el.end.slice(11))/60 <= (selData.endTime + pr.duration/60)) || (this.timeToMinutes(el.start.slice(11))/60 + pr.duration/60 <= selData.endTime))
+    //         )
+    //
+    //         if(single){
+    //             fitSlots.map(f => {
+    //
+    //                 let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
+    //                 pr.split = f.split!.toString();
+    //                 if(splitBusyTime.length > 0){
+    //                     let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
+    //
+    //                     if(busy.length > 0){
+    //                         busy.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    //                         for (let i = 0; i < busy.length - 1; i++) {
+    //                             const busy1Start = this.timeToMinutes(busy[0].start.slice(11));
+    //                             const freeStart = this.timeToMinutes(f.start.slice(11));
+    //                             if(busy1Start-freeStart >= pr.duration){
+    //                                 pr.start = f.start;
+    //                                 pr.time = f.start.slice(11);
+    //                                 break;
+    //                             }
+    //
+    //                             const busy1End = new Date(busy[i].end);
+    //                             const busy2Start = new Date(busy[i + 1].start);
+    //
+    //                             const differenceInMinutes = (busy2Start.getTime() - busy1End.getTime()) / (1000 * 60);
+    //
+    //                             if (differenceInMinutes >= pr.duration) {
+    //                                 pr.start = busy1End;
+    //                                 pr.time = busy1End.toString().slice(11, 16)
+    //                                 break;
+    //                             }
+    //                         }
+    //                     } else {
+    //                         if((this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(f.start.slice(11))) >= pr.duration){
+    //                             pr.start = f.start;
+    //                             pr.time = f.start.slice(11);
+    //                         }
+    //                     }
+    //                     if (!pr.start && busy.length > 0) {
+    //                         const lastBusySlot = busy[busy.length - 1];
+    //                         if ((new Date(f.end).getTime() - new Date(lastBusySlot.end).getTime())/60000 >= pr.duration) {
+    //                             pr.start = lastBusySlot.end;
+    //                             pr.time = lastBusySlot.end.slice(11);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     if((this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(f.start.slice(11))) >= pr.duration){
+    //                         pr.start = f.start;
+    //                         pr.time = f.start.slice(11);
+    //                     }
+    //                 }
+    //             })
+    //             return pr
+    //         } else {
+    //             let freeTimeArr: any[] = [];
+    //
+    //             let uniqDates = Array.from( new Set(fitSlots.filter((obj, index, self) =>
+    //                     index === self.findIndex((t) => (
+    //                         t.split === obj.split && t.start.slice(0, 10) === obj.start.slice(0, 10)
+    //                     ))
+    //             )));
+    //             const checkHoursOverlap = (endTime1, startTime2, nonWorkingHours) => {
+    //                 for (let hours of nonWorkingHours) {
+    //                     let nonWorkingStart = this.timeToMinutes(hours.start.slice(11));
+    //                     let nonWorkingEnd = this.timeToMinutes(hours.end.slice(11));
+    //                     if (endTime1 < nonWorkingEnd && startTime2 > nonWorkingStart) {
+    //
+    //                         return true;
+    //                     }
+    //                 }
+    //                 return false;
+    //             }
+    //             uniqDates.map(f => {
+    //                 let splitBusyTime = busyTime.filter(sp => sp.split === f.split && sp.start.slice(0, 10) == f.start.slice(0, 10))
+    //
+    //                 if(splitBusyTime.length > 0){
+    //
+    //                     let nWH = splitBusyTime.filter( el => el.class == 'not_working_hours')
+    //                     let bks = splitBusyTime.filter( el => el.class == 'ordered')
+    //                     nWH.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    //                     bks.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    //
+    //                     for (let i = 0; i < bks.length - 1; i++) {
+    //
+    //                         let busyEnd = this.timeToMinutes(bks[i].start.slice(11));
+    //                         console.log(busyEnd)
+    //                         if(bks[i+1]){
+    //
+    //                             let nextBusyStart = this.timeToMinutes(bks[i+1].start.slice(11));
+    //                             let isOverlap = checkHoursOverlap(busyEnd, nextBusyStart, nWH )
+    //                             if(nextBusyStart - busyEnd >= pr.duration && bks[i+1] !== bks[bks.length - 1]){
+    //
+    //                                 f.start = bks[i].end;
+    //                                 let nf = {...f}
+    //                                 freeTimeArr.push(nf)
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             })
+    //             freeTimeArr = Array.from(new Set(freeTimeArr))
+    //             return freeTimeArr
+    //         }
+    //     })
+    // }
+    public findNearestTime(
+        selData: ScheduleEvent,
+        prods: ProductDataSchedule[],
+        availableTimes: ScheduleEvent[],
+        busyTime: ScheduleEvent[],
+        single: boolean = true
+    ) {
         return prods.map(pr => {
-            let fitSlots = availableTimes.filter(el =>
-                el.products.find(p => typeof p === 'object' && p.id == pr.id)
-                && ((this.timeToMinutes(el.end.slice(11))/60 <= (selData.endTime + pr.duration/60)) || (this.timeToMinutes(el.start.slice(11))/60 + pr.duration/60 <= selData.endTime))
-            )
-            if(single){
-                fitSlots.map(f => {
+            let fitSlots = availableTimes.filter(el => {
+                let startMinutes = this.timeToMinutes(el.start.slice(11)); // Начало слота в минутах
+                let endMinutes = this.timeToMinutes(el.end.slice(11)); // Конец слота в минутах
 
-                    let splitBusyTime = busyTime.filter(sp => sp.split === f.split)
+                let selStartMinutes = selData.startTime * 60; // Начало заданного интервала
+                let selEndMinutes = selData.endTime * 60; // Конец заданного интервала
+
+                return (
+                    el.products.some(p => typeof p === 'object' && p.id === pr.id) &&
+                    (endMinutes - startMinutes >= pr.duration) &&
+                    (startMinutes >= selStartMinutes && endMinutes <= selEndMinutes) // Проверяем, попадает ли слот во временной диапазон
+                );
+            });
+
+            if (single) {
+                fitSlots.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+                for (let f of fitSlots) {
+                    let splitBusyTime = busyTime.filter(sp => sp.split === f.split);
                     pr.split = f.split!.toString();
-                    if(splitBusyTime.length > 0){
-                        let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end)
 
-                        if(busy.length > 0){
-                            busy.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-                            for (let i = 0; i < busy.length - 1; i++) {
-                                const busy1Start = this.timeToMinutes(busy[0].start.slice(11));
-                                const freeStart = this.timeToMinutes(f.start.slice(11));
-                                if(busy1Start-freeStart >= pr.duration){
-                                    pr.start = f.start;
-                                    pr.time = f.start.slice(11);
-                                    break;
-                                }
+                    if (splitBusyTime.length > 0) {
+                        let busy = splitBusyTime.filter(b => b.start >= f.start && b.end <= f.end);
+                        busy.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-                                const busy1End = new Date(busy[i].end);
-                                const busy2Start = new Date(busy[i + 1].start);
-
-                                const differenceInMinutes = (busy2Start.getTime() - busy1End.getTime()) / (1000 * 60);
-
-                                if (differenceInMinutes >= pr.duration) {
-                                    pr.start = busy1End;
-                                    pr.time = busy1End.toString().slice(11, 16)
-                                    break;
-                                }
-                            }
+                        if (busy.length === 0) {
+                            pr.start = f.start;
+                            pr.time = f.start.slice(11);
+                            break;
                         } else {
-                            if((this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(f.start.slice(11))) >= pr.duration){
-                                pr.start = f.start;
-                                pr.time = f.start.slice(11);
-                            }
-                        }
-                        if (!pr.start && busy.length > 0) {
-                            const lastBusySlot = busy[busy.length - 1];
-                            if ((new Date(f.end).getTime() - new Date(lastBusySlot.end).getTime())/60000 >= pr.duration) {
-                                pr.start = lastBusySlot.end;
-                                pr.time = lastBusySlot.end.slice(11);
+                            for (let i = 0; i < busy.length - 1; i++) {
+                                let busy1End = this.timeToMinutes(busy[i].end.slice(11));
+                                let busy2Start = this.timeToMinutes(busy[i + 1].start.slice(11));
+                                if (busy2Start - busy1End >= pr.duration) {
+                                    pr.start = busy[i].end;
+                                    pr.time = busy[i].end.slice(11, 16);
+                                    break;
+                                }
                             }
                         }
                     } else {
-                        if((this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(f.start.slice(11))) >= pr.duration){
-                            pr.start = f.start;
-                            pr.time = f.start.slice(11);
-                        }
+                        pr.start = f.start;
+                        pr.time = f.start.slice(11);
+                        break;
                     }
-                })
-                return pr
-            } else {
-                let freeTimeArr: any[] = [];
+                }
 
-                let uniqDates = Array.from( new Set(fitSlots.filter((obj, index, self) =>
-                        index === self.findIndex((t) => (
-                            t.split === obj.split && t.start.slice(0, 10) === obj.start.slice(0, 10)
-                        ))
-                )));
+                return pr;
+            } else {
+                let freeTimeArr: ScheduleEvent[] = [];
+
+                let uniqDates = Array.from(new Set(
+                    fitSlots.filter((obj, index, self) =>
+                        index === self.findIndex((t) => t.split === obj.split && t.start.slice(0, 10) === obj.start.slice(0, 10))
+                    )
+                ));
+
                 const checkHoursOverlap = (endTime1, startTime2, nonWorkingHours) => {
-                    for (let hours of nonWorkingHours) {
+                    return nonWorkingHours.some(hours => {
                         let nonWorkingStart = this.timeToMinutes(hours.start.slice(11));
                         let nonWorkingEnd = this.timeToMinutes(hours.end.slice(11));
-                        if (endTime1 < nonWorkingEnd && startTime2 > nonWorkingStart) {
+                        return endTime1 < nonWorkingEnd && startTime2 > nonWorkingStart;
+                    });
+                };
 
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                uniqDates.map(f => {
-                    let splitBusyTime = busyTime.filter(sp => sp.split === f.split && sp.start.slice(0, 10) == f.start.slice(0, 10))
+                uniqDates.forEach(f => {
+                    let splitBusyTime = busyTime.filter(sp => sp.split === f.split && sp.start.slice(0, 10) === f.start.slice(0, 10));
 
-                    if(splitBusyTime.length > 0){
+                    if (splitBusyTime.length > 0) {
+                        let nonWorkingHours = splitBusyTime.filter(el => el.class === 'not_working_hours');
+                        let bookings = splitBusyTime.filter(el => el.class === 'ordered');
 
-                        let nWH = splitBusyTime.filter( el => el.class == 'not_working_hours')
-                        let bks = splitBusyTime.filter( el => el.class == 'ordered')
-                        nWH.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-                        bks.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+                        nonWorkingHours.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+                        bookings.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-                        for (let i = 0; i < bks.length - 1; i++) {
-
-                            let busyEnd = this.timeToMinutes(bks[i].start.slice(11));
-                            if(bks[i+1]){
-
-                                let nextBusyStart = this.timeToMinutes(bks[i+1].start.slice(11));
-                                let isOverlap = checkHoursOverlap(busyEnd, nextBusyStart, nWH )
-                                if(nextBusyStart - busyEnd >= pr.duration && bks[i+1] !== bks[bks.length - 1]){
-
-                                    f.start = bks[i].end;
-                                    let nf = {...f}
-                                    freeTimeArr.push(nf)
+                        for (let i = 0; i < bookings.length - 1; i++) {
+                            let busyEnd = this.timeToMinutes(bookings[i].end.slice(11));
+                            if (bookings[i + 1]) {
+                                let nextBusyStart = this.timeToMinutes(bookings[i + 1].start.slice(11));
+                                let isOverlap = checkHoursOverlap(busyEnd, nextBusyStart, nonWorkingHours);
+                                if (!isOverlap && nextBusyStart - busyEnd >= pr.duration) {
+                                    let nf = { ...f, start: bookings[i].end };
+                                    freeTimeArr.push(nf);
                                 }
                             }
                         }
+
+                        let lastBooking = bookings[bookings.length - 1];
+                        if (lastBooking && (this.timeToMinutes(f.end.slice(11)) - this.timeToMinutes(lastBooking.end.slice(11))) >= pr.duration) {
+                            freeTimeArr.push({ ...f, start: lastBooking.end });
+                        }
                     }
-                })
-                freeTimeArr = Array.from(new Set(freeTimeArr))
-                return freeTimeArr
+                });
+
+                return Array.from(new Set(freeTimeArr));
             }
-        })
+        });
+    }
+
+    public getCurrentRangeData(): TDatedScheduleTimespanItems | null {
+        return this.currRangeData;
     }
 
     private hoursSpanAdder (daytime) {
@@ -568,48 +551,68 @@ export class Scheduler {
 
     private hasEmplsInTimes = (arr, i) => this.positions.some((pos) => arr.some(empl => empl.id === pos.employee) && pos.id === i.position);
 
-    private getProductsList = async (k) => {
-        const chunkSize = 500; // Устанавливаем размер чанка
-        const keys = k.map((id) => id.replaceAll(`'`, `"`));
-        const chunks = Array.from({length: Math.ceil(keys.length / chunkSize)}, (_, index) =>
+    private getProductsList = async (k: string[]): Promise<any[]> => {
+        const chunkSize = 100; // Размер чанка
+        const delay = 200; // Задержка между запросами (мс)
+        const keys = k.map((id) => id.replaceAll(`'`, `"`)); // Очистка ключей
+        const chunks = Array.from({ length: Math.ceil(keys.length / chunkSize) }, (_, index) =>
             keys.slice(index * chunkSize, (index + 1) * chunkSize)
         );
 
-        let recs: any[] = [];
+        const recs: any[] = [];
         for (const chunk of chunks) {
-            const chunkRecs = await Promise.all(chunk.map(async (i) => {
-                try {
-                    let record = await this.recStore.getRecordsM([{id: {key: i, type: ProductRecord}}]);
-                    return record[0].MData;
-                } catch (error) {
-                    console.error(`An error occurred while fetching record with key ${i}:`, error);
-                    return null; // Возвращаем null для не найденных записей
-                }
-            }));
-            recs.push(...chunkRecs);
+            const chunkRecs = await Promise.allSettled(
+                chunk.map(async (i) => {
+                    await sleep(delay); // Задержка перед каждым запросом
+                    try {
+                        const record = await this.recStore.getRecordsM([{ id: { key: i, type: ProductRecord } }]);
+                        return record[0].MData;
+                    } catch (error) {
+                        console.error(`Error fetching record with key ${i}:`, error);
+                        return null; // Возвращаем null для неудачных запросов
+                    }
+                })
+            );
+
+            // Сохраняем только успешные результаты
+            recs.push(
+                ...chunkRecs
+                    .filter((result) => result.status === 'fulfilled' && result.value !== null)
+                    .map((result: PromiseFulfilledResult<any>) => result.value)
+            );
         }
 
-        return recs.filter((i) => i !== null);
-    }
+        return recs;
+    };
 
-    private getEmployeeList = async (k) => {
-        let keys = k.map((id) => id.replaceAll(`'`, `"`))
-        let emplsRec: any[] = [];
 
-        const chunkSize = 500;
+    private getEmployeeList = async (k: string[]): Promise<any[]> => {
+        const chunkSize = 100;
+        const delay = 200; // Задержка между запросами
+        const keys = k.map((id) => id.replaceAll(`'`, `"`));
+        const emplsRec: any[] = [];
+
         const totalChunks = Math.ceil(keys.length / chunkSize);
-
         for (let i = 0; i < totalChunks; i++) {
             const chunkKeys = keys.slice(i * chunkSize, (i + 1) * chunkSize);
-            let recs = await this.recStore.getRecords<PositionRecord>(PositionRecord, chunkKeys);
-            this.positions = Array.from(recs.map(i => i.MData));
-            let emplsKeys = recs.map(i => i.MData).map((el: any) => el.employee.replaceAll(`'`, `"`));
-            let chunkEmplsRec = await this.recStore.getRecords<EmployeeRecord>(EmployeeRecord, emplsKeys);
-            emplsRec.push(...chunkEmplsRec);
-        }
+            await sleep(delay); // Задержка перед запросами
 
-        return emplsRec.map(i => i.MData);
-    }
+            try {
+                const recs = await this.recStore.getRecords<PositionRecord>(PositionRecord, chunkKeys);
+                this.positions = Array.from(recs.map((i) => i.MData));
+
+                const emplsKeys = recs
+                    .map((i) => i.MData)
+                    .map((el: any) => el.employee.replaceAll(`'`, `"`));
+
+                const chunkEmplsRec = await this.recStore.getRecords<EmployeeRecord>(EmployeeRecord, emplsKeys);
+                emplsRec.push(...chunkEmplsRec);
+            } catch (error) {
+                console.error(`Error fetching employee records for chunk ${i + 1}/${totalChunks}:`, error);
+            }
+        }
+        return emplsRec.map((i) => i.MData);
+    };
 
     private timeToMinutes (time) {
         const [hours, minutes] = time.split(':').map(Number);

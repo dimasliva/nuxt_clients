@@ -239,8 +239,9 @@ const loadPageData = () => {
   onPageActivate(route);
 };
 
-onErrorCaptured((h, t) => {
+onErrorCaptured((err, instance, info) => {
   closeDiag(null, true);
+  errToast("Ошибка приложения. Для дальнейшей  работы перезагрузите страницу.");
 });
 
 watch(() => route.query, () => nextTick(loadPageData));

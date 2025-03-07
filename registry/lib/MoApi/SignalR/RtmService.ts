@@ -1,6 +1,6 @@
 //import { getCurrentInstance, onBeforeUnmount } from 'vue';
 import { resolveMethodName } from './Mapping';
-import type{
+import type {
     SignalRCommandKey,
     SignalRCommandPayload,
     SignalREventKey,
@@ -182,6 +182,19 @@ export class RtmService {
                 this._connection.off(originalMethodName);
             if (item)
                 item.length = 0;
+        }
+    }
+
+
+
+    async disconnect() {
+        try {
+            await this._connection.stop();
+            console.debug("WS disconnected")
+        }
+        finally {
+            this._connected = false;
+            this._connection = null!;
         }
     }
 

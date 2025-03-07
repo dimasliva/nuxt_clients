@@ -8,8 +8,9 @@ import type { IRecordsRestricions } from "./MoApi/ApiInterfaces";
 import { EmployeeAppProfile } from "./EmployeeAppProfile";
 import { CompanyAppProfile } from "./CompanyAppProfile";
 import { BitList } from "./BitList";
+import type { IEventBus } from "./EventBus";
 
-export  const FEATURES_SIZE = 128;
+export const FEATURES_SIZE = 128;
 
 @injectable()
 export class UserContext {
@@ -42,8 +43,16 @@ export class UserContext {
 
 
 
-  constructor(@inject("MoApiClient") protected _moApiClient: MoApiClient, @inject("NuxtApp") protected _nuxtApp: NuxtApp) {
+  constructor(
+    @inject("MoApiClient") protected _moApiClient: MoApiClient,
+    @inject("NuxtApp") protected _nuxtApp: NuxtApp,
+    @inject("SysEventBus") protected _sysEventBus: IEventBus,
+  ) {
     this.restoreFromState()
+    this._sysEventBus.subscribe("exitFromAccount", (type, arg) => {
+      this.signout();
+      navigateTo('/signin');
+    });
   }
 
 
@@ -71,7 +80,7 @@ export class UserContext {
         this._CompanyProfile = new CompanyAppProfile(this._moApiClient, appEmployeeContext.companyAppProfile);
       this._CompanyLicense = appEmployeeContext.companyLicenseData;
       this._userRights = appEmployeeContext.userRecordsRights;
-      this._userFeatureAccess =  new BitList(FEATURES_SIZE).fromBase64(appEmployeeContext.userFeatureAccess);
+      this._userFeatureAccess = new BitList(FEATURES_SIZE).fromBase64(appEmployeeContext.userFeatureAccess);
       this._RecordsRestricions = appEmployeeContext.recordRestrictions;
       this._AuthorityData = authorityData;
     }
@@ -121,7 +130,9 @@ export class UserContext {
     this._AuthorityData = null;
     this.saveUserCredentials();
     this._moApiClient.MoApiClientSettings.Credentials = null;
+    console.debug("Signout");
   }
+
 
   async tryAuthorize(login?: string, password?: string) {
 

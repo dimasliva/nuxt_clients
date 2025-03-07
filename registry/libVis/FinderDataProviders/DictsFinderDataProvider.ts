@@ -10,7 +10,7 @@ import * as Utils from '~/lib/Utils';
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
 import FinderForm from '~/components/forms/FinderForm.vue';
 import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
-import { PositionList } from "~/componentTemplates/listTemplates/positionListTemplate";
+import { PositionListTemplate } from "~/componentTemplates/listTemplates/positionListTemplate";
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 
 

@@ -34,15 +34,16 @@ export class ModuleManager {
                 childs: [
                     { id: "employees", title: "Сотрудники", getPagePath: () => "/administration/employees", icon: "mdi-account-circle" },
                     { id: "roles", title: "Роли", getPagePath: () => "/administration/rights", icon: "mdi-account-circle" },
-                    { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" },
-                    { id: "journal", title: "ЖПЗ", getPagePath: () => "/administration/test_journal", icon: "mdi-calendar" },
+                    { id: "reports", title: "Отчеты", getPagePath: () => "/administration/reports", icon: "mdi-account-circle" }
                 ]
             });
 
         this.addListsMenu(res);
+        this.addBookingMenu(res);
 
         return res;
     }
+
 
 
     addListsMenu(rootMenu: EnumArray<IModuleItemsMenu>) {
@@ -52,23 +53,41 @@ export class ModuleManager {
             getPagePath: () => "",
             icon: "mdi-account-tie",
             childs: [
-               // { id: "price_list", title: "Прайс-листы", getPagePath: () => "/list/price_list", icon: "mdi-list-box" },
-                { id: "product_catalogs", title: "Товары и услуги", getPagePath: () => "/list/product_catalogs", icon: "mdi-list-box" },
+                // { id: "price_list", title: "Прайс-листы", getPagePath: () => "/list/price_list", icon: "mdi-list-box" },
+                { id: "product_catalogs", title: "Товары и услуги", getPagePath: () => "/list/product_catalogs", icon: "mdi-invoice-text-multiple-outline" },
             ]
         };
 
-        if (chkRights(null, { "dbClient": "r" }))
-            menuItem.childs!.push({ id: "clients", title: "Клиенты", getPagePath: () => "/list/clients", icon: "mdi-account-circle" })
+        var menuList = {
+            "dbClient": { rights: "r", item: { id: "clients", title: "Клиенты", getPagePath: () => "/list/clients", icon: "mdi-account-multiple" } },
+            "dbPosition": { rights: "r", item: { id: "positions", title: "Должности", getPagePath: () => "/list/positions", icon: "mdi-card-account-details-outline" } },
+            "dbDealOrder": { rights: "r", item: { id: "deal_orders", title: "Заказы", getPagePath: () => "/list/deal_orders", icon: "mdi-handshake-outline" } },
+            "dbDeal": { rights: "r", item: { id: "deals", title: "Сделки", getPagePath: () => "/list/deals", icon: "mdi-handshake-outline" } },
+            "dbScheduleItemGroup": { rights: "r", item: { id: "schedule_item_group", title: "Разделы расписания", getPagePath: () => "/list/schedule_item_group", icon: "mdi-book-clock-outline" } },
+        }
 
-        if (chkRights(null, { "dbPosition": "r" }))
-            menuItem.childs!.push({ id: "positions", title: "Должности", getPagePath: () => "/list/positions", icon: "mdi-account-circle" })
-
-        if (chkRights(null, { "dbDeal": "r" }))
-            menuItem.childs!.push({ id: "deals", title: "Сделки", getPagePath: () => "/list/deals", icon: "mdi-handshake-outline" })
-
+        for (const key in menuList) {
+            const { rights, item } = menuList[key];
+            if (chkRights(null, { key: rights })) {
+                menuItem.childs!.push(item);
+            }
+        }
 
         if (menuItem.childs!.length > 0)
             rootMenu.push(menuItem)
+    }
+
+
+    addBookingMenu(res: EnumArray<IModuleItemsMenu>) {
+        res.push({
+            id: "booking",
+            title: "Предварительная запись",
+            getPagePath: () => "",
+            icon: "mdi-account-tie",
+            childs: [
+                { id: "journal", title: "ЖПЗ", getPagePath: () => "/booking/test_journal", icon: "mdi-calendar" },
+            ]
+        });
     }
 
 }

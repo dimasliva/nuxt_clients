@@ -214,7 +214,7 @@ export abstract class NavigatorTemplate<TFilterVals> {
     async getData(select: string, where: string, sortedBy: string, quantity: number) {
 
         const startTime = performance.now();
-        let recArr = await this.getApiData(new QueryParams(select, where, sortedBy, quantity));
+        let recArr = await this.getApiData(new QueryParams(select, where, sortedBy, undefined, quantity));
 
         const endTime = performance.now();
         console.debug(`rows count=${recArr.getLength()} for ${endTime - startTime} ms`);
@@ -230,12 +230,12 @@ export abstract class NavigatorTemplate<TFilterVals> {
 
 
     async add() {
-        openDialog(this.modelEditDialog, { recKey: null }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
+        openDialog(this.modelEditDialog, { recKey: null }, true, false, (e, d) => (e == "onBeforeClose") ? d ? this.onAddModel(d) : true : true)
     }
 
 
     async edit(key, index?) {
-        openDialog(this.modelEditDialog, { recKey: key }, true, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
+        openDialog(this.modelEditDialog, { recKey: key }, true, false, (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)
     }
 
 

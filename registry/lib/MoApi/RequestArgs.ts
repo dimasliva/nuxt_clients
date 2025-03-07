@@ -1,18 +1,42 @@
 import * as Utils from '~/lib/Utils';
+class QueryParamsBase {
+  // Base class with no properties
+}
 
-export class QueryParams {
+
+export class QueryParams extends QueryParamsBase {
   select: string;
   where?: string;
   orderBy?: string | null;
-  limit: number = -1;
+  limit?: number = -1;
+  args?: any[];
 
-  constructor(_select: string, _where: string | undefined, orderBy: string | null = null, _limit = -1) {
-    this.select = _select;
-    this.where = _where;
-    this.limit = _limit;
+
+  constructor(select: string, where?: string, orderBy?: string, args?: any[], limit: number = 5000) {
+    super();
+    this.select = select;
+    this.where = where;
     this.orderBy = orderBy;
+    this.args = args;
+    this.limit = limit;
   }
 }
+
+export class QueryFFParams extends QueryParamsBase {
+  select: string;
+  text: string;
+  limit?: number;
+  minRank?: number;
+  includeRank?: boolean;
+  notActive?: boolean;
+
+  constructor(select: string, text: string) {
+    super();
+    this.select = select;
+    this.text = text;
+  }
+}
+
 
 export class QueryDictsFFParams {
   dictId: string;
@@ -107,6 +131,27 @@ export class BookingQuery {
   ) {
     this.begDate = Utils.getDateStr(new Date(_begDate));
     this.endDate = Utils.getDateStr(new Date(_endDate));
+  }
+}
+
+
+export class QueryFFParamsEx extends QueryFFParams {
+  where: string;
+
+  constructor(select: string, text: string, where: string) {
+    super(select, text);
+    this.where = where;
+  }
+}
+
+
+
+export class QueryFsParams extends QueryFFParamsEx {
+  searchBy: string[];
+
+  constructor(select: string, text: string, where: string, searchBy: string[]) {
+    super(select, text, where);
+    this.searchBy = searchBy;
   }
 }
 

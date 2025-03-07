@@ -13,6 +13,7 @@ import { RtmService } from './SignalR/RtmService';
 import type { EventBus } from '../EventBus';
 import { DictionaryStore } from '../Dicts/DictionaryStore';
 import { ScheduleApiSection } from './ApiSectionsV1/SchedulerApiSection';
+import { th } from 'vuetify/locale';
 
 //import { UseFetchOptions } from 'nuxt/dist/app/composables/fetch';
 
@@ -22,9 +23,6 @@ export class MoApiClient {
 
     @inject("diC")
     protected _diC: Container = null!;
-
-    @inject("MoApiClientSettings")
-    protected _MoApiClientSettings: MoApiClientSettings = null!;
 
     @inject("SysEventBus")
     protected _SysEventBus: EventBus = null!;
@@ -44,8 +42,14 @@ export class MoApiClient {
     protected _ScheduleApiSection: ScheduleApiSection = null!
 
 
-    init(_MoApiClientSettings: MoApiClientSettings) {
-        this._MoApiClientSettings = _MoApiClientSettings;
+    constructor(@inject("MoApiClientSettings") protected _MoApiClientSettings: MoApiClientSettings) {
+
+    }
+
+
+    init() {
+        if (this._SysEventBus)
+            this._SysEventBus.subscribe("exitFromAccount", () => { this._rtmService.disconnect() })
         return this;
     }
 
@@ -59,6 +63,14 @@ export class MoApiClient {
         return res;
     }
 
+
+    /**
+     * Отправляет запрос к API
+     * @param path Путь к API
+     * @param data Данные для отправки
+     * @param inParam  Флаг, указывающий, POST(false) или GET(true) метод
+     * @returns Результат запроса
+     */
     async send<inT, outT>(path: string, data?: inT, inParam: boolean = false) {
 
         if (inParam)
@@ -84,10 +96,18 @@ export class MoApiClient {
     }
 
 
+    /**
+     * Отправляет запрос к API и возвращает результат.
+     * Если запрос завершается с ошибкой, возвращает null.
+     * @param path - путь к API-методу
+     * @param data - данные для отправки
+     * @param inParam - флаг, указывающий, POST(false) или GET(true) метод
+     * @returns результат запроса или null, если произошла ошибка
+     */
     async trySend<inT, OutT>(path: string, data?: inT, inParam: boolean = false) {
         try {
             if (inParam)
-                return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null, null);
+                return await <OutT>this.sendRequest("GET", `${this._APIPATH}${path}?${this._convertToURLParams(data)}`, null, null);
             else
                 return await <OutT>this.sendRequest("POST", `${this._APIPATH}${path}`, data);
         }
@@ -186,14 +206,14 @@ export class MoApiClient {
                     else
                         if (response.status == 429) {
                             const contType = response.headers.get("content-type")?.split(";") || [];
-                            if (contType[0] == "application/json" &&  (bodyData = await response.json())) {
+                            if (contType[0] == "application/json" && (bodyData = await response.json())) {
                                 await sleep((<any>bodyData).await || 1000);
                             }
                             else
-                            if (ATTEMPS - attemp == 1)
-                                await sleep(1000);
-                            else
-                                await sleep(2000);
+                                if (ATTEMPS - attemp == 1)
+                                    await sleep(1000);
+                                else
+                                    await sleep(2000);
                             continue;
                         }
                         else
@@ -395,6 +415,10 @@ export class MoApiClient {
 
             this._rtmService.on("onGroupСontentChanged", (...args) => {
                 this._SysEventBus.publish("onGroupСontentChanged", ...args);
+            })
+
+            this._rtmService.on("exitFromAccount", (...args) => {
+                this._SysEventBus.publish("exitFromAccount", ...args);
             })
         }
 

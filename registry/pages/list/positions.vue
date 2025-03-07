@@ -1,6 +1,6 @@
 <script lang="ts">
 import { useI18n } from "vue-i18n"
-import { PositionList } from '~/componentTemplates/listTemplates/positionListTemplate';
+import { PositionListTemplate } from '~/componentTemplates/listTemplates/positionListTemplate';
 import { EmployeeAppProfilePageDataStorageCell } from "~/lib/EmployeeAppProfile";
 
 import type { IFrameHeaderData, PageMap } from "~/lib/PageMap";
@@ -17,7 +17,7 @@ export default {
     let diC = useSessionContainer();
     const settingStorage = diC.get(EmployeeAppProfilePageDataStorageCell);
     settingStorage.initPageSec(PAGE_PATH)
-    const o = new PositionList(diC, { settingsStorage: settingStorage });
+    const o = new PositionListTemplate(diC, { settingsStorage: settingStorage });
     await o.setup(props,ctx);
     diC.get<PageMap>("PageMap").setPageData(PAGE_PATH, o.getFrameHeaderData());
 

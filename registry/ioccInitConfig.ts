@@ -29,6 +29,8 @@ export default (container: Container) => {
         container.bind('Cache').to(MemoryCache).inSingletonScope();
         container.bind('PageCacheStore').to(PageMemoryCacheStore).inSingletonScope();
     
+        container.get<MoApiClient>("MoApiClient").init();
+
         console.debug("iocc init");
     }
 }

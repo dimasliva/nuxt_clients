@@ -10,7 +10,7 @@ import { makeFioStr, makeInitialsStr } from "~/lib/Utils";
 
 @injectable()
 export class PositionRecordData extends ApiRecordChData {
-    employee: string = null!;
+    employee?: string | null = null;
     position: number = 0;
     profession: number = 0;
     specialty: number = 0;
@@ -65,14 +65,28 @@ export class PositionRecord extends ApiRecord<PositionRecordData> {
 
 
     async getEmployeeFIO() {
+        if (!this.Data!.employee)
+            return null;
         const emplrec = await this._RecordsStore.fetch(EmployeeRecord, this.Data!.employee);
         return emplrec.getEmployeeFIO();
     }
 
 
     async getEmployeeInitials() {
+        if (!this.Data!.employee)
+            return null;
         const emplrec = await this._RecordsStore.fetch(EmployeeRecord, this.Data!.employee);
         return emplrec.getEmployeeInitials();
     }
-  
+
+
+    async getTitleText() {
+        const recEmpl = this.Data!.employee ? await this._RecordsStore.fetch(EmployeeRecord, this.Data!.employee) : null;
+        const dictposs = await this.getPositionTitle();
+        if (recEmpl)
+            return  `${makeInitialsStr(recEmpl.Data!.surname, recEmpl.Data!.name, recEmpl.Data!.patronymic)} ${dictposs}`
+        else
+           return dictposs;
+    }
+
 }

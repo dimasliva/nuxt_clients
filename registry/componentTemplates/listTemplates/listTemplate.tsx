@@ -260,7 +260,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     async getData(select: string, where: string, sortedBy: string, quantity: number) {
 
         const startTime = performance.now();
-        let recArr = await this.getApiData(new QueryParams(select, where, sortedBy, quantity));
+        let recArr = await this.getApiData(new QueryParams(select, where, sortedBy, undefined, quantity));
 
         const endTime = performance.now();
         console.debug(`rows count=${recArr.getLength()} for ${endTime - startTime} ms`);

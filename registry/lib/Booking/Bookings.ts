@@ -3,6 +3,7 @@ import {ScheduleEvent} from "~/components/customMonthView/SchedulerTypes";
 import * as Utils from "~/lib/Utils";
 import {BookingsViews} from "~/lib/MoApi/Views/BookingViews";
 import type {IPositionListView} from "~/lib/MoApi/Views/PositionsViews";
+import {sleep} from "~/lib/Helpers";
 
 export class Bookings {
     private bookingViews: BookingsViews;
@@ -19,24 +20,44 @@ export class Bookings {
 
     }
 
-    public async getBookingsRecs () {
-        const positionsIds: string[] | null = this.positions? this.positions.map(pos => pos.id!) : null
-        const bookingArr: IBookingListView[] = []
+    public async getBookingsRecs() {
+        const positionsIds: string[] | null = this.positions ? this.positions.map(pos => pos.id!) : null;
+        if (!positionsIds || positionsIds.length === 0) return [];
 
-        let res = await this.bookingViews.getBookings({
-            begDate: Utils.getDateStr(this.minDate),
-            endDate: Utils.getDateStr(this.maxDate),
-            positionIds: positionsIds,
-            includeNames: true,
-            includePlace: true,
-            includeStatus: true,
-        })
-        for(let i = 0; i< res.getLength(); i++){
-            bookingArr.push(res.getRow(i)!)
+        const chunkSize = 100;
+        const delay = 200;
+        const bookingArr: IBookingListView[] = [];
+        const chunks = Array.from({length: Math.ceil(positionsIds.length / chunkSize)}, (_, index) =>
+            positionsIds.slice(index * chunkSize, (index + 1) * chunkSize)
+        );
+
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+
+            try {
+                const res = await this.bookingViews.getBookings({
+                    begDate: Utils.getDateStr(this.minDate),
+                    endDate: Utils.getDateStr(this.maxDate),
+                    positionIds: chunk,
+                    includeNames: true,
+                    includePlace: true,
+                    includeStatus: true,
+                });
+
+                for (let j = 0; j < res.getLength(); j++) {
+                    bookingArr.push(res.getRow(j)!);
+                }
+            } catch (error) {
+                console.error(`Error fetching bookings for chunk ${i + 1}/${chunks.length}:`, error);
+            }
+
+            if (i < chunks.length - 1) {
+                await sleep(delay);
+            }
         }
-
-        return this.createBookingsFromApi(bookingArr)
+        return this.createBookingsFromApi(bookingArr);
     }
+
 
     private createBookingsFromApi (bookingArr: IBookingListView[]) {
         let bookingsArr: ScheduleEvent[] = [];
@@ -66,6 +87,5 @@ export class Bookings {
         }
        return bookingsArr
     }
-
 
 }

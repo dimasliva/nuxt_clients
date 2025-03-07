@@ -31,7 +31,7 @@ import { Exception } from '~/lib/Exceptions';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 import { ProductRecord } from '~/lib/MoApi/Records/ProductRecord';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
-import type { Container } from 'inversify/lib/container/container';
+import type { Container } from 'inversify';
 
 
 const { t, locale } = useI18n();

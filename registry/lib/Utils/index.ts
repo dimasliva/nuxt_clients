@@ -67,9 +67,15 @@ export const makeFioStr = (surname: string | null | undefined, name: string | nu
 
 
 /**Инициалы фио*/
-export const makeInitialsStr = (surname: string | null | undefined, name: string | null | undefined, patronymic: string | null | undefined): string => {
-    let res = (surname || "") + " " + (name?.charAt(0).toLocaleUpperCase() || "") + " " + (patronymic?.charAt(0).toLocaleUpperCase() || "");
-    return res;
+export const makeInitialsStr = (surname: string | null | undefined, name: string, patronymic: string | null | undefined): string => {
+    if(!surname && !patronymic)
+        return name||"";
+
+    let res = (surname || "") + " " + (name?.charAt(0).toLocaleUpperCase() || "") + ".";
+    if(patronymic)
+        res+=patronymic?.charAt(0).toLocaleUpperCase()+".";
+    
+    return res.trim();
 }
 
 

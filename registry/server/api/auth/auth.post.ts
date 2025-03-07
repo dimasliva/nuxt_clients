@@ -19,7 +19,7 @@ export default eventHandler(async (event) => {
             statusCode: 401
         });
 
-    const apiClient = new MoApiClient().init(new MoApiClientSettings()) //iocc.get<MoApiClient>("MoApiClientSettings");
+    const apiClient = new MoApiClient(new MoApiClientSettings()).init() //iocc.get<MoApiClient>("MoApiClientSettings");
     apiClient.MoApiClientSettings.ip = rtmConfig.mainApiServer;
     apiClient.MoApiClientSettings.port=rtmConfig.mainApiServerPort;
     apiClient.MoApiClientSettings.appId = rtmConfig.appId;

@@ -997,7 +997,24 @@
 
 /* Ниже идут прописанные стили, требуют доработки и оптимизации */
 
-$splitWidth: 130px;
+$splitWidth: 200px;
+
+.vuecal__cell .cell-time-label{
+  cursor: pointer;
+}
+
+.vuecal__cell .vuecal__event{
+  cursor: pointer;
+}
+
+.custom-event{
+  height: 100%;
+}
+
+.vuecal__cell .vuecal__event span{
+  height: 100%;
+  display: inline-block;
+}
 
 .vuecal__flex.vuecal__split-days-headers{
   overflow: hidden;
@@ -1044,11 +1061,10 @@ $splitWidth: 130px;
 
 .vuecal__flex.vuecal__cells.day-view .vuecal__flex{
   flex-wrap: nowrap;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .vuecal__event {
-  margin: 3px auto;
   border-radius: 10px;
 }
 
@@ -1072,12 +1088,17 @@ $splitWidth: 130px;
   color: black;
 }
 
+.vuecal__event-delete{
+  display: none;
+}
+
 .vuecal__title-bar {
   background-color: transparent;
 }
 
 .vuecal--month-view .vuecal__cell .vuecal__event {
   cursor: pointer;
+  margin: 3px auto;
 }
 
 .vuecal .day-split-header {

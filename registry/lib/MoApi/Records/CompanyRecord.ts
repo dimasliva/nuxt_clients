@@ -16,8 +16,8 @@ export class CompanyRecordData extends ApiRecordChData {
 @injectable()
 export class CompanyRecord extends ApiRecord<CompanyRecordData>{
 
-    static RightToken = "dbCompany";
-    static RecCode = 1001;
+    static  override RightToken = "dbCompany";
+    static override  RecCode = 1001;
 
 
     get RecCode() { return CompanyRecord.RecCode; }

@@ -116,33 +116,34 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { Container } from "inversify";
-import { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
+import { ERecLockArg, RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { DealRecord } from "~/lib/MoApi/Records/DealRecord";
 import { EDataType } from "~/lib/globalTypes";
 import InputField from "~/components/InputField.vue";
 import { useEditForm } from "~/componentComposables/editForms/useEditForm";
 
 interface IProps {
+  diC?: Container,
   recKey: string | null;
   readonly?: boolean;
 }
 
 const props = defineProps<IProps>();
 
-const iocc = useContainer();
-const recStore = iocc.get(RecordsStore);
+const diC = props.diC || useSessionContainer();
+const recStore = diC.get<RecordsStore>("RecordsStore");
+
 const rec = ref<DealRecord>();
 
 // Load or create a new DealRecord
 if (props.recKey) {
-  rec.value = (await recStore.getRecordsM([{ id: { key: props.recKey, type: DealRecord } }]))[0] as DealRecord;
+  rec.value = await recStore.fetch(DealRecord, props.recKey, ERecLockArg.Try, true);
+  // rec.value = (await recStore.getRecordsM([{ id: { key: props.recKey, type: DealRecord } }]))[0] as DealRecord;
 } else {
   rec.value = await recStore.createNew(DealRecord, (data) => { });
 }
 
-
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
-
+const { readonly, close } = await useEditForm(rec, props.readonly);
 
 // Add/Remove Clients
 const addClient = () => {

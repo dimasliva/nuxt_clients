@@ -42,23 +42,14 @@ export class DealListTemplate extends ListTemplate<TDealFilterVals> {
     protected _moApiClient: MoApiClient = null!;
 
 
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
-        super(deps, opts);
+    constructor(diC: Container, opts?: IListTemplateProps | null) {
+        super(diC, opts);
 
-        if (deps instanceof Container) {
-            this._dealViews = deps.get(DealViews);
-            this._positionFinderDataProvider = deps.get(PositionFinderDataProvider);
-            this._clientFinderDataProvider = deps.get(ClientFinderDataProvider);
-            this._productFinderDataProvider = deps.get(ProductFinderDataProvider);
-            this._moApiClient = deps.get("MoApiClient");
-        }
-        else {
-            this._dealViews = deps["DealViews"];
-            this._positionFinderDataProvider = deps["PositionFinderDataProvider"];
-            this._clientFinderDataProvider = deps["ClientFinderDataProvider"];
-            this._productFinderDataProvider = deps["ProductFinderDataProvider"];
-            this._moApiClient = deps["MoApiClient"];
-        }
+        this._dealViews = diC.get(DealViews);
+        this._positionFinderDataProvider = diC.get(PositionFinderDataProvider);
+        this._clientFinderDataProvider = diC.get(ClientFinderDataProvider);
+        this._productFinderDataProvider = diC.get(ProductFinderDataProvider);
+        this._moApiClient = diC.get("MoApiClient");
 
         this._positionFinderDataProvider.init("serachPositions", true);
         this.filterFieldSetting.fields.positions.finderDataProvider = this._positionFinderDataProvider;

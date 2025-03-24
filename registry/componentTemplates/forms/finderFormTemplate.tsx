@@ -4,7 +4,7 @@ import WindowDialog from "~/components/forms/WindowDialog.vue"
 import { sleep } from "~/lib/Helpers";
 import { FreqUsingStrStatistic } from "~/libVis/FreqUsingStrStatistic";
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";
-import { Container } from "inversify/lib/container/container";
+import { Container } from "inversify";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 
 

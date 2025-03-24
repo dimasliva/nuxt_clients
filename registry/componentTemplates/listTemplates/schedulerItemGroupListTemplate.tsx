@@ -29,17 +29,11 @@ export class ScheduleItemGroupListTemplate extends ListTemplate<TScheduleItemGro
     protected _moApiClient: MoApiClient = null!;
 
 
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
-        super(deps, opts);
+    constructor(diC: Container, opts?: IListTemplateProps | null) {
+        super(diC, opts);
 
-        if (deps instanceof Container) {
-            this._scheduleViews = deps.get(ScheduleViews);
-            this._moApiClient = deps.get("MoApiClient");
-        }
-        else {
-            this._scheduleViews = deps["ScheduleViews"];
-            this._moApiClient = deps["MoApiClient"];
-        }
+        this._scheduleViews = diC.get(ScheduleViews);
+        this._moApiClient = diC.get("MoApiClient");
     }
 
 
@@ -131,7 +125,7 @@ export class ScheduleItemGroupListTemplate extends ListTemplate<TScheduleItemGro
             id: rawData.id,
             title: rawData.title,
             code: rawData.code,
-            temporaryNotActive: rawData.temporaryNotActive? "Да":"",
+            temporaryNotActive: rawData.temporaryNotActive ? "Да" : "",
             description: rawData.description,
             changedAt: rawData.changedAt,
             notActive: rawData.notActive

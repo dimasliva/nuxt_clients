@@ -8,7 +8,7 @@ import vuetify from "vite-plugin-vuetify";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; //разрешение для nodejs принимать самоподписанные сертификаты https
 process.env.DEBUG = "1";
 
-const mainApiServer = "172.16.121.39";
+const mainApiServer = "172.16.121.60";
 const mainApiServerPort = 7132;
 const { resolve } = createResolver(import.meta.url);
 
@@ -81,27 +81,28 @@ export default defineNuxtConfig({
     },
   },
 
-  proxy: {
-    proxies: {
-      "^/swagger/.*": {
-        target: `https://${mainApiServer}:${mainApiServerPort}`,
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path,
-      },
 
-      "^/api/v1/RegisterCompany/.*": {
-        target: `https://${mainApiServer}:${mainApiServerPort}`,
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path,
-      },
-    },
-  },
-
-  modules: ["@nuxt-alt/proxy", "@vueuse/nuxt", "@nuxtjs/i18n"],
+  modules: ["@vueuse/nuxt", "@nuxtjs/i18n"],
 
   nitro: {
+    routeRules: {
+      "/swagger/**": {
+       proxy: `https://${mainApiServer}:${mainApiServerPort}/swagger/**`,
+
+
+     },
+     
+    "/api/v1/RegisterCompany/**": {
+       proxy: `https://${mainApiServer}:${mainApiServerPort}/api/v1/RegisterCompany/**`,
+     },
+
+    
+     "/api/v1/**": {
+       proxy: `https://${mainApiServer}:${mainApiServerPort}/api/v1/**`,
+     },
+
+   },
+
     esbuild: {
       options: {
         tsconfigRaw: {

@@ -29,7 +29,7 @@ export const onDialogEvents = (e: string, eData: any): boolean => {
 
 
 
-export async function showModal(component: any, props: any, redirectEventsToForm: boolean, onBeforeClose?: (res: any) => boolean) {
+export async function showModal(component: any, props: any, redirectEventsToForm?: boolean, onBeforeClose?: (res: any) => boolean) {
     return new Promise((r) => {
         openDialog(component, props, true, redirectEventsToForm, (e: string, d: any) => {
             if (e == "onBeforeClose") {

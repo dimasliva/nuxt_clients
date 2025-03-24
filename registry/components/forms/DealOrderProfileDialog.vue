@@ -73,23 +73,25 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { DealOrderRecord } from '~/lib/MoApi/Records/DealOrderRecord';
 import { EDataType } from '~/lib/globalTypes';
 import InputField from '~/components/InputField.vue';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 import { DealOrderSdRecord } from '~/lib/MoApi/Records/DealOrderSdRecord';
 import { useCurrency } from '~/componentComposables/useCurrency';
+import type { Container } from 'inversify';
 
-interface Props {
-    recKey: string | null;
-    readonly?: boolean;
+interface IProps {
+  diC?: Container,
+  recKey: string | null;
+  readonly?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = defineProps<IProps>();
 
-const diC = useContainer();
-const recStore = diC.get(RecordsStore);
+const diC = props.diC || useSessionContainer();
+const recStore = diC.get<RecordsStore>("RecordsStore");
 const rec = ref<DealOrderRecord>();
 const recSd = ref<DealOrderSdRecord>();
 
@@ -102,14 +104,14 @@ const eventsHandler = (e: string, d: any) => {
 defineExpose({ eventsHandler });
 
 // Загрузка существующей записи или создание новой
+
 if (props.recKey) {
+    rec.value = await recStore.fetch(DealOrderRecord, props.recKey, ERecLockArg.Try, true);
     let recs = await recStore.getRecordsM([
-        { id: { key: props.recKey, type: DealOrderRecord } },
         { id: { key: props.recKey, type: DealOrderSdRecord }, optional: true }
     ]);
 
-    rec.value = recs[0] as DealOrderRecord;
-    recSd.value = recs[1] as DealOrderSdRecord;
+    recSd.value = recs[0] as DealOrderSdRecord;
 }
 else {
     rec.value = await recStore.createNew(DealOrderRecord, (data) => { });
@@ -117,7 +119,7 @@ else {
 }
 
 
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
+const { readonly, close } = await useEditForm(rec, props.readonly);
 const { currencyM2V } = useCurrency();
 
 

@@ -76,8 +76,8 @@
               </v-row>
               <v-col sm="6">
                 <!--Email-->
-                <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.email" label="Электронная почта"
-                  v-model="recCont!.MData.mainEmail" />
+                <InputField style="width: 265px;" :state="fieldsOptions" :type="EDataType.email"
+                  label="Электронная почта" v-model="recCont!.MData.mainEmail" />
               </v-col>
               <v-row>
 
@@ -101,12 +101,14 @@
 
               <v-row>
                 <v-col sm="2">
-                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Серия" :maska="capLettersNumbersMask"
-                    v-model="recDoc!.MData.mainDocumentSeries" :constraints="{ max: 32 }" />
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Серия"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentSeries"
+                    :constraints="{ max: 32 }" />
                 </v-col>
                 <v-col sm="3">
-                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Номер" :maska="capLettersNumbersMask"
-                    v-model="recDoc!.MData.mainDocumentNumber" :constraints="{ max: 32 }" />
+                  <InputField :state="fieldsOptions" :type="EDataType.string" label="Номер"
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentNumber"
+                    :constraints="{ max: 32 }" />
                 </v-col>
 
                 <v-col sm="3">
@@ -124,7 +126,8 @@
               <v-row>
                 <v-col sm="12">
                   <InputField :state="fieldsOptions" :type="EDataType.string" label="Кем выдан"
-                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWho" :constraints="{ max: 256 }" />
+                    :maska="capLettersNumbersMask" v-model="recDoc!.MData.mainDocumentWho"
+                    :constraints="{ max: 256 }" />
                 </v-col>
               </v-row>
             </v-expansion-panel-text>
@@ -203,10 +206,10 @@
     </template>
   </FormsEditWindowDialog>>
 </template>
- 
+
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
-import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { PageMap } from '~/lib/PageMap';
 import { UserContext } from '~/lib/UserContext';
 import { ClientRecord } from '~/lib/MoApi/Records/ClientRecord'
@@ -227,6 +230,7 @@ import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
 import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
 import { getNextSerialKey } from '~/lib/Utils';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
+import type { Container } from 'inversify';
 
 const { t, locale } = useI18n();
 
@@ -252,15 +256,18 @@ class VisWrap<T> {
   }
 }
 
+
 interface IProps {
-  recKey: string | null,
-  readonly?: boolean
+  diC?: Container,
+  recKey: string | null;
+  readonly?: boolean;
 }
 
 const props = defineProps<IProps>();
 
-const diC = useContainer();
-const recStore = diC.get(RecordsStore);
+const diC = props.diC || useSessionContainer();
+const recStore = diC.get<RecordsStore>("RecordsStore");
+
 const foto = ref("");
 const gender = ref("");
 
@@ -304,19 +311,19 @@ let recSd = ref<ClientSdRecord>();
 
 if (props.recKey) {
 
+  rec.value = await recStore.fetch(ClientRecord, props.recKey, ERecLockArg.Try, true);
+
   let recs = await recStore.getRecordsM([
-    { id: { key: props.recKey, type: ClientRecord } },
     { id: { key: props.recKey, type: ClientDocumentsRecord }, optional: true },
     { id: { key: props.recKey, type: ClientAddressesRecord }, optional: true },
     { id: { key: props.recKey, type: ClientContactsRecord }, optional: true },
     { id: { key: props.recKey, type: ClientSdRecord }, optional: true }
   ]);
 
-  rec.value = recs[0] as ClientRecord;
-  recDoc.value = recs[1] as ClientDocumentsRecord;
-  recAddr.value = recs[2] as ClientAddressesRecord;
-  recCont.value = recs[3] as ClientContactsRecord;
-  recSd.value = recs[4] as ClientSdRecord;
+  recDoc.value = recs[0] as ClientDocumentsRecord;
+  recAddr.value = recs[1] as ClientAddressesRecord;
+  recCont.value = recs[2] as ClientContactsRecord;
+  recSd.value = recs[3] as ClientSdRecord;
 }
 else {
   rec.value = await recStore.createNew(ClientRecord, (data) => { });
@@ -326,6 +333,7 @@ else {
   recSd.value = await recStore.createNew(ClientSdRecord, (data) => { });
 }
 
+const { readonly, close } = await useEditForm(rec, props.readonly);
 
 ///Документы
 
@@ -444,8 +452,6 @@ const eventsHandler = (e: string, d: any) => {
   }
 };
 
-
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
 
 defineExpose({ eventsHandler });
 

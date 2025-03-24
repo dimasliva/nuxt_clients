@@ -25,18 +25,12 @@ type TClientFilterVals = {
 
 
 export class ClientList extends ListTemplate<TClientFilterVals> {
-    
+
     protected _clientsViews: ClientsViews = null!;
 
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
-        super(deps, opts);
-
-        if (deps instanceof Container) {
-            this._clientsViews = deps.get(ClientsViews);
-        }
-        else {
-            this._clientsViews = deps["ClientsViews"];
-        }
+    constructor(diC: Container, opts?: IListTemplateProps | null) {
+        super(diC, opts);
+        this._clientsViews = diC.get(ClientsViews);
     }
 
 
@@ -46,7 +40,7 @@ export class ClientList extends ListTemplate<TClientFilterVals> {
     defPageSettings = { tcols: ["fio", "bd", "mainPhone", "mainEmail"] };
 
     //колонка, значения из которой будут отображаться в списке выбранных
-    override titleColName="fio";
+    override titleColName = "fio";
 
     //Указание компонента формы редакции модели
     modelEditDialog = ClientProfileDialog;

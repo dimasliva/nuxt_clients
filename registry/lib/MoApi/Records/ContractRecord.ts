@@ -17,7 +17,6 @@ export class ContractRecordData extends ApiRecordChData {
     client?: string | null = null;
     payerClient?: string | null = null;
     priceType?: number | null = null;
-    titleText?: string | null = null;
     notActive?: boolean | null = null;
     advData?: any | null = null;
 }
@@ -30,6 +29,7 @@ export class ContractRecord extends ApiRecord<ContractRecordData> {
     static override RightToken = "dbContract";
     static override RecCode = 1053;
     static override BatchGetRecDataPath = "/Finance/GetContracts";
+    static override RecordsFindPath = "/Finance/FindContracts";
 
 
     constructor(

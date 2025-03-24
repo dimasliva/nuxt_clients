@@ -1,5 +1,5 @@
 <template>
-  <v-card width="400" style="min-height: 10dvh;">
+  <v-card width="400" style="min-height: 10dvh;" class="flex-0-1">
 
     <v-card-title class="mx-2">
       <v-row class="pt-3">

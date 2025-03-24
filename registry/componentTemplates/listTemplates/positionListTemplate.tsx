@@ -36,19 +36,12 @@ export class PositionListTemplate extends ListTemplate<TPositionFilterVals> {
     protected _moApiClient: MoApiClient = null!;
 
 
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
-        super(deps, opts);
+    constructor(diC: Container, opts?: IListTemplateProps | null) {
+        super(diC, opts);
 
-        if (deps instanceof Container) {
-            this._positionsViews = deps.get(PositionsViews);
-            this._finderDataProvider = deps.get(DictsFinderDataProvider);
-            this._moApiClient = deps.get("MoApiClient");
-        }
-        else {
-            this._positionsViews = deps["PositionsViews"];
-            this._finderDataProvider = deps["DictsFinderDataProvider"];
-            this._moApiClient = deps["MoApiClient"];
-        }
+        this._positionsViews = diC.get(PositionsViews);
+        this._finderDataProvider = diC.get(DictsFinderDataProvider);
+        this._moApiClient = diC.get("MoApiClient");
 
         this._finderDataProvider.init("serachPositions", true, EDictionaries.CompanyPositions);
         this.filterFieldSetting.fields.position.finderDataProvider = this._finderDataProvider;
@@ -64,8 +57,8 @@ export class PositionListTemplate extends ListTemplate<TPositionFilterVals> {
     //Указание компонента формы редакции модели
     modelEditDialog = PositionProfileDialog;
 
-   //колонка, значения из которой будут отображаться в списке выбранных
-    titleColName="title_text";
+    //колонка, значения из которой будут отображаться в списке выбранных
+    titleColName = "title_text";
 
     //Настрока таблицы
     dataTableDescr = ref<IDataTableDescription>({
@@ -148,13 +141,13 @@ export class PositionListTemplate extends ListTemplate<TPositionFilterVals> {
     //Конвертация данных из формата апи в формат для таблицы
     convertRow = async (rawData) => {
         let dictstore = this._moApiClient.getDictionaryStore();
-        const  positionDictVal=await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) || "";
-    
+        const positionDictVal = await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rawData.position) || "";
+
         return {
             id: rawData.id,
             fio: (rawData.employeeSurname || "") + " " + (rawData.employeeName || "") + " " + (rawData.employeePatronymic || ""),
             position: positionDictVal,
-            title_text:  `${Utils.makeInitialsStr(rawData.employeeSurname, rawData.employeeName, rawData.employeePatronymic)} ${positionDictVal}`
+            title_text: `${Utils.makeInitialsStr(rawData.employeeSurname, rawData.employeeName, rawData.employeePatronymic)} ${positionDictVal}`
         }
     };
 
@@ -172,7 +165,7 @@ export class PositionListTemplate extends ListTemplate<TPositionFilterVals> {
                 let dictstore = this._moApiClient.getDictionaryStore();
                 let rec = await this._recStore.fetch(PositionRecord, key);
                 row.position = await dictstore.getDictionary(EDictionaries.CompanyPositions).tryGetValByCode(rec.Data!.position) || ""
-                row.title_text=await rec.getTitleText();
+                row.title_text = await rec.getTitleText();
             }
         })();
 

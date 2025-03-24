@@ -8,6 +8,13 @@ import type { IFullRecordId, IFullRecordIdT } from "../ApiInterfaces";
 import { Exception } from "../../Exceptions";
 
 
+export const enum ERecLockArg {
+    None,
+    Try,
+    Need
+}
+
+
 @injectable()
 export class RecordsStore {
 
@@ -42,7 +49,7 @@ export class RecordsStore {
 
         const rec = this._store[type.name][Key];
 
-        if (!rec || rec.IsInvalid) {
+        if (!rec) {
             var newrec = this._diC.get(type);
             newrec.init(this, type, Key);
             this._store[type.name][Key] = newrec;
@@ -52,11 +59,19 @@ export class RecordsStore {
     }
 
 
+
     /**Получение записи с загрузкой основных данных. Если данные не удалось загрузить - исключение */
-    async fetch<T extends ApiRecord>(type: Class<T>, Key: string) {
+    async fetch<T extends ApiRecord>(type: Class<T>, Key: string, lockRecord = ERecLockArg.None, forceUpdate = false) {
         const rec = this.get<ApiRecord>(type, Key);
-        if (!rec.Data)
+        const isLockedOld = rec.isLocked;
+
+        if (lockRecord != ERecLockArg.None) {
+            if (! await rec.lock() && lockRecord == ERecLockArg.Need)
+                Exception.throw("RecNotLocked", `Не удалось получить блокировку записи`);
+        }
+        if (!rec.Data || rec.IsInvalid || isLockedOld != rec.isLocked || forceUpdate) {
             await rec.loadAllData();
+        }
         return <T>rec;
     }
 

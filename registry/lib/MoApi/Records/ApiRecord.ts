@@ -97,6 +97,12 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
     this._isInvalid = value;
   }
 
+  protected _isLocked: boolean = false;
+  public get isLocked() {
+    return this._isLocked;
+  }
+
+  protected _pingLockInterval: any = null;
 
   protected _childsData: { [code: number]: IRelData[] } = {};
   protected _parentsData: { [code: number]: IRelData[] } = {};
@@ -218,6 +224,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
     await this._loadData();
     this._isNewData = false;
     this.IsInvalid = false;
+    this._ModifiedData = null;
   }
 
 
@@ -413,13 +420,38 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
 
 
   async lock() {
-    return await this._MoApiClient.send<any, boolean>("/Records/LockRecord", { key: this.Key, code: this.RecCode });
+    if (this._isLocked)
+      return true;
+
+    this._isLocked = await this._MoApiClient.send<any, boolean>("/Records/LockRecord", { key: this.Key, code: this.RecCode });
+    if (this._isLocked) {
+      this._pingLockInterval = setInterval(async () => {
+        this._isLocked = await this._MoApiClient.send<any, boolean>("/Records/LockRecord", { key: this.Key, code: this.RecCode });
+      }, 150 * 1000)
+      return this._isLocked;
+    }
   }
 
 
 
+  /**Разблокировка записи.
+   * true-запись разблокирована или не была заблокирована этим пользователем. 
+   * false- запись остается заблокированной-вероятно блокировка была наложена другим пользователем
+   */
   async unlock() {
-    return await this._MoApiClient.send<any, boolean>("/Records/UnlockRecord", { key: this.Key, code: this.RecCode });
+    if (this._pingLockInterval) {
+      clearInterval(this._pingLockInterval);
+      this._pingLockInterval = null;
+    }
+
+    if (!this._isLocked)
+      return true;
+
+    if (await this._MoApiClient.send<any, boolean>("/Records/UnlockRecord", { key: this.Key, code: this.RecCode })) {
+      this._isLocked = false;
+      return true;
+    }
+    return false;
   }
 }
 

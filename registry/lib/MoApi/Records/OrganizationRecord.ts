@@ -33,8 +33,9 @@ export class OrganizationRecordData extends ApiRecordChData {
 export class OrganizationRecord extends ApiRecord<OrganizationRecordData> {
 
     static override RightToken = "dbOrganization";
-    static override RecCode = 1043;
-    static override BatchGetRecDataPath = "";
+    static override RecCode = 1018;
+    static override BatchGetRecDataPath = "/Organizations/GetOrganizations";
+    static override RecordsFindPath = "/Organizations/FindOrganizations";
 
 
     get RecCode() { return OrganizationRecord.RecCode; }
@@ -45,15 +46,15 @@ export class OrganizationRecord extends ApiRecord<OrganizationRecordData> {
     }
 
 
-    protected _getApiRecordPathGet = () => { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" };
+    protected _getApiRecordPathGet = () => "/Organizations/GetOrganizations";
 
 
-    protected _getApiRecordPathAdd = () => { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" }
+    protected _getApiRecordPathAdd = () => "/Organizations/AddOrganization";
 
 
-    protected _getApiRecordPathUpdate = () => { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" }
+    protected _getApiRecordPathUpdate = () => "/Organizations/UpdateOrganization";
 
 
-    protected _getApiRecordPathDelete = () => { Exception.throw("MethodNotImplemented", "Функция не реализована"); return "" }
+    protected _getApiRecordPathDelete = () => "/Organizations/DeleteOrganization";
 
 }

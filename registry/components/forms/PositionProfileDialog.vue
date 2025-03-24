@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
-import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { UserContext } from '~/lib/UserContext';
 import { useI18n } from "vue-i18n"
 import * as vHelpers from '~~/libVis/Helpers';
@@ -34,19 +34,21 @@ import { QueryDictsFFParams } from '~/lib/MoApi/RequestArgs';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';
 import { EmployeeRecord } from '~/lib/MoApi/Records/EmployeeRecord';
+import type { Container } from 'inversify';
 
 
 const { t, locale } = useI18n();
 
 
 interface IProps {
-  recKey: string | null,
-  readonly?: boolean
+  diC?: Container,
+  recKey: string | null;
+  readonly?: boolean;
 }
 
 const props = defineProps<IProps>();
 
-const diC = useSessionContainer();
+const diC = props.diC || useSessionContainer();
 const recStore = diC.get<RecordsStore>("RecordsStore");
 
 let rec = ref<PositionRecord>();
@@ -54,11 +56,9 @@ let emplRec = ref<EmployeeRecord>();
 
 
 if (props.recKey) {
-  let recs = await recStore.getRecordsM([
-    { id: { key: props.recKey, type: PositionRecord } }
-  ]);
 
-  rec.value = recs[0] as PositionRecord;
+  rec.value = await recStore.fetch(PositionRecord, props.recKey, ERecLockArg.Try, true);
+
   if (rec.value.Data!.employee)
     emplRec.value = await recStore.fetch(EmployeeRecord, rec.value.Data!.employee);
 }
@@ -66,9 +66,7 @@ else {
   rec.value = await recStore.createNew(PositionRecord, (data) => { });
 }
 
-
-
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
+const { readonly, close } = await useEditForm(rec, props.readonly);
 
 
 

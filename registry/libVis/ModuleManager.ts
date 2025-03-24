@@ -64,6 +64,8 @@ export class ModuleManager {
             "dbDealOrder": { rights: "r", item: { id: "deal_orders", title: "Заказы", getPagePath: () => "/list/deal_orders", icon: "mdi-handshake-outline" } },
             "dbDeal": { rights: "r", item: { id: "deals", title: "Сделки", getPagePath: () => "/list/deals", icon: "mdi-handshake-outline" } },
             "dbScheduleItemGroup": { rights: "r", item: { id: "schedule_item_group", title: "Разделы расписания", getPagePath: () => "/list/schedule_item_group", icon: "mdi-book-clock-outline" } },
+            "dbCompanyOrganization": { rights: "r", item: { id: "company_organizations", title: "Организации компании", getPagePath: () => "/list/company_organizations", icon: "mdi-handshake-outline" } },
+           
         }
 
         for (const key in menuList) {

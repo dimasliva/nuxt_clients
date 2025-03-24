@@ -27,6 +27,7 @@ export interface IListTemplateProps extends IRenderedTemplateComponentProps {
 
 export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComponent {
 
+    protected _diC: Container = null!;
     protected _recStore: RecordsStore = null!;
 
     props: IListTemplateProps = {};
@@ -50,17 +51,14 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     abstract getApiData(queryParams: QueryParams): Promise<DataList>;
 
 
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
+    constructor(diC?: Container, opts?: IListTemplateProps | null) {
+
+        this._diC = diC || useSessionContainer();
+
         if (!t) t = useNuxtApp().$i18n.t;
-        if (deps instanceof Container) {
-            this._recStore = deps.get("RecordsStore");
-        }
-        else {
-            this._recStore = deps["RecordsStore"];
-        }
+        this._recStore = this._diC.get("RecordsStore");
 
         this.props = opts || {};
-
         this.dataTableVars.value.selectStrategy = this.props.selectStrategy;
         this.dataTableVars.value.selected = this.props.choosedValues || [];
     }
@@ -214,6 +212,8 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     }
 
 
+    getAdvRequestFields(selColumns?: string[]) { return [] as string[]; }
+
 
     getRequestFilterFields(tableHeaders: any[], selColumns?: string[]) {
         let res: any[] = [];
@@ -223,6 +223,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
                     if (item.requestNames)
                         res = res.concat(item.requestNames);
         });
+        res = res.concat(this.getAdvRequestFields(selColumns));
         return res;
     }
 
@@ -284,7 +285,7 @@ export abstract class ListTemplate<TFilterVals> implements IRenderedTemplateComp
     async edit(key, index?) {
         openDialog(
             this.modelEditDialog,
-            { recKey: key, readonly: this.props?.selectMode },
+            { diC: this._diC, recKey: key, readonly: this.props?.selectMode },
             true,
             true,
             (e, d) => (e == "onBeforeClose") ? d ? this.onUpdateModel(d, index) : true : true)

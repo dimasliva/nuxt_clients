@@ -17,6 +17,8 @@ import { useCurrency } from '~/componentComposables/useCurrency';
 import { DealOrderSdRecord } from '~/lib/MoApi/Records/DealOrderSdRecord';
 import type { IFullRecordIdT } from '~/lib/MoApi/ApiInterfaces';
 import type { ApiRecord } from '~/lib/MoApi/Records/ApiRecord';
+import { CompanyOrganizationRecord } from '~/lib/MoApi/Records/CompanyOrganizationRecord';
+import { ContractRecord } from '~/lib/MoApi/Records/ContractRecord';
 
 let t: any;
 
@@ -37,20 +39,12 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
     protected _moApiClient: MoApiClient = null!;
 
 
-    constructor(deps: Container | Object, opts?: IListTemplateProps | null) {
-        super(deps, opts);
+    constructor(diC: Container, opts?: IListTemplateProps | null) {
+        super(diC, opts);
 
-        if (deps instanceof Container) {
-            this._dealOrderViews = deps.get(DealOrderViews);
-
-            this._clientFinderDataProvider = deps.get(ClientFinderDataProvider);
-            this._moApiClient = deps.get("MoApiClient");
-        }
-        else {
-            this._dealOrderViews = deps["DealOrderViews"];
-            this._clientFinderDataProvider = deps["ClientFinderDataProvider"];
-            this._moApiClient = deps["MoApiClient"];
-        }
+        this._dealOrderViews = diC.get(DealOrderViews);
+        this._clientFinderDataProvider = diC.get(ClientFinderDataProvider);
+        this._moApiClient = diC.get("MoApiClient");
 
         this._clientFinderDataProvider.init("serachClients", true);
         this.filterFieldSetting.fields.clients.finderDataProvider = this._clientFinderDataProvider;
@@ -72,12 +66,13 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
         headers: [
             {
                 key: 'id', title: 'Идентификатор', align: 'center', alignData: "start", width: "300", sortable: true,
-                requestNames: ["id"], traits: { "dbDealOrder": "r" }
+                requestNames: undefined, traits: { "dbDealOrder": "r" }
             },
             {
                 key: 'date', title: 'Дата', align: 'center', alignData: "start", width: "100", sortable: true,
                 requestNames: ["date"], traits: { "dbDealOrder": "r" }
             },
+
             {
                 key: 'organizationShortTitle', title: 'Организация', align: 'center', alignData: "start", width: "300", sortable: true,
                 requestNames: ["organizationShortTitle"], traits: { "DbCompanyOrganization": "r" }
@@ -159,6 +154,16 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
         defaultFocus: "id"
     };
 
+
+
+    override getAdvRequestFields(selColumns?: string[]) {
+        if (selColumns?.includes("contract"))
+            return ["contractDate", "contractPayer", "contractNumber"];
+        else
+            return [];
+    }
+
+
     //Получение строки поиска из данных, введенных в форме фильтра
     getWhereFromFilter = (filterVals: TDealOrderFilterVals) => {
         let whereArr: string[] = [];
@@ -188,6 +193,7 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
 
     //Конвертация данных из формата апи в формат для таблицы
     convertRow = async (rawData: IDealOrderListView) => {
+        debugger
         const { currencyM2V } = useCurrency();
         return {
             id: rawData.id,
@@ -205,6 +211,7 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
     onUpdateModel(key, index?) {
 
         (async () => {
+            debugger
             var row;
             if (index != null)
                 row = this.dataTableVars.value.rows[index]
@@ -219,11 +226,11 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
                     { key: rec.Data!.organization, type: CompanyOrganizationRecord }
                 ];
 
-                if(rec.Data!.contract) {
+                if (rec.Data!.contract) {
                     advRecs.push({ key: rec.Data!.contract, type: ContractRecord });
                 }
 
-                let recs = await this._recStore.getRecordsM(advRecs.map(v => {return {id:v}}));
+                let recs = await this._recStore.getRecordsM(advRecs.map(v => { return { id: v } }));
 
                 const recOrg = recs[0] as CompanyOrganizationRecord;
                 const recContr = recs[1] as ContractRecord;

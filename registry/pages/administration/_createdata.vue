@@ -59,6 +59,18 @@
 
     <VRow class="align-center">
 
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="organizationLoading.size" variant="underlined" label="Организации"
+                hide-details="auto" />
+            <v-btn :loading="organizationLoading.loading" type="submit"
+                @click="createRecs(organizationLoading)">Создать</v-btn>
+        </VCol>
+
+        <VCol style="max-width: 150px;">
+            <v-text-field v-model="contractLoading.size" variant="underlined" label="Договоры" hide-details="auto" />
+            <v-btn :loading="contractLoading.loading" type="submit" @click="createRecs(contractLoading)">Создать</v-btn>
+        </VCol>
+
         <VBtn @click="openselect()">select</VBtn>
 
     </VRow>
@@ -106,6 +118,9 @@ import { AddDealOrderArgs, DealOrderRecord } from '~/lib/MoApi/Records/DealOrder
 import type { IPaymentParams } from '~/lib/MoApi/Records/Finance/IPaymentParams';
 import { ECashFlowInstrumentCodes, ECashFlowOperationTypes, ECashFlowTypes } from '~/lib/MoApi/Records/Finance/FinanceEnums';
 import { rand } from '@vueuse/core';
+import { ContractRecord, type ContractRecordData } from '~/lib/MoApi/Records/ContractRecord';
+import type { ApiRecord, ApiRecordClass } from '~/lib/MoApi/Records/ApiRecord';
+import { OrganizationRecord, OrganizationRecordData } from '~/lib/MoApi/Records/OrganizationRecord';
 
 const diC = useContainer();
 const recStore = diC.get(RecordsStore);
@@ -118,26 +133,26 @@ let scheduleItemGroupLoader = ref(false)
 
 
 const createRecs = async (recLoading: typeof emplLoading) => {
-
     const size = recLoading.size;
     const recCreateTask = recLoading.createTask;
-
     if (size != 0) {
         recLoading.loading = true;
         try {
             console.info(`${recLoading.recName} create started`);
             var itemsPertasks = Math.floor(size / 8);
             var promises: Promise<void>[] = [];
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
-            promises.push(recCreateTask(itemsPertasks));
+            if (itemsPertasks > 0) {
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
+                promises.push(recCreateTask(itemsPertasks));
 
-            await Promise.all(promises);
+                await Promise.all(promises);
+            }
             var cnt = size % 8;
             if (cnt)
                 await recCreateTask(cnt);
@@ -523,6 +538,7 @@ const positionDictCodes = [
 
 let clientIds: string[] = [];
 let productIds: string[] = [];
+const randomRecs: { [recType: number]: string[] } = {};
 
 const getRandomClients = async (count: number) => {
     if (clientIds.length == 0)
@@ -543,6 +559,22 @@ const getRandomProducts = async (count: number) => {
     const res: string[] = [];
     for (let i = 0; i < count; i++)
         res.push(productIds[~~(Math.random() * (productIds.length - 1))]);
+
+    return res;
+}
+
+
+const getRandomCustomRecords = async (type: ApiRecordClass, count: number) => {
+    const typeCode = type.RecCode;
+
+    if (!randomRecs[typeCode])
+        randomRecs[typeCode] = await recStore.findRecords(type, null);
+
+    const res: string[] = [];
+    const section = randomRecs[typeCode];
+
+    for (let i = 0; i < count; i++)
+        res.push(section[~~(Math.random() * (section.length - 1))]);
 
     return res;
 }
@@ -803,7 +835,7 @@ const orderCreateTask = async (size: number = 500) => {
             ndsRate: 2000,
             discountProc: 500
         }
-       
+
         var cnt = ~~(Math.random() * 4);
         while (cnt--)
             dealOrdrerArg.Clients.push(clients.getAt(~~(Math.random() * (clients.getLength() - 1)))!.id!);
@@ -831,7 +863,7 @@ const orderCreateTask = async (size: number = 500) => {
 
         let addInfo = await DealOrderRecord.AddDealOrderRecord(diC.get("MoApiClient"), dealOrdrerArg);
         var dealOrderRec = await recStore.fetch(DealOrderRecord, addInfo.id);
- 
+
         if (dealOrderRec.Data!.fullPrice! > 0 && Math.random() > 0.1) {
             const ppars: IPaymentParams = {
                 targetId: dealOrderRec.Key,
@@ -852,62 +884,108 @@ const orderCreateTask = async (size: number = 500) => {
 
 
 const contractCreateTask = async (size) => {
-  const PERIOD_DAYS = 31;
-  const begDate = new Date();
-  const endDate = Utils.addDaysToDate(begDate, PERIOD_DAYS);
+    const begDate = new Date();
+    // Load random clients and products
+    const clients = await getRandomClients(size);
+    const organizations = await getRandomCustomRecords(OrganizationRecord, 100);
+    for (let i = 0; i < size; i++) {
+        const client = clients[i];
+        const contractDate = Utils.addDaysToDate(begDate, ~~(Math.random() * 120));
 
-  // Load random clients and products
-  const clients = await getRandomClients(size);
-  const products = await diC.get(ProductViews).getProductsListView(new QueryParams("id", "notActive is not true and changedAt>'2024-01-01'"));
+        // Create a new contract record
+        const contractRec = await recStore.createNew<ContractRecord, ContractRecordData>(ContractRecord, d => {
+            d.client = client;
+            d.date = Utils.getUtcDateStr(contractDate);
+            d.beginDate = Utils.getUtcDateStr(Utils.addDaysToDate(contractDate, ~~(Math.random() * 120)));
+            d.endDate = Utils.getUtcDateStr(Utils.addDaysToDate(d.beginDate, ~~(Math.random() * 365 * 3)));
+        });
 
-  for (let i = 0; i < size; i++) {
-    const client = clients[i];
-    const product = products.getAt(~~(Math.random() * (products.getLength() - 1)))!.id!;
+        //payer
+        if (Math.random() > 0.8)
+            contractRec.MData!.payerOrganization = organizations[~~(Math.random() * (organizations.length - 1))];
+        else
+            if (Math.random() > 0.8)
+                contractRec.MData!.payerClient = clients[~~(Math.random() * (clients.length - 1))];
+            else
+                contractRec.MData!.payerClient = client;
 
-    // Create a new contract record
-    const contractRec = await recStore.createNew<ContractRecord, ContractRecordData>(ContractRecord, d => {
-      d.client = client;
-      d.product = product;
-      d.startDate = Utils.getLocalISODateTimeWoTz(begDate);
-      d.endDate = Utils.getLocalISODateTimeWoTz(endDate);
-      d.status = ContractStatuses.ACTIVE;
-    });
+        contractRec.MData!.number = "T0";
+        contractRec.MData!.companyOrganization = "1";
+        contractRec.MData!.priceType = 1;
 
-    // Additional contract setup logic can be added here
-  }
+        await contractRec.save();
+    }
+}
+
+
+const organizationCreateTask = async (size) => {
+    const PERIOD_DAYS = 31;
+    const begDate = new Date();
+    const endDate = Utils.addDaysToDate(begDate, PERIOD_DAYS);
+
+    for (let i = 0; i < size; i++) {
+        const organizationDate = Utils.addDaysToDate(begDate, ~~(Math.random() * 120));
+
+        // Create a new organization record
+        const organizationRec = await recStore.createNew<OrganizationRecord, OrganizationRecordData>(OrganizationRecord, d => {
+            d.title = generateOrganizationName();
+            d.fullTitle = d.title;
+            d.type = 1;
+        });
+
+        await organizationRec.save();
+    }
+}
+
+
+
+function generateOrganizationName(): string {
+    // Списки основ и суффиксов для названий организаций
+    const bases = [
+        "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel",
+        "India", "Juliett", "Kilo", "Lima", "Mike", "November", "Oscar", "Papa",
+        "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "X-ray", "Yankee", "Zulu",
+        "Star", "Galaxy", "Cosmos", "Nova", "Aurora", "Phoenix", "Titan", "Vortex", "Zenith", "Apex"
+    ];
+
+    const suffixes = [
+        "Corp", "Inc", "LLC", "Ltd", "Group", "Co", "Solutions", "Technologies", "Systems",
+        "Services", "Enterprises", "Innovations", "Ventures", "Associates", "Partners", "Alliance",
+        "Network", "Foundation", "Institute", "Federation", "Union", "Council", "Board", "Committee",
+        "Global", "International", "World", "Universal", "Multinational", "Enterprise", "Digital",
+        "NextGen", "Future", "Vision", "Infinite", "Evolutions", "Horizon", "Pioneers", "Leaders", "Frontiers"
+    ];
+
+    // Выбор случайного основа и суффикса
+    const base = bases[Math.floor(Math.random() * bases.length)];
+    const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+
+    // Генерация случайного номера от 1 до 1000
+    const randomNumber = Math.floor(Math.random() * 1000) + 1;
+
+    // Создание названия организации с случайным номером
+    const organizationName = `${base} ${suffix} ${randomNumber}`;
+
+    return organizationName;
 }
 
 
 
 const openselect = async () => {
-    let a = 123456789.78;
-    let b = 0.01;
-    let s = (a + b).toString();
-    let acc = 0;
-
-    for (let i = 0; i < 1000; i++) {
-        acc += b;
-    }
-    s = acc.toString();
-
-    debugger;
-    /*
     const prov = diC.get(ProductFinderDataProvider);
     prov.init("ghhs", true);
     const res = await prov.find();
-    */
 
-    /*
-    const position = new PositionList(diC, {selectStrategy:"single"});
-    
+    const position = new PositionListTemplate(diC, { selectStrategy: "single" });
+
     const tmpl = new SelectFormTemplate(diC, { title: "ss", componentTemplate: position });
     const MyComponent = defineComponent({
-        setup: (p,c)=>tmpl.setup(p,c),
+        setup: (p, c) => tmpl.setup(p, c),
         render: tmpl.render(),
         inheritAttrs: true
     })
-    openDialog(MyComponent, { title: "ss", componentTemplate: position, width: "100%", height:"100%" }, true, true, (e, d) => (e == "onBeforeClose") ? true : true)
-    */
+    openDialog(MyComponent, { title: "ss", componentTemplate: position, width: "100%", height: "100%" }, true, true, (e, d) => (e == "onBeforeClose") ? true : true)
+
 }
 
 
@@ -918,5 +996,6 @@ const bookingLoading = reactive({ size: 0, loading: false, recName: "booking gro
 const scheduleGroupLoading = reactive({ size: 1, loading: false, recName: "schedule groups", createTask: scheduleCreateTask });
 const orderLoading = reactive({ size: 0, loading: false, recName: "orders", createTask: orderCreateTask });
 const contractLoading = reactive({ size: 0, loading: false, recName: "contracts", createTask: contractCreateTask });
+const organizationLoading = reactive({ size: 0, loading: false, recName: "organizations", createTask: organizationCreateTask });
 
 </script>

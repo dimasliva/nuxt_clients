@@ -26,7 +26,7 @@
 import { ref, reactive } from 'vue';
 import { useI18n } from "vue-i18n";
 import { Container } from 'inversify';
-import { RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { ScheduleItemGroupRecord } from '~/lib/MoApi/Records/ScheduleItemGroupRecord';
 import { useEditForm } from '~/componentComposables/editForms/useEditForm';
 import InputField from '~/components/InputField.vue';
@@ -58,12 +58,12 @@ defineExpose({ eventsHandler });
 let rec = ref<ScheduleItemGroupRecord>();
 
 if (props.recKey) {
-  rec.value = await recStore.fetch(ScheduleItemGroupRecord, props.recKey);
+  rec.value = await recStore.fetch(ScheduleItemGroupRecord, props.recKey, ERecLockArg.Try, true);
 } else {
   rec.value = await recStore.createNew(ScheduleItemGroupRecord, (data) => { });
 }
 
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
+const { readonly, close } = await useEditForm(rec, props.readonly);
 
 
 const save = async () => {

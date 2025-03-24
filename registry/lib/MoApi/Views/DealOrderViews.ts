@@ -18,6 +18,9 @@ export interface IDealOrderListView {
     clientsText: string | null | undefined;
     comments: string | null | undefined;
     organizationShortTitle: string | null | undefined;
+    contractNumber: string | null | undefined;
+    contractDate: string | null | undefined;
+    contractPayer: string | null | undefined;
 }
 
 

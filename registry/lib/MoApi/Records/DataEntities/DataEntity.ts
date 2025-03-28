@@ -89,7 +89,7 @@ export abstract class DataEntity {
 
 export abstract class DataEntityA extends DataEntity {
 
-    getJsonObj() {
+    override getJsonObj() {
         let obj: any = {}
         for (let item in this)
             if (item.charAt(0) == '_' && !item.startsWith("__") && typeof item != "function") {
@@ -108,7 +108,7 @@ export abstract class DataEntityA extends DataEntity {
     }
 
 
-    fromJsonObj(jsonObj: any) {
+    override fromJsonObj(jsonObj: any) {
         for (let item in jsonObj) {
             let propName = "_" + item;
             if (typeof jsonObj[item] != "object")

@@ -12,7 +12,7 @@ import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDataType } from '~/lib/globalTypes';
 import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
 import { ClientFinderDataProvider } from '~/libVis/FinderDataProviders/ClientFinderDataProvider';
-import DealOrderProfileDialog from '~/components/forms/DealOrderProfileDialog.vue';
+import DealOrderProfileDialog from '~/forms/DealOrderProfileDialog.vue';
 import { useCurrency } from '~/componentComposables/useCurrency';
 import { DealOrderSdRecord } from '~/lib/MoApi/Records/DealOrderSdRecord';
 import type { IFullRecordIdT } from '~/lib/MoApi/ApiInterfaces';

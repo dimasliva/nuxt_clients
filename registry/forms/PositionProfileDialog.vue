@@ -66,7 +66,7 @@ else {
   rec.value = await recStore.createNew(PositionRecord, (data) => { });
 }
 
-const { readonly, close } = await useEditForm(rec, props.readonly);
+const { readonly, close, isChangesSaved } = await useEditForm(rec, props.readonly);
 
 
 
@@ -77,6 +77,8 @@ const save = async () => {
   }
   else
     await rec.value!.save();
+
+  isChangesSaved.value = true;
 }
 
 

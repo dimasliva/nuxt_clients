@@ -7,8 +7,8 @@ import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import * as Utils from '~/lib/Utils';
 import { ClientRecord } from "~/lib/MoApi/Records/ClientRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
-import FinderForm from '~/components/forms/FinderForm.vue';
-import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+import FinderForm from '~/forms/FinderForm.vue';
+import FinderFormMultiple from '~/forms/FinderFormMultiple.vue';
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 import { ClientList } from "~/componentTemplates/listTemplates/clientListTemplate";
 

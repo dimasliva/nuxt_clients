@@ -34,7 +34,7 @@ import { UserContext } from '~~/lib/UserContext';
 import { RecordsStore } from '~~/lib/MoApi/Records/RecordsStore';
 import { EmployeeRecord } from '~~/lib/MoApi/Records/EmployeeRecord';
 import { RolesRecord } from '~~/lib/MoApi/Records/RolesRecord';
-import RoleCreatorDialog from '~~/components/forms/RoleCreatorDialog.vue';
+import RoleCreatorDialog from '~/forms/RoleCreatorDialog.vue';
 import { MoApiClient } from '~~/lib/MoApi/MoApiClient';
 
 const searchAction = () => {

@@ -4,7 +4,7 @@ import type { MoApiClient } from "../MoApiClient";
 import { ApiRecord, ApiRecordChData } from "./ApiRecord";
 import type { RecordsStore } from "./RecordsStore";
 import { Exception } from "~/lib/Exceptions";
-import { DealProductRecord } from "./DealProduct";
+import { DealProductRecord } from "./DealProductRecord";
 
 
 
@@ -35,6 +35,7 @@ export class DealRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class DealRecord extends ApiRecord<DealRecordData> {
 
     static override RightToken = "dbDeal";

@@ -30,7 +30,7 @@
 <script setup lang="ts">
 
 import * as vHelpers from '~~/libVis/Helpers';
-import WindowDialog from "~/components/forms/WindowDialog.vue"
+import WindowDialog from "~/forms/WindowDialog.vue"
 
 
 defineOptions({

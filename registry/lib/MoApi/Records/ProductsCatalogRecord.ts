@@ -15,10 +15,11 @@ export class ProductsCatalogRecordData extends ApiRecordChData {
 }
 
 @injectable()
+
 export class ProductsCatalogRecord extends ApiRecord<ProductsCatalogRecordData> {
-  static RightToken = "dbProductsCatalog";
-  static RecCode = 1022;
-  static BatchGetRecDataPath="/Products/GetProductsCatalogs";
+  static override RightToken = "dbProductsCatalog";
+  static override RecCode = 1022;
+  static override BatchGetRecDataPath="/Products/GetProductsCatalogs";
 
 
   get RecCode() {

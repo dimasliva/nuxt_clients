@@ -1,5 +1,5 @@
 
-import WindowDialog from "~/components/forms/WindowDialog.vue"
+import WindowDialog from "~/forms/WindowDialog.vue"
 import { FinderFormMultipleTemplate, type IFinderFormMultipleProps } from "./finderFormMultipleTemplate";
 import * as Utils from '~~/lib/Utils';
 

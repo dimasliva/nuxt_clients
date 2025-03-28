@@ -7,6 +7,7 @@ import { injectable, inject } from "inversify";
 import type { RecordsStore } from "../RecordsStore";
 
 @injectable()
+
 export default class PersonalDocumentEntity extends DataEntity {
 
     typeCode?: number | null = 1;          //dict PersonalDocumentTypes

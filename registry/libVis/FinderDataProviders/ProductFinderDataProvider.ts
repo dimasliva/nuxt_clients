@@ -8,8 +8,8 @@ import type { RecordsStore } from "~/lib/MoApi/Records/RecordsStore";
 import { ProductViews } from "~/lib/MoApi/Views/ProductViews";
 import { ProductRecord } from "~/lib/MoApi/Records/ProductRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
-import FinderForm from "~/components/forms/FinderForm.vue";
-import FinderSelectForm from "~/components/forms/FinderFormSelect.vue";
+import FinderForm from "~/forms/FinderForm.vue";
+import FinderSelectForm from "~/forms/FinderFormSelect.vue";
 import { ProductNavigatorTemplate } from "~/componentTemplates/navigatorTemplates/productNavigatorTemplate";
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 

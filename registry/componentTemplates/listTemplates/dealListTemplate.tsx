@@ -18,7 +18,7 @@ import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvid
 import { PositionFinderDataProvider } from '~/libVis/FinderDataProviders/PositionFinderDataProvider';
 import { ClientFinderDataProvider } from '~/libVis/FinderDataProviders/ClientFinderDataProvider';
 import { ProductFinderDataProvider } from '~/libVis/FinderDataProviders/ProductFinderDataProvider';
-import DealProfileDialog from '~/components/forms/DealProfileDialog.vue';
+import DealProfileDialog from '~/forms/DealProfileDialog.vue';
 
 
 let t: any;

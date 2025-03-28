@@ -30,6 +30,7 @@ export class OrganizationRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class OrganizationRecord extends ApiRecord<OrganizationRecordData> {
 
     static override RightToken = "dbOrganization";

@@ -30,6 +30,7 @@ export class ScheduleItemData extends ApiRecordChData {
 
 
 @injectable()
+
 export class ScheduleItemRecord extends ApiRecord<ScheduleItemData> {
   static override RightToken = "dbScheduleItem";
   static override RecCode = 1026;

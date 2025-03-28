@@ -31,6 +31,7 @@ export class ProductRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class ProductRecord extends ApiRecord<ProductRecordData> {
   static override RightToken = "dbProduct";
   static override RecCode = 1024;

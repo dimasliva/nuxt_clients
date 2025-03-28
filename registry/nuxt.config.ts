@@ -4,12 +4,11 @@ import { defineNuxtConfig } from "nuxt/config";
 import type { Nitro } from "nitropack";
 import { createResolver } from "@nuxt/kit";
 import vuetify from "vite-plugin-vuetify";
+import { mainApiServer, mainApiServerPort } from "./nuxt.config.local";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; //разрешение для nodejs принимать самоподписанные сертификаты https
 process.env.DEBUG = "1";
 
-const mainApiServer = "172.16.121.60";
-const mainApiServerPort = 7132;
 const { resolve } = createResolver(import.meta.url);
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
@@ -31,6 +30,12 @@ export default defineNuxtConfig({
     transpile: ["vuetify", "@vuepic/vue-datepicker", "vue-sonner"],
   },
 
+  /* for nuxt 3.16
+    experimental: {
+      decorators: true
+    },
+    */
+
   vite: {
     define: {
       "process.env.DEBUG": false,
@@ -38,6 +43,7 @@ export default defineNuxtConfig({
 
 
     vueJsx: {
+      
       babelPlugins:
 
         [
@@ -48,7 +54,6 @@ export default defineNuxtConfig({
         ]
 
     },
-
 
 
     //for nuxt 3.7
@@ -62,7 +67,6 @@ export default defineNuxtConfig({
   },
 
   ssr: false,
-
 
   typescript: {
     typeCheck: false,
@@ -81,27 +85,27 @@ export default defineNuxtConfig({
     },
   },
 
-
   modules: ["@vueuse/nuxt", "@nuxtjs/i18n"],
 
+  //compatibilityDate: "2024-07-22",
   nitro: {
     routeRules: {
       "/swagger/**": {
-       proxy: `https://${mainApiServer}:${mainApiServerPort}/swagger/**`,
+        proxy: `https://${mainApiServer}:${mainApiServerPort}/swagger/**`,
 
 
-     },
-     
-    "/api/v1/RegisterCompany/**": {
-       proxy: `https://${mainApiServer}:${mainApiServerPort}/api/v1/RegisterCompany/**`,
-     },
+      },
 
-    
-     "/api/v1/**": {
-       proxy: `https://${mainApiServer}:${mainApiServerPort}/api/v1/**`,
-     },
+      "/api/v1/RegisterCompany/**": {
+        proxy: `https://${mainApiServer}:${mainApiServerPort}/api/v1/RegisterCompany/**`,
+      },
 
-   },
+
+      "/api/v1/**": {
+        proxy: `https://${mainApiServer}:${mainApiServerPort}/api/v1/**`,
+      },
+
+    },
 
     esbuild: {
       options: {
@@ -114,5 +118,5 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: "2024-07-22",
+  compatibilityDate: "2025-03-28",
 });

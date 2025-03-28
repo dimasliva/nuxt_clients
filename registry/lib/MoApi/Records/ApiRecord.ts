@@ -109,6 +109,7 @@ export abstract class ApiRecord<T extends ApiRecordChData = ApiRecordChData> {
   protected _couplingsData: { [code: number]: ICouplingData[] } = {};
   protected _RecStore: RecordsStore = null!;
 
+
   constructor(
     @inject("MoApiClient") protected _MoApiClient: MoApiClient,
     @inject("UserContext") protected _UserContext: UserContext,

@@ -1,5 +1,5 @@
 
-import WindowDialog from "~/components/forms/WindowDialog.vue"
+import WindowDialog from "~/forms/WindowDialog.vue"
 import { FinderFormTemplate, type IFinderFormProps } from "./finderFormTemplate";
 import * as Utils from '~~/lib/Utils';
 import type { Container } from "inversify";

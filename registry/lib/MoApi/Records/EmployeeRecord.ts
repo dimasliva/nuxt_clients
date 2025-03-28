@@ -31,6 +31,7 @@ export enum EEmployeeAccountStatus {
 
 
 @injectable()
+
 export class EmployeeRecord extends ApiRecord<EmployeeRecordData>{
 
     static override RightToken = "dbEmployee";

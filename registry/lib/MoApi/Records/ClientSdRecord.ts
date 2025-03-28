@@ -19,6 +19,7 @@ export class ClientSdRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class ClientSdRecord extends ApiRecord<ClientSdRecordData>{
 
     static override RightToken = "dbClientSd";

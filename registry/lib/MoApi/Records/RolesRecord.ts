@@ -18,8 +18,8 @@ export class RoleRecordData extends ApiRecordChData {
 @injectable()
 export class RolesRecord extends ApiRecord<RoleRecordData>{
 
-    static RightToken = "DbRoles";
-    static RecCode = 1008;
+    static override RightToken = "DbRoles";
+    static override RecCode = 1008;
 
 
     protected _createNewData() {
@@ -30,7 +30,7 @@ export class RolesRecord extends ApiRecord<RoleRecordData>{
     get RecCode() { return RolesRecord.RecCode; }
 
 
-    protected async _loadData() {
+    protected override async _loadData() {
         const arr = await this._MoApiClient.send<string[], any>(this._getApiRecordPathGet());
         this._Data = new Proxy(<RoleRecordData>this._createDataFromLoaded(arr), this._getProxyHanlders());
         this.Key = this._Data.id!;

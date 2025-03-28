@@ -20,6 +20,7 @@ export class PositionRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class PositionRecord extends ApiRecord<PositionRecordData> {
 
     static override RightToken = "dbPosition";

@@ -8,8 +8,8 @@ import { EDictionaries } from "~/lib/Dicts/DictionaryStore";
 import type { Dictionary } from "~/lib/Dicts/Dictionary";
 import * as Utils from '~/lib/Utils';
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
-import FinderForm from '~/components/forms/FinderForm.vue';
-import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+import FinderForm from '~/forms/FinderForm.vue';
+import FinderFormMultiple from '~/forms/FinderFormMultiple.vue';
 import { PositionListTemplate } from "~/componentTemplates/listTemplates/positionListTemplate";
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 

@@ -6,6 +6,7 @@ import type { RecordsStore } from "./RecordsStore";
 
 
 @injectable()
+
 export class ClientRecordData extends ApiRecordChData {
     name: string = "";
     surname: string = "";
@@ -18,6 +19,7 @@ export class ClientRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class ClientRecord extends ApiRecord<ClientRecordData>{
 
     static override RightToken = "dbClient";

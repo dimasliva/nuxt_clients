@@ -1,6 +1,6 @@
 
 import { UserContext } from "~/lib/UserContext";
-import WindowDialog from "~/components/forms/WindowDialog.vue"
+import WindowDialog from "~/forms/WindowDialog.vue"
 import { sleep } from "~/lib/Helpers";
 import { FreqUsingStrStatistic } from "~/libVis/FreqUsingStrStatistic";
 import type { FinderDataProvider, TDictViewVal } from "~/libVis/FinderDataProviders/FinderDataProvider";

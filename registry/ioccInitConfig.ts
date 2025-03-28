@@ -12,7 +12,6 @@ import { PageMemoryCacheStore } from "./lib/Cache/PageMemoryCacheStore";
 
 export default (container: Container) => {
     if (!container.isBound("UserContext")) {
-        container.options.autoBindInjectable = true;
         const AppConfig = useAppConfig();
         let moApiClientSettings = new MoApiClientSettings();
 

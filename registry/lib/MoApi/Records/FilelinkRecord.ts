@@ -27,6 +27,7 @@ export class FilelinkRecordData extends ApiRecordChData {
 }
 
 @injectable()
+
 export class FilelinkRecord extends ApiRecord<FilelinkRecordData>{
 
     static override RightToken = "dbFilelink";

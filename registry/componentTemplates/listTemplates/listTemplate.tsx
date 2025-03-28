@@ -7,7 +7,7 @@ import { type IFrameHeaderData, PageMap } from "~/lib/PageMap";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
 import { DataList } from "~/lib/DataList";
-import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
+import SimpleFilterForm from "~/forms/SimpleFilterForm";
 import DataTable from "~/components/DataTable.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";

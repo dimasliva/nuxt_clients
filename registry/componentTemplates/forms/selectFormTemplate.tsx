@@ -1,5 +1,5 @@
 
-import WindowDialog from "~/components/forms/WindowDialog.vue"
+import WindowDialog from "~/forms/WindowDialog.vue"
 import * as Utils from '~~/lib/Utils';
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";
 import type { Container } from "inversify";

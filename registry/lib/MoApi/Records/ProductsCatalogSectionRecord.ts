@@ -21,6 +21,7 @@ export class ProductsCatalogSectionRecordData extends ApiRecordChData {
 }
 
 @injectable()
+
 export class ProductsCatalogSectionRecord extends ApiRecord<ProductsCatalogSectionRecordData>{
 
   static override RightToken = "dbProductsCatalogSection";

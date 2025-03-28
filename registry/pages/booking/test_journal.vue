@@ -136,7 +136,7 @@ import InputField from '~/components/InputField.vue';
 import wt from '~~/components/customMonthView/vue-cal-m';
 import type {MoApiClient} from '~/lib/MoApi/MoApiClient';
 import '~~/components/customMonthView/custom-cal-style.scss';
-import EventDialog from '~~/components/forms/EventDialog.vue';
+import EventDialog from '~/forms/EventDialog.vue';
 import {RecordsStore} from '~/lib/MoApi/Records/RecordsStore';
 import type {IFrameHeaderData, PageMap} from '~~/lib/PageMap';
 import {PositionsViews} from '~/lib/MoApi/Views/PositionsViews';
@@ -164,7 +164,7 @@ import {
 import {BookingRecord} from "~/lib/MoApi/Records/BookingRecord";
 import {Scheduler} from "~/components/customMonthView/scheduler";
 import {Bookings} from "~/lib/Booking/Bookings";
-import UnscheduledEventDialog from "~/components/forms/UnscheduledEventDialog.vue";
+import UnscheduledEventDialog from "~/forms/UnscheduledEventDialog.vue";
 import {useDelQU, useQU} from "~/composables/useActionDialog";
 import {okToast} from "~/composables/useToast";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';

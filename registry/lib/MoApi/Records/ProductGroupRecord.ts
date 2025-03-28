@@ -18,6 +18,7 @@ export class ProductGroupRecordData extends ApiRecordChData{
 
 
 @injectable()
+
 export class ProductGroupRecord extends ApiRecord<ProductGroupRecordData>{
 
     static override RightToken = "dbProductGroup";

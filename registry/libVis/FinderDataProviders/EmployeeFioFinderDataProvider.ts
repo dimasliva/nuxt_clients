@@ -9,8 +9,8 @@ import * as Utils from '~/lib/Utils';
 import { EmployeesViews } from "~/lib/MoApi/Views/EmployeesViews";
 import { EmployeeRecord } from "~/lib/MoApi/Records/EmployeeRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~/componentTemplates/forms/finderFormTemplate";
-import FinderForm from '~/components/forms/FinderForm.vue';
-import FinderFormMultiple from '~/components/forms/FinderFormMultiple.vue';
+import FinderForm from '~/forms/FinderForm.vue';
+import FinderFormMultiple from '~/forms/FinderFormMultiple.vue';
 import { EmployeeListTemplate } from "~/componentTemplates/listTemplates/employeeListTemplate";
 import { SelectFormTemplate } from "~/componentTemplates/forms/selectFormTemplate";
 

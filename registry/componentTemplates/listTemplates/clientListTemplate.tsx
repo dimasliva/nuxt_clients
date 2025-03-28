@@ -1,6 +1,6 @@
 import { Container, inject, injectable, optional } from 'inversify';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
-import ClientProfileDialog from '~/components/forms/ClientProfileDialog.vue';
+import ClientProfileDialog from '~/forms/ClientProfileDialog.vue';
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~/libVis/Helpers';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';
@@ -11,9 +11,10 @@ import { ClientAddressesRecord } from '~/lib/MoApi/Records/ClientAddressesRecord
 import { ClientContactsRecord } from '~/lib/MoApi/Records/ClientContactsRecord';
 import { ListTemplate, type IListTemplateProps } from '~/componentTemplates/listTemplates/listTemplate';
 import { ClientsViews } from '~/lib/MoApi/Views/ClientsViews';
-import { recognizeDataInString } from '~/lib/Utils';
+import { getDateStr, recognizeDataInString } from '~/lib/Utils';
 import { EDataType } from '~/lib/globalTypes';
 import type { IRenderedTemplateComponentProps } from '../componentTemplates';
+
 
 
 type TClientFilterVals = {
@@ -132,7 +133,7 @@ export class ClientList extends ListTemplate<TClientFilterVals> {
             if (fioArr[2]) whereArr.push(`patronymic like '${fioArr[2]}'`);
 
             if (recdata.date)
-                whereArr.push(`birthdate= '${recdata.date.toISOString()}'`);
+                whereArr.push(`birthdate= '${getDateStr(recdata.date)}'`);
 
 
             phone = recdata.phone || '';

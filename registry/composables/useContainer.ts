@@ -8,7 +8,7 @@ export const useContainer = () => {
   const app = useNuxtApp();
   if (!app.$iocContainer) {
     console.info("create container");
-    const cont = new Container();
+    const cont = new Container({ autoBindInjectable: true });
     app.provide('iocContainer', cont)
     ioccSetup(cont);
   }
@@ -18,7 +18,7 @@ export const useContainer = () => {
 
 export const useSessionContainer = (...singletonTypes) => {
   const iocc = useContainer();
-  const scont = iocc.createChild();
+  const scont = iocc.createChild(); //new Container({parent:iocc, autobind: true }); 
 
   scont.bind('diC').toConstantValue(scont);
   scont.bind("RecordsStore").to(RecordsStore).inSingletonScope();

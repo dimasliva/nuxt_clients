@@ -362,7 +362,7 @@ const eventsHandler = (e: string, d: any) => {
 
 defineExpose({ eventsHandler });
 
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
+const { readonly, close } = await useEditForm(props.readonly);
 
 </script>
 

@@ -24,6 +24,7 @@ export class ContractRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class ContractRecord extends ApiRecord<ContractRecordData> {
 
     static override RightToken = "dbContract";

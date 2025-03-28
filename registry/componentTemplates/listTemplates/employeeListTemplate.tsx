@@ -1,6 +1,6 @@
 
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
-import EmployeeProfileDialog from '~/components/forms/EmplProfileDialog.vue';
+import EmployeeProfileDialog from '~/forms/EmplProfileDialog.vue';
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~/libVis/Helpers';
 import type { IDataTableDescription, IDataTableHeadersDescription } from '~/componentComposables/dataTables/useDataTable';

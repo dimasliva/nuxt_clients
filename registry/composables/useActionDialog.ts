@@ -1,6 +1,6 @@
 
-import { type IActionDialogProps } from '~/components/forms/IActionDialogProps'
-import ActionDialog from '~/components/forms/ActionDialog.vue'
+import { type IActionDialogProps } from '~/forms/IActionDialogProps'
+import ActionDialog from '~/forms/ActionDialog.vue'
 
 
 export async function useQU(message) {

@@ -6,7 +6,7 @@ import { UserContext } from "~/lib/UserContext";
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~~/libVis/Helpers';
 import { DataList } from "~/lib/DataList";
-import SimpleFilterForm from "~/components/forms/SimpleFilterForm";
+import SimpleFilterForm from "~/forms/SimpleFilterForm";
 import Navigator from "~/components/navigators/Navigator.vue";
 import type { ApiRecord } from "~/lib/MoApi/Records/ApiRecord";
 import type { INavPathItem, INavRow } from "~/components/navigators/NavigatorTypes";

@@ -41,45 +41,34 @@ import { CompanyOrganizationRecord, CompanyOrganizationRecordData } from '~/lib/
 import FormsEditWindowDialog from '~/components/forms/EditWindowDialog.vue';
 import InputField from '~/components/InputField.vue';
 import { EDataType } from '~/lib/globalTypes';
-import { useEditForm } from '~/componentComposables/editForms/useEditForm';
+import { type IEditFormProps, useEditForm, useEditFormBegin } from '~/componentComposables/editForms/useEditForm';
 
 
-interface IProps {
-    diC?: Container,
-    recKey: string | null;
-    readonly?: boolean;
-}
 
-const props = defineProps<IProps>();
+const props = defineProps<IEditFormProps>();
 
-const diC = props.diC || useSessionContainer();
-const recStore = diC.get<RecordsStore>("RecordsStore");
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 
 const recKey = ref<string | null>(null);
 const rec = ref<CompanyOrganizationRecord>();
 
-const eventsHandler = (e: string, d: any) => {
-    switch (e) {
-        case "onKeydown": return true;
-    }
-};
-
 defineExpose({ eventsHandler });
 
 
+const loadFunc = async () => {
+    // Загрузка существующей записи или создание новой
+    if (props.recKey) {
+        rec.value = await recStore.fetch(CompanyOrganizationRecord, props.recKey, ERecLockArg.Try, true);
+    }
+    else {
+        rec.value = await recStore.createNew(CompanyOrganizationRecord, (data) => { });
+    }
 
-// Загрузка существующей записи или создание новой
-if (props.recKey) {
-    rec.value = await recStore.fetch(CompanyOrganizationRecord, props.recKey, ERecLockArg.Try, true);
+    return rec;
 }
-else {
-    rec.value = await recStore.createNew(CompanyOrganizationRecord, (data) => { });
-}
-
-const { readonly, close } = await useEditForm(rec, false);
 
 
-const save = async () => {
+const saveFunc = async () => {
     if (rec.value!.IsNew) {
         await rec.value!.save();
     }
@@ -89,7 +78,7 @@ const save = async () => {
 }
 
 
-
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, false);
 
 
 

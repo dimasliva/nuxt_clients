@@ -18,6 +18,7 @@ export class ClientSnapshotRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class ClientSnapshotRecord extends ApiRecord<ClientSnapshotRecordData> {
 
     static override RightToken = "dbClientSnapshot";

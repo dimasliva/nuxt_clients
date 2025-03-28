@@ -20,6 +20,7 @@ export class DealProductRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class DealProductRecord extends ApiRecord<DealProductRecordData> {
 
     static override RightToken = "dbDealProduct";

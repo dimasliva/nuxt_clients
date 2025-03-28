@@ -30,6 +30,7 @@ export class BookingRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class BookingRecord extends ApiRecord<BookingRecordData> {
   static override RightToken = "dbBooking";
   static override RecCode = 1028;
@@ -39,14 +40,7 @@ export class BookingRecord extends ApiRecord<BookingRecordData> {
   protected _newProductGroupPending: ProductGroupRecordData | undefined | null = null;
   protected _newClientGroupPending: ClientGroupRecordData | undefined | null = null;
 
-
-
-  constructor(
-    @inject("MoApiClient") _MoApiClient: MoApiClient,
-    @inject("UserContext") _UserContext: UserContext
-  ) {
-    super(_MoApiClient, _UserContext);
-  }
+  
 
   get RecCode() {
     return BookingRecord.RecCode;

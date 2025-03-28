@@ -32,6 +32,7 @@ export class CashFlowRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class CashFlowRecord extends ApiRecord<CashFlowRecordData> {
 
     static override RightToken = "dbCashFlow";

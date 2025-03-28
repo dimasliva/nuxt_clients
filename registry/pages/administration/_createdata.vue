@@ -108,7 +108,7 @@ import * as  BookingStatuses from '~/lib/Dicts/DictBookingStatusesConst';
 import { ClientList } from '~/componentTemplates/listTemplates/clientListTemplate';
 import TemplateFrame from '~/components/TemplateFrame.vue';
 import { VBtn } from 'vuetify/components';
-import MultiselectForm from '~/components/forms/MultiselectForm.vue';
+import MultiselectForm from '~/forms/MultiselectForm.vue';
 import { PositionListTemplate } from '~/componentTemplates/listTemplates/positionListTemplate';
 import { SelectFormTemplate } from '~/componentTemplates/forms/selectFormTemplate';
 import { EmployeeFioFinderDataProvider } from '~/libVis/FinderDataProviders/EmployeeFioFinderDataProvider';

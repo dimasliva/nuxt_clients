@@ -2,7 +2,7 @@
 </template>
   
 <script setup lang="ts">
-import Table from '~~/components/forms/Table.vue';
+import Table from '~/forms/Table.vue';
 import { PageMap } from '~~/lib/PageMap';
 
 const iocc=useContainer();

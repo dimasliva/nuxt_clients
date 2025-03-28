@@ -18,6 +18,7 @@ export class ScheduleItemGroupData extends ApiRecordChData {
   advData: string | null = null;
 }
 
+
 @injectable()
 export class ScheduleItemGroupRecord extends ApiRecord<ScheduleItemGroupData> {
   static override RightToken = "dbScheduleItemGroup";

@@ -8,26 +8,26 @@ import { AppProfile } from "./AppProfile";
 export class CompanyAppProfile extends AppProfile {
 
 
-    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient,  _profile: any) {
+    constructor(@inject("MoApiClient") protected _MoApiClient: MoApiClient, _profile: any) {
         super(_profile);
     }
 
 
 
-    getSection<T = any>(sectionName: string): T {
+    override getSection<T = any>(sectionName: string): T {
         return this._profile[sectionName];
     }
 
 
 
-    setSection<T = any>(sectionName: string, val: T) {
-         this._profile[sectionName]=val;
+    override setSection<T = any>(sectionName: string, val: T) {
+        this._profile[sectionName] = val;
     }
 
 
 
     async load() {
-        this._profile =  this._MoApiClient.send("/Company/GetAppProfile");
+        this._profile = this._MoApiClient.send("/Company/GetAppProfile");
     }
 
 

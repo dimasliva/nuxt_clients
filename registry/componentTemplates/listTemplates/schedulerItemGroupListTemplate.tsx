@@ -1,7 +1,7 @@
 // schedulerItemGroupListTemplate.tsx
 import { Container } from 'inversify';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
-import ScheduleItemGroupProfileDialog from '~/components/forms/ScheduleItemGroupProfileDialog.vue';
+import ScheduleItemGroupProfileDialog from '~/forms/ScheduleItemGroupProfileDialog.vue';
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"

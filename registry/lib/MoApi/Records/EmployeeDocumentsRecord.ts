@@ -21,11 +21,12 @@ export class EmployeeDocumentsRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class EmployeeDocumentsRecord extends ApiRecord<EmployeeDocumentsRecordData>{
 
-    static RightToken = "dbEmployeeDocuments";
-    static RecCode = 1005;
-    static BatchGetRecDataPath="/Employees/GetEmployeeDocuments";
+    static override RightToken = "dbEmployeeDocuments";
+    static override RecCode = 1005;
+    static override BatchGetRecDataPath="/Employees/GetEmployeeDocuments";
 
 
     get RecCode() { return EmployeeDocumentsRecord.RecCode; }

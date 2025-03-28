@@ -14,7 +14,7 @@ import { MoApiClient } from '~/lib/MoApi/MoApiClient';
 import { EDataType } from '~/lib/globalTypes';
 import { DictsFinderDataProvider } from '~/libVis/FinderDataProviders/DictsFinderDataProvider';
 import type { TDictViewVal } from '~/libVis/FinderDataProviders/FinderDataProvider';
-import CompanyOrganizationProfileDialog from "~/components/forms/CompanyOrganizationProfileDialog.vue";
+import CompanyOrganizationProfileDialog from "~/forms/CompanyOrganizationProfileDialog.vue";
 
 let t: any;
 

@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль клиента" :on-save="save" :on-close="close" :readonly="readonly">
+  <EditWindowDialog title="Профиль клиента" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -204,10 +204,11 @@
 
       </v-card-text>
     </template>
-  </FormsEditWindowDialog>>
+  </EditWindowDialog>>
 </template>
 
 <script setup lang="ts">
+import  EditWindowDialog  from '~/forms/EditWindowDialog.vue';
 import '@vuepic/vue-datepicker/dist/main.css'
 import { ERecLockArg, RecordsStore } from '~/lib/MoApi/Records/RecordsStore';
 import { PageMap } from '~/lib/PageMap';
@@ -229,8 +230,8 @@ import { Dictionary } from "~/lib/Dicts/Dictionary";
 import * as persDocDictConst from "~/lib/Dicts/DictPersonalDocumentsConst";
 import PersonalDocumentEntity from '~/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
 import { getNextSerialKey } from '~/lib/Utils';
-import { useEditForm } from '~/componentComposables/editForms/useEditForm';
-import type { Container } from 'inversify';
+import { useEditForm, useEditFormBegin, type IEditFormProps } from '~/componentComposables/editForms/useEditForm';
+
 
 const { t, locale } = useI18n();
 
@@ -257,19 +258,13 @@ class VisWrap<T> {
 }
 
 
-interface IProps {
-  diC?: Container,
-  recKey: string | null;
-  readonly?: boolean;
-}
+const props = defineProps<IEditFormProps>();
 
-const props = defineProps<IProps>();
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 
-const diC = props.diC || useSessionContainer();
-const recStore = diC.get<RecordsStore>("RecordsStore");
+defineExpose({ eventsHandler });
 
 const foto = ref("");
-const gender = ref("");
 
 let dictStore = diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
 let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
@@ -309,31 +304,54 @@ let recAddr = ref<ClientAddressesRecord>();
 let recCont = ref<ClientContactsRecord>();
 let recSd = ref<ClientSdRecord>();
 
-if (props.recKey) {
+const loadFunc = async () => {
+  if (props.recKey) {
 
-  rec.value = await recStore.fetch(ClientRecord, props.recKey, ERecLockArg.Try, true);
+    rec.value = await recStore.fetch(ClientRecord, props.recKey, ERecLockArg.Try, true);
 
-  let recs = await recStore.getRecordsM([
-    { id: { key: props.recKey, type: ClientDocumentsRecord }, optional: true },
-    { id: { key: props.recKey, type: ClientAddressesRecord }, optional: true },
-    { id: { key: props.recKey, type: ClientContactsRecord }, optional: true },
-    { id: { key: props.recKey, type: ClientSdRecord }, optional: true }
-  ]);
+    let recs = await recStore.getRecordsM([
+      { id: { key: props.recKey, type: ClientDocumentsRecord }, optional: true },
+      { id: { key: props.recKey, type: ClientAddressesRecord }, optional: true },
+      { id: { key: props.recKey, type: ClientContactsRecord }, optional: true },
+      { id: { key: props.recKey, type: ClientSdRecord }, optional: true }
+    ]);
 
-  recDoc.value = recs[0] as ClientDocumentsRecord;
-  recAddr.value = recs[1] as ClientAddressesRecord;
-  recCont.value = recs[2] as ClientContactsRecord;
-  recSd.value = recs[3] as ClientSdRecord;
+    recDoc.value = recs[0] as ClientDocumentsRecord;
+    recAddr.value = recs[1] as ClientAddressesRecord;
+    recCont.value = recs[2] as ClientContactsRecord;
+    recSd.value = recs[3] as ClientSdRecord;
+  }
+  else {
+    rec.value = await recStore.createNew(ClientRecord, (data) => { });
+    recDoc.value = await recStore.createNew(ClientDocumentsRecord, (data) => { });
+    recAddr.value = await recStore.createNew(ClientAddressesRecord, (data) => { });
+    recCont.value = await recStore.createNew(ClientContactsRecord, (data) => { });
+    recSd.value = await recStore.createNew(ClientSdRecord, (data) => { });
+  }
+  return rec;
 }
-else {
-  rec.value = await recStore.createNew(ClientRecord, (data) => { });
-  recDoc.value = await recStore.createNew(ClientDocumentsRecord, (data) => { });
-  recAddr.value = await recStore.createNew(ClientAddressesRecord, (data) => { });
-  recCont.value = await recStore.createNew(ClientContactsRecord, (data) => { });
-  recSd.value = await recStore.createNew(ClientSdRecord, (data) => { });
+
+
+const saveFunc = async () => {
+  if (rec.value!.IsNew) {
+    await rec.value!.save();
+    recDoc.value!.Key = rec.value!.Key;
+    recAddr.value!.Key = rec.value!.Key;
+    recCont.value!.Key = rec.value!.Key;
+    recSd.value!.Key = rec.value!.Key;
+  }
+  else
+    await rec.value!.save();
+
+  await recDoc.value!.save();
+  await recAddr.value!.save();
+  await recCont.value!.save();
+  await recSd.value!.save();
 }
 
-const { readonly, close } = await useEditForm(rec, props.readonly);
+
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, props.readonly);
+
 
 ///Документы
 
@@ -408,32 +426,16 @@ const delPhoto = (fieldsOptions) => {
 }
 
 
-if (rec.value.Data!.gender != "u")
-  gender.value = rec.value.Data!.gender;
+const gender = computed({
 
-watch(gender, (val, oldval) => {
-  rec.value!.MData.gender = gender.value = val;
-});
+  get() {
+    return rec.value!.MData!.gender=="u"? "": rec.value!.MData!.gender
+  },
 
-
-
-const save = async () => {
-
-  if (rec.value!.IsNew) {
-    await rec.value!.save();
-    recDoc.value!.Key = rec.value!.Key;
-    recAddr.value!.Key = rec.value!.Key;
-    recCont.value!.Key = rec.value!.Key;
-    recSd.value!.Key = rec.value!.Key;
+  set(newValue) {
+    rec.value!.MData!.gender = newValue || 'u';
   }
-  else
-    await rec.value!.save();
-
-  await recDoc.value!.save();
-  await recAddr.value!.save();
-  await recCont.value!.save();
-  await recSd.value!.save();
-}
+});
 
 
 
@@ -446,14 +448,6 @@ const cancelModifingData = () => {
 }
 
 
-const eventsHandler = (e: string, d: any) => {
-  switch (e) {
-    case "onKeydown": return true;
-  }
-};
-
-
-defineExpose({ eventsHandler });
 
 /*
 let t1= iocc.get<MoApiClient>("MoApiClient");

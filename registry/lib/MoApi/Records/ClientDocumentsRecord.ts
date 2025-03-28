@@ -8,7 +8,7 @@ import PersonalDocumentEntity from "./DataEntities/PersonalDocumentEntity";
 import { injectable } from "inversify";
 
 
-@injectable()
+@injectable() 
 export class ClientDocumentsRecordData extends ApiRecordChData {
     snils?: string | null = null;
     mainDocument?: number | null = RUSSIAN_PASSPORT;

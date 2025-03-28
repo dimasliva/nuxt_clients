@@ -21,11 +21,12 @@ export class PositionSnapshotRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class PositionSnapshotRecord extends ApiRecord<PositionSnapshotRecordData> {
 
-    static RightToken = "dbPositionSnapshot";
-    static RecCode = 1044;
-    static BatchGetRecDataPath = "/Positions/GetPositionSnapshots";
+    static override RightToken = "dbPositionSnapshot";
+    static override RecCode = 1044;
+    static override BatchGetRecDataPath = "/Positions/GetPositionSnapshots";
 
 
     get RecCode() { return PositionSnapshotRecord.RecCode; }

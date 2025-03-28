@@ -15,11 +15,12 @@ export class EmployeeContactsRecordData extends ApiRecordChData {
 
 
 @injectable()
+
 export class EmployeeContactsRecord extends ApiRecord<EmployeeContactsRecordData>{
 
-    static RightToken = "dbEmployeeContacts";
-    static RecCode = 1006;
-    static BatchGetRecDataPath="/Employees/GetEmployeeContacts";
+    static override RightToken = "dbEmployeeContacts";
+    static override RecCode = 1006;
+    static override BatchGetRecDataPath="/Employees/GetEmployeeContacts";
 
 
     get RecCode() { return EmployeeContactsRecord.RecCode; }

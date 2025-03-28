@@ -12,9 +12,9 @@ import { ProductsCatalogRecord, ProductsCatalogRecordData } from "~/lib/MoApi/Re
 import { ProductsApiSection } from "~/lib/MoApi/ApiSectionsV1/ProductsApiSection";
 import type { ProductCatalogSectionCache } from "~/lib/Cache/ProductCatalogSectionCache";
 import type { ProductCache } from "~/lib/Cache/ProductCache";
-import   ProductProfileDialog  from "~/components/forms/ProductProfileDialog.vue";
-import   ProductsCatalogSectionProfileDialog  from "~/components/forms/ProductsCatalogSectionProfileDialog.vue";
-import   ProductsCatalogProfileDialog  from "~/components/forms/ProductsCatalogProfileDialog.vue";
+import   ProductProfileDialog  from "~/forms/ProductProfileDialog.vue";
+import   ProductsCatalogSectionProfileDialog  from "~/forms/ProductsCatalogSectionProfileDialog.vue";
+import   ProductsCatalogProfileDialog  from "~/forms/ProductsCatalogProfileDialog.vue";
 import { ProductRecord, ProductRecordData } from "~/lib/MoApi/Records/ProductRecord";
 import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from "~/lib/MoApi/Records/ProductsCatalogSectionRecord";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "../componentTemplates";

@@ -1,7 +1,7 @@
 
 import { Container } from 'inversify';
 import { QueryParams } from '~/lib/MoApi/RequestArgs';
-import PositionProfileDialog from '~/components/forms/PositionProfileDialog.vue';
+import PositionProfileDialog from '~/forms/PositionProfileDialog.vue';
 import * as Utils from '~/lib/Utils';
 import * as vHelpers from '~/libVis/Helpers';
 import { useI18n } from "vue-i18n"

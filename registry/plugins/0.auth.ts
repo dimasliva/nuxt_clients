@@ -1,7 +1,7 @@
 
 
-import type { UserContext } from "@/lib/UserContext";
-import ioccAfterAuthConfig from "@/ioccAuthConfig";
+import type { UserContext } from "~/src/common/lib/UserContext";
+import ioccAfterAuthConfig from "~/src/configs/ioccAuthConfig";
 
 
 export default defineNuxtPlugin(async (nuxtApp) => {

@@ -1,9 +1,9 @@
-import { IUserCredentials, IUserCredentialsServer } from "@/lib/Security";
-import { MoApiClient } from "@/lib/MoApi/MoApiClient";
-import { MoApiClientSettings } from "~~/lib/MoApi/MoApiClientSettings";
+import { IUserCredentials, IUserCredentialsServer } from "~/src/common/lib/Security";
+import { MoApiClient } from "~/src/common/lib/MoApi/MoApiClient";
+import { MoApiClientSettings } from "~/src/common/lib/MoApi/MoApiClientSettings";
 import "reflect-metadata";
 import   crypto from "crypto";
-import { EncryptAes256, DecryptAes256 } from "@/lib/Security/Crypto";
+import { EncryptAes256, DecryptAes256 } from "~/src/common/lib/Security/Crypto";
 
 export default eventHandler(async (event) => {
     console.debug("Server OK");

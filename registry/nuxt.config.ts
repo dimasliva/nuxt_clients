@@ -43,7 +43,7 @@ export default defineNuxtConfig({
 
 
     vueJsx: {
-      
+
       babelPlugins:
 
         [
@@ -79,7 +79,7 @@ export default defineNuxtConfig({
     "vite:extendConfig": (config) => {
       config.plugins?.push(
         vuetify({
-          styles: { configFile: resolve("./settings.scss") },
+          styles: { configFile: resolve("./src/ui_base/configs/VuetifySettings.scss") },
         })
       );
     },
@@ -116,6 +116,42 @@ export default defineNuxtConfig({
         },
       },
     },
+  },
+
+  dir: {
+    "layouts": "./src/layouts",
+    "pages": "./src/pages"
+  },
+
+  imports: {
+    dirs: [
+      // ... or scan all modules within given directory
+      './src/common/composables/**'
+    ]
+  },
+
+
+  components: [
+    {
+      path: './src/ui_base/components',
+      pathPrefix: false,
+    },
+
+    {
+      path: './src/components',
+      pathPrefix: false,
+    }
+  ],
+
+
+  alias: {
+    "~components": "../src/components",
+    "~uibase": "../src/ui_base",
+    "~forms": "../src/forms",
+    "~widgets": "../src/widgets",
+    "~common": "../src/common",
+    "~lib": "../src/common/lib",
+    "~uilib": "../src/ui_base/lib",
   },
 
   compatibilityDate: "2025-03-28",

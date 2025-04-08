@@ -91,7 +91,7 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
 
 
 
-    setValue(key: string, pagekey: string, value: any) {
+    override setValue(key: string, pagekey: string, value: any) {
         Exception.throw("MethodNotImplemented", "Функция не реализована");
     }
 
@@ -123,7 +123,7 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
 
 
 
-    async getOrCreate(key: string) {
+    override async getOrCreate(key: string) {
         const inxval = this._checkBeforeGetVal(key);
         if (!inxval) {
             await this._loadPageByChild(key);
@@ -135,7 +135,7 @@ export class ProductCatalogSectionCache extends PageMemoryCache {
 
 
 
-    async getKeysIteratorInPage(pagekey: string) {
+    override async getKeysIteratorInPage(pagekey: string) {
         let page = this._getPage(pagekey);
         if (!page || !page.isLoaded()) {
             await this._loadPage(pagekey);

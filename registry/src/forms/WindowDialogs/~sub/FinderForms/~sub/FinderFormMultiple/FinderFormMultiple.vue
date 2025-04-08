@@ -4,7 +4,7 @@ import type { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { FinderFormMultipleTemplate, type IFinderFormMultipleProps } from "./FinderFormMultipleTemplate"
 import type { IFinderFormProps } from "~forms/WindowDialogs/~sub/FinderForms/FinderFormTemplate";
-import type { FinderDataProvider, TDictViewVal } from "~uilib/FinderDataProviders/FinderDataProvider";
+import type { FinderDataProvider, TDictViewVal } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 
 
 export default {

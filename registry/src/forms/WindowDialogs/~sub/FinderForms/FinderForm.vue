@@ -3,7 +3,7 @@
 import { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { FinderFormTemplate, type IFinderFormProps } from "~forms/WindowDialogs/~sub/FinderForms/FinderFormTemplate"
-import type { FinderDataProvider } from "~uilib/FinderDataProviders/FinderDataProvider";
+import type { FinderDataProvider } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 
 
 

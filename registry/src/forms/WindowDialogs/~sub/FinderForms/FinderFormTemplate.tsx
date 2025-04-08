@@ -3,7 +3,7 @@ import { UserContext } from "~/src/common/lib/UserContext";
 import WindowDialog from "../../WindowDialog.vue"
 import { sleep } from "~/src/common/lib/Helpers";
 import { FreqUsingStrStatistic } from "~uilib/FreqUsingStrStatistic";
-import type { FinderDataProvider, TDictViewVal } from "~uilib/FinderDataProviders/FinderDataProvider";
+import type { FinderDataProvider, TDictViewVal } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 import { Container } from "inversify";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "~components/types";
 import { useQU } from "~/src/common/composables/useActionDialog";

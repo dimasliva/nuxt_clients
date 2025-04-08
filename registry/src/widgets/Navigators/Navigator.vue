@@ -192,7 +192,7 @@ import type { INavActionMenuItem, INavColumn, INavPathItem, INavRow, INavigatorC
 import * as Helpers from '~/src/common/lib/Helpers';
 import { v4 as uuidv4 } from 'uuid';
 import { toRaw } from "vue";
-import type { TDictViewVal } from '~uilib/FinderDataProviders/FinderDataProvider';
+import type { TDictViewVal } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
 
 type TPageStateInfo = { page: number, pageCount: number, itemsPerPage: number, selectedId?: string | null, sortBy: any | null, sx?: number, sy?: number };
 

@@ -30,7 +30,7 @@ import { EDictionaries } from '~/src/common/lib/Dicts/DictionaryStore';
 import { Exception } from '~/src/common/lib/Exceptions';
 import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { ProductsCatalogSectionRecord } from '~/src/common/lib/MoApi/Records/ProductsCatalogSectionRecord';
-import type { Container } from 'inversify/lib/container/container';
+import type { Container } from 'inversify';
 
 
 const { t, locale } = useI18n();

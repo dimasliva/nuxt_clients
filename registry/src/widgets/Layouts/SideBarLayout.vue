@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ModuleManager, IModuleItemsMenu } from '~/src/ui_base/ModuleManager';
+import type { ModuleManager, IModuleItemsMenu } from '~/src/ui_base/configs/ModuleManager';
 import { EnumArray } from "~/src/common/lib/EnumArray";
 import { type IFrameHeaderData, PageMap } from '~/src/common/lib/PageMap';
 import type { UserContext } from '~/src/common/lib/UserContext';

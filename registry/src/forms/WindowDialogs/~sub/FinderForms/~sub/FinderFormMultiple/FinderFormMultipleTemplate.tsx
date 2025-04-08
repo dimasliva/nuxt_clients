@@ -2,7 +2,7 @@
 import WindowDialog from "../../../../WindowDialog.vue"
 import * as Utils from '~/src/common/lib/Utils';
 import type { Container } from "inversify";
-import type { TDictViewVal } from "~uilib/FinderDataProviders/FinderDataProvider";
+import type { TDictViewVal } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 import { FinderFormTemplate, type IFinderFormProps } from "../../FinderFormTemplate";
 
 

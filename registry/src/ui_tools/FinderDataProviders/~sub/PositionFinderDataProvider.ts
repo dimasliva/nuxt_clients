@@ -1,7 +1,7 @@
 import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/src/common/lib/UserContext";
 import type { MoApiClient } from "~/src/common/lib/MoApi/MoApiClient";
-import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
+import { FinderDataProvider, type TDictViewVal } from "../FinderDataProvider";
 import type { RecordsStore } from "~/src/common/lib/MoApi/Records/RecordsStore";
 import { EFinderFormHistoryResultTypeStorage } from "~forms/WindowDialogs/~sub/FinderForms/FinderFormTemplate";
 import { PositionListTemplate } from "~/src/widgets/Lists/~sub/PositionListTemplate";

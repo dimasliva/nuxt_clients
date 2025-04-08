@@ -2,7 +2,7 @@
 import type { Container } from "inversify";
 import { useI18n } from "vue-i18n"
 import { FinderFormSelectTemplate, type IFinderFormSelectProps } from "./FinderFormSelectTemplate"
-import type { FinderDataProvider, TDictViewVal } from "~uilib/FinderDataProviders/FinderDataProvider";
+import type { FinderDataProvider, TDictViewVal } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 
 
 

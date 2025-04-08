@@ -2,7 +2,7 @@ import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/src/common/lib/UserContext";
 import type { MoApiClient } from "~/src/common/lib/MoApi/MoApiClient";
 import { Exception } from "~/src/common/lib/Exceptions";
-import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
+import { FinderDataProvider, type TDictViewVal } from "../FinderDataProvider";
 import { QueryDictsFFParams } from "~/src/common/lib/MoApi/RequestArgs";
 import { EDictionaries } from "~/src/common/lib/Dicts/DictionaryStore";
 import type { Dictionary } from "~/src/common/lib/Dicts/Dictionary";

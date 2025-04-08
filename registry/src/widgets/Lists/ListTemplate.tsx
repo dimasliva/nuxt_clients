@@ -12,7 +12,7 @@ import  DataTable  from "~widgets/DataTables//DataTable.vue";
 import type { ApiRecord } from "~/src/common/lib/MoApi/Records/ApiRecord";
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "~components/types";
 import type { SetupContext } from 'vue';
-import type { TDictViewVal } from '~uilib/FinderDataProviders/FinderDataProvider';
+import type { TDictViewVal } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
 
 
 let t: any;

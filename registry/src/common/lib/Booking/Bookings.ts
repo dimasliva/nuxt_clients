@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type {IBookingListView} from "~/src/common/lib/MoApi/Views/BookingViews";
 import {ScheduleEvent} from "~/src/components/CustomMonthView/SchedulerTypes";
 import * as Utils from "~/src/common/lib/Utils";

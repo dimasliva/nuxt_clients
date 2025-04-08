@@ -1,6 +1,6 @@
 import type { Container } from "inversify";
 import type { SelectFormTemplate } from "~forms/WindowDialogs/~sub/SelectForms/SelectFormTemplate";
-import type { FinderDataProvider } from "~uilib/FinderDataProviders/FinderDataProvider";
+import type { FinderDataProvider } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 
 
 export interface INavRowMetadata {

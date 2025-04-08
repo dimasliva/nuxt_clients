@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import {EditWindowDialog} from "./~base/elements/EditWindowDialog";
+import {EditWindowDialog} from "~forms/WindowDialogs/~sub/EditWindowDialogs";
 import {ScheduleEvent} from "~/src/components/CustomMonthView/SchedulerTypes";
 
 interface Props {

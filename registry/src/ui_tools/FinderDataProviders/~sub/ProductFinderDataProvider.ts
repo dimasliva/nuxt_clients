@@ -2,7 +2,7 @@ import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/src/common/lib/UserContext";
 import type { MoApiClient } from "~/src/common/lib/MoApi/MoApiClient";
 import { Exception } from "~/src/common/lib/Exceptions";
-import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
+import { FinderDataProvider, type TDictViewVal } from "../FinderDataProvider";
 import type { ApiRecord } from "~/src/common/lib/MoApi/Records/ApiRecord";
 import type { RecordsStore } from "~/src/common/lib/MoApi/Records/RecordsStore";
 import { ProductViews } from "~/src/common/lib/MoApi/Views/ProductViews";
@@ -10,7 +10,7 @@ import { ProductRecord } from "~/src/common/lib/MoApi/Records/ProductRecord";
 import { EFinderFormHistoryResultTypeStorage } from "~forms/WindowDialogs/~sub/FinderForms/FinderFormTemplate";
 import FinderForm from "~forms/WindowDialogs/~sub/FinderForms/FinderForm.vue";
 import FinderSelectForm from "~forms/WindowDialogs/~sub/FinderForms/~sub/FinderFormMultiple/~sub/FinderFormSelects/FinderFormSelect.vue";
-import { ProductNavigatorTemplate } from "~/src/widgets/Navigators/~sub/ProductNavigatorTemplate";
+import { ProductNavigatorTemplate } from "~/src/widgets/Navigators/~sub/ProductNavigator";
 import { SelectFormTemplate } from "~forms/WindowDialogs/~sub/SelectForms/SelectFormTemplate";
 
 @injectable()

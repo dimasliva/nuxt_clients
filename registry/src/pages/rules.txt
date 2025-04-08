@@ -1,0 +1,2 @@
+Содержимое:  Страницы
+Импорт разрешен: common, ui_base, widgets, components, forms(только для активации)

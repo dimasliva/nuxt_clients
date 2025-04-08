@@ -1,9 +1,11 @@
 
+import type { Container } from "inversify";
 import type { SetupContext } from "vue";
 import type { IFrameHeaderData } from "~/src/common/lib/PageMap";
 
 
 export interface IRenderedTemplateComponentProps {
+    diC?:Container;
     settingsStorage?: IDataStorageCell;
 }
 

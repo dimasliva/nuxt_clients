@@ -2,7 +2,7 @@ import { injectable, inject, Container } from "inversify";
 import type { UserContext } from "~/src/common/lib/UserContext";
 import type { MoApiClient } from "~/src/common/lib/MoApi/MoApiClient";
 import { Exception } from "~/src/common/lib/Exceptions";
-import { FinderDataProvider, type TDictViewVal } from "./FinderDataProvider";
+import { FinderDataProvider, type TDictViewVal } from "../FinderDataProvider";
 import type { RecordsStore } from "~/src/common/lib/MoApi/Records/RecordsStore";
 import * as Utils from '~/src/common/lib/Utils';
 import { ClientRecord } from "~/src/common/lib/MoApi/Records/ClientRecord";

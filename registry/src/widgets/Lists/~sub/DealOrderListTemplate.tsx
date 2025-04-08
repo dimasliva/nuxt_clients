@@ -10,8 +10,8 @@ import { DealOrderViews, type IDealOrderListView } from '~/src/common/lib/MoApi/
 import { recognizeDataInString } from '~/src/common/lib/Utils';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { EDataType } from '~/src/common/lib/globalTypes';
-import type { TDictViewVal } from '~uilib/FinderDataProviders/FinderDataProvider';
-import { ClientFinderDataProvider } from '~uilib/FinderDataProviders/ClientFinderDataProvider';
+import type { TDictViewVal } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
+import { ClientFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/ClientFinderDataProvider';
 import DealOrderProfileDialog from '~forms/WindowDialogs/~sub/EditWindowDialogs/~sub/ProfileDialogs/DealOrderProfileDialog.vue';
 import { useCurrency } from '~/src/common/composables/useCurrency';
 import { DealOrderSdRecord } from '~/src/common/lib/MoApi/Records/DealOrderSdRecord';
@@ -158,7 +158,7 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
 
     override getAdvRequestFields(selColumns?: string[]) {
         if (selColumns?.includes("contract"))
-            return ["contractDate", "contractPayer", "contractNumber"];
+            return ["contractDate", "ContractClientPayerName", "ContractClientPayerSurname", "ContractClientPayerPatronymic", "contractNumber"];
         else
             return [];
     }
@@ -193,7 +193,7 @@ export class DealOrderListTemplate extends ListTemplate<TDealOrderFilterVals> {
 
     //Конвертация данных из формата апи в формат для таблицы
     convertRow = async (rawData: IDealOrderListView) => {
-        debugger
+
         const { currencyM2V } = useCurrency();
         return {
             id: rawData.id,

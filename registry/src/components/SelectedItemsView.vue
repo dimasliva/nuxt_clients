@@ -43,7 +43,7 @@
 
 
 <script setup lang="ts">
-import type { TDictViewVal } from '~uilib/FinderDataProviders/FinderDataProvider';
+import type { TDictViewVal } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
 
 
 interface Props {

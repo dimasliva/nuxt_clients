@@ -20,8 +20,9 @@ import { ProductsCatalogSectionRecord, ProductsCatalogSectionRecordData } from "
 import type { IRenderedTemplateComponent, IRenderedTemplateComponentProps } from "~components/types";
 import type { SetupContext } from "vue";
 import type { IListTemplateProps } from "~/src/widgets/Lists/ListTemplate";
-import { ProductFinderDataProvider } from "~uilib/FinderDataProviders/ProductFinderDataProvider";
+import { ProductFinderDataProvider } from "~/src/ui_tools/FinderDataProviders/~sub/ProductFinderDataProvider";
 import { useQU } from "~/src/forms";
+import type { TDictViewVal } from "~/src/ui_tools/FinderDataProviders/FinderDataProvider";
 
 
 let t: any;
@@ -53,14 +54,6 @@ interface IProductNavigatorSettings{
     visibleColsCat?:string[];
 }
 
-function dep(token: string | Object) {
-    return (obj, key) => {
-        const ctor = obj.constructor;
-        if (!ctor.$deps)
-            ctor.$deps = {} as any;
-        ctor.$deps[key] = token;
-    }
-}
 
 
 export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
@@ -68,7 +61,7 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
     protected _diC: Container = null!;
     protected _props: IProductNavigatorTemplateProps | null | undefined = null;
 
-    @dep(ProductsApiSection)
+
     protected _MoApiClient: MoApiClient = null!;
     protected _UserContext: UserContext = null!;
     protected _RecordsStore: RecordsStore = null!;
@@ -695,3 +688,38 @@ export class ProductNavigatorTemplate implements IRenderedTemplateComponent {
     }
 
 }
+
+
+
+export default defineComponent({
+    props: {
+        diC: {
+          type: Object as PropType<Container>,
+          required: false
+        },
+
+        selectableTypes: {
+            type: Object as PropType<("catalog" | "catalogSection" | "product")[]>,
+            required: false
+        },
+
+        selectStrategy: {
+            type: Object as PropType<('page' | 'single' | 'all')>,
+            required: false
+        },
+
+        choosedValues: {
+            type: Object as PropType<(TDictViewVal[])>,
+            required: false
+        },
+
+        selectMode: Boolean,
+      },
+
+      
+    async setup(props:IProductNavigatorTemplateProps, ctx) {
+        const o=new ProductNavigatorTemplate(props.diC || useSessionContainer());
+        await o.setup(props,ctx);
+        return o.render();
+    }
+})

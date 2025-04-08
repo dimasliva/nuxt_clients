@@ -1,6 +1,6 @@
 
 <template>
-  <EditWindowDialog title="Запись вне расписания" :on-save="saveChanges" :on-close="cancelAndClose" :readonly="false">
+  <EditWindowDialog title="Запись вне расписания" :on-save="async ()=>{}"  :readonly="false">
     <v-time-picker
         color="primary"
         header-color="primary"

@@ -31,7 +31,7 @@ import { Exception } from '~/src/common/lib/Exceptions';
 import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { ProductsCatalogRecord } from '~/src/common/lib/MoApi/Records/ProductsCatalogRecord';
 import { QueryDictsFFParams } from '~/src/common/lib/MoApi/RequestArgs';
-import { DictsFinderDataProvider } from '~uilib/FinderDataProviders/DictsFinderDataProvider';
+import { DictsFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/DictsFinderDataProvider';
 import type { Container } from 'inversify';
 
 

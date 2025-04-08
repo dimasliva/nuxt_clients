@@ -48,7 +48,7 @@ const createScheduleForRendering = async() => {
     const employee = employees.value.find(emp => emp.id === schedule.split);
     if (employee) {
       const date = new Date(schedule.start);
-      const formattedDate = date.format('DD.MM.YYYY');
+      const formattedDate = date.toLocaleDateString('DD.MM.YYYY');
       const fullName = `${employee.name} ${employee.surname} ${employee.patronymic.charAt(0)}.`;
       const freeSlots = props.scheduleData.filter(d => d.start.slice(0, 10) === schedule.start.slice(0, 10) && d.split === schedule.split).map(slot => slot.start.slice(11));
 

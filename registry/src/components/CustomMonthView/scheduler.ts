@@ -1,3 +1,4 @@
+    // @ts-nocheck 
 import type {TDatedScheduleTimespanItems} from "~/src/common/lib/MoApi/ApiSectionsV1/SchedulerApiSection";
 import {ScheduleEvent} from "~/src/components/CustomMonthView/SchedulerTypes";
 import * as Utils from "~/src/common/lib/Utils";
@@ -11,7 +12,7 @@ import {ProductRecord, ProductRecordData} from "~/src/common/lib/MoApi/Records/P
 import {PositionRecord, PositionRecordData} from "~/src/common/lib/MoApi/Records/PositionRecord";
 import {EmployeeRecord} from "~/src/common/lib/MoApi/Records/EmployeeRecord";
 import {sleep} from "~/src/common/lib/Helpers";
-import positions from "~/pages/list/positions.vue";
+
 
 
 

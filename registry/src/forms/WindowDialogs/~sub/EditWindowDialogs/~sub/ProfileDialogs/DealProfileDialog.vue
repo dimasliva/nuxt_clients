@@ -56,7 +56,7 @@
               <v-row v-for="(client, index) in rec!.MData.clients" :key="index">
                 <v-col xs="10">
                   <InputField :type="EDataType.strictstringarray" :state="fieldsOptions" label="Client ID"
-                    v-model="rec!.MData.clients[index]" />
+                    v-model="rec!.MData.clients![index]" />
                 </v-col>
                 <v-col xs="2">
                   <v-btn icon="mdi-delete" variant="plain" size="small" @click="removeClient(index)"></v-btn>
@@ -76,7 +76,7 @@
               <v-row v-for="(position, index) in rec!.MData.positions" :key="index">
                 <v-col xs="10">
                   <InputField :type="EDataType.strictstringarray" :state="fieldsOptions" label="Position ID"
-                    v-model="rec!.MData.positions[index]" />
+                    v-model="rec!.MData.positions![index]" />
                 </v-col>
                 <v-col xs="2">
                   <v-btn icon="mdi-delete" variant="plain" size="small" @click="removePosition(index)"></v-btn>
@@ -96,7 +96,7 @@
               <v-row v-for="(product, index) in rec!.MData.products" :key="index">
                 <v-col xs="10">
                   <InputField :type="EDataType.strictstringarray" :state="fieldsOptions" label="Product ID"
-                    v-model="rec!.MData.products[index]" />
+                    v-model="rec!.MData.products![index]" />
                 </v-col>
                 <v-col xs="2">
                   <v-btn icon="mdi-delete" variant="plain" size="small" @click="removeProduct(index)"></v-btn>

@@ -140,6 +140,12 @@ export default defineNuxtConfig({
     {
       path: './src/components',
       pathPrefix: false,
+    },
+
+    {
+      path: './src/widgets',
+      pathPrefix: false,
+      ignore: ["Template."]
     }
   ],
 
@@ -152,6 +158,7 @@ export default defineNuxtConfig({
     "~common": "../src/common",
     "~lib": "../src/common/lib",
     "~uilib": "../src/ui_base/lib",
+    "~uitools": "../src/ui_tools",
   },
 
   compatibilityDate: "2025-03-28",

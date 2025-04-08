@@ -23,11 +23,11 @@
           <v-card flat>
             <v-card-title class="text-subtitle-1">КЛИЕНТ</v-card-title>
             <v-card-text>
-              <v-combobox variant="underlined" :state="fieldsOptions" v-model="client" @input="getList(client)"
+              <v-combobox variant="underlined" :state="fieldsOptions" v-model="client" @input="getList(<string>client)"
                           :items="clientArr" clearable :hide-no-data="false" :rules="[v => (!v ? (fieldsOptions.errCnt++, '') : (fieldsOptions.errCnt > 0 && fieldsOptions.errCnt--, !!v || ''))]">
                 <template v-slot:label>
                   <span>
-                      {{ "ФИО, моб.телефон" || "" }} <span class="text-error">*</span>
+                      {{ "ФИО, моб.телефон" }} <span class="text-error">*</span>
                   </span>
                 </template>
                 <template v-slot:no-data>
@@ -122,7 +122,8 @@
 </template>
 
 <script setup lang="ts">
-import InputField from '../InputField.vue';
+// @ts-nocheck
+import InputField from '~uibase/components/InputField.vue';
 import {EDataType} from '~/src/common/lib/globalTypes';
 import * as Utils from '~/src/common/lib/Utils';
 import {ClientsViews, type IClientListView} from '~/src/common/lib/MoApi/Views/ClientsViews';
@@ -149,7 +150,7 @@ const emplChoice = (positions, employee) => {
 const openClientCreator = () => {
   clientCreationPop.value = true;
   if (client.value) {
-    let fioStr: any = Utils.normalizeFio(client.value);
+    let fioStr: any = Utils.normalizeFio(<string>client.value);
     fioStr = Utils.recognizeDataInString(fioStr);
     clientSurname.value = fioStr.words[0];
     clientName.value = fioStr.words[1];

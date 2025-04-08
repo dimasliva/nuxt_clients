@@ -189,7 +189,7 @@ import { VPhoneInput } from 'v-phone-input'; //https://github.com/paul-thebaud/v
 import 'flag-icons/css/flag-icons.min.css';
 import 'v-phone-input/dist/v-phone-input.css';
 import { isEqualData } from '~/src/common/lib/Helpers';
-import type { FinderDataProvider } from '~uilib/FinderDataProviders/FinderDataProvider';
+import type { FinderDataProvider } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
 import * as Utils from '~/src/common/lib/Utils';
 import { el } from 'vuetify/locale';
 

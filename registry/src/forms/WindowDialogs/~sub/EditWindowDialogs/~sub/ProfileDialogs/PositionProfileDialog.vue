@@ -31,8 +31,8 @@ import { Exception } from '~/src/common/lib/Exceptions';
 import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { PositionRecord } from '~/src/common/lib/MoApi/Records/PositionRecord';
 import { QueryDictsFFParams } from '~/src/common/lib/MoApi/RequestArgs';
-import { DictsFinderDataProvider } from '~uilib/FinderDataProviders/DictsFinderDataProvider';
-import { EmployeeFioFinderDataProvider } from '~uilib/FinderDataProviders/EmployeeFioFinderDataProvider';
+import { DictsFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/DictsFinderDataProvider';
+import { EmployeeFioFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/EmployeeFioFinderDataProvider';
 import { EmployeeRecord } from '~/src/common/lib/MoApi/Records/EmployeeRecord';
 import type { Container } from 'inversify';
 

@@ -14,8 +14,8 @@ import { EDictionaries } from '~/src/common/lib/Dicts/DictionaryStore';
 import { Dictionary } from "~/src/common/lib/Dicts/Dictionary";
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { EDataType } from '~/src/common/lib/globalTypes';
-import { DictsFinderDataProvider } from '~uilib/FinderDataProviders/DictsFinderDataProvider';
-import type { TDictViewVal } from '~uilib/FinderDataProviders/FinderDataProvider';
+import { DictsFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/DictsFinderDataProvider';
+import type { TDictViewVal } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
 import type { IRenderedTemplateComponentProps } from '~components/types';
 import { EmployeeRecord } from '~/src/common/lib/MoApi/Records/EmployeeRecord';
 

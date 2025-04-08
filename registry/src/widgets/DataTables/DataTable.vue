@@ -139,7 +139,7 @@ import { chkRights } from "~/src/common/lib/Utils"
 import { useVTableScroll } from "~/src/ui_base/composibles/useVTableScroll"
 import type { IDataTableDescription } from './types';
 import SelectedItemsView from '~/src/components/SelectedItemsView.vue'
-import type { TDictViewVal } from '~uilib/FinderDataProviders/FinderDataProvider';
+import type { TDictViewVal } from '~/src/ui_tools/FinderDataProviders/FinderDataProvider';
 import type { IDataTableProps } from './types';
 
 

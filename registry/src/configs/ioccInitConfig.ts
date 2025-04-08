@@ -2,7 +2,7 @@ import { MoApiClient } from "~/src/common/lib/MoApi/MoApiClient";
 import { MoApiClientSettings } from "~/src/common/lib/MoApi/MoApiClientSettings";
 import { UserContext } from "~/src/common/lib/UserContext";
 import { Container } from "inversify";
-import { ModuleManager } from "~uibase/ModuleManager";
+import { ModuleManager } from "~/src/ui_base/configs/ModuleManager";
 import { PageMap } from "~/src/common/lib/PageMap";
 import { RecordsStore } from "~/src/common/lib/MoApi/Records/RecordsStore";
 import { EventBus } from "~/src/common/lib/EventBus";

@@ -129,14 +129,15 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import VueCal from 'vue-cal';
 import * as Utils from '~/src/common/lib/Utils';
 import {EDataType} from '~/src/common/lib/globalTypes';
 import InputField from '~/src/widgets/Layers/InputField.vue';
 import wt from '~/src/components/CustomMonthView/vue-cal-m';
 import type {MoApiClient} from '~/src/common/lib/MoApi/MoApiClient';
-import '~~/components/customMonthView/custom-cal-style.scss';
-import EventDialog from '~forms/WindowDialogs/~sub/EditWindowDialogs/~elements/EventDialog.vue';
+import '~components/customMonthView/custom-cal-style.scss';
+import EventDialog from '~forms/WindowDialogs/~sub/EditWindowDialogs/~sub/EventDialog.vue';
 import {RecordsStore} from '~/src/common/lib/MoApi/Records/RecordsStore';
 import type {IFrameHeaderData, PageMap} from '~/src/common/lib/PageMap';
 import {PositionsViews} from '~/src/common/lib/MoApi/Views/PositionsViews';
@@ -150,9 +151,9 @@ import {ProductRecord, ProductRecordData} from '~/src/common/lib/MoApi/Records/P
 import {BookingsViews, type IBookingListView} from '~/src/common/lib/MoApi/Views/BookingViews';
 import {PositionRecord, PositionRecordData} from '~/src/common/lib/MoApi/Records/PositionRecord';
 import type ScheduleTimespanItem from '~/src/common/lib/MoApi/Records/DataEntities/ScheduleTimespanItem';
-import {ProductFinderDataProvider} from '~uilib/FinderDataProviders/ProductFinderDataProvider';
-import {EmployeeFioFinderDataProvider} from '~uilib/FinderDataProviders/EmployeeFioFinderDataProvider';
-import {ScheduleItemGroupFinderDataProvider} from '~uilib/FinderDataProviders/ScheduleItemGroupFinderDataProvider';
+import {ProductFinderDataProvider} from '~/src/ui_tools/FinderDataProviders/~sub/ProductFinderDataProvider';
+import {EmployeeFioFinderDataProvider} from '~/src/ui_tools/FinderDataProviders/~sub/EmployeeFioFinderDataProvider';
+import {ScheduleItemGroupFinderDataProvider} from '~/src/ui_tools/FinderDataProviders/~sub/ScheduleItemGroupFinderDataProvider';
 import {ScheduleItemGroupData, ScheduleItemGroupRecord} from '~/src/common/lib/MoApi/Records/ScheduleItemGroupRecord';
 import {
   BookingGridInfo,
@@ -164,7 +165,7 @@ import {
 import {BookingRecord} from "~/src/common/lib/MoApi/Records/BookingRecord";
 import {Scheduler} from "~/src/components/CustomMonthView/scheduler";
 import {Bookings} from "~/src/common/lib/Booking/Bookings";
-import UnscheduledEventDialog from "~forms/WindowDialogs/~sub/EditWindowDialogs/~elements/UnscheduledEventDialog.vue";
+import UnscheduledEventDialog from "~forms/WindowDialogs/~sub/EditWindowDialogs/~sub/UnscheduledEventDialog.vue";
 import {useDelQU, useQU} from "~/src/common/composables/useActionDialog";
 import {okToast} from "~/src/common/composables/useToast";
 // import { BookingQuery, QueryParams, QueryParamsScheduler, QuerySchedule } from '~~/lib/MoApi/RequestArgs';

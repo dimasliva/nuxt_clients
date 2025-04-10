@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль элемента расписания" :on-save="save" :on-close="close" :readonly="readonly">
+  <EditWindowDialog title="Профиль элемента расписания" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -19,7 +19,7 @@
 
       </v-card-text>
     </template>
-  </FormsEditWindowDialog>>
+  </EditWindowDialog>>
 </template>
 
 <script setup lang="ts">
@@ -28,51 +28,46 @@ import { useI18n } from "vue-i18n";
 import { Container } from 'inversify';
 import { ERecLockArg, RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { ScheduleItemGroupRecord } from '~/src/common/lib/MoApi/Records/ScheduleItemGroupRecord';
-import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import InputField from '~/src/widgets/Layers/InputField.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
+import type { IProfileDialogProps } from './types';
 
 const { t, locale } = useI18n();
 
 
-interface IProps {
-  diC?: Container;
-  recKey: string | null;
-  rec?: ScheduleItemGroupRecord,
-  readonly?: boolean
+interface IProps extends IProfileDialogProps {
+  rec?: ScheduleItemGroupRecord
 }
 
 const props = defineProps<IProps>();
 
-const diC = props.diC || useSessionContainer();
-const recStore = diC.get<RecordsStore>("RecordsStore");
-
-const eventsHandler = (e: string, d: any) => {
-  switch (e) {
-    case "onKeydown": return true;
-  }
-};
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 
 defineExpose({ eventsHandler });
 
+
 let rec = ref<ScheduleItemGroupRecord>();
 
-if (props.recKey) {
-  rec.value = await recStore.fetch(ScheduleItemGroupRecord, props.recKey, ERecLockArg.Try, true);
-} else {
-  rec.value = await recStore.createNew(ScheduleItemGroupRecord, (data) => { });
+const loadFunc = async () => {
+  if (props.recKey) {
+    rec.value = await recStore.fetch(ScheduleItemGroupRecord, props.recKey, ERecLockArg.Try, true);
+  } else {
+    rec.value = await recStore.createNew(ScheduleItemGroupRecord, (data) => { });
+  }
+  return rec;
 }
 
-const { readonly, close } = await useEditForm(rec, props.readonly);
 
-
-const save = async () => {
+const saveFunc = async () => {
   if (rec.value!.IsNew) {
     await rec.value!.save();
   } else {
     await rec.value!.save();
   }
 }
+
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, props.readonly);
 
 const cancelModifingData = () => {
   rec.value!.cancelModifingData();

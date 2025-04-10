@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль раздела каталога" :on-save="save" :on-close="close" :readonly="readonly">
+  <EditWindowDialog title="Профиль раздела каталога" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -14,12 +14,12 @@
 
       </v-card-text>
     </template>
-  </FormsEditWindowDialog>>
+  </EditWindowDialog>>
 </template>
 
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
-import { RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { UserContext } from '~/src/common/lib/UserContext';
 import { useI18n } from "vue-i18n"
 import * as vHelpers from '~uilib/Helpers';
@@ -28,64 +28,43 @@ import { EDataType } from '~/src/common/lib/globalTypes';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/src/common/lib/Dicts/DictionaryStore';
 import { Exception } from '~/src/common/lib/Exceptions';
-import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { ProductsCatalogSectionRecord } from '~/src/common/lib/MoApi/Records/ProductsCatalogSectionRecord';
 import type { Container } from 'inversify';
+import type { IProfileDialogProps } from './types';
 
 
 const { t, locale } = useI18n();
 
 
-interface IProps {
-  diC?: Container;
-  recKey: string | null;
-  rec?: ProductsCatalogSectionRecord,
-  readonly?: boolean
+interface IProps extends IProfileDialogProps {
+  rec?: ProductsCatalogSectionRecord
 }
 
 const props = defineProps<IProps>();
 
-const diC = props.diC || useSessionContainer();
-const recStore = diC.get<RecordsStore>("RecordsStore");
-
-/*
-let dictStore = diC.get<MoApiClient>("MoApiClient").getDictionaryStore();
-let dictPersDocs = dictStore.getDictionary(EDictionaries.PersonalDocumentTypes);
-let userCtx = diC.get<UserContext>("UserContext");
-*/
-
-const eventsHandler = (e: string, d: any) => {
-  switch (e) {
-    case "onKeydown": return true;
-  }
-};
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 
 defineExpose({ eventsHandler });
 
 
 let rec = ref<ProductsCatalogSectionRecord>();
 
-
-if (props.rec)
-  rec.value = props.rec
-else
-  if (props.recKey) {
-    let recs = await recStore.getRecordsM([
-      { id: { key: props.recKey, type: ProductsCatalogSectionRecord } }
-    ]);
-
-    rec.value = recs[0] as ProductsCatalogSectionRecord;
-  }
-  else {
-    rec.value = await recStore.createNew(ProductsCatalogSectionRecord, (data) => { });
-  }
+const loadFunc = async () => {
+  if (props.rec)
+    rec.value = props.rec
+  else
+    if (props.recKey) {
+      rec.value = await recStore.fetch(ProductsCatalogSectionRecord, props.recKey, ERecLockArg.Try, true);
+    }
+    else {
+      rec.value = await recStore.createNew(ProductsCatalogSectionRecord, (data) => { });
+    }
+  return rec;
+}
 
 
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
-
-
-
-const save = async () => {
+const saveFunc = async () => {
   if (rec.value!.IsNew) {
     await rec.value!.save();
   }
@@ -93,23 +72,12 @@ const save = async () => {
     await rec.value!.save();
 }
 
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, props.readonly);
 
 
 const cancelModifingData = () => {
   rec.value!.cancelModifingData();
 }
-
-
-
-
-
-//const dictFinderDataProvider = iocc.get(DictsFinderDataProvider);
-//dictFinderDataProvider.init("serachProductsCatalogSections", false, EDictionaries.CompanyProductsCatalogSections);
-
-//const emplFioFinderDataProvider = iocc.get(EmployeeFioFinderDataProvider);
-//emplFioFinderDataProvider.init("fioEmployyee");
-
-
 
 </script>
 

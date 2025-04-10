@@ -1,7 +1,8 @@
 import type { Container } from "inversify";
+import { type IEditFormProps } from '~/src/forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 
-export interface IProfileDialogProps {
-    diC?: Container,
-    recKey: string | null;
-    readonly?: boolean;
-  }
+export interface IProfileDialogProps extends IEditFormProps {
+  diC?: Container,
+  recKey: string | null;
+  readonly?: boolean;
+}

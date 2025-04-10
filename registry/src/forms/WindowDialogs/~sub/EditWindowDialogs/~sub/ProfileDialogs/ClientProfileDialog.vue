@@ -198,10 +198,6 @@
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
-
-
-
-
       </v-card-text>
     </template>
   </EditWindowDialog>>
@@ -231,7 +227,8 @@ import { Dictionary } from "~/src/common/lib/Dicts/Dictionary";
 import * as persDocDictConst from "~/src/common/lib/Dicts/DictPersonalDocumentsConst";
 import PersonalDocumentEntity from '~/src/common/lib/MoApi/Records/DataEntities/PersonalDocumentEntity';
 import { getNextSerialKey } from '~/src/common/lib/Utils';
-import { useEditForm, useEditFormBegin, type IEditFormProps } from '~/src/forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin} from '~/src/forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import type { IProfileDialogProps } from './types';
 
 
 const { t, locale } = useI18n();
@@ -259,7 +256,7 @@ class VisWrap<T> {
 }
 
 
-const props = defineProps<IEditFormProps>();
+const props = defineProps<IProfileDialogProps>();
 
 const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 

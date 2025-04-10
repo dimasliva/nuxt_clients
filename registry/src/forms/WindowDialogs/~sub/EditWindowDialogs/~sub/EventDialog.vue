@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog :title="props.creation ? 'Новая запись на ' + date : 'Запись на ' + (date + ' в ' + start)"
+  <EditWindowDialog :title="props.creation ? 'Новая запись на ' + date : 'Запись на ' + (date + ' в ' + start)"
                          :on-save="saveChanges" :on-close=" () => {created ? closeDialog(props.event) : closeDialog('')}" :readonly="false">
     <template #default="{ fieldsOptions }">
     <div class="d-flex flex-row pa-0">
@@ -118,7 +118,7 @@
 
     </div>
     </template>
-  </FormsEditWindowDialog>
+  </EditWindowDialog>
 </template>
 
 <script setup lang="ts">

@@ -69,7 +69,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   typescript: {
-    typeCheck: false,
+    typeCheck: true,
   },
 
   hooks: {
@@ -144,6 +144,12 @@ export default defineNuxtConfig({
 
     {
       path: './src/widgets',
+      pathPrefix: false,
+      ignore: ["Template."]
+    },
+
+    {
+      path: './src/forms',
       pathPrefix: false,
       ignore: ["Template."]
     }

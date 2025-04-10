@@ -121,11 +121,12 @@ import { ERecLockArg, RecordsStore } from "~/src/common/lib/MoApi/Records/Record
 import { DealRecord } from "~/src/common/lib/MoApi/Records/DealRecord";
 import { EDataType } from "~/src/common/lib/globalTypes";
 import InputField from "~/src/widgets/Layers/InputField.vue";
-import { useEditForm, useEditFormBegin, type IEditFormProps } from "../../~composables/useEditForm";
+import { useEditForm, useEditFormBegin } from "../../~composables/useEditForm";
+import type { IProfileDialogProps } from "./types";
 
 
 
-const props = defineProps<IEditFormProps>();
+const props = defineProps<IProfileDialogProps>();
 
 const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 

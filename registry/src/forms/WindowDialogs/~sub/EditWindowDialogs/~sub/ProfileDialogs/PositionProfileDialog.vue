@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль должности" :on-save="save" :on-close="close" :readonly="readonly">
+  <EditWindowDialog title="Профиль должности" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -14,7 +14,7 @@
 
       </v-card-text>
     </template>
-  </FormsEditWindowDialog>>
+  </EditWindowDialog>>
 </template>
 
 <script setup lang="ts">
@@ -28,13 +28,14 @@ import { EDataType } from '~/src/common/lib/globalTypes';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/src/common/lib/Dicts/DictionaryStore';
 import { Exception } from '~/src/common/lib/Exceptions';
-import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { PositionRecord } from '~/src/common/lib/MoApi/Records/PositionRecord';
 import { QueryDictsFFParams } from '~/src/common/lib/MoApi/RequestArgs';
 import { DictsFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/DictsFinderDataProvider';
 import { EmployeeFioFinderDataProvider } from '~/src/ui_tools/FinderDataProviders/~sub/EmployeeFioFinderDataProvider';
 import { EmployeeRecord } from '~/src/common/lib/MoApi/Records/EmployeeRecord';
 import type { Container } from 'inversify';
+import type { IProfileDialogProps } from './types';
 
 
 const { t, locale } = useI18n();
@@ -46,42 +47,39 @@ interface IProps {
   readonly?: boolean;
 }
 
-const props = defineProps<IProps>();
+const props = defineProps<IProfileDialogProps>();
 
-const diC = props.diC || useSessionContainer();
-const recStore = diC.get<RecordsStore>("RecordsStore");
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
+
+defineExpose({ eventsHandler });
 
 let rec = ref<PositionRecord>();
 let emplRec = ref<EmployeeRecord>();
 
 
-if (props.recKey) {
+const loadFunc = async () => {
+  if (props.recKey) {
 
-  rec.value = await recStore.fetch(PositionRecord, props.recKey, ERecLockArg.Try, true);
+    rec.value = await recStore.fetch(PositionRecord, props.recKey, ERecLockArg.Try, true);
 
-  if (rec.value.Data!.employee)
-    emplRec.value = await recStore.fetch(EmployeeRecord, rec.value.Data!.employee);
+    if (rec.value.Data!.employee)
+      emplRec.value = await recStore.fetch(EmployeeRecord, rec.value.Data!.employee);
+  }
+  else {
+    rec.value = await recStore.createNew(PositionRecord, (data) => { });
+  }
+  return rec;
 }
-else {
-  rec.value = await recStore.createNew(PositionRecord, (data) => { });
-}
 
-const { readonly, close, isChangesSaved } = await useEditForm(rec, props.readonly);
-
-
-
-const save = async () => {
-
+const saveFunc = async () => {
   if (rec.value!.IsNew) {
     await rec.value!.save();
   }
   else
     await rec.value!.save();
-
-  isChangesSaved.value = true;
 }
 
-
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, props.readonly);
 
 const cancelModifingData = () => {
   rec.value!.cancelModifingData();
@@ -106,12 +104,6 @@ const positionPosition = computed({
   }
 })
 
-const eventsHandler = (e: string, d: any) => {
-  switch (e) {
-    case "onKeydown": return true;
-  }
-};
-
 
 const dictFinderDataProvider = diC.get(DictsFinderDataProvider);
 dictFinderDataProvider.init("serachPositions", false, EDictionaries.CompanyPositions);
@@ -119,7 +111,6 @@ dictFinderDataProvider.init("serachPositions", false, EDictionaries.CompanyPosit
 const emplFioFinderDataProvider = diC.get(EmployeeFioFinderDataProvider);
 emplFioFinderDataProvider.init("fioEmployyee");
 
-defineExpose({ eventsHandler });
 
 </script>
 

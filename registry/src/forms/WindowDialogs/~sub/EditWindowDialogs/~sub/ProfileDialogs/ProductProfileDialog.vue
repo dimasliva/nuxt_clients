@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль товара или услуги" :on-save="save" :on-close="close" :readonly="readonly">
+  <EditWindowDialog title="Профиль товара или услуги" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -14,12 +14,12 @@
 
       </v-card-text>
     </template>
-  </FormsEditWindowDialog>>
+  </EditWindowDialog>>
 </template>
- 
+
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
-import { RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { UserContext } from '~/src/common/lib/UserContext';
 import { useI18n } from "vue-i18n"
 import * as vHelpers from '~uilib/Helpers';
@@ -28,60 +28,44 @@ import { EDataType } from '~/src/common/lib/globalTypes';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/src/common/lib/Dicts/DictionaryStore';
 import { Exception } from '~/src/common/lib/Exceptions';
-import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin} from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { ProductRecord } from '~/src/common/lib/MoApi/Records/ProductRecord';
 import { EmployeeRecord } from '~/src/common/lib/MoApi/Records/EmployeeRecord';
 import type { Container } from 'inversify';
+import type { IProfileDialogProps } from './types';
 
 
 const { t, locale } = useI18n();
 
 
-interface IProps {
-  diC?: Container;
-  recKey: string | null;
-  rec?: ProductRecord,
-  readonly?: boolean
+interface IProps extends IProfileDialogProps {
+  rec?: ProductRecord
 }
 
 const props = defineProps<IProps>();
 
-const diC = props.diC || useSessionContainer();
-const recStore = diC.get<RecordsStore>("RecordsStore");
-
-
-const eventsHandler = (e: string, d: any) => {
-  switch (e) {
-    case "onKeydown": return true;
-  }
-};
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 
 defineExpose({ eventsHandler });
 
 
 let rec = ref<ProductRecord>();
 
+const loadFunc = async () => {
+  if (props.rec)
+    rec.value = props.rec
+  else
+    if (props.recKey) {
+      rec.value = await recStore.fetch(ProductRecord, props.recKey, ERecLockArg.Try, true);
+    }
+    else {
+      rec.value = await recStore.createNew(ProductRecord, (data) => { });
+    }
 
-if (props.rec)
-  rec.value = props.rec
-else
-  if (props.recKey) {
-    let recs = await recStore.getRecordsM([
-      { id: { key: props.recKey, type: ProductRecord } }
-    ]);
+  return rec;
+}
 
-    rec.value = recs[0] as ProductRecord;
-  }
-  else {
-    rec.value = await recStore.createNew(ProductRecord, (data) => { });
-  }
-
-
-const { isRecLock, readonly, close } = await useEditForm(rec, props.readonly);
-
-
-
-const save = async () => {
+const saveFunc = async () => {
   if (rec.value!.IsNew) {
     await rec.value!.save();
   }
@@ -89,13 +73,11 @@ const save = async () => {
     await rec.value!.save();
 }
 
-
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, props.readonly);
 
 const cancelModifingData = () => {
   rec.value!.cancelModifingData();
 }
-
-
 
 
 

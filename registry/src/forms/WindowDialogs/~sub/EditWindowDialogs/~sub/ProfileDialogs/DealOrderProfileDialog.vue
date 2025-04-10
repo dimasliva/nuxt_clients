@@ -1,5 +1,5 @@
 <template>
-    <FormsEditWindowDialog title="Профиль Заказа" :on-save="save" :on-close="close" :readonly="readonly">
+    <EditWindowDialog title="Профиль Заказа" :on-save="save" :on-close="close" :readonly="readonly">
         <template #default="{ fieldsOptions }">
             <v-card-text>
                 <!-- Основная информация о заказе -->
@@ -68,7 +68,7 @@
                 </v-expansion-panels>
             </v-card-text>
         </template>
-    </FormsEditWindowDialog>
+    </EditWindowDialog>
 </template>
 
 <script setup lang="ts">

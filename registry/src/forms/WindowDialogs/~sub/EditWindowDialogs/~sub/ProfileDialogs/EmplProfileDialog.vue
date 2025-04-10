@@ -1,5 +1,5 @@
 <template>
-  <FormsEditWindowDialog title="Профиль сотрудника" :on-save="save" :on-close="close" :readonly="readonly">
+  <EditWindowDialog title="Профиль сотрудника" :on-save="save" :on-close="close" :readonly="readonly">
     <template #default="{ fieldsOptions }">
       <v-card-text>
         <v-row class="mt-1">
@@ -105,12 +105,12 @@
 
       </v-card-text>
     </template>
-  </FormsEditWindowDialog>>
+  </EditWindowDialog>>
 </template>
 
 <script setup lang="ts">
 import '@vuepic/vue-datepicker/dist/main.css'
-import { RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
+import { ERecLockArg, RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { UserContext } from '~/src/common/lib/UserContext';
 import { EEmployeeAccountStatus, EmployeeRecord } from '~/src/common/lib/MoApi/Records/EmployeeRecord'
 import { useI18n } from "vue-i18n"
@@ -124,7 +124,8 @@ import { getNextSerialKey } from '~/src/common/lib/Utils';
 import { Exception } from '~/src/common/lib/Exceptions';
 import { chkTrait } from "~/src/common/lib/Utils";
 import { RolesRecord } from '~/src/common/lib/MoApi/Records/RolesRecord';
-import { useEditForm } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import type { IProfileDialogProps } from './types';
 
 const { t, locale } = useI18n();
 
@@ -150,17 +151,14 @@ class VisWrap<T> {
   }
 }
 
-interface IProps {
-  recKey: string | null,
-  readonly?: boolean
-}
 
-const props = defineProps<IProps>();
+const props = defineProps<IProfileDialogProps>();
 
-const diC = useContainer();
-const recStore = diC.get(RecordsStore);
+const { eventsHandler, diC, recStore } = useEditFormBegin(props);
+
+defineExpose({ eventsHandler });
+
 const foto = ref("");
-const gender = ref("");
 const accountStatus = ref(EEmployeeAccountStatus.NotPresent);
 
 let userCtx = diC.get<UserContext>("UserContext");
@@ -199,28 +197,45 @@ let rec = ref<EmployeeRecord>();
 let recDoc = ref<EmployeeDocumentsRecord>();
 let recCont = ref<EmployeeContactsRecord>();
 
+const loadFunc = async () => {
+  if (props.recKey) {
+    rec.value = await recStore.fetch(EmployeeRecord, props.recKey, ERecLockArg.Try, true);
+    let recs = await recStore.getRecordsM([
+      { id: { key: userCtx.AuthorityData!.companyId!, type: RolesRecord } },
+      { id: { key: props.recKey, type: EmployeeDocumentsRecord }, optional: true },
+      { id: { key: props.recKey, type: EmployeeContactsRecord }, optional: true }
+    ]);
 
-if (props.recKey) {
-  let recs = await recStore.getRecordsM([
-    { id: { key: userCtx.AuthorityData!.companyId!, type: RolesRecord } },
-    { id: { key: props.recKey, type: EmployeeRecord } },
-    { id: { key: props.recKey, type: EmployeeDocumentsRecord }, optional: true },
-    { id: { key: props.recKey, type: EmployeeContactsRecord }, optional: true }
-  ]);
+    rolesRec = recs[0] as RolesRecord;
+    recDoc.value = recs[1] as EmployeeDocumentsRecord;
+    recCont.value = recs[2] as EmployeeContactsRecord;
 
-  rolesRec = recs[0] as RolesRecord;
-  rec.value = recs[1] as EmployeeRecord;
-  recDoc.value = recs[2] as EmployeeDocumentsRecord;
-  recCont.value = recs[3] as EmployeeContactsRecord;
-
-  accountStatus.value = await rec.value.getStatusEmployeeAccount();
+    accountStatus.value = await rec.value.getStatusEmployeeAccount();
+  }
+  else {
+    rolesRec = await recStore.fetch(RolesRecord, "0");
+    rec.value = await recStore.createNew(EmployeeRecord, (data) => { });
+    recDoc.value = await recStore.createNew(EmployeeDocumentsRecord, (data) => { });
+    recCont.value = await recStore.createNew(EmployeeContactsRecord, (data) => { });
+  }
+  return rec;
 }
-else {
-  rolesRec = await recStore.fetch(RolesRecord, "0");
-  rec.value = await recStore.createNew(EmployeeRecord, (data) => { });
-  recDoc.value = await recStore.createNew(EmployeeDocumentsRecord, (data) => { });
-  recCont.value = await recStore.createNew(EmployeeContactsRecord, (data) => { });
+
+const saveFunc = async () => {
+  if (rec.value!.IsNew) {
+    await rec.value!.save();
+    recDoc.value!.MData.id = rec.value!.Key;
+    recCont.value!.MData.id = rec.value!.Key;
+  }
+  else
+    await rec.value!.save();
+
+  await recDoc.value!.save();
+  await recCont.value!.save();
 }
+
+
+const { readonly, close, save } = await useEditForm(loadFunc, saveFunc, props.readonly);
 
 //роли
 let roles = rolesRec.Data!.roles.getRoles();
@@ -256,13 +271,16 @@ const delPhoto = (fieldsOptions) => {
 }
 
 
-if (rec.value.Data!.gender != "u")
-  gender.value = rec.value.Data!.gender;
 
-watch(gender, (val, oldval) => {
-  rec.value!.MData.gender = gender.value = val;
+const gender = computed({
+  get() {
+    return rec.value!.MData!.gender == "u" ? "" : rec.value!.MData!.gender
+  },
+
+  set(newValue) {
+    rec.value!.MData!.gender = newValue || 'u';
+  }
 });
-
 
 const AccountActionsMenu = computedAsync(async () => {
   let res = [] as any;
@@ -330,23 +348,6 @@ const delAccount = async () => {
 }
 
 
-const save = async () => {
-
-  debugger
-  if (rec.value!.IsNew) {
-    await rec.value!.save();
-    recDoc.value!.MData.id = rec.value!.Key;
-    recCont.value!.MData.id = rec.value!.Key;
-  }
-  else
-    await rec.value!.save();
-
-  await recDoc.value!.save();
-  await recCont.value!.save();
-}
-
-
-
 const cancelModifingData = () => {
   rec.value!.cancelModifingData();
   recDoc.value!.cancelModifingData();
@@ -354,15 +355,8 @@ const cancelModifingData = () => {
 }
 
 
-const eventsHandler = (e: string, d: any) => {
-  switch (e) {
-    case "onKeydown": return true;
-  }
-};
 
-defineExpose({ eventsHandler });
 
-const { readonly, close } = await useEditForm(props.readonly);
 
 </script>
 

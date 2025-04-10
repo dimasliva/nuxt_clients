@@ -39,11 +39,12 @@ import { ERecLockArg } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { CompanyOrganizationRecord } from '~/src/common/lib/MoApi/Records/CompanyOrganizationRecord';
 import InputField from '~/src/widgets/Layers/InputField.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
-import { type IEditFormProps, useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
+import type { IProfileDialogProps } from './types';
 
 
 
-const props = defineProps<IEditFormProps>();
+const props = defineProps<IProfileDialogProps>();
 
 const { eventsHandler, diC, recStore } = useEditFormBegin(props);
 

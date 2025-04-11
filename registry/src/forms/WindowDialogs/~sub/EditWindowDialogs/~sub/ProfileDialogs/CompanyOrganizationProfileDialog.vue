@@ -37,7 +37,7 @@ import { ref } from 'vue';
 import { EditWindowDialog } from '~forms/WindowDialogs/~sub/EditWindowDialogs';
 import { ERecLockArg } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { CompanyOrganizationRecord } from '~/src/common/lib/MoApi/Records/CompanyOrganizationRecord';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
 import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import type { IProfileDialogProps } from './types';

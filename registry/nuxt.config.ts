@@ -135,23 +135,28 @@ export default defineNuxtConfig({
     {
       path: './src/ui_base/components',
       pathPrefix: false,
+      pattern: ["**/*.vue", "**/*.tsx"], // include all .vue and .tsx files
     },
 
     {
       path: './src/components',
       pathPrefix: false,
+      pattern: ["**/*.vue", "**/*.tsx"], // include all .vue and .tsx files
     },
 
     {
       path: './src/widgets',
       pathPrefix: false,
-      ignore: ["Template."]
+      ignore: ["Template."],
+      pattern: ["**/*.vue", "**/*.tsx"], // include all .vue and .tsx files
+      
     },
 
     {
       path: './src/forms',
       pathPrefix: false,
-      ignore: ["Template."]
+      ignore: ["Template."],
+      pattern: ["**/*.vue", "**/*.tsx"], // include all .vue and .tsx files
     }
   ],
 
@@ -166,6 +171,10 @@ export default defineNuxtConfig({
     "~uilib": "../src/ui_base/lib",
     "~uitools": "../src/ui_tools",
   },
+
+  extends: [
+    './layers/fsd',
+  ],
 
   compatibilityDate: "2025-03-28",
 });

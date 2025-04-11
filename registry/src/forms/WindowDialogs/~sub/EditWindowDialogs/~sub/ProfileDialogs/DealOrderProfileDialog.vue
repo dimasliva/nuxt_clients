@@ -76,7 +76,7 @@ import { ref, computed } from 'vue';
 import { ERecLockArg, RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { DealOrderRecord } from '~/src/common/lib/MoApi/Records/DealOrderRecord';
 import { EDataType } from '~/src/common/lib/globalTypes';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
 import { DealOrderSdRecord } from '~/src/common/lib/MoApi/Records/DealOrderSdRecord';
 import { useCurrency } from '~/src/common/composables/useCurrency';

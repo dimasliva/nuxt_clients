@@ -133,7 +133,7 @@
 import VueCal from 'vue-cal';
 import * as Utils from '~/src/common/lib/Utils';
 import {EDataType} from '~/src/common/lib/globalTypes';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import wt from '~/src/components/CustomMonthView/vue-cal-m';
 import type {MoApiClient} from '~/src/common/lib/MoApi/MoApiClient';
 import '~components/customMonthView/custom-cal-style.scss';

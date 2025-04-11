@@ -24,7 +24,7 @@ import { ERecLockArg, type RecordsStore } from '~/src/common/lib/MoApi/Records/R
 import type { UserContext } from '~/src/common/lib/UserContext';
 import { useI18n } from "vue-i18n"
 import * as vHelpers from '~uilib/Helpers';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { EDictionaries } from '~/src/common/lib/Dicts/DictionaryStore';

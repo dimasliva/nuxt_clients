@@ -29,7 +29,7 @@ import { Container } from 'inversify';
 import { ERecLockArg, RecordsStore } from '~/src/common/lib/MoApi/Records/RecordsStore';
 import { ScheduleItemGroupRecord } from '~/src/common/lib/MoApi/Records/ScheduleItemGroupRecord';
 import { useEditForm, useEditFormBegin } from '~forms/WindowDialogs/~sub/EditWindowDialogs/~composables/useEditForm';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
 import type { IProfileDialogProps } from './types';
 

@@ -117,7 +117,7 @@ import { useI18n } from "vue-i18n"
 import { EmployeeDocumentsRecord } from '~/src/common/lib/MoApi/Records/EmployeeDocumentsRecord';
 import { EmployeeContactsRecord } from '~/src/common/lib/MoApi/Records/EmployeeContactsRecord';
 import * as vHelpers from '~uilib/Helpers';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';
 import { getNextSerialKey } from '~/src/common/lib/Utils';

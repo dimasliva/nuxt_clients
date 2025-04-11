@@ -217,7 +217,7 @@ import { ClientSdRecord } from '~/src/common/lib/MoApi/Records/ClientSdRecord';
 import { ClientAddressesRecord } from '~/src/common/lib/MoApi/Records/ClientAddressesRecord';
 import { ClientContactsRecord } from '~/src/common/lib/MoApi/Records/ClientContactsRecord';
 import * as vHelpers from '~uilib/Helpers';
-import InputField from '~/src/widgets/Layers/InputField.vue';
+import InputField from '~uibase/components/InputField.vue';
 import AddressInput from '~/src/components/AddressInput.vue';
 import { EDataType } from '~/src/common/lib/globalTypes';
 import { MoApiClient } from '~/src/common/lib/MoApi/MoApiClient';

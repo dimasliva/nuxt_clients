@@ -25,6 +25,8 @@
   "companyFullTitle": "Полноное название компании",
   "emplName": "Имя",
   "emplSurname": "Фамилия",
+  "changeAvatar": "Изменить аватар",
+  "selectADate": "Выбрать дату",
   "emplPatronymic": "Отчество",
   "birthdate": "Дата рождения",
   "vemail": "Некорректный адрес электронной почты",

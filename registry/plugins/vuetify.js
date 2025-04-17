@@ -4,6 +4,9 @@ import '@mdi/font/css/materialdesignicons.css'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import {  md2 } from 'vuetify/blueprints'
+import { VDateInput } from 'vuetify/labs/VDateInput'
+import { ru } from 'vuetify/locale'
+
 
 const lightTheme = {
   dark: false,
@@ -39,6 +42,11 @@ const darkTheme = {
 
 export default defineNuxtPlugin(nuxtApp => {
   const vuetify = createVuetify({
+    locale: {
+      locale: 'ru',
+      fallback: 'ru',
+      messages: { ru },
+    },
     blueprint: md2,
     ssr: false,
     components,
@@ -52,6 +60,9 @@ export default defineNuxtPlugin(nuxtApp => {
           lightTheme,
           darkTheme
         }
+    },
+    components: {
+      VDateInput,
     },
   })
 

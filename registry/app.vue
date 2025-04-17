@@ -4,12 +4,14 @@
   </NuxtLayout>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
+const route = useRoute()
+const path = route.fullPath
 
-export default {
-  name: 'app'
-}
-
+definePageMeta({
+  name: 'app',
+  layout: path === '/list/new/clients' ? 'page' : 'default'
+})
 
 
 </script>

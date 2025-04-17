@@ -14,6 +14,8 @@
   "autherr": "Authorization error",
   "errtext": "Invalid login or password.",
   "email": "Email",
+  "selectADate": "Select a date",
+  "changeAvatar": "Change avatar",
   "companyTitle": "Company title",
   "companyFullTitle": "Full company title",
   "emplName": "Your name",

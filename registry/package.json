@@ -11,6 +11,7 @@
   "devDependencies": {
     "@mdi/font": "^7.4.47",
     "@nuxtjs/i18n": "^8.0.0",
+    "@pinia/nuxt": "^0.10.1",
     "@types/node": "^22.13.14",
     "@types/uuid": "^9.0.8",
     "@vueuse/core": "^13.0.0",
@@ -26,7 +27,9 @@
     "@babel/plugin-transform-class-properties": "^7.25.9",
     "@babel/plugin-transform-class-static-block": "^7.26.0",
     "@microsoft/signalr": "^8.0.7",
+    "@tanstack/vue-query": "^5.74.3",
     "@vuepic/vue-datepicker": "^6.1.0",
+    "axios": "^1.8.4",
     "flag-icons": "^7.1.0",
     "inversify": "6.2.2",
     "inversify-inject-decorators": "^3.1.0",

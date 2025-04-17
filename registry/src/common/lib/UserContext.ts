@@ -9,6 +9,7 @@ import { EmployeeAppProfile } from "./EmployeeAppProfile";
 import { CompanyAppProfile } from "./CompanyAppProfile";
 import { BitList } from "./BitList";
 import type { IEventBus } from "./EventBus";
+import { saveRefreshTokenStorage, saveUserToStorage } from "~/src/features/Auth/model/services/auth-token.service";
 
 export const FEATURES_SIZE = 128;
 
@@ -83,6 +84,9 @@ export class UserContext {
       this._userFeatureAccess = new BitList(FEATURES_SIZE).fromBase64(appEmployeeContext.userFeatureAccess);
       this._RecordsRestricions = appEmployeeContext.recordRestrictions;
       this._AuthorityData = authorityData;
+      saveRefreshTokenStorage(authorityData.refreshToken)
+      saveAccessTokenStorage(authorityData.token)
+      saveUserToStorage(appEmployeeContext.employee)
     }
     catch (exc) {
       this._AuthorityData = null;

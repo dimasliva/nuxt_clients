@@ -200,7 +200,7 @@
         </v-expansion-panels>
       </v-card-text>
     </template>
-  </EditWindowDialog>>
+  </EditWindowDialog>
 </template>
 
 <script setup lang="ts">

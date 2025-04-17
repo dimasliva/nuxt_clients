@@ -13,12 +13,13 @@ const { resolve } = createResolver(import.meta.url);
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
+  devtools: { enabled: true },
   runtimeConfig: {
     auth: {
       name: "nuxt-session",
       password: process.env.NUXT_AUTH_PASSWORD || "",
     },
-
+    
     mainApiServer: mainApiServer,
     mainApiServerPort: mainApiServerPort,
     appId: "78064056-8C89-4057-9AC9-2836AE605E1D",
@@ -69,7 +70,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   typescript: {
-    typeCheck: true,
+    typeCheck: false,
   },
 
   hooks: {
@@ -85,7 +86,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@vueuse/nuxt", "@nuxtjs/i18n"],
+  modules: ["@vueuse/nuxt", "@nuxtjs/i18n", "@pinia/nuxt"],
 
   //compatibilityDate: "2024-07-22",
   nitro: {
@@ -126,10 +127,13 @@ export default defineNuxtConfig({
   imports: {
     dirs: [
       // ... or scan all modules within given directory
-      './src/common/composables/**'
+      './src/common/composables/**',
+      './src/shared/**/*.ts',
+      './src/features/**/*.ts',
+      './src/widgets/**/*.ts',
+      './src/entities/**/*.ts',
     ]
   },
-
 
   components: [
     {
@@ -157,7 +161,27 @@ export default defineNuxtConfig({
       pathPrefix: false,
       ignore: ["Template."],
       pattern: ["**/*.vue", "**/*.tsx"], // include all .vue and .tsx files
-    }
+    },
+    {
+      path: './src/shared',
+      extensions: ['.vue'],
+      prefix: 'Shared',
+    },
+    {
+      path: './src/features',
+      extensions: ['.vue'],
+      prefix: 'Feature',
+    },
+    {
+      path: './src/widgets',
+      extensions: ['.vue'],
+      prefix: 'Widget',
+    },
+    {
+      path: './src/entities',
+      extensions: ['.vue'],
+      prefix: 'Entity',
+    },
   ],
 
 

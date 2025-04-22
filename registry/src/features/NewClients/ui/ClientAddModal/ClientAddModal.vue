@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import "@vuepic/vue-datepicker/dist/main.css";
-import { EClientTabs, type IOpenUserId } from "../../model/types/clients";
+import { EClientTabs } from "../../model/types/clients";
 
 interface IProps {
   isOpen: boolean;
@@ -15,12 +15,8 @@ interface IEmits {
 
 const { isOpen, title } = defineProps<IProps>();
 
-const openUserId = defineModel<IOpenUserId>("openUserId", {
-  required: false,
-});
-
 const emit = defineEmits<IEmits>();
-const { activeTab } = useClientAddModal(openUserId);
+const { activeTab, userInfo } = useClientAddModal();
 
 </script>
 

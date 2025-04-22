@@ -1,37 +1,26 @@
 import { useQuery } from "@tanstack/vue-query";
 import { RecordService } from "~/src/features/Records/model/service/RecordService";
-import type { IClientOtherDocuments, IOpenUserId } from "../types/clients";
 
-export const useGetClientRecords = (id: Ref<IOpenUserId>) => {
+export const useGetClientRecords = () => {
   const store = useClientModalStore();
-  const { userInfo } = storeToRefs(store);
+  const {setUserInfo} = store
+  const {openUserId} = storeToRefs(store)
 
-  console.log("id", id.value)
-  console.log("id !== null", id !== null)
   const { data, refetch, isLoading, isError, error, isPending } = useQuery({
-    queryKey: ["get client records ", id.value],
-    queryFn: () => RecordService.getClientRecords(id),
+    queryKey: ["get client records ", openUserId.value],
+    queryFn: () => RecordService.getClientRecords(openUserId.value),
     select: (response) => {
-      if (response) {
-        let otherDocuments: IClientOtherDocuments[] = []
-        userInfo.value.mainDocumentNumber = response.result[1].mainDocumentNumber || ''
-        userInfo.value.mainDocumentSeries = response.result[1].mainDocumentSeries || ''
-        userInfo.value.mainDocumentWhen = response.result[1].mainDocumentWhen || ''
-        userInfo.value.mainDocumentWho = response.result[1].mainDocumentWho || ''
-        userInfo.value.mainDocumentWhoCode = response.result[1].mainDocumentWhoCode || ''
-        userInfo.value.otherDocuments = otherDocuments
-
-        response.result[1]
-
-        console.log(response)
-        // userInfo.value
+      if (response.result.length) {
+        setUserInfo(response.result)
       }
     },
-    enabled: !!id.value
+    enabled: !!openUserId.value
   });
 
-  watch(id, () => {
-    refetch();
+  watch(openUserId, () => {
+    if(openUserId.value !== '-1') {
+      refetch();
+    }
   });
 
   return {

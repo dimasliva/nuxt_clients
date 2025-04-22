@@ -3,10 +3,12 @@ export const useClientAddModalAddressActual = () => {
 
   const store = useClientModalStore();
   const {
-    actualAddress
+    actualAddress,
+    userInfo,
   } = storeToRefs(store);
 
   return {
+    userInfo,
     actualAddress,
   };
 };

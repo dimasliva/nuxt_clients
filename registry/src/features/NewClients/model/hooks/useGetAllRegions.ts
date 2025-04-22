@@ -11,10 +11,13 @@ export const useGetAllRegions = () => {
     select: (response) => {
       if (response) {
         let result = response.result;
-        Object.keys(result).forEach((key) => {
-          regions.push(result[key].value);
-        });
-        setAddressRegion(regions[0]);
+        if(result) {
+          Object.keys(result).forEach((key) => {
+            regions.push(result[key].value);
+          });
+          setAddressRegion(regions[0]);
+        }
+
       }
     },
   });

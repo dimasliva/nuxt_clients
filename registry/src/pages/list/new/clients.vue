@@ -1,15 +1,13 @@
 <template>
   <div>
     <FeatureNewClientsUiClientAddModal
-    v-model:open-user-id="openUserId"
       :title="$t('clientProfile')"
       :is-open="isOpenAddModal"
-      @onSave="closeAddModal"
+      @onSave="saveAddModal"
       @onSaveAndClose="closeAddModal"
       @onClose="closeAddModal"
     />
     <PageTable
-      
       :table-descr="tableDescr"
       :columns="tableData.columns"
       :allColumns="allTableColumns"
@@ -20,12 +18,12 @@
 </template>
 <script setup lang="ts">
 const {
-  openUserId,
   allTableColumns,
   tableData,
   tableDescr,
   selectedTitleCol,
   isOpenAddModal,
+  saveAddModal,
   closeAddModal,
 } = useNewClients();
 

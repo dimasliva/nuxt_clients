@@ -1,35 +1,14 @@
-import { useQuery } from "@tanstack/vue-query";
-import { DictionaryService } from "../../../Dictionary/model/service/DictionaryService";
+import { ClientDocumentTypes } from "../constants/clients";
+import { useGetClientDocuments } from "./useGetClientDocuments";
 
 export const useClientAddModalTabPrivacy = () => {
-  const documents = reactive<string[]>([]);
-  const selectedDocument = ref<string>("");
-
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["get all dictionary documents"],
-    queryFn: () => DictionaryService.getDocuments(),
-  });
-
-  watch(data, () => {
-    if (data.value) {
-      documents.length = 0;
-      const result = data.value.result;
-      if (result) {
-        selectedDocument.value = result[Object.keys(result)[0]].value;
-        console.log("Object.keys(result)", Object.keys(result));
-        Object.keys(result).forEach((key) => {
-          documents.push(result[key].value);
-        });
-      }
-    }
-  });
+  const store = useClientModalStore();
+  const { userInfo } = storeToRefs(store);
+  const { documents } = useGetClientDocuments();
 
   return {
+    ClientDocumentTypes,
     documents,
-    selectedDocument,
-    data,
-    error,
-    isLoading,
-    isError,
+    userInfo,
   };
 };

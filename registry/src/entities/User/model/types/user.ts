@@ -13,5 +13,4 @@ export interface IUser {
     rank: null;
     roles: string;
     surname: string;
-    
 }

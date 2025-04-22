@@ -48,14 +48,6 @@ export const usePageTable = (props: IPageTableProps) => {
       .map((col) => col.key)
       .filter((colKey) => !selectedColumns.value.includes(colKey));
   });
-  const mapRows = computed(() => {
-    return new Map(
-      props.rows.map((obj) => [
-        obj.id,
-        props.selectedTitleCol ? obj[props.selectedTitleCol] : "",
-      ])
-    );
-  });
 
   const getElement = () => {
     if (tableElem.value) {
@@ -81,11 +73,11 @@ export const usePageTable = (props: IPageTableProps) => {
     }
   };
 
-  const onRowClick = (item: ITableRow) => {
+  const onRowClick = (item: any) => {
     lineSelected.value = item.id;
   };
 
-  const getActionsMenu = (item: ITableRow) => {
+  const getActionsMenu = (item: any) => {
     return props.tableDescr.actionsMenu
       ? props.tableDescr.actionsMenu(item)
       : [];
@@ -96,12 +88,14 @@ export const usePageTable = (props: IPageTableProps) => {
     return column ? column.align : "start";
   };
 
-  const rowsToSelectViewDictVal = computed(() => {
+  const rowsToSelectViewDictVal = () => {
     return selected.value.map((v) => {
-      let title = mapRows.value.get(v) || "";
-      return { value: v, title };
+      let obj = props.rows.find((row) => row.id === v)
+      let title = getFIO(obj);
+  
+      return { value: v, title: title };
     });
-  });
+  };
 
   const onItemsPerPageChange = (newValue: number) => {
     itemsPerPage.value = newValue;

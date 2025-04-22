@@ -12,14 +12,10 @@ export const useClientAddModalTabDocuments = () => {
   const number = ref('');
   const date = ref('');
   const comment = ref('');
-  const headers = [
-    { text: 'Title', value: 'title' },
-    { text: 'Seria', value: 'seria' },
-    { text: 'Number', value: 'number' },
-    { text: 'Issue Date', value: 'issueDate' },
-    { text: 'Comment', value: 'comment' },
-    { text: 'Actions', value: 'action', sortable: false },
-  ]
+
+  const store = useClientModalStore();
+  const { userInfo } = storeToRefs(store);
+  
   const addInputs = () => {
     const formattedDate = new Date(date.value).toLocaleDateString("ru-RU", {
         day: "2-digit",
@@ -44,6 +40,7 @@ export const useClientAddModalTabDocuments = () => {
   watch(date, () => {
     console.log(date.value);
   })
+
   return {
     seria,
     number,
@@ -52,7 +49,7 @@ export const useClientAddModalTabDocuments = () => {
     selectType,
     documents,
     addedItems,
-    headers,
+    userInfo,
     removeDocument,
     addInputs,
     t,

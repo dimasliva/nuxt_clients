@@ -4,5 +4,47 @@ export interface IRecordParams {
 }
 
 export interface IRecordResponse {
-    [key: string]: string | null
+    [key: string]: any // any потому что массив разных объектов 
 }
+interface OtherDocument {
+    typeCode: number;
+    serial: string;
+    number: string;
+    when: string;
+    comment: string;
+  }
+  
+  
+export interface IRecData1 {
+    id: string;
+    changedAt: string;
+    snils: string | null;
+    mainDocument: number;
+    mainDocumentSeries: string;
+    mainDocumentNumber: string;
+    mainDocumentWhen: string;
+    mainDocumentWho: string;
+    mainDocumentWhoCode: string;
+    otherDocuments: OtherDocument[];
+    advData: null;
+  }
+  
+  export interface IRecData2 {
+    id: string;
+    changedAt: string;
+    mainPhone: string;
+    reservPhone: string;
+    mainEmail: string;
+    otherContacts: null;
+    advData: null;
+  }
+  
+export interface IRecData3 {
+    id: string;
+    changedAt: string;
+    mainAddress: IClientAddress;
+    permanentRegistration: IClientAddress;
+    addressesEqual: null;
+    advData: null;
+  }
+  

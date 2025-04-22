@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-import { useClientAddModalAddressPermanent } from "../../model/hooks/useClientAddModalAddressPermanent";
-
-const { permanentAddress, isActualAddress } =
-  useClientAddModalAddressPermanent();
+const { userInfo, isActualAddress } = useClientAddModalAddressPermanent();
 </script>
 <template>
   <div>
@@ -17,7 +14,8 @@ const { permanentAddress, isActualAddress } =
       <v-expand-transition>
         <div v-show="!isActualAddress">
           <FeatureNewClientsUiClientAddModalAddressInputs
-            v-model:value="permanentAddress"
+            v-model:value="userInfo"
+            tab="permanentRegistration"
           />
         </div>
       </v-expand-transition>

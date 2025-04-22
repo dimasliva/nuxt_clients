@@ -3,7 +3,6 @@ import type {
   ITableDescription,
 } from "~/src/widgets/PageTable/model/types/pagetable";
 import { useGetClients } from "./useGetClients";
-import type { IOpenUserId } from "../types/clients";
 
 export const useNewClients = () => {
   const fioInput = ref<string>("");
@@ -12,13 +11,12 @@ export const useNewClients = () => {
   const snilsInput = ref<string>("");
   const selectedTitleCol = ref<string>("fio");
   const isOpenAddModal = ref<boolean>(false);
-  const openUserId = ref<IOpenUserId>(null);
 
   const { tableData, isPending } = useGetClients();
-  
+
   const store = useClientModalStore();
-  const { resetUserInfo } = store
-  
+  const { resetUserInfo, setDefaultActiveTab, setOpenUserId } = store;
+
   const pageStore = usePageStore();
   const { setCurrentPage } = usePageStore();
   const {} = storeToRefs(pageStore);
@@ -26,9 +24,14 @@ export const useNewClients = () => {
   const { addBtnPage, filterBtnPage, updateBtnPage } = useButtons();
   const { emailRules, phoneRules, snilsRules, fioRules } = useRules();
 
-  addBtnPage.action = () => {
-    resetUserInfo()
+  function openModal() {
+    setDefaultActiveTab();
     isOpenAddModal.value = true;
+  }
+
+  addBtnPage.action = () => {
+    resetUserInfo();
+    openModal();
   };
 
   updateBtnPage.action = () => {
@@ -55,8 +58,6 @@ export const useNewClients = () => {
     mainEmailColumn,
     snilsColumn,
   ];
-
-  console.log("tableData.columns", tableData.columns);
 
   const btns = [updateBtnPage, addBtnPage, filterBtnPage];
 
@@ -108,9 +109,8 @@ export const useNewClients = () => {
         title: "Открыть",
         icon: "mdi-eye-outline",
         action: (selectedItem: IOpenTableRow) => {
-          openUserId.value = selectedItem.value;
-          isOpenAddModal.value = true;
-          console.log("Open item:", selectedItem);
+          setOpenUserId(selectedItem.value);
+          openModal();
           return "";
         },
         disabled: false,
@@ -120,8 +120,8 @@ export const useNewClients = () => {
         title: "Изменить",
         icon: "mdi-pencil",
         action: (selectedItem: IOpenTableRow) => {
-          openUserId.value = selectedItem.value;
-          isOpenAddModal.value = true;
+          setOpenUserId(selectedItem.value)
+          openModal();
           return "";
         },
         disabled: false,
@@ -139,18 +139,21 @@ export const useNewClients = () => {
     ],
   };
 
+  const saveAddModal = () => {
+    
+  }
+
   const closeAddModal = () => {
     isOpenAddModal.value = false;
-    console.log("isOpenAddModal.value", isOpenAddModal.value);
   };
 
   return {
-    openUserId,
     tableData,
     tableDescr,
     isOpenAddModal,
     allTableColumns,
     selectedTitleCol,
     closeAddModal,
+    saveAddModal,
   };
 };

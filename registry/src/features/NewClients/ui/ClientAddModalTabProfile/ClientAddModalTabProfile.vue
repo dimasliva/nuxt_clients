@@ -4,27 +4,42 @@ import LabelInput from "~/src/widgets/LabelInput/ui/LabelInput.vue";
 import { useClientAddModalTabProfile } from "../../model/hooks/useClientAddModalTabProfile";
 import { ELabelInput } from "~/src/widgets/LabelInput/model/types/labelInput";
 
-const { userInfo, genders } = useClientAddModalTabProfile();
+const {
+  userInfo,
+  fileInput,
+  genders,
+  handleChangeAvatarClick,
+  onChangeAvatar,
+  onDeleteAvatar,
+} = useClientAddModalTabProfile();
+
 </script>
+
 <template>
   <div class="d-flex flex-column">
     <div class="mb-4">
       <div class="d-flex ga-8 align-center">
         <v-avatar color="grey" rounded="full" size="150">
-          <v-img :src="avatar" cover></v-img>
+          <v-img :src="userInfo.avatarPreview || avatar" cover></v-img>
         </v-avatar>
         <div class="d-flex ga-3">
-          <VBtn color="primary">
+         <VBtn color="primary" @click="handleChangeAvatarClick">
             {{ $t("changeAvatar") }}
           </VBtn>
-
-          <VBtn color="error" variant="tonal">
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            @change="onChangeAvatar"
+          />
+          <VBtn color="error" variant="tonal" @click="onDeleteAvatar">
             {{ $t("deleteAvatar") }}
           </VBtn>
         </div>
       </div>
     </div>
-
+    
     <div class="d-flex w-100 ga-6">
       <LabelInput
         v-model:value="userInfo.name"

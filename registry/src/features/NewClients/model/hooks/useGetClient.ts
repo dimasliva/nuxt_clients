@@ -1,47 +1,28 @@
 import { useQuery } from "@tanstack/vue-query";
 import { ClientService } from "../service/ClientService";
-import type { IOpenUserId } from "../types/clients";
 
-export const useGetClient = (id: Ref<IOpenUserId>) => {
+export const useGetClient = () => {
   const store = useClientModalStore();
-  const { userInfo } = storeToRefs(store);
-  const { t } = useI18n();
+  const { openUserId } = storeToRefs(store);
+  const { setFIOData } = store;
 
   const { data, refetch, isLoading, isError, error, isPending } = useQuery({
-    queryKey: ["get client ", id.value],
-    queryFn: () => ClientService.getClient(id.value),
+    queryKey: ["get client ", openUserId.value],
+    queryFn: () => ClientService.getClient(openUserId.value),
     select: (response) => {
       if (response) {
-        let selectedGender = t("male");
-        let gender = response.result[0].gender;
-        switch (gender) {
-          case EGenders.m:
-            selectedGender = t("male");
-            break;
-          case EGenders.f:
-            selectedGender = t("female");
-            break;
-          default:
-            break;
-        }
-        userInfo.value = {
-          ...response.result[0],
-          selectedGender: selectedGender,
-          mainDocumentNumber: '',
-          mainDocumentSeries: '',
-          mainDocumentWhen: '',
-          mainDocumentWho: '',
-          mainDocumentWhoCode: '',
-          otherDocuments: [],
-        };
+        setFIOData(response.result[0]);
       }
     },
-    enabled: !!id.value
+    enabled: !!openUserId.value,
   });
 
-  watch(id, () => {
-    refetch();
+  watch(openUserId, () => {
+    if (openUserId.value !== '-1') {
+      refetch();
+    }
   });
+
 
   return {
     data,

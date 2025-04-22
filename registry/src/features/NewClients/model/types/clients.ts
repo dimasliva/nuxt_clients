@@ -1,3 +1,5 @@
+import type { IResponseFile } from "~/src/features/Files/model/types/files";
+
 export enum EClientTabs {
   profile = "profile",
   contacts = "contacts",
@@ -74,7 +76,33 @@ export interface IClientOtherDocuments {
   when: string;
 }
 
-export interface IOpenUser extends IUser {
+export interface IClientAddress {
+  building: string;
+  corp: string;
+  country: number;
+  countryText: string;
+  district: string;
+  flat: string;
+  regionCode: number;
+  regionText: string;
+  settlement: string;
+  settlementType: number;
+  settlementText: string;
+  street: string;
+  zip: string;
+}
+
+export interface IOpenUser {
+  avatarPreview: string | null;
+  photoId: string | null;
+  avatar: null | IResponseFile;
+  birthdate: string;
+  gender: EGenders;
+  id: string;
+  name: string;
+  patronymic: string;
+  surname: string;
+
   selectedGender: string;
   mainDocumentNumber: string;
   mainDocumentSeries: string;
@@ -82,4 +110,34 @@ export interface IOpenUser extends IUser {
   mainDocumentWho: string;
   mainDocumentWhoCode: string;
   otherDocuments: IClientOtherDocuments[];
+  mainEmail: string;
+  mainPhone: string;
+  reservPhone: string;
+  mainDocument: number;
+  mainDocumentText: string;
+
+  mainAddress: IClientAddress;
+  permanentRegistration: IClientAddress;
+}
+
+export enum EGenderProfile {
+  male = "Мужской",
+  female = "Женский",
+}
+
+export interface IResponseUpdateClient {
+  changedAt: string;
+  id: string;
+}
+
+export interface IUpdateClient {
+  id: string;             
+  changedAt: string;   
+  name: string;         
+  surname: string;      
+  patronymic: string;   
+  gender: 'm' | 'f' | null; 
+  birthdate: string;    
+  notActive: boolean | null; 
+  advData: any | null; 
 }

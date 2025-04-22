@@ -14,6 +14,7 @@ export const SERVER_URL = `https://${server}:${port}`
     root: (url = "") => `${url ? url : ""}`,
     auth: (url = "") => API_URL.root(`api/auth/auth${url}`),
     dictionaries: (url = "") => API_URL.root(`api/v1/Dictionaries${url}`),
+    files: (url = "") => API_URL.root(`api/v1/Files${url}`),
     clients: (url = "") => API_URL.root(`api/v1/Clients${url}`),
     records: (url = "") => API_URL.root(`api/v1/Records${url}`),
   };
@@ -25,7 +26,18 @@ const options: CreateAxiosDefaults = {
       Accept: "application/json",
     },
   };
+
+  const optionsBlob: CreateAxiosDefaults = {
+    baseURL: SERVER_URL,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    responseType: 'blob'
+  };
   
 export const axiosClassic = axios.create(options);
 export const axiosWithAuth = axios.create(options);
+export const axiosWithAuthTypeBlob = axios.create(optionsBlob);
+
 setBearer(axiosWithAuth)
+setBearer(axiosWithAuthTypeBlob)

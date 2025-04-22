@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-const { actualAddress } = useClientAddModalAddressActual();
+const {  userInfo } = useClientAddModalAddressActual();
 </script>
 <template>
   <div>
     <FeatureNewClientsUiClientAddModalAddressInputs
-      v-model:value="actualAddress"
+      v-model:value="userInfo"
+      tab="mainAddress"
     />
   </div>
 </template>

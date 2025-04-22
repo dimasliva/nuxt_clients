@@ -38,5 +38,11 @@ const value = defineModel('value') as Ref<string>;
       :placeholder="placeholder"
       :items="selectItems"
     ></v-select>
+    <v-autocomplete
+      v-else-if="type === ELabelInput.autocomplete"
+      v-model="value"
+      :placeholder="placeholder"
+      :items="selectItems"
+    ></v-autocomplete>
   </div>
 </template>

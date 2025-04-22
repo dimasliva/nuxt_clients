@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-const { activeTab } = useClientAddModalTabAddress();
+const { activeTab, userInfo } = useClientAddModalTabAddress();
+
 </script>
 <template>
   <div class="mb-4">

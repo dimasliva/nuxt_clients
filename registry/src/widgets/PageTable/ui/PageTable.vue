@@ -151,7 +151,7 @@
         <div>Всего:{{ props.rows.length }}</div>
         <!-- Кнопка отображения выбранных элементов -->
         <SelectedItemsView
-          :items="rowsToSelectViewDictVal"
+          :items="rowsToSelectViewDictVal()"
           @onRemoveItem="(item, inx) => selected.splice(inx, 1)"
           @onClearList="() => (selected.length = 0)"
         >

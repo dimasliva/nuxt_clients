@@ -10,11 +10,13 @@ const {
   comment,
   addedItems,
   selectType,
-  headers,
+  userInfo,
   removeDocument,
   addInputs,
   t,
 } = useClientAddModalTabDocuments();
+
+console.log("userInfo.value", userInfo.value);
 </script>
 
 <template>
@@ -86,20 +88,25 @@ const {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in documents" :key="item.id">
-            <td>{{ item.seria }}</td>
+          <tr v-for="item in userInfo.otherDocuments" :key="item.typeCode">
             <td>{{ item.number }}</td>
-            <td>{{ item.date }}</td>
+            <td>{{ item.serial }}</td>
+            <td>{{ item.when }}</td>
             <td class="comment-cell">{{ item.comment }}</td>
             <td class="text-right">
               <v-menu>
                 <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" class="cursor-pointer">mdi-dots-vertical</v-icon>
+                  <v-icon v-bind="props" class="cursor-pointer">
+                    mdi-dots-vertical
+                  </v-icon>
                 </template>
                 <v-list>
                   <v-list-item>
                     <v-list-item-title class="cursor-pointer">
-                      <div class="text-red" @click="removeDocument(item.id)">
+                      <div
+                        class="text-red"
+                        @click="removeDocument(item.typeCode)"
+                      >
                         {{ $t("delete") }}
                       </div>
                     </v-list-item-title>

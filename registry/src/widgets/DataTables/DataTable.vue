@@ -382,7 +382,6 @@ const rowsToSelectViewDictVal = () => {
   if (selected.value.length == 0) selectedValTitleMap.clear();
 
   const res: TDictViewVal[] = [];
-
   return selected.value.map((v) => {
     let title = selectedValTitleMap.get(v as string);
 

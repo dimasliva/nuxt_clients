@@ -1,5 +1,3 @@
-import type { IUser } from "~/src/entities/User/model/types/user";
-
 export function getFIO(user: IUser): string {
     const lastname = user.surname;
     const name = user.name ? user.name.charAt(0).toUpperCase() : "";

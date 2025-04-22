@@ -2,13 +2,13 @@
 export const useClientAddModalAddressPermanent = () => {
   const store = useClientModalStore();
   const {
-    permanentAddress,
     isActualAddress,
+    userInfo
   } = storeToRefs(store);
 
 
   return {
-    permanentAddress,
+    userInfo,
     isActualAddress,
   };
 };

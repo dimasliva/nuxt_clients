@@ -1,12 +1,8 @@
 export const useClientAddModalTabContact = () => {
-  const mainPhone = ref<string>("");
-  const backupPhone = ref<string>("");
-  const email = ref<string>("");
-  
+  const store = useClientModalStore();
+  const { userInfo } = storeToRefs(store);
 
   return {
-    email,
-    mainPhone,
-    backupPhone
+    userInfo
   };
 };

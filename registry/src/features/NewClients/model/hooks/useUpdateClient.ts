@@ -6,24 +6,25 @@ export const useUpdateClient = () => {
     const {  getUser } = store;
 
     const {
-        mutate: updateModulesInGroup,
-        isPending: isPendingUpdateModulesInGroup,
+        mutate: updateClient,
+        isPending: isPendingUpdateClient,
       } = useMutation({
         mutationKey: ["update client ", openUserId.value],
         mutationFn: () =>
           ClientService.updateClient(getUser),
-        onSuccess: () => {
+        onSuccess: (response) => {
+          console.log('useUpdateClient response', response)
         //   toast.success("Модули успешно изменены");
     
         //   cancelEdit();
-    
-        //   queryClient.invalidateQueries({
-        //     queryKey: ["get all groups"],
-        //   });
         },
         onError: (error: any) => {
         //   toast.error("Ошибка при редактировании модулей");
         //   toast.error(error.response.data.message);
         },
       });
+
+    return {
+      updateClient, isPendingUpdateClient,
+    }
 }

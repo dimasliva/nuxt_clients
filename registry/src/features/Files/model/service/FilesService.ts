@@ -1,8 +1,22 @@
 import type { IResponseWithData } from "~/src/app/types";
-import { API_URL, axiosWithAuth, axiosWithAuthTypeBlob } from "~/src/shared/api/api.config";
-import type { IFileRequestParams, IResponseFile } from "../types/files";
+import { API_URL, axiosWithAuth, axiosWithAuthTypeBlob, axiosWithAuthTypeFormData } from "~/src/shared/api/api.config";
+import type { IFileRequestParams,  IResponseFile, IResponseUpdateFileLink } from "../types/files";
 
 export const FilesService = {
+  async updateFile(params: FormData) {
+    const { data } = await axiosWithAuthTypeFormData.post<
+      IResponseWithData<IResponseFile>
+    >(API_URL.files(`/UploadFile`), params);
+    return data;
+  },
+
+  async updateFileLink(params: IResponseFile) {
+    const { data } = await axiosWithAuth.post<
+      IResponseWithData<IResponseUpdateFileLink>
+    >(API_URL.files(`/UpdateFilelink`), params);
+    return data;
+  },
+  
   async getDocuments(params: IFileRequestParams) {
     const { data } = await axiosWithAuth.post<
       IResponseWithData<IResponseFile[]>

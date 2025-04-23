@@ -34,10 +34,19 @@ const options: CreateAxiosDefaults = {
     },
     responseType: 'blob'
   };
+
+  const optionsFormData: CreateAxiosDefaults = {
+    baseURL: SERVER_URL,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
   
 export const axiosClassic = axios.create(options);
 export const axiosWithAuth = axios.create(options);
 export const axiosWithAuthTypeBlob = axios.create(optionsBlob);
+export const axiosWithAuthTypeFormData = axios.create(optionsFormData);
 
 setBearer(axiosWithAuth)
 setBearer(axiosWithAuthTypeBlob)
+setBearer(axiosWithAuthTypeFormData)

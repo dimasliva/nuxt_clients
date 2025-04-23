@@ -1,5 +1,17 @@
 export type IFileRequestParams = string[];
 
+export interface IUpdateFileRequest {
+  filetype: number;
+  file: Blob;
+  filelinkId: string; 
+}
+
+export interface IResponseUpdateFileLink {
+  changedAt: string;
+  id: string;
+}
+
+
 export interface IResponseFile {
   advData: null;
   changedAt: string;

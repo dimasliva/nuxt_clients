@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { useClientAddModalAddressInputs } from "../../model/hooks/useClientAddModalAddressInputs";
 
 interface IProps {
-  tab: string
+  tab: string;
 }
 
 const value = defineModel("value", {
@@ -10,14 +9,10 @@ const value = defineModel("value", {
   required: true,
 });
 
-const {tab} = defineProps<IProps>()
+const { tab } = defineProps<IProps>();
 
-const {
-  countries,
-  locationTypes,
-  regions,
-} = useClientAddModalAddressInputs();
-
+const { countries, locationTypes, numberRules, regions } =
+  useClientAddModalAddressInputs();
 </script>
 <template>
   <div class="d-flex flex-column w-100">
@@ -28,13 +23,13 @@ const {
         :label="$t('country')"
         :placeholder="$t('country')"
         :class-name="'w-50'"
-        v-model:value="value[tab].countryText"
+        v-model:value="value.addresses[tab].countryText"
       />
       <LabelInput
         :label="$t('street')"
         :placeholder="$t('street')"
         :class-name="'w-50'"
-        v-model:value="value[tab].street"
+        v-model:value="value.addresses[tab].street"
       />
     </div>
     <div class="d-flex ga-3">
@@ -44,15 +39,18 @@ const {
         :label="$t('region')"
         :placeholder="$t('region')"
         :class-name="'w-50'"
-        v-model:value="value[tab].regionText"
+        v-model:value="value.addresses[tab].regionText"
       />
       <LabelInput
         :label="$t('postalCode')"
         :placeholder="$t('postalCode')"
         :class-name="'w-50'"
-        v-model:value="value[tab].zip"
+        :rules="[
+          numberRules.isNumber(value.addresses[tab].zip),
+          numberRules.max(value.addresses[tab].zip, 16),
+        ]"
+        v-model:value="value.addresses[tab].zip"
       />
-
     </div>
     <div class="d-flex ga-3">
       <LabelInput
@@ -61,13 +59,13 @@ const {
         :label="$t('localityType')"
         :placeholder="$t('localityType')"
         :class-name="'w-50'"
-        v-model:value="value[tab].settlementText"
+        v-model:value="value.addresses[tab].settlementText"
       />
       <LabelInput
         :label="$t('localityName')"
         :placeholder="$t('localityName')"
         :class-name="'w-50'"
-        v-model:value="value[tab].settlement"
+        v-model:value="value.addresses[tab].settlement"
       />
     </div>
     <div class="d-flex ga-3">
@@ -75,21 +73,32 @@ const {
         :label="$t('house')"
         :placeholder="$t('house')"
         :class-name="'w-50'"
-        v-model:value="value[tab].building"
+        :rules="[
+          numberRules.isNumber(value.addresses[tab].building),
+          numberRules.max(value.addresses[tab].building, 16),
+        ]"
+        v-model:value="value.addresses[tab].building"
       />
       <LabelInput
         :label="$t('building')"
         :placeholder="$t('building')"
         :class-name="'w-50'"
-        v-model:value="value[tab].corp"
+        :rules="[
+          numberRules.isNumber(value.addresses[tab].corp),
+          numberRules.max(value.addresses[tab].corp, 8),
+        ]"
+        v-model:value="value.addresses[tab].corp"
       />
       <LabelInput
         :label="$t('apartment')"
         :placeholder="$t('apartment')"
         :class-name="'w-50'"
-        v-model:value="value[tab].flat"
+        :rules="[
+          numberRules.isNumber(value.addresses[tab].flat),
+          numberRules.max(value.addresses[tab].flat, 8),
+        ]"
+        v-model:value="value.addresses[tab].flat"
       />
     </div>
-    
   </div>
 </template>

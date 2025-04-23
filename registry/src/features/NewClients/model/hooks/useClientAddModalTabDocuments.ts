@@ -1,4 +1,4 @@
-import type { IOtherDocument } from "../types/clients";
+import type { IRectsOtherDocument } from "../types/clients";
 
 export const useClientAddModalTabDocuments = () => {
   const { t } = useI18n();
@@ -12,9 +12,11 @@ export const useClientAddModalTabDocuments = () => {
   const number = ref('');
   const date = ref('');
   const comment = ref('');
+  const doLists = reactive<{text: string, onClick: (doc: IRectsOtherDocument) => void}[]>([])
 
   const store = useClientModalStore();
-  const { userInfo } = storeToRefs(store);
+  const {setIsEditDocument, setEditOtherDocument} = store
+  const { userInfo, isEditDocument } = storeToRefs(store);
   
   const addInputs = () => {
     const formattedDate = new Date(date.value).toLocaleDateString("ru-RU", {
@@ -33,15 +35,25 @@ export const useClientAddModalTabDocuments = () => {
     id.value++;
   };
 
-  const removeDocument = (index: number) => {
-    documents.splice(index, 1); 
+  const editDocument = (doc: IRectsOtherDocument) => {
+    setIsEditDocument(true)
+    setEditOtherDocument(doc)
+    console.log('Редактировать', doc)
   };
 
-  watch(date, () => {
-    console.log(date.value);
-  })
+  const removeDocument = (doc: IRectsOtherDocument) => {
+    console.log('Удалить', doc)
+    documents.splice(doc.typeCode, 1); 
+  };
 
+  onMounted(() => {
+    doLists.push(
+      { text: 'Редактировать', onClick: editDocument },
+      { text: 'Удалить', onClick: removeDocument }
+    );
+  })
   return {
+    doLists,
     seria,
     number,
     date,

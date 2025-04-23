@@ -75,6 +75,14 @@ export const useTableHeader = () => {
     width: "30%",
   };
 
+  const fioColumn: ITableColumn = {
+    key: "fio",
+    title: t("fio"),
+    sortable: true,
+    align: "start",
+    width: "30%",
+  };
+
   const tableHeader: ITableHeader = {
     id: idColumn,
     name: nameColumn,
@@ -85,6 +93,7 @@ export const useTableHeader = () => {
     mainPhone: mainPhoneColumn,
     mainEmail: mainEmailColumn,
     snils: snilsColumn,
+    fio: fioColumn,
   };
 
   return {
@@ -98,5 +107,6 @@ export const useTableHeader = () => {
     mainEmailColumn,
     snilsColumn,
     tableHeader,
+    fioColumn,
   };
 };

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-const {  userInfo } = useClientAddModalAddressActual();
+  const { userInfo } = useClientAddModalAddressActual();
+  console.log("userInfo", userInfo.value);
 </script>
 <template>
   <div>

@@ -1,9 +1,11 @@
-import { useMutation } from "@tanstack/vue-query";
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
 
 export const useUpdateClient = () => {
-    const store = useClientModalStore();
-    const {openUserId, userInfo} = storeToRefs(store)
-    const {  getUser } = store;
+  const queryClient = useQueryClient();
+  const store = useClientModalStore();
+    const {openUserId, getUser} = storeToRefs(store)
+
+  const {setChangedAt} = store
 
     const {
         mutate: updateClient,
@@ -11,16 +13,14 @@ export const useUpdateClient = () => {
       } = useMutation({
         mutationKey: ["update client ", openUserId.value],
         mutationFn: () =>
-          ClientService.updateClient(getUser),
+          ClientService.updateClient(getUser.value),
         onSuccess: (response) => {
-          console.log('useUpdateClient response', response)
-        //   toast.success("Модули успешно изменены");
-    
-        //   cancelEdit();
+          setChangedAt(response.result.changedAt)
+          queryClient.invalidateQueries({
+            queryKey: ["get clients"],
+          });
         },
         onError: (error: any) => {
-        //   toast.error("Ошибка при редактировании модулей");
-        //   toast.error(error.response.data.message);
         },
       });
 

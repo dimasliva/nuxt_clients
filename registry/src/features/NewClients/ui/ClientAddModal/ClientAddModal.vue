@@ -28,7 +28,7 @@ const { activeTab, userInfo } = useClientAddModal();
     @onSave="() => emit('onSave')"
     @onSaveAndClose="() => emit('onSaveAndClose')"
   >
-    <div class="d-flex ga-3 w-100">
+  <div class="d-flex ga-3 w-100">
       <FeatureNewClientsUiClientAddModalTabs />
       <v-tabs-window v-model="activeTab" class="w-100">
         <v-tabs-window-item
@@ -64,4 +64,5 @@ const { activeTab, userInfo } = useClientAddModal();
       </v-tabs-window>
     </div>
   </CreateModal>
+
 </template>

@@ -1,4 +1,4 @@
-import type { ITableColumn } from "../types/pagetable";
+import type { ITableColumn, ITableRow } from "../types/pagetable";
 
 export const usePageTable = (props: IPageTableProps) => {
   const tableElem = ref<Ref | null>(null);
@@ -6,7 +6,7 @@ export const usePageTable = (props: IPageTableProps) => {
   const currentPage = ref(1);
   const itemsPerPage = ref(10);
   const selectStrategy: TSelectStrategy = "page";
-  const lineSelected = ref(null);
+  const lineSelected = ref<string | null>(null);
 
   const pagesCount = computed(() => {
     if (props.rows.length % itemsPerPage.value === 0)
@@ -73,10 +73,13 @@ export const usePageTable = (props: IPageTableProps) => {
     }
   };
 
-  const onRowClick = (item: any) => {
+  const onRowClick = (item: ITableRow) => {
     lineSelected.value = item.id;
   };
-
+  
+  const onClickThreeDots = (id: string) => {
+    lineSelected.value = id
+  };
   const getActionsMenu = (item: any) => {
     return props.tableDescr.actionsMenu
       ? props.tableDescr.actionsMenu(item)
@@ -91,7 +94,7 @@ export const usePageTable = (props: IPageTableProps) => {
   const rowsToSelectViewDictVal = () => {
     return selected.value.map((v) => {
       let obj = props.rows.find((row) => row.id === v)
-      let title = getFIO(obj);
+      let title = obj?.fio || 'ФИО не указан';
   
       return { value: v, title: title };
     });
@@ -130,5 +133,6 @@ export const usePageTable = (props: IPageTableProps) => {
     getDataAlignClass,
     toggleSelectColumn,
     onItemsPerPageChange,
+    onClickThreeDots,
   };
 };

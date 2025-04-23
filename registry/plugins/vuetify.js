@@ -55,7 +55,7 @@ export default defineNuxtPlugin(nuxtApp => {
       defaultSet: 'mdi',
     },
     theme: {
-      defaultTheme: 'lightTheme',
+      defaultTheme: 'dark',
         themes: {
           lightTheme,
           darkTheme

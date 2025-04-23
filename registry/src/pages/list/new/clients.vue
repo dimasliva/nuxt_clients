@@ -3,9 +3,9 @@
     <FeatureNewClientsUiClientAddModal
       :title="$t('clientProfile')"
       :is-open="isOpenAddModal"
-      @onSave="saveAddModal"
       @onSaveAndClose="closeAddModal"
       @onClose="closeAddModal"
+      @onSave="saveAddModal"
     />
     <PageTable
       :table-descr="tableDescr"
@@ -13,6 +13,7 @@
       :allColumns="allTableColumns"
       :rows="tableData.rows"
       :selectedTitleCol="selectedTitleCol"
+      @onOpen="onRowClicked"
     />
   </div>
 </template>
@@ -25,6 +26,7 @@ const {
   isOpenAddModal,
   saveAddModal,
   closeAddModal,
+  onRowClicked,
 } = useNewClients();
 
 definePageMeta({

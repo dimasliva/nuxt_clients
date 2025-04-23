@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import { ELabelInput } from "~/src/widgets/LabelInput/model/types/labelInput";
-import { useClientAddModalTabDocuments } from "../../model/hooks/useClientAddModalTabDocuments";
 
 const {
-  documents,
   seria,
   number,
   date,
@@ -11,12 +8,11 @@ const {
   addedItems,
   selectType,
   userInfo,
-  removeDocument,
+  doLists,
   addInputs,
   t,
 } = useClientAddModalTabDocuments();
 
-console.log("userInfo.value", userInfo.value);
 </script>
 
 <template>
@@ -88,28 +84,29 @@ console.log("userInfo.value", userInfo.value);
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in userInfo.otherDocuments" :key="item.typeCode">
-            <td>{{ item.number }}</td>
-            <td>{{ item.serial }}</td>
-            <td>{{ item.when }}</td>
-            <td class="comment-cell">{{ item.comment }}</td>
+          <tr
+            v-for="doc in userInfo.documents.otherDocuments"
+            :key="doc.typeCode"
+          >
+            <td>{{ doc.number }}</td>
+            <td>{{ doc.serial }}</td>
+            <td>{{ doc.when }}</td>
+            <td class="comment-cell">{{ doc.comment }}</td>
             <td class="text-right">
-              <v-menu>
+              <v-menu transition="scale-transition">
                 <template v-slot:activator="{ props }">
                   <v-icon v-bind="props" class="cursor-pointer">
                     mdi-dots-vertical
                   </v-icon>
                 </template>
                 <v-list>
-                  <v-list-item>
-                    <v-list-item-title class="cursor-pointer">
-                      <div
-                        class="text-red"
-                        @click="removeDocument(item.typeCode)"
-                      >
-                        {{ $t("delete") }}
-                      </div>
-                    </v-list-item-title>
+                  <v-list-item
+                    v-for="(item, index) in doLists"
+                    :key="index"
+                    :value="item"
+                    @click="() => item.onClick(doc)"
+                  >
+                    <v-list-item-title>{{ item.text }}</v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
@@ -118,5 +115,6 @@ console.log("userInfo.value", userInfo.value);
         </tbody>
       </v-table>
     </div>
+    <FeatureNewClientsUiClientEditDocumentSidebar/>
   </div>
 </template>

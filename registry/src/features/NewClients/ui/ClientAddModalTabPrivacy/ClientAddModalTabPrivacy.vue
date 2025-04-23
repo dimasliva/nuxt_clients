@@ -12,7 +12,7 @@ const { documents,  userInfo } = useClientAddModalTabPrivacy();
         :label="$t('document')"
         :placeholder="$t('document')"
         :class-name="'w-100'"
-        v-model:value="userInfo.mainDocumentText"
+        v-model:value="userInfo.documents.mainDocumentText"
       />
     </div>
     <div class="d-flex ga-6">
@@ -20,13 +20,13 @@ const { documents,  userInfo } = useClientAddModalTabPrivacy();
         :label="$t('seria')"
         :placeholder="$t('seria')"
         :class-name="'w-50'"
-        v-model:value="userInfo.mainDocumentSeries"
+        v-model:value="userInfo.documents.mainDocumentSeries"
       />
       <LabelInput
         :label="$t('number')"
         :placeholder="$t('number')"
         :class-name="'w-50'"
-        v-model:value="userInfo.mainDocumentNumber"
+        v-model:value="userInfo.documents.mainDocumentNumber"
       />
     </div>
 
@@ -36,13 +36,13 @@ const { documents,  userInfo } = useClientAddModalTabPrivacy();
         :label="$t('issueDate')"
         :placeholder="$t('issueDate')"
         :class-name="'w-50'"
-        v-model:value="userInfo.mainDocumentWhen"
+        v-model:value="userInfo.documents.mainDocumentWhen"
       />
       <LabelInput
         :label="$t('departmentCode')"
         :placeholder="$t('departmentCode')"
         :class-name="'w-50'"
-        v-model:value="userInfo.mainDocumentWhoCode"
+        v-model:value="userInfo.documents.mainDocumentWhoCode"
       />
     </div>
 
@@ -51,7 +51,7 @@ const { documents,  userInfo } = useClientAddModalTabPrivacy();
         :label="$t('issuedBy')"
         :placeholder="$t('issuedBy')"
         :class-name="'w-100'"
-        v-model:value="userInfo.mainDocumentWho"
+        v-model:value="userInfo.documents.mainDocumentWho"
       />
     </div>
   </div>

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/vue-query";
-import { DictionaryService } from "../../../Dictionary/model/service/DictionaryService";
 
 export const useGetClientDocuments = () => {
   const documents = reactive<string[]>([]);

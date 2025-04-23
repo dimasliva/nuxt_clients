@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/vue-query";
-import { ClientService } from "../service/ClientService";
 
 export const useGetClient = () => {
   const store = useClientModalStore();
@@ -7,22 +6,20 @@ export const useGetClient = () => {
   const { setFIOData } = store;
 
   const { data, refetch, isLoading, isError, error, isPending } = useQuery({
-    queryKey: ["get client ", openUserId.value],
+    queryKey: ["get client", openUserId.value],
     queryFn: () => ClientService.getClient(openUserId.value),
-    select: (response) => {
-      if (response) {
-        setFIOData(response.result[0]);
-      }
-    },
-    enabled: !!openUserId.value,
   });
 
-  watch(openUserId, () => {
-    if (openUserId.value !== '-1') {
-      refetch();
+  watch(openUserId, async (newValue) => {
+    if (newValue !== '-1') {
+      const res = await refetch();
+      if(res.data) {
+        if(res.data.result[0]) {
+          setFIOData(res.data.result[0]);
+        }
+      }
     }
   });
-
 
   return {
     data,

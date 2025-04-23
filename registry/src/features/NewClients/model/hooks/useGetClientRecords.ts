@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/vue-query";
-import { RecordService } from "~/src/features/Records/model/service/RecordService";
 
 export const useGetClientRecords = () => {
   const store = useClientModalStore();
@@ -9,17 +8,14 @@ export const useGetClientRecords = () => {
   const { data, refetch, isLoading, isError, error, isPending } = useQuery({
     queryKey: ["get client records ", openUserId.value],
     queryFn: () => RecordService.getClientRecords(openUserId.value),
-    select: (response) => {
-      if (response.result.length) {
-        setUserInfo(response.result)
-      }
-    },
-    enabled: !!openUserId.value
   });
 
-  watch(openUserId, () => {
-    if(openUserId.value !== '-1') {
-      refetch();
+  watch(openUserId, async (newValue) => {
+    if (newValue !== '-1') {
+      const res = await refetch();
+      if(res.data) {
+        setUserInfo(res.data.result)
+      }
     }
   });
 

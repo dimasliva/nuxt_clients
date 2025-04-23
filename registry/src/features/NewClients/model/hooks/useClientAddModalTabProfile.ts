@@ -1,12 +1,13 @@
 export const useClientAddModalTabProfile = () => {
   const { t } = useI18n();
   const genders = [t("male"), t("female")];
+  const fileInput = ref<HTMLInputElement | null>(null);
 
   const store = useClientModalStore();
   const { userInfo } = storeToRefs(store); 
+  const { changeAvatar, deleteAvatar } = store
 
-  const newAvatar = ref<string | null>(null);
-  const fileInput = ref<HTMLInputElement | null>(null);
+  const {textRules} = useRules()
 
   const handleChangeAvatarClick = () => {
     if (fileInput.value) {
@@ -17,27 +18,20 @@ export const useClientAddModalTabProfile = () => {
   const onChangeAvatar = (event: Event) => {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        newAvatar.value = e.target?.result as string;
-      };
-      reader.readAsDataURL(input.files[0]);
+      changeAvatar(input.files[0])
+      
     }
   };
 
   const onDeleteAvatar = () => {
-    newAvatar.value = null;
+    deleteAvatar()
   };
 
-  watch(userInfo, () => {
-    console.log("useClientAddModalTabProfile userInfo", userInfo.value);
-  });
-
   return {
-    userInfo,
     genders,
-    newAvatar,
+    userInfo,
     fileInput,
+    textRules,
     handleChangeAvatarClick,
     onChangeAvatar,
     onDeleteAvatar,

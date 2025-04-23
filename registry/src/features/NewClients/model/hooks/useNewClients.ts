@@ -1,8 +1,12 @@
 import type {
-  IOpenTableRow,
   ITableDescription,
+  ITableRow,
 } from "~/src/widgets/PageTable/model/types/pagetable";
 import { useGetClients } from "./useGetClients";
+import { useUpdateClientAvatar } from "./useUpdateClientAvatar";
+import { useUpdateClientContacts } from "./useUpdateClientContacts";
+import { useSetClientSd } from "./useSetClientSd";
+import { useSetClientAddresses } from "./useSetClientAddresses";
 
 export const useNewClients = () => {
   const fioInput = ref<string>("");
@@ -12,9 +16,10 @@ export const useNewClients = () => {
   const selectedTitleCol = ref<string>("fio");
   const isOpenAddModal = ref<boolean>(false);
 
-  const { tableData, isPending } = useGetClients();
+  const { tableData } = useGetClients();
 
   const store = useClientModalStore();
+  const { userInfo } = storeToRefs(store);
   const { resetUserInfo, setDefaultActiveTab, setOpenUserId } = store;
 
   const pageStore = usePageStore();
@@ -24,6 +29,39 @@ export const useNewClients = () => {
   const { addBtnPage, filterBtnPage, updateBtnPage } = useButtons();
   const { emailRules, phoneRules, snilsRules, fioRules } = useRules();
 
+  const { updateClient } = useUpdateClient();
+  const { updateClientAvatar } = useUpdateClientAvatar();
+  const { updateClientContacts } = useUpdateClientContacts();
+  const { updateSetClientSd } = useSetClientSd();
+  const { updateSetClientDocuments } = useSetClientDocuments();
+  const { updateSetClientAddresses } = useSetClientAddresses();
+
+  const saveAddModal = () => {
+    updateUserInfo();
+  };
+
+  function updateUserInfo() {
+    updateClient();
+    if (userInfo.value.avatarPreview) {
+      updateClientAvatar();
+    } else if (userInfo.value.documents.changedAt !== "") {
+      updateSetClientSd();
+    }
+    updateClientContacts();
+    updateSetClientDocuments();
+    if (userInfo.value.addresses.changedAt !== "") {
+      updateSetClientAddresses();
+    }
+  }
+
+  const closeAddModal = () => {
+    isOpenAddModal.value = false;
+  };
+
+  function onRowClicked(id: string) {
+    setOpenUserId(id);
+    openModal();
+  }
   function openModal() {
     setDefaultActiveTab();
     isOpenAddModal.value = true;
@@ -38,9 +76,7 @@ export const useNewClients = () => {
     console.log(111);
   };
   const {
-    nameColumn,
-    surnameColumn,
-    patronymicColumn,
+    fioColumn,
     birthdateColumn,
     genderColumn,
     mainPhoneColumn,
@@ -49,9 +85,7 @@ export const useNewClients = () => {
   } = useTableHeader();
 
   const allTableColumns = [
-    nameColumn,
-    surnameColumn,
-    patronymicColumn,
+    fioColumn,
     birthdateColumn,
     genderColumn,
     mainPhoneColumn,
@@ -103,24 +137,13 @@ export const useNewClients = () => {
 
   const tableDescr: ITableDescription = {
     headers: tableData.columns,
-    actionsMenu: (selectedItem: IOpenTableRow) => [
+    actionsMenu: () => [
       {
         id: "open",
         title: "Открыть",
         icon: "mdi-eye-outline",
-        action: (selectedItem: IOpenTableRow) => {
-          setOpenUserId(selectedItem.value);
-          openModal();
-          return "";
-        },
-        disabled: false,
-      },
-      {
-        id: "edit",
-        title: "Изменить",
-        icon: "mdi-pencil",
-        action: (selectedItem: IOpenTableRow) => {
-          setOpenUserId(selectedItem.value)
+        action: (selectedItem: ITableRow) => {
+          setOpenUserId(selectedItem.id);
           openModal();
           return "";
         },
@@ -130,21 +153,13 @@ export const useNewClients = () => {
         id: "delete",
         title: "Удалить",
         icon: "mdi-delete",
-        action: (selectedItem: IOpenTableRow) => {
+        action: (selectedItem: ITableRow) => {
           console.log("Deleting item:", selectedItem);
           return "";
         },
         disabled: false,
       },
     ],
-  };
-
-  const saveAddModal = () => {
-    
-  }
-
-  const closeAddModal = () => {
-    isOpenAddModal.value = false;
   };
 
   return {
@@ -155,5 +170,7 @@ export const useNewClients = () => {
     selectedTitleCol,
     closeAddModal,
     saveAddModal,
+    openModal,
+    onRowClicked,
   };
 };

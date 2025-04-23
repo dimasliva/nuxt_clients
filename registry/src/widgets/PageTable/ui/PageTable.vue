@@ -87,7 +87,7 @@
             :class="
               internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''
             "
-            @click="() => onRowClick(internalItem)"
+            @click="() => onRowClickHandler(internalItem.raw)"
           >
             <!-- Колонка "actions". Кнопка меню возможных действий -->
             <template v-slot:item.actions="{ item }">
@@ -100,8 +100,9 @@
                     v-bind="props"
                     icon="mdi-dots-vertical"
                     variant="text"
-                    @click="() => (lineSelected = internalItem.raw.id)"
-                  ></v-btn>
+                    @click="() => onClickThreeDots(internalItem.raw.id)"
+                  >
+                </v-btn>
                 </template>
 
                 <template v-slot:default="{ isActive }">
@@ -114,7 +115,7 @@
                   >
                     <v-list-item
                       v-for="action in getActionsMenu(internalItem)"
-                      @click="() => action.action(internalItem)"
+                      @click="() => action.action(internalItem.raw)"
                     >
                       <v-icon :icon="action.icon" size="x-small" />
                       {{ action.title }}
@@ -203,14 +204,21 @@
 
 <script setup lang="ts">
 import { usePageTable } from "../model/hooks/usePageTable";
-import type { IPageTableProps, ITableColumn } from "../model/types/pagetable";
+import type { IPageTableProps, ITableRow } from "../model/types/pagetable";
 const props = defineProps<IPageTableProps>();
 
 interface IEmits {
+  (e: "onOpen", columns: string): void;
   (e: "onColumnsChanged", columns: ITableColumn[]): void;
+
 }
 
 const emit = defineEmits<IEmits>();
+
+function onRowClickHandler (row: ITableRow) {
+  onRowClick(row)
+  emit('onOpen', row.id)
+}
 
 const {
   tableElem,
@@ -232,6 +240,7 @@ const {
   getActionsMenu,
   getDataAlignClass,
   toggleSelectColumn,
+  onClickThreeDots,
   scrollTo,
 } = usePageTable(props);
 </script>

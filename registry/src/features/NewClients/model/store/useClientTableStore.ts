@@ -6,7 +6,7 @@ export const useClientTableStore = defineStore("clientTableStore", {
     tableFilter: {
       limit: 100,
       orderBy: "changedAt desc",
-      select: "id,name,surname,patronymic,birthdate",
+      select: "id,name,surname,patronymic,birthdate,gender,mainPhone,mainEmail,snils",
       where: "changedAt <= '3000-01-01'",
     } as IClientParams,
   }),

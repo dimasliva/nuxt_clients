@@ -1,18 +1,15 @@
 <script lang="ts" setup>
 import avatar from "~/public/doctor-test.jpg";
-import LabelInput from "~/src/widgets/LabelInput/ui/LabelInput.vue";
-import { useClientAddModalTabProfile } from "../../model/hooks/useClientAddModalTabProfile";
-import { ELabelInput } from "~/src/widgets/LabelInput/model/types/labelInput";
 
 const {
+  genders,
   userInfo,
   fileInput,
-  genders,
+  textRules,
   handleChangeAvatarClick,
   onChangeAvatar,
   onDeleteAvatar,
 } = useClientAddModalTabProfile();
-
 </script>
 
 <template>
@@ -23,7 +20,7 @@ const {
           <v-img :src="userInfo.avatarPreview || avatar" cover></v-img>
         </v-avatar>
         <div class="d-flex ga-3">
-         <VBtn color="primary" @click="handleChangeAvatarClick">
+          <VBtn color="primary" @click="handleChangeAvatarClick">
             {{ $t("changeAvatar") }}
           </VBtn>
           <input
@@ -39,13 +36,18 @@ const {
         </div>
       </div>
     </div>
-    
+
     <div class="d-flex w-100 ga-6">
       <LabelInput
         v-model:value="userInfo.name"
         :label="$t('emplName')"
         :placeholder="$t('emplName')"
         :class-name="'w-50'"
+        :rules="[
+          textRules.max(userInfo.name, 128),
+          textRules.noNumbers(userInfo.name),
+        ]"
+        required
       />
 
       <LabelInput
@@ -62,6 +64,11 @@ const {
         :label="$t('emplSurname')"
         :placeholder="$t('emplSurname')"
         :class-name="'w-50'"
+        :rules="[
+          textRules.max(userInfo.surname, 128),
+          textRules.noNumbers(userInfo.surname),
+        ]"
+        required
       />
       <LabelInput
         v-model:value="userInfo.selectedGender"

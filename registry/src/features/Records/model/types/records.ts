@@ -6,14 +6,6 @@ export interface IRecordParams {
 export interface IRecordResponse {
     [key: string]: any // any потому что массив разных объектов 
 }
-interface OtherDocument {
-    typeCode: number;
-    serial: string;
-    number: string;
-    when: string;
-    comment: string;
-  }
-  
   
 export interface IRecData1 {
     id: string;
@@ -25,7 +17,7 @@ export interface IRecData1 {
     mainDocumentWhen: string;
     mainDocumentWho: string;
     mainDocumentWhoCode: string;
-    otherDocuments: OtherDocument[];
+    otherDocuments: IClientOtherDocuments[];
     advData: null;
   }
   

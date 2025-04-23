@@ -12,6 +12,16 @@ export interface ITableHeaderColumn {
   selected?: boolean;
 }
 
+export interface ITableRow {
+  id: string;
+  fio?: string;
+  birthdate?: string;
+  gender? : string;
+  mainPhone? : string;
+  mainEmail? : string;
+  snils? : string;
+}
+
 interface ITableMenu {
   id: string;
   title: string;
@@ -32,7 +42,7 @@ export interface IOpenTableRow {
 }
 export interface ITableDescription {
   headers: ITableColumn[];
-  actionsMenu?: (item: ITableRow) => ITableMenu[];
+  actionsMenu?: () => ITableMenu[];
 }
 
 export type IRowSelected = { value: any; title: string };

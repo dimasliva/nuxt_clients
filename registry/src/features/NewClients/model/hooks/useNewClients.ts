@@ -7,6 +7,7 @@ import { useUpdateClientAvatar } from "./useUpdateClientAvatar";
 import { useUpdateClientContacts } from "./useUpdateClientContacts";
 import { useSetClientSd } from "./useSetClientSd";
 import { useSetClientAddresses } from "./useSetClientAddresses";
+import { useAddClient } from "./useAddClient";
 
 export const useNewClients = () => {
   const fioInput = ref<string>("");
@@ -35,6 +36,7 @@ export const useNewClients = () => {
   const { updateSetClientSd } = useSetClientSd();
   const { updateSetClientDocuments } = useSetClientDocuments();
   const { updateSetClientAddresses } = useSetClientAddresses();
+  const { addClient } = useAddClient();
 
   const saveAddModal = () => {
     updateUserInfo();
@@ -58,10 +60,20 @@ export const useNewClients = () => {
     isOpenAddModal.value = false;
   };
 
+  const onAddModal = () => {
+    addClient();
+  };
+
+  const onAddAndCloseModal = () => {
+    addClient();
+    closeAddModal();
+  };
+
   function onRowClicked(id: string) {
     setOpenUserId(id);
     openModal();
   }
+
   function openModal() {
     setDefaultActiveTab();
     isOpenAddModal.value = true;
@@ -140,8 +152,8 @@ export const useNewClients = () => {
     actionsMenu: () => [
       {
         id: "open",
-        title: "Открыть",
-        icon: "mdi-eye-outline",
+        title: "Изменить",
+        icon: "mdi-pencil",
         action: (selectedItem: ITableRow) => {
           setOpenUserId(selectedItem.id);
           openModal();
@@ -172,5 +184,7 @@ export const useNewClients = () => {
     saveAddModal,
     openModal,
     onRowClicked,
+    onAddModal,
+    onAddAndCloseModal,
   };
 };

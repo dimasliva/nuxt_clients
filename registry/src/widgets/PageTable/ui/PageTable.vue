@@ -87,22 +87,42 @@
             :class="
               internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''
             "
-            @click="() => onRowClickHandler(internalItem.raw)"
+            @dblclick="() => onRowClickHandler(internalItem.raw)"
           >
-            <!-- Колонка "actions". Кнопка меню возможных действий -->
+            <!-- Выводим доступные колонки -->
+            <template
+              v-for="val in accessibleCols"
+              :key="val"
+              #[`item.${val}`]="{ item: internalItem }"
+              class=""
+            >
+              <div :class="getDataAlignClass(val)">
+                {{ internalItem[val] }}
+              </div>
+            </template>
+
+            <!-- Выводим недоступные колонки -->
+            <template
+              v-for="val in notAccessibleCols"
+              :key="val"
+              #[`item.${val}`]
+            >
+              -
+            </template>
+
+            <!-- Колонка "actions". Кнопка меню возможных действий (последняя колонка) -->
             <template v-slot:item.actions="{ item }">
               <v-menu
                 scrollStrategy="close"
                 v-if="props.tableDescr.actionsMenu"
               >
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <VBtn
                     v-bind="props"
-                    icon="mdi-dots-vertical"
+                    icon="mdi-dots-horizontal"
                     variant="text"
                     @click="() => onClickThreeDots(internalItem.raw.id)"
-                  >
-                </v-btn>
+                  />
                 </template>
 
                 <template v-slot:default="{ isActive }">
@@ -115,6 +135,7 @@
                   >
                     <v-list-item
                       v-for="action in getActionsMenu(internalItem)"
+                      :key="action.title"
                       @click="() => action.action(internalItem.raw)"
                     >
                       <v-icon :icon="action.icon" size="x-small" />
@@ -123,18 +144,6 @@
                   </v-list>
                 </template>
               </v-menu>
-            </template>
-            <template
-              v-for="val in accessibleCols"
-              #[`item.${val}`]="{ internalItem }"
-            >
-              <div :class="getDataAlignClass(val)">
-                {{ internalItem.columns[val] }}
-              </div>
-            </template>
-
-            <template v-for="val in notAccessibleCols" #[`item.${val}`]>
-              -
             </template>
           </VDataTableRow>
         </template>
@@ -210,14 +219,13 @@ const props = defineProps<IPageTableProps>();
 interface IEmits {
   (e: "onOpen", columns: string): void;
   (e: "onColumnsChanged", columns: ITableColumn[]): void;
-
 }
 
 const emit = defineEmits<IEmits>();
 
-function onRowClickHandler (row: ITableRow) {
-  onRowClick(row)
-  emit('onOpen', row.id)
+function onRowClickHandler(row: ITableRow) {
+  onRowClick(row);
+  emit("onOpen", row.id);
 }
 
 const {

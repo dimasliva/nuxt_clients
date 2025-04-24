@@ -22,7 +22,7 @@ export const usePageTable = (props: IPageTableProps) => {
     res.push({
       key: "actions",
       align: "start",
-      width: "10",
+      width: "10px",
       sortable: false,
       title: "",
       selected: true,
@@ -81,8 +81,9 @@ export const usePageTable = (props: IPageTableProps) => {
     lineSelected.value = id
   };
   const getActionsMenu = (item: any) => {
+    // item
     return props.tableDescr.actionsMenu
-      ? props.tableDescr.actionsMenu(item)
+      ? props.tableDescr.actionsMenu()
       : [];
   };
 

@@ -44,8 +44,8 @@ const { t, locale } = useI18n();
   const textRules = {
     required: (value: string) => !!value || t('required'),
     noNumbers: (value: string) => !/\d/.test(value) || t('noNumbersAllowed'), 
-    min: (value: string, min: number) => Number(value.length) >= min || `Значение должно быть не меньше ${min}`,
-    max: (value: string, max: number) => Number(value.length) <= max || `Значение должно быть не больше ${max}`,
+    min: (value: string, min: number) => value && Number(value.length) >= min || `Значение должно быть не меньше ${min}`,
+    max: (value: string, max: number) => value && Number(value.length) <= max || `Значение должно быть не больше ${max}`,
   };
 
   const fioRules = [

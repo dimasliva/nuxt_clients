@@ -4,29 +4,34 @@ import { EClientTabs } from "../../model/types/clients";
 
 interface IProps {
   isOpen: boolean;
-  title: string;
 }
 
 interface IEmits {
   (e: "onClose"): void;
   (e: "onSave"): void;
   (e: "onSaveAndClose"): void;
+  (e: "onAdd"): void;
+  (e: "onAddAndClose"): void;
 }
 
-const { isOpen, title } = defineProps<IProps>();
+const { isOpen } = defineProps<IProps>();
 
 const emit = defineEmits<IEmits>();
-const { activeTab, userInfo } = useClientAddModal();
+const { activeTab, openUserId } = useClientAddModal();
 
 </script>
 
 <template>
   <CreateModal
     :isOpen="isOpen"
-    :title="title"
+    :title="$t('clientProfile')"
+    :addTitle="$t('createClient')"
+    :isAdd="openUserId === '-1'"
     @onClose="() => emit('onClose')"
     @onSave="() => emit('onSave')"
     @onSaveAndClose="() => emit('onSaveAndClose')"
+    @onAdd="() => emit('onAdd')"
+    @onAddAndClose="() => emit('onAddAndClose')"
   >
   <div class="d-flex ga-3 w-100">
       <FeatureNewClientsUiClientAddModalTabs />

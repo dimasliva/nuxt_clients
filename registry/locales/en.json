@@ -20,6 +20,8 @@
   "patronymic": "Patronymic",
   "pin": "Pin",
   "unpin": "Unpin",
+  "createClient": "Create client",
+  "addAndClose": "Create and close",
   "clientProfile": "Client profile",
   "saveAndClose": "Save and close",
   "matchesTheActual": "Matches the actual",

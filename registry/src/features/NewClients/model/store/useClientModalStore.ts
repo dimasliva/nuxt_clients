@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import {
   EClientTabs,
   EGenderProfile,
+  type IAddClientParams,
   type IClientAddress,
   type IClientAddresses,
   type IClientAddressResponse,
@@ -299,8 +300,18 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.addresses.addressesEqual = false;
       }
     },
+    onClientChangedAt(value: string) {
+      this.userInfo.changedAt = value 
+    },
+    onClientId(value: string) {
+      this.userInfo.id = value 
+      this.openUserId = value 
+    },
     setChangedAt(changedAt: string) {
       this.userInfo.changedAt = changedAt;
+    },
+    setContactsChangedAt(changedAt: string) {
+      this.userInfo.contacts.changedAt = changedAt;
     },
     setMainCountryText(key: number) {
       const mainCountryText = ClientCountryText.find((val) => val.key === key);
@@ -380,9 +391,8 @@ export const useClientModalStore = defineStore("clientModalStore", {
       };
     },
     getParamsUpdateClientContacts(): IUpdateClientContacts {
-      return {
+      const res:IUpdateClientContacts = {
         id: this.userInfo.id,
-        changedAt: this.userInfo.contacts.changedAt,
         mainEmail: this.userInfo.contacts.mainEmail,
         mainPhone: this.userInfo.contacts.mainPhone.replace("+", ""),
         reservPhone: this.userInfo.contacts.reservPhone.length
@@ -390,7 +400,11 @@ export const useClientModalStore = defineStore("clientModalStore", {
           : null,
         otherContacts: null,
         advData: null,
-      };
+      }
+      if(this.userInfo.contacts.changedAt.length) {
+        res.changedAt = this.userInfo.contacts.changedAt 
+      }
+      return res;
     },
     getParamsSetClientSd(): IRequestSetClientSdParams {
       let response: IRequestSetClientSdParams = {
@@ -427,6 +441,18 @@ export const useClientModalStore = defineStore("clientModalStore", {
         otherDocuments: this.userInfo.documents.otherDocuments,
         advData: null,
       };
+    },
+    getParamsAddClient(): IAddClientParams {
+      const birthdate = this.userInfo.birthdate.length ? this.userInfo.birthdate : null 
+      return {
+        advData: null,
+        birthdate: birthdate,
+        gender: this.userInfo.gender,
+        name: this.userInfo.name,
+        notActive: null,
+        patronymic: this.userInfo.patronymic,
+        surname: this.userInfo.surname,
+      }
     },
     getParamsSetClientAddresses(): ISetClientAddresses {
       const mainAddressCountryText =

@@ -48,7 +48,7 @@ export const useTableHeader = () => {
     title: t("gender"),
     sortable: true,
     align: "start",
-    width: "30%",
+    width: "300px",
   };
 
   const mainPhoneColumn: ITableColumn = {
@@ -80,7 +80,7 @@ export const useTableHeader = () => {
     title: t("fio"),
     sortable: true,
     align: "start",
-    width: "30%",
+    width: "100px",
   };
 
   const tableHeader: ITableHeader = {

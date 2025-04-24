@@ -54,6 +54,15 @@ export interface IClientParams {
   select: string;
   where: string;
 }
+export interface IAddClientParams {
+  name: string;
+  surname: string;
+  patronymic: string;
+  gender: string;
+  birthdate: string | null;
+  notActive: null;
+  advData: null;
+}
 export interface IClientData {
   id: string;
   name: string;
@@ -115,8 +124,6 @@ export interface IClientOtherDocuments {
 
 export type IOpenUserId = string | null | undefined;
 
-
-
 export interface IClientContacts {
   changedAt: string;
   mainPhone: string;
@@ -170,19 +177,19 @@ export interface IClientAddress extends IClientAddressResponse {
   settlementText: string;
 }
 export interface ISetClientAddresses {
-  id: string; 
+  id: string;
   mainAddress: IClientAddressResponse;
-  permanentRegistration: IClientAddressResponse | null; 
-  addressesEqual: boolean | null; 
-  advData: null; 
+  permanentRegistration: IClientAddressResponse | null;
+  addressesEqual: boolean | null;
+  advData: null;
   changedAt: string;
 }
 export interface IClientAddresses {
-  id: string; 
+  id: string;
   mainAddress: IClientAddress;
-  permanentRegistration: IClientAddress | null; 
-  addressesEqual: boolean | null; 
-  advData: null; 
+  permanentRegistration: IClientAddress | null;
+  addressesEqual: boolean | null;
+  advData: null;
   changedAt: string;
 }
 
@@ -201,7 +208,6 @@ export interface IOpenUser {
   contacts: IClientContacts;
   documents: IClientDocuments;
   addresses: IClientAddresses;
-
 }
 
 export enum EGenderProfile {
@@ -230,7 +236,7 @@ export interface IUpdateClientContacts {
   advData: null;
   otherContacts: null;
   id: string;
-  changedAt: string;
+  changedAt?: string;
   mainPhone: string;
   reservPhone: string | null;
   mainEmail: string;

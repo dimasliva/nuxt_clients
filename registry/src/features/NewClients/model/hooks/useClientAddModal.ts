@@ -5,7 +5,7 @@ import { useGetClientRecords } from "./useGetClientRecords";
 
 export const useClientAddModal = () => {
   const store = useClientModalStore();
-  const { activeTab, userInfo } = storeToRefs(store);
+  const { activeTab, openUserId } = storeToRefs(store);
 
   const { } = useGetClient();
   const {} = useGetClientRecords()
@@ -13,6 +13,6 @@ export const useClientAddModal = () => {
 
   return {
     activeTab,
-    userInfo,
+    openUserId
   };
 };

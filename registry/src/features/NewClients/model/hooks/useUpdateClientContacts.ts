@@ -4,7 +4,7 @@ export const useUpdateClientContacts = () => {
   const store = useClientModalStore();
     const {openUserId, getParamsUpdateClientContacts} = storeToRefs(store)
 
-  const { setChangedAt } = store
+  const { setChangedAt, setContactsChangedAt } = store
 
     const {
         mutate: updateClientContacts,
@@ -15,6 +15,7 @@ export const useUpdateClientContacts = () => {
           ClientService.updateClientContacts(getParamsUpdateClientContacts.value),
         onSuccess: (response) => {
           setChangedAt(response.result.changedAt)
+          setContactsChangedAt(response.result.changedAt)
         },
         onError: (error: any) => {
         },

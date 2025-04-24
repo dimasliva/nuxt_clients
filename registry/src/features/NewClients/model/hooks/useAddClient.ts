@@ -1,18 +1,22 @@
-import { useMutation } from "@tanstack/vue-query";
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
 
 export const useAddClient = () => {
   const store = useClientModalStore();
+  const queryClient = useQueryClient();
   const { getParamsAddClient } = storeToRefs(store);
   
-  const { onClientChangedAt, onClientId } = store;
+  const { setClientChangedAt, setClientId } = store;
 
   const { mutate: addClient, isPending: isPendingAddClient } =
     useMutation({
       mutationKey: ["add client"],
       mutationFn: () => ClientService.addClient(getParamsAddClient.value),
       onSuccess: (response) => {
-        onClientChangedAt(response.result.changedAt) 
-        onClientId(response.result.id)
+        setClientChangedAt(response.result.changedAt) 
+        setClientId(response.result.id)
+        queryClient.invalidateQueries({
+          queryKey: ["get clients"],
+        });
       },
       onError: (error: any) => {},
     });

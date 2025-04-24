@@ -3,7 +3,7 @@ import { API_URL, axiosWithAuth, axiosWithAuthTypeBlob, axiosWithAuthTypeFormDat
 import type { IFileRequestParams,  IResponseFile, IResponseUpdateFileLink } from "../types/files";
 
 export const FilesService = {
-  async updateFile(params: FormData) {
+  async uploadFile(params: FormData) {
     const { data } = await axiosWithAuthTypeFormData.post<
       IResponseWithData<IResponseFile>
     >(API_URL.files(`/UploadFile`), params);

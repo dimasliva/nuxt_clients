@@ -3,4 +3,6 @@ export enum ELabelInput {
     date = 'date',
     select = 'select',
     autocomplete = 'autocomplete',
+    phone = 'phone',
+    email = 'email',
 }

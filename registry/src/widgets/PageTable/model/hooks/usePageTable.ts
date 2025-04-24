@@ -7,6 +7,7 @@ export const usePageTable = (props: IPageTableProps) => {
   const itemsPerPage = ref(10);
   const selectStrategy: TSelectStrategy = "page";
   const lineSelected = ref<string | null>(null);
+  const {keys} = useTableHeader()
 
   const pagesCount = computed(() => {
     if (props.rows.length % itemsPerPage.value === 0)
@@ -89,8 +90,25 @@ export const usePageTable = (props: IPageTableProps) => {
 
   const getDataAlignClass = (columnKey: string) => {
     const column = props.allColumns.find((col) => col.key === columnKey);
-    return column ? column.align : "start";
+    let classes: string[] = []
+    classes.push(columnKey === keys.snils ? 'max-w-32': '')
+    classes.push(columnKey === keys.birthdate ? 'w-32': '')
+    classes.push(columnKey === keys.fio ? 'max-w-lg': '')
+    classes.push('truncate')
+    classes.push(column ? column.align : "start") 
+    return classes.join(' ');
   };
+
+  const formatRowText = (key: string, text: string) => {
+    if(key === keys.mainPhone) {
+      return formatPhoneNumber(text)
+    }
+    if(key === keys.birthdate) {
+      return formatDateToddMMyyyy(text)
+    }
+    return text
+    console.log("key", key)
+  }
 
   const rowsToSelectViewDictVal = () => {
     return selected.value.map((v) => {
@@ -134,6 +152,7 @@ export const usePageTable = (props: IPageTableProps) => {
     getDataAlignClass,
     toggleSelectColumn,
     onItemsPerPageChange,
+    formatRowText,
     onClickThreeDots,
   };
 };

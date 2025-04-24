@@ -86,8 +86,11 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@vueuse/nuxt", "@nuxtjs/i18n", "@pinia/nuxt"],
-
+  modules: ["@vueuse/nuxt", "@nuxtjs/i18n", "@pinia/nuxt", "@nuxtjs/tailwindcss"],
+  tailwindcss: {
+    exposeConfig: true,
+    viewer: true,
+  },
   //compatibilityDate: "2024-07-22",
   nitro: {
     routeRules: {

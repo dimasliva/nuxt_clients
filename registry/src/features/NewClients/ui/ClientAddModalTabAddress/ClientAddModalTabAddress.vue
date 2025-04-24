@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { activeTab,  } = useClientAddModalTabAddress();
+const { activeTab,  userInfo} = useClientAddModalTabAddress();
 </script>
 <template>
   <div class="mb-4">
@@ -7,7 +7,6 @@ const { activeTab,  } = useClientAddModalTabAddress();
       v-model:activeTab="activeTab"
     />
   </div>
-
   <v-tabs-window v-model="activeTab">
     <v-tabs-window-item :key="EAddressTabs.actual" :value="EAddressTabs.actual">
       <FeatureNewClientsUiClientAddModalAddressActual />
@@ -15,6 +14,7 @@ const { activeTab,  } = useClientAddModalTabAddress();
     <v-tabs-window-item
       :key="EAddressTabs.permanent"
       :value="EAddressTabs.permanent"
+      v-if="!userInfo.addresses.addressesEqual"
     >
       <FeatureNewClientsUiClientAddModalTabAddressPermanent />
     </v-tabs-window-item>

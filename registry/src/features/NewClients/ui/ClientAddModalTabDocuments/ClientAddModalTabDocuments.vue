@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 
 const {
-  seria,
+  serial,
   number,
-  date,
+  when,
   comment,
   addedItems,
   selectType,
   userInfo,
   doLists,
+  getTypecodeText,
   addInputs,
   t,
 } = useClientAddModalTabDocuments();
@@ -22,7 +23,7 @@ const {
         <div class="d-flex ga-3">
           <div class="d-flex flex-column w-50">
             <LabelInput
-              v-model:value="seria"
+              v-model:value="serial"
               :label="$t('seria')"
               :placeholder="$t('seria')"
               :class-name="'w-100'"
@@ -48,7 +49,7 @@ const {
               :label="$t('issueDate')"
               :placeholder="$t('issueDate')"
               :class-name="'w-100'"
-              v-model:value="date"
+              v-model:value="when"
             />
           </div>
         </div>
@@ -63,9 +64,12 @@ const {
     <VBtn @click="addInputs" class="w-100">{{ t("add") }}</VBtn>
 
     <div class="mt-4 w-100">
-      <v-table height="300px" fixed-header>
+      <v-table height="230px" fixed-header>
         <thead>
           <tr>
+            <th class="text-left">
+              {{ $t("document") }}
+            </th>
             <th class="text-left">
               {{ $t("number") }}
             </th>
@@ -79,7 +83,6 @@ const {
               {{ $t("comment") }}
             </th>
             <th class="text-right">
-              {{ $t("do") }}
             </th>
           </tr>
         </thead>
@@ -88,9 +91,10 @@ const {
             v-for="doc in userInfo.documents.otherDocuments"
             :key="doc.typeCode"
           >
+            <td>{{ getTypecodeText(doc.typeCode) }}</td>
             <td>{{ doc.number }}</td>
             <td>{{ doc.serial }}</td>
-            <td>{{ doc.when }}</td>
+            <td>{{ formatDateToddMMyyyy(doc.when) }}</td>
             <td class="comment-cell">{{ doc.comment }}</td>
             <td class="text-right">
               <v-menu transition="scale-transition">

@@ -10,12 +10,10 @@ interface IProps {
   required?: boolean;
   rules?: ValidationRule[];
   selectItems?: string[];
-
 }
 const { label, className, placeholder } = defineProps<IProps>();
 
-const value = defineModel('value') as Ref<string>;
-
+const value = defineModel("value") as Ref<string>;
 </script>
 <template>
   <div :class="className">
@@ -52,5 +50,13 @@ const value = defineModel('value') as Ref<string>;
       :items="selectItems"
       :rules="rules"
     ></v-autocomplete>
+
+    <PhoneInput v-else-if="type === ELabelInput.phone" v-model="value" />
+
+    <EmailInput
+    v-else-if="type === ELabelInput.email"
+          v-model="value"
+          :label="label"
+        />
   </div>
 </template>

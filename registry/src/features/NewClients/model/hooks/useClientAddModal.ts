@@ -7,7 +7,6 @@ export const useClientAddModal = () => {
   const store = useClientModalStore();
   const { activeTab, openUserId } = storeToRefs(store);
 
-  const { } = useGetClient();
   const {} = useGetClientRecords()
   const {} = useGetClientAvatar();
 

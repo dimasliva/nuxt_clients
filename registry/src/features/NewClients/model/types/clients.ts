@@ -96,18 +96,29 @@ export interface IClientOtherDocument {
   whoCode: string | null;
   comment: string;
 }
-
+export interface IRectsOtherDocument {
+  typeCode: number;
+  serial: string;
+  number: string;
+  when: string;
+  comment: string;
+}
+export interface IOtherDocumentsRequestParams extends IRectsOtherDocument {
+  type: null;
+  who: null;
+  whoCode: null;
+}
 export interface IRequestSetClientDocumentsParams {
   id: string;
-  changedAt: string;
+  changedAt?: string;
   snils: string | null;
   mainDocument: number;
-  mainDocumentSeries: string;
-  mainDocumentNumber: string;
-  mainDocumentWhen: string;
-  mainDocumentWho: string;
-  mainDocumentWhoCode: string;
-  otherDocuments: IRectsOtherDocument[];
+  mainDocumentSeries: string | null;
+  mainDocumentNumber: string | null;
+  mainDocumentWhen: string | null;
+  mainDocumentWho: string | null;
+  mainDocumentWhoCode: string | null;
+  otherDocuments: IOtherDocumentsRequestParams[];
   advData: any | null;
 }
 
@@ -125,7 +136,7 @@ export interface IClientOtherDocuments {
 export type IOpenUserId = string | null | undefined;
 
 export interface IClientContacts {
-  changedAt: string;
+  changedAt?: string;
   mainPhone: string;
   reservPhone: string;
   mainEmail: string;
@@ -134,14 +145,6 @@ export interface IClientContacts {
 export interface IClientPhoto {
   id: string | null;
   changedAt: string;
-}
-
-export interface IRectsOtherDocument {
-  typeCode: number;
-  serial: string;
-  number: string;
-  when: string;
-  comment: string;
 }
 
 export interface IClientDocuments {
@@ -182,7 +185,7 @@ export interface ISetClientAddresses {
   permanentRegistration: IClientAddressResponse | null;
   addressesEqual: boolean | null;
   advData: null;
-  changedAt: string;
+  changedAt?: string;
 }
 export interface IClientAddresses {
   id: string;
@@ -239,5 +242,5 @@ export interface IUpdateClientContacts {
   changedAt?: string;
   mainPhone: string;
   reservPhone: string | null;
-  mainEmail: string;
+  mainEmail: string | null;
 }

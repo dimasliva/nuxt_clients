@@ -2,13 +2,13 @@ import { useMutation } from "@tanstack/vue-query";
 
 export const useSetClientDocuments = () => {
   const store = useClientModalStore();
-  const { openUserPhoto, getParamsSetClientDocuments } = storeToRefs(store);
+  const { openUserId, getParamsSetClientDocuments } = storeToRefs(store);
   
   const { setDocumentsChangedAt } = store;
 
   const { mutate: updateSetClientDocuments, isPending: isPendingSetClientDocuments } =
     useMutation({
-      mutationKey: ["set client documents ", openUserPhoto.value.id],
+      mutationKey: ["set client documents ", openUserId.value],
       mutationFn: () => ClientService.setClientDocuments(getParamsSetClientDocuments.value),
       onSuccess: (response) => {
         setDocumentsChangedAt(response.result.changedAt)

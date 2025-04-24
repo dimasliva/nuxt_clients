@@ -126,6 +126,7 @@ export const ClientDocumentTypes = [
   { key: 54, value: "Редакционное удостоверение для журналиста" },
 ];
 export const ClientRussiaCountryKey = 185;
+
 export const ClientCountryText = [
   { key: 1, value: "Афганистан" },
   { key: 2, value: "Албания" },

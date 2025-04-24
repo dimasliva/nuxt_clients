@@ -1,35 +1,35 @@
 <script lang="ts" setup>
-import PhoneInput from "~/src/widgets/PhoneInput/ui/PhoneInput.vue";
 import { useClientAddModalTabContact } from "../../model/hooks/useClientAddModalTabContact";
-import EmailInput from "~/src/widgets/EmailInput/ui/EmailInput.vue";
 
 const { userInfo } = useClientAddModalTabContact();
 </script>
 <template>
-  <div class="d-flex flex-column w-100" >
+  <div class="d-flex flex-column w-100">
     <div class="d-flex ga-6">
-      <div class="w-100">
-        <div class="text-subtitle-1 text-medium-emphasis">
-          {{ $t("mainphone") }}
-        </div>
-        <PhoneInput v-model="userInfo.contacts.mainPhone" :label="$t('mainphone')" />
-      </div>
+      <LabelInput
+        :type="ELabelInput.phone"
+        :label="$t('mainphone')"
+        :placeholder="$t('mainphone')"
+        :class-name="'w-100'"
+        v-model:value="userInfo.contacts.mainPhone"
+      />
+      <LabelInput
+        :type="ELabelInput.phone"
+        :label="$t('backupphone')"
+        :placeholder="$t('backupphone')"
+        :class-name="'w-100'"
+        v-model:value="userInfo.contacts.reservPhone"
+      />
     </div>
+
     <div class="d-flex ga-6">
-      <div class="w-100">
-        <div class="text-subtitle-1 text-medium-emphasis">
-          {{ $t("backupphone") }}
-        </div>
-        <PhoneInput v-model="userInfo.contacts.reservPhone" :label="$t('backupphone')" />
-      </div>
-    </div>
-    <div class="d-flex ga-6">
-      <div class="w-100">
-        <div class="text-subtitle-1 text-medium-emphasis">
-          {{ $t("email") }}
-        </div>
-        <EmailInput v-model="userInfo.contacts.mainEmail" :label="$t('email')" />
-      </div>
+      <LabelInput
+        :type="ELabelInput.email"
+        :label="$t('email')"
+        :placeholder="$t('email')"
+        :class-name="'w-100'"
+        v-model:value="userInfo.contacts.mainEmail"
+      />
     </div>
   </div>
 </template>

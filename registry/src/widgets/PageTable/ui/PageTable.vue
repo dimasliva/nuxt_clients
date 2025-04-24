@@ -96,8 +96,8 @@
               #[`item.${val}`]="{ item: internalItem }"
               class=""
             >
-              <div :class="getDataAlignClass(val)">
-                {{ internalItem[val] }}
+              <div :class="getDataAlignClass(val) + 'text-wrap'" >
+                {{ formatRowText(val, internalItem[val])  }}
               </div>
             </template>
 
@@ -119,7 +119,7 @@
                 <template v-slot:activator="{ props }">
                   <VBtn
                     v-bind="props"
-                    icon="mdi-dots-horizontal"
+                    icon="mdi-dots-vertical"
                     variant="text"
                     @click="() => onClickThreeDots(internalItem.raw.id)"
                   />
@@ -250,5 +250,6 @@ const {
   toggleSelectColumn,
   onClickThreeDots,
   scrollTo,
+  formatRowText,
 } = usePageTable(props);
 </script>

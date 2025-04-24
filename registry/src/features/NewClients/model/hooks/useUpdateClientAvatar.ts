@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { useMutation } from "@tanstack/vue-query";
 import { useUpdateFileLInk } from "./useUpdateFileLInk";
 
-export const useUpdateClientAvatar = () => {
+export const useUploadFile = () => {
   const store = useClientModalStore();
   const { openUserPhoto, updatedAvatar } = storeToRefs(store);
 
@@ -9,14 +9,14 @@ export const useUpdateClientAvatar = () => {
 
   const {updateClient} = useUpdateFileLInk()
 
-  const { mutate: updateClientAvatar, isPending: isPendingUpdateClientAvatar } =
+  const { mutate: uploadFile, isPending: isPendingUploadFile } =
     useMutation({
       mutationKey: ["update client avatar", openUserPhoto.value.id],
       mutationFn: () => {
         if (!updatedAvatar.value) {
           return Promise.reject("No avatar to update");
         }
-        return FilesService.updateFile(updatedAvatar.value);
+        return FilesService.uploadFile(updatedAvatar.value);
       },
       onSuccess: (response) => {
         setParamsUpdateFilelink(response.result)
@@ -26,7 +26,7 @@ export const useUpdateClientAvatar = () => {
     });
 
   return {
-    updateClientAvatar,
-    isPendingUpdateClientAvatar,
+    uploadFile,
+    isPendingUploadFile,
   };
 };

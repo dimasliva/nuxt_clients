@@ -3,8 +3,22 @@ import type { ITableHeader } from "~/src/widgets/PageTable/model/types/pagetable
 export const useTableHeader = () => {
   const { t } = useI18n();
 
+  // Выносим ключи в отдельный объект
+  const keys = {
+    id: "id",
+    name: "name",
+    surname: "surname",
+    patronymic: "patronymic",
+    birthdate: "birthdate",
+    gender: "gender",
+    mainPhone: "mainPhone",
+    mainEmail: "mainEmail",
+    snils: "snils",
+    fio: "fio",
+  };
+
   const idColumn: ITableColumn = {
-    key: "id",
+    key: keys.id,
     title: "ID",
     align: "start",
     sortable: true,
@@ -12,7 +26,7 @@ export const useTableHeader = () => {
   };
 
   const nameColumn: ITableColumn = {
-    key: "name",
+    key: keys.name,
     title: t("name"),
     sortable: true,
     align: "start",
@@ -20,7 +34,7 @@ export const useTableHeader = () => {
   };
 
   const surnameColumn: ITableColumn = {
-    key: "surname",
+    key: keys.surname,
     title: t("surname"),
     sortable: true,
     align: "start",
@@ -28,7 +42,7 @@ export const useTableHeader = () => {
   };
 
   const patronymicColumn: ITableColumn = {
-    key: "patronymic",
+    key: keys.patronymic,
     title: t("patronymic"),
     sortable: true,
     align: "start",
@@ -36,7 +50,7 @@ export const useTableHeader = () => {
   };
 
   const birthdateColumn: ITableColumn = {
-    key: "birthdate",
+    key: keys.birthdate,
     title: t("birthdate"),
     sortable: true,
     align: "start",
@@ -44,7 +58,7 @@ export const useTableHeader = () => {
   };
 
   const genderColumn: ITableColumn = {
-    key: "gender",
+    key: keys.gender,
     title: t("gender"),
     sortable: true,
     align: "start",
@@ -52,7 +66,7 @@ export const useTableHeader = () => {
   };
 
   const mainPhoneColumn: ITableColumn = {
-    key: "mainPhone",
+    key: keys.mainPhone,
     title: t("mainphone"),
     sortable: true,
     align: "start",
@@ -60,7 +74,7 @@ export const useTableHeader = () => {
   };
 
   const mainEmailColumn: ITableColumn = {
-    key: "mainEmail",
+    key: keys.mainEmail,
     title: t("email"),
     sortable: true,
     align: "start",
@@ -68,7 +82,7 @@ export const useTableHeader = () => {
   };
 
   const snilsColumn: ITableColumn = {
-    key: "snils",
+    key: keys.snils,
     title: t("snils"),
     sortable: true,
     align: "start",
@@ -76,7 +90,7 @@ export const useTableHeader = () => {
   };
 
   const fioColumn: ITableColumn = {
-    key: "fio",
+    key: keys.fio,
     title: t("fio"),
     sortable: true,
     align: "start",
@@ -84,19 +98,20 @@ export const useTableHeader = () => {
   };
 
   const tableHeader: ITableHeader = {
-    id: idColumn,
-    name: nameColumn,
-    surname: surnameColumn,
-    patronymic: patronymicColumn,
-    birthdate: birthdateColumn,
-    gender: genderColumn,
-    mainPhone: mainPhoneColumn,
-    mainEmail: mainEmailColumn,
-    snils: snilsColumn,
-    fio: fioColumn,
+    [keys.id]: idColumn,
+    [keys.name]: nameColumn,
+    [keys.surname]: surnameColumn,
+    [keys.patronymic]: patronymicColumn,
+    [keys.birthdate]: birthdateColumn,
+    [keys.gender]: genderColumn,
+    [keys.mainPhone]: mainPhoneColumn,
+    [keys.mainEmail]: mainEmailColumn,
+    [keys.snils]: snilsColumn,
+    [keys.fio]: fioColumn,
   };
 
   return {
+    keys, // Возвращаем объект с ключами
     idColumn,
     nameColumn,
     surnameColumn,

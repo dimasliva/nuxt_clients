@@ -9,6 +9,7 @@ import {
   type IClientDocuments,
   type IClientPhoto,
   type IOpenUser,
+  type IOtherDocumentsRequestParams,
   type IProfileActualAddress,
   type IRectsOtherDocument,
   type IRequestSetClientDocumentsParams,
@@ -34,7 +35,60 @@ export const useClientModalStore = defineStore("clientModalStore", {
     activeTab: EClientTabs.profile as EClientTabs,
     actualAddress: {} as IProfileActualAddress,
     permanentAddress: {} as IProfileActualAddress,
-    userInfo: {} as IOpenUser,
+    userInfo: {
+      avatarPreview: null,
+      photoId: null,
+      avatar: null,
+      changedAt: "",
+      birthdate: "",
+      selectedGender: "",
+      gender: EGenders.m,
+      id: "",
+      name: "",
+      patronymic: "",
+      surname: "",
+      contacts: {
+        mainPhone: "",
+        reservPhone: "",
+        mainEmail: "",
+      },
+      documents: {
+        id: "",
+        changedAt: "",
+        snils: "",
+        mainDocument: 0,
+        mainDocumentSeries: "",
+        mainDocumentNumber: "",
+        mainDocumentWhen: "",
+        mainDocumentWho: "",
+        mainDocumentWhoCode: "",
+        otherDocuments: [],
+        advData: null,
+        mainDocumentText: "",
+      },
+      addresses: {
+        id: "",
+        mainAddress: {
+          building: "",
+          corp: "",
+          country: 0,
+          district: "",
+          flat: "",
+          regionCode: 0,
+          settlement: "",
+          settlementType: 0,
+          street: "",
+          zip: "",
+          countryText: "",
+          regionText: "",
+          settlementText: "",
+        },
+        permanentRegistration: null,
+        addressesEqual: null,
+        advData: null,
+        changedAt: "",
+      },
+    } as IOpenUser,
     isEditDocument: false as boolean,
     openUserId: "-1" as string,
     editOtherDocument: {} as IRectsOtherDocument,
@@ -48,11 +102,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
       this.activeTab = tab;
     },
     setAvatar(data: Blob | null) {
-      let url: string = "";
-      if (data) {
-        url = URL.createObjectURL(data);
-      }
-      this.userInfo.avatarPreview = url;
+      this.userInfo.avatarPreview = data ? URL.createObjectURL(data) : "";
     },
     setEditOtherDocument(data: IRectsOtherDocument) {
       this.editOtherDocument = { ...data };
@@ -61,26 +111,19 @@ export const useClientModalStore = defineStore("clientModalStore", {
       const index = this.userInfo.documents.otherDocuments.findIndex(
         (val) => val.typeCode === edit.typeCode
       );
-      const date = new Date(edit.when);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-
-      const formattedDate = `${year}-${month}-${day}`;
       if (index !== -1) {
+        const date = new Date(edit.when);
+        const formattedDate = date.toISOString().split("T")[0];
         edit.when = formattedDate;
-        console.log("edit.when", edit.when);
         this.userInfo.documents.otherDocuments[index] = edit;
       }
     },
     deleteAvatar() {
       this.userInfo.avatarPreview = "";
     },
-
     setIsEditDocument(value: boolean) {
       this.isEditDocument = value;
     },
-
     setParamsUpdateFilelink(data: IResponseFile) {
       this.paramsUpdateFilelink = data;
       this.openUserPhoto.id = data.id;
@@ -88,20 +131,30 @@ export const useClientModalStore = defineStore("clientModalStore", {
       this.paramsUpdateFilelink.title = `#clientPhoto@${this.openUserId}`;
     },
     async changeAvatar(file: File) {
-      const blob = new Blob([file], { type: file.type });
-      this.setAvatar(blob);
-      const formData = new FormData();
-      formData.append("filetype", "1");
-      if (this.openUserPhoto.id) {
-        formData.append("FilelinkId", this.openUserPhoto.id);
+      try {
+        const blob = new Blob([file], { type: file.type });
+        this.setAvatar(blob);
+        const formData = new FormData();
+        formData.append("filetype", "1");
+        if (this.openUserPhoto.id) {
+          formData.append("FilelinkId", this.openUserPhoto.id);
+        }
+        formData.append("File", file);
+        this.updatedAvatar = formData;
+      } catch (error) {
+        console.error("Error changing avatar:", error);
       }
-      formData.append("File", file);
-
-      this.updatedAvatar = formData;
     },
     resetUserInfo() {
       this.openUserPhoto = { id: null, changedAt: "" };
       this.openUserId = "-1";
+
+      const findCountry = ClientCountryText.find(
+        (val) => val.key === ClientRussiaCountryKey
+      );
+      const findRegion = ClientRegionText.find((val) => val.key === 1);
+      const findSettlement = ClientSettlementText.find((val) => val.key === 1);
+
       this.userInfo = {
         avatarPreview: null,
         photoId: null,
@@ -144,9 +197,9 @@ export const useClientModalStore = defineStore("clientModalStore", {
             regionCode: 1,
             settlement: "",
             settlementType: 1,
-            countryText: "",
-            regionText: "",
-            settlementText: "",
+            countryText: findCountry ? findCountry.value : "",
+            regionText: findRegion ? findRegion.value : "",
+            settlementText: findSettlement ? findSettlement.value : "",
             street: "",
             zip: "",
           },
@@ -172,26 +225,31 @@ export const useClientModalStore = defineStore("clientModalStore", {
         },
       };
     },
-
     setOpenUserId(value: string) {
       this.openUserId = value;
     },
     setDefaultActiveTab() {
       this.activeTab = EClientTabs.profile;
     },
-    setUserInfo(data: IRecordResponse[]) {
-      if (data[0]) {
-        this.openUserPhoto.id = data[0].photo;
-        this.openUserPhoto.changedAt = data[0].changedAt;
+    formatRecordResponse(result: any[]): IRecordResponse {
+      return {
+        photo: result[0] ? (result[0] as IRecDataPhoto) : null,
+        documents: result[1] ? (result[1] as IRecData1) : null,
+        contacts: result[2] ? (result[2] as IRecData2) : null,
+        addresses: result[3] ? (result[3] as IRecData3) : null,
+      };
+    },
+    setUserInfo(data: IRecordResponse) {
+      if (data.photo) {
+        this.openUserPhoto.id = data.photo.photo;
+        this.openUserPhoto.changedAt = data.photo.changedAt;
       } else {
         this.openUserPhoto.id = null;
         this.openUserPhoto.changedAt = "";
       }
-      this.setDocument(data[1] as IRecData1);
-
-      this.setProfileData(data[2] as IRecData2);
-
-      this.setRegistration(data[3] as IRecData3);
+      this.setDocument(data.documents);
+      this.setContactData(data.contacts);
+      this.setRegistration(data.addresses);
     },
     setFIOData(data: IUser) {
       let selectedGender = EGenderProfile.male;
@@ -214,13 +272,21 @@ export const useClientModalStore = defineStore("clientModalStore", {
       this.userInfo.selectedGender = selectedGender;
       this.userInfo.birthdate = data.birthdate;
     },
-    setProfileData(data: IRecData2 | undefined) {
+    setContactData(data: IRecData2 | null) {
+      this.userInfo.contacts = {} as IClientContacts;
       if (data) {
+        console.log("setContactData", data);
         this.userInfo.contacts = {
           mainEmail: data.mainEmail,
           mainPhone: data.mainPhone,
           reservPhone: data.reservPhone || "",
           changedAt: data.changedAt,
+        };
+      } else {
+        this.userInfo.contacts = {
+          mainEmail: "",
+          mainPhone: "",
+          reservPhone: "",
         };
       }
     },
@@ -256,11 +322,11 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.documents.mainDocumentText = ClientDocumentTypes[0].value;
       }
     },
+
     setRegistration(data: IRecData3 | null) {
       this.userInfo.addresses = {} as IClientAddresses;
 
       if (data) {
-        console.log("data", data);
         let permanentRegistration: IClientAddress = data.permanentRegistration;
         let mainRegistration: IClientAddress = data.mainAddress;
         this.userInfo.addresses.mainAddress = mainRegistration;
@@ -281,7 +347,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
         const emptyAddress = {
           building: "",
           corp: "",
-          country: 1,
+          country: ClientRussiaCountryKey,
           district: "",
           flat: "",
           regionCode: 1,
@@ -300,15 +366,22 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.addresses.addressesEqual = false;
       }
     },
-    onClientChangedAt(value: string) {
-      this.userInfo.changedAt = value 
+    setClientChangedAt(value: string) {
+      this.userInfo.changedAt = value;
     },
-    onClientId(value: string) {
-      this.userInfo.id = value 
-      this.openUserId = value 
+    setClientId(value: string) {
+      this.userInfo.id = value;
+      this.openUserId = value;
     },
     setChangedAt(changedAt: string) {
       this.userInfo.changedAt = changedAt;
+    },
+    addOtherDocument(doc: IRectsOtherDocument) {
+      this.userInfo.documents.otherDocuments.push(doc);
+    },
+    removeOtherDocument(doc: IRectsOtherDocument) {
+      const index = this.userInfo.documents.otherDocuments.indexOf(doc);
+      this.userInfo.documents.otherDocuments.splice(index, 1);
     },
     setContactsChangedAt(changedAt: string) {
       this.userInfo.contacts.changedAt = changedAt;
@@ -391,18 +464,19 @@ export const useClientModalStore = defineStore("clientModalStore", {
       };
     },
     getParamsUpdateClientContacts(): IUpdateClientContacts {
-      const res:IUpdateClientContacts = {
-        id: this.userInfo.id,
+      const res: IUpdateClientContacts = {
+        id: this.openUserId,
         mainEmail: this.userInfo.contacts.mainEmail,
         mainPhone: this.userInfo.contacts.mainPhone.replace("+", ""),
-        reservPhone: this.userInfo.contacts.reservPhone.length
+        reservPhone: this.userInfo.contacts.reservPhone
           ? this.userInfo.contacts.reservPhone.replace("+", "")
           : null,
         otherContacts: null,
         advData: null,
-      }
-      if(this.userInfo.contacts.changedAt.length) {
-        res.changedAt = this.userInfo.contacts.changedAt 
+      };
+
+      if (this.userInfo.contacts.changedAt) {
+        res.changedAt = this.userInfo.contacts.changedAt;
       }
       return res;
     },
@@ -415,22 +489,42 @@ export const useClientModalStore = defineStore("clientModalStore", {
         comments: null,
         individualId: null,
         kinship: null,
+      };
+
+      if (this.openUserPhoto.changedAt !== "") {
+        response.changedAt = this.openUserPhoto.changedAt;
       }
-      if(this.openUserPhoto.changedAt !== '') {
-        response.changedAt = this.openUserPhoto.changedAt
-      }
-      return response
+      return response;
     },
     getParamsSetClientDocuments(): IRequestSetClientDocumentsParams {
       const doc = ClientDocumentsText.find(
         (val) => val.value === this.userInfo.documents.mainDocumentText
       );
-      const date = new Date(this.userInfo.documents.mainDocumentWhen);
-      date.setDate(date.getDate() + 1);
-      const formattedDate = date.toISOString().split("T")[0];
-      return {
+
+      let formattedDate: string | null = null;
+      if (this.userInfo.documents.mainDocumentWhen) {
+        const date = new Date(this.userInfo.documents.mainDocumentWhen);
+        date.setDate(date.getDate() + 1);
+        formattedDate = date.toISOString().split("T")[0];
+      }
+
+      const otherDocuments: IOtherDocumentsRequestParams[] =
+        this.userInfo.documents.otherDocuments.map((doc) => {
+          const inputDate = doc.when;
+          const [day, month, year] = inputDate.split(".");
+          const formattedDate = `${year}-${month}-${day}`;
+
+          return {
+            ...doc,
+            when: formattedDate,
+            type: null,
+            who: null,
+            whoCode: null,
+          };
+        });
+
+      const res: IRequestSetClientDocumentsParams = {
         id: this.userInfo.id,
-        changedAt: this.userInfo.documents.changedAt,
         snils: this.userInfo.documents.snils,
         mainDocument: doc ? doc.key : 1,
         mainDocumentSeries: this.userInfo.documents.mainDocumentSeries,
@@ -438,12 +532,19 @@ export const useClientModalStore = defineStore("clientModalStore", {
         mainDocumentWhen: formattedDate,
         mainDocumentWho: this.userInfo.documents.mainDocumentWho,
         mainDocumentWhoCode: this.userInfo.documents.mainDocumentWhoCode,
-        otherDocuments: this.userInfo.documents.otherDocuments,
+        otherDocuments: otherDocuments,
         advData: null,
       };
+      if (this.userInfo.documents.changedAt !== "") {
+        res.changedAt = this.userInfo.documents.changedAt;
+      }
+      console.log("res", res);
+      return res;
     },
     getParamsAddClient(): IAddClientParams {
-      const birthdate = this.userInfo.birthdate.length ? this.userInfo.birthdate : null 
+      const birthdate = this.userInfo.birthdate.length
+        ? this.userInfo.birthdate
+        : null;
       return {
         advData: null,
         birthdate: birthdate,
@@ -452,7 +553,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
         notActive: null,
         patronymic: this.userInfo.patronymic,
         surname: this.userInfo.surname,
-      }
+      };
     },
     getParamsSetClientAddresses(): ISetClientAddresses {
       const mainAddressCountryText =
@@ -530,14 +631,17 @@ export const useClientModalStore = defineStore("clientModalStore", {
         };
       }
 
-      return {
+      const res: ISetClientAddresses = {
         addressesEqual: this.userInfo.addresses.addressesEqual,
         advData: null,
-        changedAt: this.userInfo.addresses.changedAt,
-        id: this.userInfo.addresses.id,
+        id: this.openUserId,
         mainAddress: mainAddress,
         permanentRegistration: permanentRegistration,
       };
+      if (this.userInfo.addresses.changedAt !== "") {
+        res.changedAt = this.userInfo.addresses.changedAt;
+      }
+      return res;
     },
   },
 });

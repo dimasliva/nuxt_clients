@@ -9,7 +9,7 @@
       @onAddAndClose="onAddAndCloseModal"
     />
     <PageTable
-      :table-descr="tableDescr"
+      :table-descr="tableDescr"dwdw
       :columns="tableData.columns"
       :allColumns="allTableColumns"
       :rows="tableData.rows"
@@ -35,4 +35,5 @@ const {
 definePageMeta({
   layout: "page",
 });
+
 </script>

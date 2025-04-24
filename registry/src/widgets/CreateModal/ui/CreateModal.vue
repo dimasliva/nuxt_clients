@@ -18,7 +18,14 @@ const emit = defineEmits<IEmits>();
 </script>
 
 <template>
-  <v-dialog v-model="props.isOpen" max-width="800">
+  <v-dialog
+    v-model="props.isOpen"
+    transition="dialog-bottom-transition"
+    width="90%"
+    max-width="1200px"
+    height="100%"
+    max-height="780px"
+  >
     <template v-slot:default="{ isActive }">
       <v-card rounded="lg">
         <v-card-title class="d-flex justify-space-between align-center">

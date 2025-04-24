@@ -4,6 +4,7 @@ export const useSetClientAddresses = () => {
   const store = useClientModalStore();
   const { openUserId, getParamsSetClientAddresses } = storeToRefs(store);
   
+  
   const { setAddressesChangedAt } = store;
 
   const { mutate: updateSetClientAddresses, isPending: isPendingSetClientAddresses } =

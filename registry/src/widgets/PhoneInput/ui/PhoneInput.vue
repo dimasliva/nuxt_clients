@@ -14,22 +14,24 @@ interface IEmits {
 }
 
 const emit = defineEmits<IEmits>();
+const props = defineProps<IProps>();
 
-const value = defineModel<string>();
+const value = defineModel("value", { type: String, required: true });
 
-defineProps<IProps>();
+
 </script>
+
 <template>
   <VPhoneInput
     ref="refField"
     type="text"
-    :readonly="readonly"
+    :readonly="props.readonly"
     defaultCountry="RU"
     countryIconMode="svg"
     displayFormat="international"
     clearable
     v-model="value"
-    :label="label"
+    :label="props.label"
     countryLabel=""
     @blur="(d) => emit('onBlur', d)"
     @keydown.stop="(k) => emit('onKeyDown', k)"

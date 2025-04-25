@@ -11,10 +11,12 @@ export const useGetAllCountries = () => {
     select: (response) => {
       if (response) {
         let result = response.result;
-        Object.keys(result).forEach((key) => {
-          countries.push(result[key].value);
-        });
-        setAddressCountry(countries[0]);
+        if (result) {
+          Object.keys(result).forEach((key) => {
+            countries.push(result[key].value);
+          });
+          setAddressCountry(countries[0]);
+        }
       }
     },
   });

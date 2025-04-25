@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visibility" style="height: 100%" class="d-flex flex-column">
+  <div v-if="visibility" style="height: 10%" class="d-flex flex-column">
     <div class="flex-grow-1" style="min-height: 10rem">
       <v-data-table
         ref="refDt"

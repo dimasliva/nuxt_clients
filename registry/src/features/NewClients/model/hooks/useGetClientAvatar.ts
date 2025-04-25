@@ -4,25 +4,23 @@ import { FilesService } from "~/src/features/Files/model/service/FilesService";
 export const useGetClientAvatar = () => {
   
     const store = useClientModalStore();
-    const { userInfo, openUserPhoto } = storeToRefs(store);
+    const { openUserPhoto } = storeToRefs(store);
     const {setAvatar} = store
 
     const { data, isLoading, refetch, isError, error, isPending } = useQuery({
       queryKey: ["get client avatar ", openUserPhoto.value.id || ''],
       queryFn: () => FilesService.downloadFile(openUserPhoto.value.id || ''),
-      select: async (response) => {
-        if (response) {
-          setAvatar(response)
-        }
-      },
       enabled: !!openUserPhoto.value.id,
     });
 
-    watch(openUserPhoto.value, () => {
+    watch(openUserPhoto.value, async () => {
       if(openUserPhoto.value.id) {
-        refetch()
+        const response = await refetch()
+        if(response.data) {
+          setAvatar(response.data, true)
+        }
       } else {
-        setAvatar(null)
+        setAvatar(null, true)
       }
     })
 

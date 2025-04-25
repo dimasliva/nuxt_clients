@@ -3,8 +3,6 @@ import type { IRectsOtherDocument } from "../types/clients";
 export const useClientAddModalTabDocuments = () => {
   const { t } = useI18n();
 
-  const id = ref(0);
-
   const addedItems = [t("snils"), t("doc_oms"), t("doc_dms"), t("doc_other")];
   const selectType = ref<string>(t("snils"));
   const serial = ref("");
@@ -17,7 +15,7 @@ export const useClientAddModalTabDocuments = () => {
 
   const store = useClientModalStore();
   const { setIsEditDocument, setEditOtherDocument, addOtherDocument, removeOtherDocument } = store;
-  const { userInfo, isEditDocument } = storeToRefs(store);
+  const { userInfo, notChangedUserInfo } = storeToRefs(store);
 
   const addInputs = () => {
     const formattedDate = new Date(when.value)
@@ -35,8 +33,11 @@ export const useClientAddModalTabDocuments = () => {
       typeCode: getTypecode(selectType.value),
       when: formattedDate,
     });
+    comment.value = ""
+    serial.value = ""
+    number.value = ""
+    when.value = ""
 
-    id.value++;
   };
 
   const getTypecode = (text: string) => {

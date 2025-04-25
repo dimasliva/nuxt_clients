@@ -10,6 +10,7 @@ const { t, locale } = useI18n();
     required: value => !!value || t('required'),
     counter: value => value.length <= 210 ||  t('maxcharacters', 210),
     email: value => {
+      if(!value) return true
       const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       return pattern.test(value) ||  t('invalidEmail')
     },
@@ -51,14 +52,15 @@ const { t, locale } = useI18n();
   const fioRules = [
     (value) => {
       if (value.trim().length === 0) return true;
-
-      const fioPattern = /^[а-яё]+(\s[а-яё]+)?(\s[а-яё]+)?$/i;
+  
+      const fioPattern = /^[а-яёa-zA-Z]+(\s[а-яёa-zA-Z]+)?(\s[а-яёa-zA-Z]+)?$/i;
       return (
         fioPattern.test(value) ||
         "Введите ваше ФИО в формате: Фамилия или Фамилия Имя"
       );
     },
   ];
+  
 
   return {
     numberRules,

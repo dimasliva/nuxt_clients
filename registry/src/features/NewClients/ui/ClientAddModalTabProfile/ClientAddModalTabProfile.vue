@@ -10,6 +10,8 @@ const {
   onChangeAvatar,
   onDeleteAvatar,
 } = useClientAddModalTabProfile();
+
+
 </script>
 
 <template>

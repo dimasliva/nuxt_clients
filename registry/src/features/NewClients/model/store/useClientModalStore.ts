@@ -36,7 +36,61 @@ export const useClientModalStore = defineStore("clientModalStore", {
     actualAddress: {} as IProfileActualAddress,
     permanentAddress: {} as IProfileActualAddress,
     userInfo: {
-      avatarPreview: null,
+      avatarPreview: "",
+      photoId: null,
+      avatar: null,
+      changedAt: "",
+      birthdate: "",
+      selectedGender: "",
+      gender: EGenders.m,
+      id: "",
+      name: "",
+      patronymic: "",
+      surname: "",
+      contacts: {
+        mainPhone: "",
+        reservPhone: "",
+        mainEmail: "",
+      },
+      documents: {
+        id: "",
+        changedAt: "",
+        snils: "",
+        mainDocument: 0,
+        mainDocumentSeries: "",
+        mainDocumentNumber: "",
+        mainDocumentWhen: "",
+        mainDocumentWho: "",
+        mainDocumentWhoCode: "",
+        otherDocuments: [],
+        advData: null,
+        mainDocumentText: "",
+      },
+      addresses: {
+        id: "",
+        mainAddress: {
+          building: "",
+          corp: "",
+          country: 0,
+          district: "",
+          flat: "",
+          regionCode: 0,
+          settlement: "",
+          settlementType: 0,
+          street: "",
+          zip: "",
+          countryText: "",
+          regionText: "",
+          settlementText: "",
+        },
+        permanentRegistration: null,
+        addressesEqual: null,
+        advData: null,
+        changedAt: "",
+      },
+    } as IOpenUser,
+    notChangedUserInfo: {
+      avatarPreview: "",
       photoId: null,
       avatar: null,
       changedAt: "",
@@ -101,8 +155,12 @@ export const useClientModalStore = defineStore("clientModalStore", {
     switchTab(tab: EClientTabs) {
       this.activeTab = tab;
     },
-    setAvatar(data: Blob | null) {
-      this.userInfo.avatarPreview = data ? URL.createObjectURL(data) : "";
+    setAvatar(data: Blob | null, avatarFromAPI?: boolean) {
+      const avatar = data ? URL.createObjectURL(data) : "";
+      this.userInfo.avatarPreview = avatar;
+      if (avatarFromAPI) {
+        this.notChangedUserInfo.avatarPreview = avatar;
+      }
     },
     setEditOtherDocument(data: IRectsOtherDocument) {
       this.editOtherDocument = { ...data };
@@ -145,6 +203,31 @@ export const useClientModalStore = defineStore("clientModalStore", {
         console.error("Error changing avatar:", error);
       }
     },
+    setDefaultUserData() {
+      this.notChangedUserInfo = {
+        ...this.userInfo,
+        documents: {
+          ...this.userInfo.documents,
+          otherDocuments: [...this.userInfo.documents.otherDocuments],
+        },
+        addresses: {
+          ...this.userInfo.addresses,
+          mainAddress: {
+            ...this.userInfo.addresses.mainAddress,
+            countryText: this.userInfo.addresses.mainAddress.countryText,
+            regionText: this.userInfo.addresses.mainAddress.regionText,
+            settlementText: this.userInfo.addresses.mainAddress.settlementText,
+          },
+          permanentRegistration: this.userInfo.addresses.permanentRegistration
+            ? { ...this.userInfo.addresses.permanentRegistration }
+            : null,
+        },
+        contacts: {
+          ...this.userInfo.contacts,
+        },
+      };
+    },
+
     resetUserInfo() {
       this.openUserPhoto = { id: null, changedAt: "" };
       this.openUserId = "-1";
@@ -155,8 +238,55 @@ export const useClientModalStore = defineStore("clientModalStore", {
       const findRegion = ClientRegionText.find((val) => val.key === 1);
       const findSettlement = ClientSettlementText.find((val) => val.key === 1);
 
-      this.userInfo = {
-        avatarPreview: null,
+      const defaultContacts = {
+        mainEmail: "",
+        mainPhone: "",
+        reservPhone: "",
+        changedAt: "",
+      };
+
+      const defaultDocuments = {
+        advData: null,
+        changedAt: "",
+        id: "",
+        mainDocumentText: ClientDocumentTypes[0].value,
+        snils: "",
+        mainDocumentNumber: "",
+        mainDocumentSeries: "",
+        mainDocumentWhen: "",
+        mainDocumentWho: "",
+        mainDocumentWhoCode: "",
+        otherDocuments: [],
+        mainDocument: 1,
+      };
+
+      const defaultAddress = {
+        building: "",
+        corp: "",
+        country: 1,
+        district: "",
+        flat: "",
+        regionCode: 1,
+        settlement: "",
+        settlementType: 1,
+        countryText: findCountry ? findCountry.value : "",
+        regionText: findRegion ? findRegion.value : "",
+        settlementText: findSettlement ? findSettlement.value : "",
+        street: "",
+        zip: "",
+      };
+
+      const defaultAddresses = {
+        mainAddress: { ...defaultAddress },
+        permanentRegistration: { ...defaultAddress },
+        addressesEqual: false,
+        advData: null,
+        changedAt: "",
+        id: "",
+      };
+
+      const commonUserInfo = {
+        avatarPreview: "",
         photoId: null,
         avatar: null,
         birthdate: "",
@@ -167,64 +297,15 @@ export const useClientModalStore = defineStore("clientModalStore", {
         patronymic: "",
         surname: "",
         changedAt: "",
-        contacts: {
-          mainEmail: "",
-          mainPhone: "",
-          reservPhone: "",
-          changedAt: "",
-        },
-        documents: {
-          advData: null,
-          changedAt: "",
-          id: "",
-          mainDocumentText: ClientDocumentTypes[0].value,
-          snils: "",
-          mainDocumentNumber: "",
-          mainDocumentSeries: "",
-          mainDocumentWhen: "",
-          mainDocumentWho: "",
-          mainDocumentWhoCode: "",
-          otherDocuments: [],
-          mainDocument: 1,
-        },
-        addresses: {
-          mainAddress: {
-            building: "",
-            corp: "",
-            country: 1,
-            district: "",
-            flat: "",
-            regionCode: 1,
-            settlement: "",
-            settlementType: 1,
-            countryText: findCountry ? findCountry.value : "",
-            regionText: findRegion ? findRegion.value : "",
-            settlementText: findSettlement ? findSettlement.value : "",
-            street: "",
-            zip: "",
-          },
-          permanentRegistration: {
-            building: "",
-            corp: "",
-            country: 1,
-            district: "",
-            flat: "",
-            regionCode: 1,
-            settlement: "",
-            settlementType: 1,
-            countryText: "",
-            regionText: "",
-            settlementText: "",
-            street: "",
-            zip: "",
-          },
-          addressesEqual: false,
-          advData: null,
-          changedAt: "",
-          id: "",
-        },
+        contacts: { ...defaultContacts },
+        documents: { ...defaultDocuments },
+        addresses: { ...defaultAddresses },
       };
+
+      this.userInfo = { ...commonUserInfo };
+      this.notChangedUserInfo = { ...commonUserInfo };
     },
+
     setOpenUserId(value: string) {
       this.openUserId = value;
     },
@@ -252,88 +333,119 @@ export const useClientModalStore = defineStore("clientModalStore", {
       this.setRegistration(data.addresses);
     },
     setFIOData(data: IUser) {
-      let selectedGender = EGenderProfile.male;
-      switch (data.gender) {
-        case EGenders.m:
-          selectedGender = EGenderProfile.male;
-          break;
-        case EGenders.f:
-          selectedGender = EGenderProfile.female;
-          break;
-        default:
-          break;
-      }
+      const selectedGender =
+        data.gender === EGenders.m
+          ? EGenderProfile.male
+          : data.gender === EGenders.f
+          ? EGenderProfile.female
+          : EGenderProfile.male;
 
-      this.userInfo.id = data.id;
-      this.userInfo.name = data.name;
-      this.userInfo.changedAt = data.changedAt;
-      this.userInfo.surname = data.surname;
-      this.userInfo.patronymic = data.patronymic;
-      this.userInfo.selectedGender = selectedGender;
-      this.userInfo.birthdate = data.birthdate;
+      const { id, name, changedAt, surname, patronymic, birthdate } = data;
+
+      const userData = {
+        id,
+        name,
+        changedAt,
+        surname,
+        patronymic,
+        selectedGender,
+        birthdate,
+      };
+
+      Object.assign(this.userInfo, userData);
+      Object.assign(this.notChangedUserInfo, userData);
     },
+
     setContactData(data: IRecData2 | null) {
-      this.userInfo.contacts = {} as IClientContacts;
-      if (data) {
-        console.log("setContactData", data);
-        this.userInfo.contacts = {
-          mainEmail: data.mainEmail,
-          mainPhone: data.mainPhone,
-          reservPhone: data.reservPhone || "",
-          changedAt: data.changedAt,
-        };
-      } else {
-        this.userInfo.contacts = {
-          mainEmail: "",
-          mainPhone: "",
-          reservPhone: "",
-        };
-      }
+      const createContactObject = (
+        data: IRecData2 | null
+      ): IClientContacts => ({
+        mainEmail: data?.mainEmail || "",
+        mainPhone:
+          data?.mainPhone && data.mainPhone.length > 0
+            ? `+${data.mainPhone}`
+            : "",
+        reservPhone:
+          data?.reservPhone && data.reservPhone.length > 0
+            ? `+${data.reservPhone}`
+            : "",
+        ...(data ? { changedAt: data.changedAt } : {}),
+      });
+
+      this.userInfo.contacts = createContactObject(data);
+      this.notChangedUserInfo.contacts = createContactObject(data);
+      console.log("this.userInfo.contacts", this.userInfo.contacts);
     },
+
     setDocument(data: IRecData1 | null) {
+      const defaultDocumentValues = {
+        snils: "",
+        changedAt: "",
+        mainDocument: 1,
+        otherDocuments: [],
+        mainDocumentNumber: "",
+        mainDocumentSeries: "",
+        mainDocumentWhen: "",
+        mainDocumentWho: "",
+        mainDocumentWhoCode: "",
+        mainDocumentText: ClientDocumentTypes[0].value,
+      };
+
+      const updateDocuments = (
+        documents: IClientDocuments,
+        data: IRecData1 | null
+      ) => {
+        if (data) {
+          documents.snils = data.snils || "";
+          documents.changedAt = data.changedAt;
+          documents.mainDocument = data.mainDocument;
+          documents.otherDocuments = [...data.otherDocuments]; // Создаем новый массив
+          documents.mainDocumentNumber = data.mainDocumentNumber || "";
+          documents.mainDocumentSeries = data.mainDocumentSeries || "";
+          documents.mainDocumentWhen = data.mainDocumentWhen || "";
+          documents.mainDocumentWho = data.mainDocumentWho || "";
+          documents.mainDocumentWhoCode = data.mainDocumentWhoCode || "";
+
+          const clientDocument = ClientDocumentTypes.find(
+            (val) => val.key === documents.mainDocument
+          );
+          documents.mainDocumentText = clientDocument
+            ? clientDocument.value
+            : defaultDocumentValues.mainDocumentText;
+        } else {
+          Object.assign(documents, defaultDocumentValues);
+        }
+      };
+
       this.userInfo.documents = {} as IClientDocuments;
-      if (data) {
-        this.userInfo.documents.snils = data.snils || "";
-        this.userInfo.documents.changedAt = data.changedAt;
-        this.userInfo.documents.mainDocument = data.mainDocument;
-        this.userInfo.documents.otherDocuments = data.otherDocuments;
-        this.userInfo.documents.mainDocumentNumber =
-          data.mainDocumentNumber || "";
-        this.userInfo.documents.mainDocumentSeries =
-          data.mainDocumentSeries || "";
-        this.userInfo.documents.mainDocumentWhen = data.mainDocumentWhen || "";
-        this.userInfo.documents.mainDocumentWho = data.mainDocumentWho || "";
-        this.userInfo.documents.mainDocumentWhoCode =
-          data.mainDocumentWhoCode || "";
-        const clientDocument = ClientDocumentTypes.find(
-          (val) => val.key === this.userInfo.documents.mainDocument
-        );
-        this.userInfo.documents.mainDocumentText = clientDocument
-          ? clientDocument.value
-          : ClientDocumentTypes[0].value;
-      } else {
-        this.userInfo.documents.mainDocument = 1;
-        this.userInfo.documents.otherDocuments = [];
-        this.userInfo.documents.mainDocumentNumber = "";
-        this.userInfo.documents.mainDocumentSeries = "";
-        this.userInfo.documents.mainDocumentWhen = "";
-        this.userInfo.documents.mainDocumentWho = "";
-        this.userInfo.documents.mainDocumentWhoCode = "";
-        this.userInfo.documents.mainDocumentText = ClientDocumentTypes[0].value;
-      }
+      updateDocuments(this.userInfo.documents, data);
+
+      this.notChangedUserInfo.documents = {} as IClientDocuments;
+      updateDocuments(this.notChangedUserInfo.documents, data);
     },
 
     setRegistration(data: IRecData3 | null) {
       this.userInfo.addresses = {} as IClientAddresses;
+      this.notChangedUserInfo.addresses = {} as IClientAddresses;
 
       if (data) {
         let permanentRegistration: IClientAddress = data.permanentRegistration;
         let mainRegistration: IClientAddress = data.mainAddress;
-        this.userInfo.addresses.mainAddress = mainRegistration;
-        this.userInfo.addresses.permanentRegistration = permanentRegistration;
+        this.userInfo.addresses.mainAddress = { ...mainRegistration };
+        this.userInfo.addresses.permanentRegistration = {
+          ...permanentRegistration,
+        };
         this.userInfo.addresses.changedAt = data.changedAt;
         this.userInfo.addresses.id = data.id;
         this.userInfo.addresses.addressesEqual = data.addressesEqual;
+
+        this.notChangedUserInfo.addresses.mainAddress = { ...mainRegistration };
+        this.notChangedUserInfo.addresses.permanentRegistration = {
+          ...permanentRegistration,
+        };
+        this.notChangedUserInfo.addresses.changedAt = data.changedAt;
+        this.notChangedUserInfo.addresses.id = data.id;
+        this.notChangedUserInfo.addresses.addressesEqual = data.addressesEqual;
 
         this.setMainCountryText(mainRegistration.country);
         this.setPermanentCountryText(permanentRegistration.country);
@@ -366,31 +478,14 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.addresses.addressesEqual = false;
       }
     },
-    setClientChangedAt(value: string) {
-      this.userInfo.changedAt = value;
-    },
-    setClientId(value: string) {
-      this.userInfo.id = value;
-      this.openUserId = value;
-    },
-    setChangedAt(changedAt: string) {
-      this.userInfo.changedAt = changedAt;
-    },
-    addOtherDocument(doc: IRectsOtherDocument) {
-      this.userInfo.documents.otherDocuments.push(doc);
-    },
-    removeOtherDocument(doc: IRectsOtherDocument) {
-      const index = this.userInfo.documents.otherDocuments.indexOf(doc);
-      this.userInfo.documents.otherDocuments.splice(index, 1);
-    },
-    setContactsChangedAt(changedAt: string) {
-      this.userInfo.contacts.changedAt = changedAt;
-    },
+
     setMainCountryText(key: number) {
       const mainCountryText = ClientCountryText.find((val) => val.key === key);
       this.userInfo.addresses.mainAddress.countryText = mainCountryText
         ? mainCountryText.value
         : "";
+      this.notChangedUserInfo.addresses.mainAddress.countryText =
+        mainCountryText ? mainCountryText.value : "";
     },
     setPermanentCountryText(key: number) {
       const permanentCountryText = ClientCountryText.find(
@@ -400,10 +495,18 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.addresses.permanentRegistration.countryText =
           permanentCountryText ? permanentCountryText.value : "";
       }
+      if (this.notChangedUserInfo.addresses.permanentRegistration) {
+        this.notChangedUserInfo.addresses.permanentRegistration.countryText =
+          permanentCountryText ? permanentCountryText.value : "";
+      }
     },
     setMainRegionText(key: number) {
       const mainRegionText = ClientRegionText.find((val) => val.key === key);
       this.userInfo.addresses.mainAddress.regionText = mainRegionText
+        ? mainRegionText.value
+        : "";
+
+      this.notChangedUserInfo.addresses.mainAddress.regionText = mainRegionText
         ? mainRegionText.value
         : "";
     },
@@ -415,6 +518,11 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.addresses.permanentRegistration.regionText =
           permanentRegionText ? permanentRegionText.value : "";
       }
+
+      if (this.notChangedUserInfo.addresses.permanentRegistration) {
+        this.notChangedUserInfo.addresses.permanentRegistration.regionText =
+          permanentRegionText ? permanentRegionText.value : "";
+      }
     },
     setMainSettlementText(key: number) {
       const mainSettlementText = ClientSettlementText.find(
@@ -423,6 +531,9 @@ export const useClientModalStore = defineStore("clientModalStore", {
       this.userInfo.addresses.mainAddress.settlementText = mainSettlementText
         ? mainSettlementText.value
         : "";
+
+      this.notChangedUserInfo.addresses.mainAddress.settlementText =
+        mainSettlementText ? mainSettlementText.value : "";
     },
     setPermanentSettlementText(key: number) {
       const permanentSettlementText = ClientSettlementText.find(
@@ -432,7 +543,39 @@ export const useClientModalStore = defineStore("clientModalStore", {
         this.userInfo.addresses.permanentRegistration.settlementText =
           permanentSettlementText ? permanentSettlementText.value : "";
       }
+
+      if (this.notChangedUserInfo.addresses.permanentRegistration) {
+        this.notChangedUserInfo.addresses.permanentRegistration.settlementText =
+          permanentSettlementText ? permanentSettlementText.value : "";
+      }
     },
+    setClientChangedAt(value: string) {
+      this.userInfo.changedAt = value;
+      this.notChangedUserInfo.changedAt = value;
+    },
+    setClientId(value: string) {
+      this.userInfo.id = value;
+      this.notChangedUserInfo.id = value;
+      this.openUserId = value;
+    },
+    setChangedAt(changedAt: string) {
+      this.userInfo.changedAt = changedAt;
+      this.notChangedUserInfo.changedAt = changedAt;
+    },
+    addOtherDocument(doc: IRectsOtherDocument) {
+      let arr = [...this.userInfo.documents.otherDocuments];
+      arr.push(doc);
+      this.userInfo.documents.otherDocuments = [...arr];
+    },
+    removeOtherDocument(doc: IRectsOtherDocument) {
+      const index = this.userInfo.documents.otherDocuments.indexOf(doc);
+      this.userInfo.documents.otherDocuments.splice(index, 1);
+    },
+    setContactsChangedAt(changedAt: string) {
+      this.userInfo.contacts.changedAt = changedAt;
+      this.notChangedUserInfo.contacts.changedAt = changedAt;
+    },
+
     setAddressCountry(value: string) {
       this.actualAddress.county = value;
     },
@@ -441,9 +584,11 @@ export const useClientModalStore = defineStore("clientModalStore", {
     },
     setDocumentsChangedAt(value: string) {
       this.userInfo.documents.changedAt = value;
+      this.notChangedUserInfo.documents.changedAt = value;
     },
     setAddressesChangedAt(value: string) {
       this.userInfo.addresses.changedAt = value;
+      this.notChangedUserInfo.addresses.changedAt = value;
     },
     setAddressLocationType(value: string) {
       this.actualAddress.localityType = value;
@@ -451,6 +596,10 @@ export const useClientModalStore = defineStore("clientModalStore", {
   },
   getters: {
     getUser(): IUpdateClient {
+      let date = new Date(this.userInfo.birthdate);
+      date.setDate(date.getDate() + 1);
+      let formattedBirthdate = date.toISOString().split("T")[0];
+
       return {
         id: this.userInfo.id,
         changedAt: this.userInfo.changedAt,
@@ -458,7 +607,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
         surname: this.userInfo.surname,
         patronymic: this.userInfo.patronymic,
         gender: this.userInfo.gender,
-        birthdate: this.userInfo.birthdate,
+        birthdate: formattedBirthdate,
         notActive: null,
         advData: null,
       };
@@ -511,8 +660,11 @@ export const useClientModalStore = defineStore("clientModalStore", {
       const otherDocuments: IOtherDocumentsRequestParams[] =
         this.userInfo.documents.otherDocuments.map((doc) => {
           const inputDate = doc.when;
-          const [day, month, year] = inputDate.split(".");
-          const formattedDate = `${year}-${month}-${day}`;
+          let formattedDate = inputDate;
+          if (inputDate.split(".").length > 1) {
+            const [day, month, year] = inputDate.split(".");
+            formattedDate = `${year}-${month}-${day}`;
+          }
 
           return {
             ...doc,
@@ -538,7 +690,6 @@ export const useClientModalStore = defineStore("clientModalStore", {
       if (this.userInfo.documents.changedAt !== "") {
         res.changedAt = this.userInfo.documents.changedAt;
       }
-      console.log("res", res);
       return res;
     },
     getParamsAddClient(): IAddClientParams {
@@ -556,92 +707,116 @@ export const useClientModalStore = defineStore("clientModalStore", {
       };
     },
     getParamsSetClientAddresses(): ISetClientAddresses {
-      const mainAddressCountryText =
-        this.userInfo.addresses.mainAddress.countryText;
-      const mainCountry = ClientCountryText.find(
-        (val) => val.value === mainAddressCountryText
-      );
+      const getAddressData = (address: IClientAddress) => {
+        const countryText = address.countryText;
+        const country = ClientCountryText.find(
+          (val) => val.value === countryText
+        );
 
-      const mainAddressSettlementText =
-        this.userInfo.addresses.mainAddress.settlementText;
-      const mainSettlement = ClientSettlementText.find(
-        (val) => val.value === mainAddressSettlementText
-      );
+        const settlementText = address.settlementText;
+        const settlement = ClientSettlementText.find(
+          (val) => val.value === settlementText
+        );
 
-      const mainAddressRegionText =
-        this.userInfo.addresses.mainAddress.regionText;
-      const mainRegion = ClientRegionText.find(
-        (val) => val.value === mainAddressRegionText
-      );
+        const regionText = address.regionText;
+        const region = ClientRegionText.find((val) => val.value === regionText);
 
-      const mainAddress: IClientAddressResponse = {
-        building: this.userInfo.addresses.mainAddress.building,
-        corp: this.userInfo.addresses.mainAddress.corp,
-        country: mainCountry ? mainCountry.key : ClientRussiaCountryKey,
-        district: this.userInfo.addresses.mainAddress.district,
-        flat: this.userInfo.addresses.mainAddress.flat,
-        regionCode: mainRegion
-          ? mainRegion.key
-          : this.userInfo.addresses.mainAddress.regionCode,
-        settlement: this.userInfo.addresses.mainAddress.settlement,
-        settlementType: mainSettlement
-          ? mainSettlement.key
-          : this.userInfo.addresses.mainAddress.settlementType,
-        street: this.userInfo.addresses.mainAddress.street,
-        zip: this.userInfo.addresses.mainAddress.zip,
+        return {
+          building: address.building,
+          corp: address.corp,
+          country: country ? country.key : ClientRussiaCountryKey,
+          district: address.district,
+          flat: address.flat,
+          regionCode: region ? region.key : address.regionCode,
+          settlement: address.settlement,
+          settlementType: settlement ? settlement.key : address.settlementType,
+          street: address.street,
+          zip: address.zip,
+        };
       };
+
+      const mainAddress = getAddressData(this.userInfo.addresses.mainAddress);
 
       let permanentRegistration: IClientAddressResponse | null = null;
       if (this.userInfo.addresses.permanentRegistration) {
-        const permanentCountryText =
-          this.userInfo.addresses.permanentRegistration.countryText;
-        const permanentCountry = ClientCountryText.find(
-          (val) => val.value === permanentCountryText
+        permanentRegistration = getAddressData(
+          this.userInfo.addresses.permanentRegistration
         );
-
-        const permanentSettlementText =
-          this.userInfo.addresses.permanentRegistration.settlementText;
-        const permanentSettlement = ClientSettlementText.find(
-          (val) => val.value === permanentSettlementText
-        );
-
-        const permanentRegionText =
-          this.userInfo.addresses.permanentRegistration.regionText;
-        const permanentRegion = ClientRegionText.find(
-          (val) => val.value === permanentRegionText
-        );
-
-        permanentRegistration = {
-          building: this.userInfo.addresses.permanentRegistration.building,
-          corp: this.userInfo.addresses.permanentRegistration.corp,
-          country: permanentCountry
-            ? permanentCountry.key
-            : ClientRussiaCountryKey,
-          district: this.userInfo.addresses.permanentRegistration.district,
-          flat: this.userInfo.addresses.permanentRegistration.flat,
-          regionCode: permanentRegion
-            ? permanentRegion.key
-            : this.userInfo.addresses.permanentRegistration.regionCode,
-          settlement: this.userInfo.addresses.permanentRegistration.settlement,
-          settlementType: permanentSettlement
-            ? permanentSettlement.key
-            : this.userInfo.addresses.permanentRegistration.settlementType,
-          street: this.userInfo.addresses.permanentRegistration.street,
-          zip: this.userInfo.addresses.permanentRegistration.zip,
-        };
       }
 
       const res: ISetClientAddresses = {
         addressesEqual: this.userInfo.addresses.addressesEqual,
         advData: null,
         id: this.openUserId,
-        mainAddress: mainAddress,
-        permanentRegistration: permanentRegistration,
+        mainAddress,
+        permanentRegistration,
       };
+
       if (this.userInfo.addresses.changedAt !== "") {
         res.changedAt = this.userInfo.addresses.changedAt;
       }
+
       return res;
+    },
+    getIsUserInfoValidated(): boolean {
+      function isEqual(obj1: any, obj2: any): boolean {
+        if (obj1 === obj2) return true;
+
+        if (
+          obj1 == null ||
+          obj2 == null ||
+          typeof obj1 !== "object" ||
+          typeof obj2 !== "object"
+        ) {
+          return false;
+        }
+
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+
+        if (keys1.length !== keys2.length) return false;
+
+        for (const key of keys1) {
+          if (!keys2.includes(key) || !isEqual(obj1[key], obj2[key])) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function isValidated(userInfo: IOpenUser): boolean {
+        let isError = false;
+        function isValidatedName(value: string) {
+          const hasNumbers = /\d/.test(value);
+
+          if (value.length >= 2 && value.length <= 128 && !hasNumbers) {
+            return false;
+          }
+          return true;
+        }
+        function isValidatedEmail(value: string) {
+          const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          if (emailPattern.test(value) || value.length === 0) {
+            return false;
+          }
+          return true; 
+        }
+
+        if (
+          isValidatedName(userInfo.name) ||
+          isValidatedName(userInfo.surname) ||
+          isValidatedEmail(userInfo.contacts.mainEmail)
+        ) {
+          isError = true;
+        }
+        return isError;
+      }
+
+      return (
+        !isEqual(this.userInfo, this.notChangedUserInfo) &&
+        !isValidated(this.userInfo)
+      );
     },
   },
 });

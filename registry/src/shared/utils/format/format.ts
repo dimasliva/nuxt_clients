@@ -12,7 +12,6 @@ export function formatPhoneNumber(phoneNumber: string) {
         return ""
     }
     const values = value.split('.');
-    console.log('values', values)
     if(values.length > 0) {
       return value
     }

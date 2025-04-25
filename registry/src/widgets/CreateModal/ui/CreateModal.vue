@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 interface IProps {
   isOpen: boolean;
-  isAdd?: boolean;
-  addTitle?: string;
   title: string;
+  addTitle?: string;
+  isAdd?: boolean;
+  isDisableSave?: boolean;
 }
 
 interface IEmits {
@@ -55,6 +56,7 @@ const emit = defineEmits<IEmits>();
             class="text-none"
             :text="$t('add')"
             variant="outlined"
+            :disabled="isDisableSave"
             @click="() => emit('onAdd')"
             v-if="isAdd"
           ></v-btn>
@@ -62,6 +64,7 @@ const emit = defineEmits<IEmits>();
             class="text-none"
             :text="$t('save')"
             variant="outlined"
+            :disabled="isDisableSave"
             @click="() => emit('onSave')"
             v-else
           ></v-btn>
@@ -70,6 +73,7 @@ const emit = defineEmits<IEmits>();
             color="primary"
             :text="$t('addAndClose')"
             variant="flat"
+            :disabled="isDisableSave"
             @click="() => emit('onAddAndClose')"
             v-if="isAdd"
           ></v-btn>
@@ -79,6 +83,7 @@ const emit = defineEmits<IEmits>();
             color="primary"
             :text="$t('saveAndClose')"
             variant="flat"
+            :disabled="isDisableSave"
             @click="() => emit('onSaveAndClose')"
           ></v-btn>
         </v-card-actions>

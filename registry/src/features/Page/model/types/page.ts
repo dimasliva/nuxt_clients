@@ -3,6 +3,7 @@ export enum EInputTypes {
   number = "number",
   email = "email",
   phone = "phone",
+  date = "date",
 }
 
 export interface IErrorMessages {

@@ -11,10 +11,12 @@ export const useGetAllLocationTypes = () => {
     select: (response) => {
       if (response) {
         let result = response.result;
-        Object.keys(result).forEach((key) => {
-          locationTypes.push(result[key].value2);
-        });
-        setAddressLocationType(locationTypes[0]);
+        if (result) {
+          Object.keys(result).forEach((key) => {
+            locationTypes.push(result[key].value2);
+          });
+          setAddressLocationType(locationTypes[0]);
+        }
       }
     },
   });

@@ -3,7 +3,13 @@
     v-show="showFilter"
     class="mb-auto"
     width="23rem"
-    style="height: 100%"
+    style="
+      height: auto;
+      position: absolute;
+      top: 100px;
+      right: 0;
+      z-index: 1000;
+    "
   >
     <v-col class="h-100 d-flex flex-column">
       <v-row class="ma-1 flex-grow-0" style="min-width: 200pt" justify="center">
@@ -15,6 +21,7 @@
           :disabled="isFilterDisable"
           @click="() => {}"
         >
+        {{ isFilterDisable ? 1 : 0 }}
           Поиск
         </v-btn>
         <v-btn
@@ -46,6 +53,18 @@
               :required="input.required"
               @input="checkFormValidity"
             ></v-text-field>
+
+            <v-date-input
+              v-else-if="input.type === EInputTypes.date"
+              v-model="input.value"
+              :counter="input.constraints.max"
+              :hint="input.hint"
+              :rules="input.rules"
+              :label="input.title"
+              :required="input.required"
+              prepend-icon=""
+              autocomplete="off"
+            ></v-date-input>
           </template>
         </v-form>
       </v-sheet>
@@ -56,11 +75,14 @@
 <script setup lang="ts">
 import { usePageFilter } from "../../model/hooks/usePageFilter";
 import { EInputTypes } from "~/src/features/Page/model/types/page";
-
+const store = usePageHeaderStore();
+const {  isFilterDisable } = storeToRefs(store);
+watch(isFilterDisable, () => {
+  console.log('isFilterDisable', isFilterDisable)
+})
 const {
   form,
   showFilter,
-  isFilterDisable,
   currPage,
   checkFormValidity,
   resetForm,

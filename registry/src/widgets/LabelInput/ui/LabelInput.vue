@@ -35,6 +35,7 @@ const value = defineModel("value") as Ref<string>;
       :label="label"
       prepend-icon=""
       :rules="rules"
+      autocomplete="off"
     ></v-date-input>
     <v-select
       v-else-if="type === ELabelInput.select"
@@ -51,7 +52,11 @@ const value = defineModel("value") as Ref<string>;
       :rules="rules"
     ></v-autocomplete>
 
-    <PhoneInput v-else-if="type === ELabelInput.phone" v-model="value" />
+    <PhoneInput 
+      v-else-if="type === ELabelInput.phone" 
+      v-model:value="value" 
+    />
+    
 
     <EmailInput
     v-else-if="type === ELabelInput.email"

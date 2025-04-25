@@ -3,16 +3,18 @@ import type {
   ITableRow,
 } from "~/src/widgets/PageTable/model/types/pagetable";
 import { useGetClients } from "./useGetClients";
+import { useQueryClient } from "@tanstack/vue-query";
 
 export const useNewClients = () => {
   const fioInput = ref<string>("");
+  const birthdayInput = ref<string>("");
   const emailInput = ref<string>("");
   const phoneInput = ref<string>("");
   const snilsInput = ref<string>("");
   const selectedTitleCol = ref<string>("fio");
   const isOpenAddModal = ref<boolean>(false);
 
-  const { tableData } = useGetClients();
+  const { tableData,  } = useGetClients();
 
   const store = useClientModalStore();
   const { userInfo, openUserId } = storeToRefs(store);
@@ -22,6 +24,7 @@ export const useNewClients = () => {
     setOpenUserId,
     setUserInfo,
     formatRecordResponse,
+    setDefaultUserData,
     setFIOData,
   } = store;
 
@@ -38,9 +41,26 @@ export const useNewClients = () => {
   const { updateSetClientAddresses } = useSetClientAddresses();
   const { addClient, isPendingAddClient } = useAddClient();
   const { refetch: refetchGetClientRecords } = useGetClientRecords();
+  const queryClient = useQueryClient();
 
-  const saveAddModal = () => {
-    updateUserInfo();
+  const getClients = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["get clients"],
+    });
+  }
+
+  const getClientModalData = async () => {
+    const clientResponse = await refetchGetClient();
+    if (clientResponse.data) {
+      if (clientResponse.data.result[0]) {
+        setFIOData(clientResponse.data.result[0]);
+      }
+    }
+
+    const response = await refetchGetClientRecords();
+    if (response.data) {
+      setUserInfo(formatRecordResponse(response.data.result));
+    }
   };
 
   function updateAddressHandler() {
@@ -62,10 +82,16 @@ export const useNewClients = () => {
     updateDocumentsHandler();
     updateAddressHandler();
   }
-  const {refetch: refetchGetClient} = useGetClient();
 
+  const saveAddModal = async () => {
+    await updateUserInfo();
+    // getClientModalData();
+    setDefaultUserData();
+    getClients();
+  };
 
-  
+  const { refetch: refetchGetClient } = useGetClient();
+
   const updateAvatarHandler = () => {
     if (userInfo.value.avatarPreview) {
       uploadFile();
@@ -95,6 +121,7 @@ export const useNewClients = () => {
   function openModal() {
     setDefaultActiveTab();
     isOpenAddModal.value = true;
+    getClientModalData();
   }
 
   addBtnPage.action = () => {
@@ -137,6 +164,14 @@ export const useNewClients = () => {
         value: fioInput,
         required: true,
         rules: fioRules,
+        constraints: { min: 2, max: 100 },
+      },
+      {
+        type: EInputTypes.date,
+        title: "Дата рождения",
+        value: birthdayInput,
+        required: true,
+        rules: [],
         constraints: { min: 2, max: 100 },
       },
       {
@@ -198,27 +233,8 @@ export const useNewClients = () => {
       updateAddressHandler();
       updateContactsHandler();
       updateDocumentsHandler();
-      const response = await refetchGetClientRecords();
-      if (response.data) {
-        setUserInfo(formatRecordResponse(response.data.result));
-      }
-    }
-  });
 
-  watch(openUserId, async (newValue) => {
-    if (newValue !== '-1') {
-      const clientResponse = await refetchGetClient();
-      if(clientResponse.data) {
-        if(clientResponse.data.result[0]) {
-          setFIOData(clientResponse.data.result[0]);
-        }
-      }
-
-      const recordsResponse = await refetchGetClientRecords();
-
-      if (recordsResponse.data) {
-        setUserInfo(formatRecordResponse(recordsResponse.data.result));
-      }
+      getClientModalData();
     }
   });
 

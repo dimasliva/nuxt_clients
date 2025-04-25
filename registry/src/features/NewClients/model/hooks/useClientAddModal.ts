@@ -1,17 +1,26 @@
-
-import { useGetClient } from "./useGetClient";
 import { useGetClientAvatar } from "./useGetClientAvatar";
-import { useGetClientRecords } from "./useGetClientRecords";
 
 export const useClientAddModal = () => {
   const store = useClientModalStore();
-  const { activeTab, openUserId } = storeToRefs(store);
+  const {
+    activeTab,
+    openUserId,
+    userInfo,
+    notChangedUserInfo,
+    getIsUserInfoValidated: getIsUserInfoChanged,
+  } = storeToRefs(store);
 
-  const {} = useGetClientRecords()
   const {} = useGetClientAvatar();
+
+  watch(userInfo, () => {
+    console.log(" ");
+    console.log("userInfo", userInfo.value.contacts);
+    console.log("notChangedUserInfo.value", notChangedUserInfo.value.contacts);
+  }, {deep: true});
 
   return {
     activeTab,
-    openUserId
+    openUserId,
+    getIsUserInfoChanged,
   };
 };

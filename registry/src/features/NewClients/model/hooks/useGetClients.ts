@@ -17,7 +17,7 @@ export const useGetClients = () => {
   const { tableHeader } = useTableHeader();
   const {getGender} = useGender()
 
-  const { isLoading, isError, error, isPending } = useQuery({
+  const { isLoading, isError, error, isPending, refetch } = useQuery({
     queryKey: ["get clients"],
     queryFn: () => ClientService.getClients(tableFilter.value),
     select: (response) => {
@@ -68,5 +68,6 @@ export const useGetClients = () => {
     isError,
     error,
     isPending,
+    refetch,
   };
 };

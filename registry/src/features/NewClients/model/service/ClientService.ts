@@ -17,6 +17,13 @@ export const ClientService = {
     return data;
   },
 
+  async deleteClient(id: string) {
+    const { data } = await axiosWithAuth.post<
+      IResponseWithData<IResponseUpdateClient>
+    >(API_URL.clients(`/DeleteClient`), id);
+    return data;
+  },
+
   async SetClientSd(params: IRequestSetClientSdParams) {
     const { data } = await axiosWithAuth.post<
       IResponseWithData<IRequestSetClientSdParams>

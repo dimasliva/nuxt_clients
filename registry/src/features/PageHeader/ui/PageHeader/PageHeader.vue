@@ -7,16 +7,18 @@
       {{ currPage.title }}
     </p>
     <div>
-      <v-btn v-if="currPin" variant="text" icon size="small" @click="onPinPage">
+      <v-btn v-if="getCurrPin" variant="text" icon size="small" @click="onPinPage">
         <v-icon color="secondary">mdi-pin</v-icon>
-        <v-tooltip activator="parent" location="top">{{$t('pin')}}</v-tooltip>
+        <v-tooltip activator="parent" location="top">{{ $t("pin") }}</v-tooltip>
       </v-btn>
       <v-btn v-else variant="text" size="small" @click="unpinPage" icon>
         <v-icon color="secondary">mdi-pin-off</v-icon>
-        <v-tooltip activator="parent" location="top">{{$t('unpin')}}</v-tooltip>
+        <v-tooltip activator="parent" location="top">{{
+          $t("unpin")
+        }}</v-tooltip>
       </v-btn>
     </div>
-    
+
     <v-spacer></v-spacer>
     <!--Пользовательские кнопки страницы-->
     <FeaturePageHeaderUiPageBtns />
@@ -39,5 +41,5 @@
 <script setup lang="ts">
 import { usePageHeader } from "../../model/hooks/usePageHeader";
 
-const { currPin, currPage, onPinPage, unpinPage } = usePageHeader();
+const { getCurrPin, currPage, onPinPage, unpinPage } = usePageHeader();
 </script>

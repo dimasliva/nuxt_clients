@@ -18,7 +18,6 @@ const { isOpen } = defineProps<IProps>();
 
 const emit = defineEmits<IEmits>();
 const { activeTab, openUserId, getIsUserInfoChanged } = useClientAddModal();
-
 </script>
 
 <template>
@@ -27,16 +26,15 @@ const { activeTab, openUserId, getIsUserInfoChanged } = useClientAddModal();
     :title="$t('clientProfile')"
     :addTitle="$t('createClient')"
     :isAdd="openUserId === '-1'"
-    :isDisableSave="!getIsUserInfoChanged"  
+    :isDisableSave="!getIsUserInfoChanged"
     @onClose="() => emit('onClose')"
     @onSave="() => emit('onSave')"
     @onSaveAndClose="() => emit('onSaveAndClose')"
     @onAdd="() => emit('onAdd')"
     @onAddAndClose="() => emit('onAddAndClose')"
-    
   >
-  <div class="d-flex ga-3 w-100">
-    <v-tabs v-model="activeTab" color="primary" direction="vertical">
+    <div class="d-flex ga-3 w-100">
+      <v-tabs v-model="activeTab" color="primary" direction="vertical">
         <v-tab
           prepend-icon="mdi-account"
           :text="$t('phofile')"
@@ -97,5 +95,4 @@ const { activeTab, openUserId, getIsUserInfoChanged } = useClientAddModal();
       </v-tabs-window>
     </div>
   </CreateModal>
-
 </template>

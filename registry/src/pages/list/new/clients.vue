@@ -14,6 +14,7 @@
       :allColumns="allTableColumns"
       :rows="tableData.rows"
       :selectedTitleCol="selectedTitleCol"
+      notFoundRow="Клиенты не найдены"
       @onOpen="onRowClicked"
     />
   </div>

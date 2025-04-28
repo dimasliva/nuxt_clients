@@ -27,6 +27,7 @@
   "emplSurname": "Фамилия",
   "changeAvatar": "Изменить аватар",
   "noNumbersAllowed": "Цифры не допускаются",
+  "spacesNotAllowed": "Пробелы не допускаются",
   "selectADate": "Выбрать дату",
   "emplPatronymic": "Отчество",
   "birthdate": "Дата рождения",

@@ -53,6 +53,7 @@ export interface IPageTableProps {
   rows: ITableRow[];
   tableDescr: ITableDescription;
   selectedTitleCol: string;
+  notFoundRow?: string;
 }
 export interface ITableHeader {
   [key: string]: {

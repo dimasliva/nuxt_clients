@@ -1,7 +1,7 @@
 
 export const usePinnedPage = () => {
   const pinnedStore = usePageStore();
-  const { unpinPageByIndex } = usePageStore();
+  const { unpinPageByIndex } = pinnedStore
   const { getPinnedPages } = storeToRefs(pinnedStore);
 
   return {

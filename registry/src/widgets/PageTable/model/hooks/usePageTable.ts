@@ -15,39 +15,36 @@ export const usePageTable = (props: IPageTableProps) => {
     else return Math.floor(props.rows.length / itemsPerPage.value) + 1;
   });
 
-  const accessibleColItems = computed(() => {
-    return props.allColumns;
-  });
+  const selectedColumns = reactive<string[]>(props.columns.map((col) => col.key));
+  
   const _headers = computed(() => {
     const res: ITableColumn[] = [];
+
+    props.allColumns.forEach((col) => {
+      if (selectedColumns.includes(col.key)) {
+        res.push(col);
+      }
+    });
     res.push({
       key: "actions",
       align: "start",
-      width: "10px",
+      width: "100px",
       sortable: false,
       title: "",
       selected: true,
     });
-    props.allColumns.forEach((col) => {
-      if (selectedColumns.value.includes(col.key)) {
-        res.push(col);
-      }
-    });
-
     return res;
   });
-
-  const selectedColumns = ref<string[]>(props.columns.map((col) => col.key));
   const accessibleCols = computed(() => {
     return props.allColumns
-      .filter((col) => selectedColumns.value.includes(col.key))
+      .filter((col) => selectedColumns.includes(col.key))
       .map((col) => col.key);
   });
 
   const notAccessibleCols = computed(() => {
     return props.allColumns
       .map((col) => col.key)
-      .filter((colKey) => !selectedColumns.value.includes(colKey));
+      .filter((colKey) => !selectedColumns.includes(colKey));
   });
 
   const getElement = () => {
@@ -66,11 +63,11 @@ export const usePageTable = (props: IPageTableProps) => {
   };
 
   const toggleSelectColumn = (isHidden: boolean, colName: string) => {
-    const index = selectedColumns.value.indexOf(colName);
+    const index = selectedColumns.indexOf(colName);
     if (isHidden) {
-      selectedColumns.value.push(colName);
+      selectedColumns.push(colName);
     } else {
-      selectedColumns.value.splice(index, 1);
+      selectedColumns.splice(index, 1);
     }
   };
 
@@ -92,8 +89,8 @@ export const usePageTable = (props: IPageTableProps) => {
     const column = props.allColumns.find((col) => col.key === columnKey);
     let classes: string[] = []
     classes.push(columnKey === keys.snils ? 'max-w-32': '')
-    classes.push(columnKey === keys.birthdate ? 'w-32': '')
-    classes.push(columnKey === keys.fio ? 'max-w-lg': '')
+    classes.push(columnKey === keys.birthdate ? 'w-22': '')
+    classes.push(columnKey === keys.fio ? 'max-w-10': '')
     classes.push('truncate')
     classes.push(column ? column.align : "start") 
     return classes.join(' ');
@@ -124,11 +121,11 @@ export const usePageTable = (props: IPageTableProps) => {
   };
 
   const resetSelectedColumns = () => {
-    selectedColumns.value = [];
+    selectedColumns.length = 0;
   };
   
   watchEffect(() => {
-    selectedColumns.value = props.columns.map((col) => col.key);
+    selectedColumns.push(...props.columns.map((col) => col.key));
   });
 
   return {
@@ -138,7 +135,6 @@ export const usePageTable = (props: IPageTableProps) => {
     itemsPerPage,
     selectStrategy,
     _headers,
-    accessibleColItems,
     selectedColumns,
     lineSelected,
     accessibleCols,

@@ -54,7 +54,7 @@ export const useTableHeader = () => {
     title: t("birthdate"),
     sortable: true,
     align: "start",
-    width: "30%",
+    width: "100px",
   };
 
   const genderColumn: ITableColumn = {
@@ -62,7 +62,7 @@ export const useTableHeader = () => {
     title: t("gender"),
     sortable: true,
     align: "start",
-    width: "300px",
+    width: "100px",
   };
 
   const mainPhoneColumn: ITableColumn = {
@@ -70,7 +70,7 @@ export const useTableHeader = () => {
     title: t("mainphone"),
     sortable: true,
     align: "start",
-    width: "30%",
+    width: "100px",
   };
 
   const mainEmailColumn: ITableColumn = {
@@ -78,7 +78,7 @@ export const useTableHeader = () => {
     title: t("email"),
     sortable: true,
     align: "start",
-    width: "30%",
+    width: "100px",
   };
 
   const snilsColumn: ITableColumn = {
@@ -86,7 +86,7 @@ export const useTableHeader = () => {
     title: t("snils"),
     sortable: true,
     align: "start",
-    width: "30%",
+    width: "100px",
   };
 
   const fioColumn: ITableColumn = {
@@ -94,7 +94,7 @@ export const useTableHeader = () => {
     title: t("fio"),
     sortable: true,
     align: "start",
-    width: "100px",
+    width: "200px",
   };
 
   const tableHeader: ITableHeader = {

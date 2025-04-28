@@ -20,6 +20,8 @@
   "minNum": "Мин: {0}",
   "reset": "Сбросить",
   "apartment": "Квартира",
+  "all": "Все",
+  "spacesNotAllowed": "Пробелы не допускаются",
   "noNumbersAllowed": "Цифры не допускаются",
   "reload": "Обновить",
   "name": "Имя",

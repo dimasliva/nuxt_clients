@@ -6,18 +6,21 @@ import { useGetClients } from "./useGetClients";
 import { useQueryClient } from "@tanstack/vue-query";
 
 export const useNewClients = () => {
-  const fioInput = ref<string>("");
-  const birthdayInput = ref<string>("");
-  const emailInput = ref<string>("");
-  const phoneInput = ref<string>("");
-  const snilsInput = ref<string>("");
   const selectedTitleCol = ref<string>("fio");
   const isOpenAddModal = ref<boolean>(false);
 
-  const { tableData,  } = useGetClients();
+  const { tableData } = useGetClients();
 
   const store = useClientModalStore();
-  const { userInfo, openUserId } = storeToRefs(store);
+  const {
+    userInfo,
+    openUserId,
+    getIsContactsChanged,
+    getIsDocumentsChanged,
+    getIsClientChanged,
+    getIsAddressesChanged,
+    getIsAvatarChanged,
+  } = storeToRefs(store);
   const {
     resetUserInfo,
     setDefaultActiveTab,
@@ -28,6 +31,9 @@ export const useNewClients = () => {
     setFIOData,
   } = store;
 
+  const tableStore = useClientTableStore();
+  const { setTableFilter } = tableStore;
+
   const { setCurrentPage } = usePageStore();
 
   const { addBtnPage, filterBtnPage, updateBtnPage } = useButtons();
@@ -35,6 +41,7 @@ export const useNewClients = () => {
 
   const { updateClient } = useUpdateClient();
   const { uploadFile } = useUploadFile();
+  const { deleteClient } = useDeleteClient();
   const { updateClientContacts } = useUpdateClientContacts();
   const { updateSetClientSd } = useSetClientSd();
   const { updateSetClientDocuments } = useSetClientDocuments();
@@ -44,10 +51,11 @@ export const useNewClients = () => {
   const queryClient = useQueryClient();
 
   const getClients = () => {
+    
     queryClient.invalidateQueries({
       queryKey: ["get clients"],
     });
-  }
+  };
 
   const getClientModalData = async () => {
     const clientResponse = await refetchGetClient();
@@ -64,23 +72,46 @@ export const useNewClients = () => {
   };
 
   function updateAddressHandler() {
-    updateSetClientAddresses();
+    if (getIsAddressesChanged.value) {
+      updateSetClientAddresses();
+    }
   }
 
   function updateContactsHandler() {
-    updateClientContacts();
+    if (getIsContactsChanged.value) {
+      updateClientContacts();
+    }
   }
 
   function updateDocumentsHandler() {
-    updateSetClientDocuments();
+    if (getIsDocumentsChanged.value) {
+      updateSetClientDocuments();
+    }
   }
 
+  function updateClientHandler() {
+    if (getIsClientChanged.value) {
+      updateClient();
+    }
+  }
+
+  const updateAvatarHandler = () => {
+    if (getIsAvatarChanged.value) {
+      if (userInfo.value.avatarPreview) {
+        uploadFile();
+      } else if (userInfo.value.documents.changedAt !== "") {
+        updateSetClientSd();
+      }
+    }
+  };
+
   async function updateUserInfo() {
-    updateClient();
+    updateClientHandler();
     updateAvatarHandler();
     updateContactsHandler();
     updateDocumentsHandler();
     updateAddressHandler();
+    
   }
 
   const saveAddModal = async () => {
@@ -91,14 +122,6 @@ export const useNewClients = () => {
   };
 
   const { refetch: refetchGetClient } = useGetClient();
-
-  const updateAvatarHandler = () => {
-    if (userInfo.value.avatarPreview) {
-      uploadFile();
-    } else if (userInfo.value.documents.changedAt !== "") {
-      updateSetClientSd();
-    }
-  };
 
   const closeAddModal = () => {
     isOpenAddModal.value = false;
@@ -130,8 +153,54 @@ export const useNewClients = () => {
   };
 
   updateBtnPage.action = () => {
-    console.log(111);
+    getClients();
   };
+
+  const onFilterTable = (inputs: IFilterInputValue[]) => {
+    let whereValues = {
+      [EFilterInputValueKey.fio]: "",
+      [EFilterInputValueKey.birthdate]: "",
+      [EFilterInputValueKey.mainEmail]: "",
+      [EFilterInputValueKey.mainPhone]: "",
+      [EFilterInputValueKey.snils]: "",
+    };
+
+    inputs.forEach((val) => {
+      whereValues[val.key] = val.value || "";
+    });
+
+    const [surname = "", name = "", patronymic = ""] =
+      whereValues[EFilterInputValueKey.fio].split(" ");
+    const birthdate = whereValues[EFilterInputValueKey.birthdate];
+    const mainEmail = whereValues[EFilterInputValueKey.mainEmail];
+    const mainPhone = whereValues[EFilterInputValueKey.mainPhone];
+    const snils = whereValues[EFilterInputValueKey.snils];
+
+    const conditions: string[] = [];
+    if (surname) conditions.push(`surname like '${surname}%'`);
+    if (name) conditions.push(`name like '${name}%'`);
+    if (patronymic) conditions.push(`patronymic like '${patronymic}%'`);
+    if (birthdate) conditions.push(`birthdate='${birthdate}'`);
+    if (mainPhone) conditions.push(`mainPhone='${mainPhone}'`);
+    if (mainEmail) conditions.push(`mainEmail='${mainEmail}'`);
+    if (snils) conditions.push(`snils='${snils}'`);
+
+    const whereClause = conditions.length
+      ? conditions.join(" and ")
+      : "changedAt <= '3000-01-01'"; 
+
+    let filterParams: IClientParams = {
+      limit: 0,
+      orderBy: "changedAt desc",
+      select:
+        "id,name,surname,patronymic,birthdate,gender,mainPhone,mainEmail,snils",
+      where: whereClause,
+    };
+
+    setTableFilter(filterParams);
+    getClients();
+  };
+
   const {
     fioColumn,
     birthdateColumn,
@@ -157,11 +226,12 @@ export const useNewClients = () => {
     link: "/list/new/clients",
     icon: "mdi-account-multiple-plus-outline",
     btns: btns,
+    onFilter: onFilterTable,
     filterInput: [
       {
         type: EInputTypes.text,
         title: "ФИО",
-        value: fioInput,
+        input: { key: EFilterInputValueKey.fio, value: "" },
         required: true,
         rules: fioRules,
         constraints: { min: 2, max: 100 },
@@ -169,7 +239,7 @@ export const useNewClients = () => {
       {
         type: EInputTypes.date,
         title: "Дата рождения",
-        value: birthdayInput,
+        input: { key: EFilterInputValueKey.birthdate, value: "" },
         required: true,
         rules: [],
         constraints: { min: 2, max: 100 },
@@ -177,21 +247,21 @@ export const useNewClients = () => {
       {
         type: EInputTypes.email,
         title: "Электронная почта",
-        value: emailInput,
+        input: { key: EFilterInputValueKey.mainEmail, value: "" },
         rules: [emailRules.email],
         constraints: { min: 0, max: 254 },
       },
       {
         type: EInputTypes.phone,
         title: "Телефон",
-        value: phoneInput,
+        input: { key: EFilterInputValueKey.mainPhone, value: "" },
         rules: phoneRules,
         constraints: { min: 0, max: 11 },
       },
       {
         type: EInputTypes.text,
         title: "СНИЛС",
-        value: snilsInput,
+        input: { key: EFilterInputValueKey.snils, value: "" },
         rules: snilsRules,
         constraints: { min: 0, max: 11 },
       },
@@ -206,7 +276,7 @@ export const useNewClients = () => {
       {
         id: "open",
         title: "Изменить",
-        icon: "mdi-pencil",
+        icon: "mdi-square-edit-outline",
         action: (selectedItem: ITableRow) => {
           setOpenUserId(selectedItem.id);
           openModal();
@@ -218,8 +288,9 @@ export const useNewClients = () => {
         id: "delete",
         title: "Удалить",
         icon: "mdi-delete",
-        action: (selectedItem: ITableRow) => {
-          console.log("Deleting item:", selectedItem);
+        action: async (selectedItem: ITableRow) => {
+          deleteClient(selectedItem.id);
+          getClients();
           return "";
         },
         disabled: false,

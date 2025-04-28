@@ -46,8 +46,10 @@ const {
         :placeholder="$t('emplName')"
         :class-name="'w-50'"
         :rules="[
+          textRules.min(userInfo.name, 2),
           textRules.max(userInfo.name, 128),
           textRules.noNumbers(userInfo.name),
+          textRules.noSpaces(userInfo.name),
         ]"
         required
       />
@@ -67,8 +69,10 @@ const {
         :placeholder="$t('emplSurname')"
         :class-name="'w-50'"
         :rules="[
+          textRules.min(userInfo.surname, 2),
           textRules.max(userInfo.surname, 128),
           textRules.noNumbers(userInfo.surname),
+          textRules.noSpaces(userInfo.surname),
         ]"
         required
       />
@@ -87,6 +91,12 @@ const {
         :label="$t('emplPatronymic')"
         :placeholder="$t('emplPatronymic')"
         :class-name="'w-50'"
+        :rules="[
+          textRules.min(userInfo.patronymic, 2),
+          textRules.max(userInfo.patronymic, 128),
+          textRules.noNumbers(userInfo.patronymic),
+          textRules.noSpaces(userInfo.patronymic),
+        ]"
       />
       <div class="w-50"></div>
     </div>

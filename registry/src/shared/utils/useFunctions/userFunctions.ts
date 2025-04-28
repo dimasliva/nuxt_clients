@@ -36,3 +36,11 @@ export function blobToBinary(blob: Blob): Promise<ArrayBuffer> {
 }
 
 
+export function arraysEqualObjects(arr1: object[], arr2: object[]): boolean {
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+    const sortedArr1 = arr1.map(obj => JSON.stringify(obj)).sort();
+    const sortedArr2 = arr2.map(obj => JSON.stringify(obj)).sort();
+    return JSON.stringify(sortedArr1) === JSON.stringify(sortedArr2);
+}

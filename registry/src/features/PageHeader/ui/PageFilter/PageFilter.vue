@@ -19,9 +19,8 @@
           prepend-icon="mdi-magnify"
           size="small"
           :disabled="isFilterDisable"
-          @click="() => {}"
+          @click="onFilterSubmit"
         >
-        {{ isFilterDisable ? 1 : 0 }}
           Поиск
         </v-btn>
         <v-btn
@@ -38,14 +37,14 @@
       </v-row>
       <v-sheet class="overflow-y-auto overflow-x-hidden flex-grow-1">
         <v-form ref="form" @input="checkFormValidity">
-          <template v-for="input in currPage.filterInput" :key="input.title">
+          <template v-for="input in currPage.filterInput" :key="input.input.key">
             <v-text-field
               v-if="
                 input.type === EInputTypes.text ||
                 input.type === EInputTypes.email ||
                 input.type === EInputTypes.phone
               "
-              v-model="input.value"
+              v-model="input.input.value"
               :counter="input.constraints.max"
               :hint="input.hint"
               :rules="input.rules"
@@ -56,7 +55,7 @@
 
             <v-date-input
               v-else-if="input.type === EInputTypes.date"
-              v-model="input.value"
+              v-model="input.input.value"
               :counter="input.constraints.max"
               :hint="input.hint"
               :rules="input.rules"
@@ -76,14 +75,13 @@
 import { usePageFilter } from "../../model/hooks/usePageFilter";
 import { EInputTypes } from "~/src/features/Page/model/types/page";
 const store = usePageHeaderStore();
-const {  isFilterDisable } = storeToRefs(store);
-watch(isFilterDisable, () => {
-  console.log('isFilterDisable', isFilterDisable)
-})
+const { isFilterDisable } = storeToRefs(store);
+
 const {
   form,
   showFilter,
   currPage,
+  onFilterSubmit,
   checkFormValidity,
   resetForm,
   hideFilter,

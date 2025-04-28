@@ -789,24 +789,47 @@ export const useClientModalStore = defineStore("clientModalStore", {
         let isError = false;
         function isValidatedName(value: string) {
           const hasNumbers = /\d/.test(value);
+          const hasSpaces = /\s/.test(value);
 
-          if (value.length >= 2 && value.length <= 128 && !hasNumbers) {
-            return false;
+          if (
+            value.length >= 2 &&
+            value.length <= 128 &&
+            !hasNumbers &&
+            !hasSpaces
+          ) {
+            return true;
           }
-          return true;
+          return false;
+        }
+        function isValidatedPatronymic(value: string) {
+          const hasNumbers = /\d/.test(value);
+          const hasSpaces = /\s/.test(value);
+
+          if (
+            (
+            value.length >= 2 &&
+            value.length <= 128 &&
+            !hasNumbers &&
+            !hasSpaces)
+          ) {
+            return true;
+          }
+          return false;
         }
         function isValidatedEmail(value: string) {
-          const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-          if (emailPattern.test(value) || value.length === 0) {
-            return false;
-          }
-          return true; 
-        }
+          const emailPattern =
+            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+          if (emailPattern.test(value) || value.length === 0) {
+            return true;
+          }
+          return false;
+        }
         if (
-          isValidatedName(userInfo.name) ||
-          isValidatedName(userInfo.surname) ||
-          isValidatedEmail(userInfo.contacts.mainEmail)
+          !isValidatedName(userInfo.name) ||
+          !isValidatedName(userInfo.surname) ||
+          !isValidatedPatronymic(userInfo.patronymic) ||
+          !isValidatedEmail(userInfo.contacts.mainEmail)
         ) {
           isError = true;
         }
@@ -818,5 +841,136 @@ export const useClientModalStore = defineStore("clientModalStore", {
         !isValidated(this.userInfo)
       );
     },
+    getIsContactsChanged(): boolean {
+      const { mainEmail, mainPhone, reservPhone } = this.userInfo.contacts;
+      const {
+        mainEmail: defMainEmail,
+        mainPhone: defMainPhone,
+        reservPhone: defReservPhone,
+      } = this.notChangedUserInfo.contacts;
+
+      const isEmailEqual = mainEmail !== defMainEmail;
+      const isPhoneEqual = mainPhone !== defMainPhone;
+      const isReservePhoneEqual = reservPhone !== defReservPhone;
+
+      if (!isEmailEqual && !isPhoneEqual && !isReservePhoneEqual) {
+        return false;
+      }
+      return true;
+    },
+    getIsDocumentsChanged(): boolean {
+      const {
+        mainDocumentSeries,
+        mainDocumentNumber,
+        mainDocumentWhen,
+        mainDocumentText,
+        mainDocumentWho,
+        mainDocumentWhoCode,
+        otherDocuments,
+      } = this.userInfo.documents;
+
+      const {
+        mainDocumentSeries: defMainDocumentSeries,
+        mainDocumentNumber: defMainDocumentNumber,
+        mainDocumentWhen: defMainDocumentWhen,
+        mainDocumentText: defMainDocumentText,
+        mainDocumentWho: defMainDocumentWho,
+        mainDocumentWhoCode: defMainDocumentWhoCode,
+        otherDocuments: defOtherDocuments,
+      } = this.notChangedUserInfo.documents;
+
+      const isSeriesEqual = mainDocumentSeries !== defMainDocumentSeries;
+      const isNumberEqual = mainDocumentNumber !== defMainDocumentNumber;
+      const isWhenEqual = mainDocumentWhen !== defMainDocumentWhen;
+      const isTextEqual = mainDocumentText !== defMainDocumentText;
+      const isWhoEqual = mainDocumentWho !== defMainDocumentWho;
+      const isWhoCodeEqual = mainDocumentWhoCode !== defMainDocumentWhoCode;
+      const isOtherEqual = arraysEqualObjects(
+        otherDocuments,
+        defOtherDocuments
+      );
+
+      if (
+        !isSeriesEqual &&
+        !isNumberEqual &&
+        !isWhenEqual &&
+        !isTextEqual &&
+        !isWhoEqual &&
+        !isWhoCodeEqual &&
+        isOtherEqual
+      ) {
+        return false;
+      }
+      return true;
+    },
+
+    getIsClientChanged(): boolean {
+      const { name, patronymic, surname, gender, birthdate } = this.userInfo;
+
+      const {
+        name: defName,
+        patronymic: defPatronymic,
+        surname: defSurname,
+        gender: defGender,
+        birthdate: defBirthdate,
+      } = this.notChangedUserInfo;
+
+      const isNameEqual = name === defName;
+      const isPatronymicEqual = patronymic === defPatronymic;
+      const isSurnameEqual = surname === defSurname;
+      const isGenderEqual = gender === defGender;
+      const isBirthdateEqual = birthdate === defBirthdate;
+
+      if (
+        isNameEqual &&
+        isPatronymicEqual &&
+        isSurnameEqual &&
+        isGenderEqual &&
+        isBirthdateEqual
+      ) {
+        return false;
+      }
+      return true;
+    },
+    getIsAddressesChanged(): boolean {
+      const { addressesEqual, mainAddress, permanentRegistration } = this.userInfo.addresses;
+
+      const {
+        addressesEqual: defAddressesEqual,
+        mainAddress: defMainAddress, 
+        permanentRegistration: defPermanentRegistration
+      } = this.notChangedUserInfo.addresses;
+
+      const isAddressesEqual = addressesEqual === defAddressesEqual;
+      const isMainAddressEqual = JSON.stringify(mainAddress) === JSON.stringify(defMainAddress);
+      const isPermanentRegistrationEqual = JSON.stringify(permanentRegistration) === JSON.stringify(defPermanentRegistration);
+
+      if (
+        isAddressesEqual &&
+        isMainAddressEqual &&
+        isPermanentRegistrationEqual 
+      ) {
+        return false;
+      }
+      return true;
+    },
+
+    getIsAvatarChanged(): boolean {
+      const { avatarPreview } = this.userInfo;
+
+      const {
+        avatarPreview: defAvatarPreview
+      } = this.notChangedUserInfo;
+
+      const isAvatarEqual = avatarPreview === defAvatarPreview;
+
+      if (
+        isAvatarEqual
+      ) {
+        return false;
+      }
+      return true;
+    },
+    
   },
 });

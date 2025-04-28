@@ -1,24 +1,23 @@
-
 export const usePageHeader = () => {
   const store = usePageStore();
-  const { unpinPageByIndex, getPinnedPageIndex, addPinPage } = usePageStore();
-  const { getPinnedPages, currPin, currPage } = storeToRefs(store);
+  const { unpinPageByIndex, getPinnedPageIndex, addPinPage } = store;
+  const { getPinnedPages, getCurrPin, currPage } = storeToRefs(store);
 
   const unpinPage = () => {
     unpinPageByIndex(getPinnedPageIndex());
   };
-  
+
   const onPinPage = () => {
     addPinPage({
       icon: currPage.value.icon,
       title: currPage.value.title,
-      link: currPage.value.link
-    })
-  }
+      link: currPage.value.link,
+    });
+  };
 
   return {
     getPinnedPages,
-    currPin,
+    getCurrPin,
     currPage,
     onPinPage,
     unpinPage,

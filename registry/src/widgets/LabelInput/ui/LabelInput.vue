@@ -52,16 +52,12 @@ const value = defineModel("value") as Ref<string>;
       :rules="rules"
     ></v-autocomplete>
 
-    <PhoneInput 
-      v-else-if="type === ELabelInput.phone" 
-      v-model:value="value" 
-    />
-    
+    <PhoneInput v-else-if="type === ELabelInput.phone" v-model:value="value" />
 
     <EmailInput
-    v-else-if="type === ELabelInput.email"
-          v-model="value"
-          :label="label"
-        />
+      v-else-if="type === ELabelInput.email"
+      v-model="value"
+      :label="label"
+    />
   </div>
 </template>

@@ -18,6 +18,11 @@
         :selectStrategy="selectStrategy"
         style="width: 100%"
       >
+        <template v-slot:no-data>
+          <div class="text-center py-6">
+            {{ notFoundRow ? notFoundRow : "Нет данных" }}
+          </div>
+        </template>
         <!-- меню действий-->
         <template v-slot:header.actions="{ column }">
           <VMenu :close-on-content-click="false">
@@ -96,8 +101,8 @@
               #[`item.${val}`]="{ item: internalItem }"
               class=""
             >
-              <div :class="getDataAlignClass(val) + 'text-wrap'" >
-                {{ formatRowText(val, internalItem[val])  }}
+              <div :class="getDataAlignClass(val) + 'text-wrap'">
+                {{ formatRowText(val, internalItem[val]) }}
               </div>
             </template>
 
@@ -117,31 +122,16 @@
                 v-if="props.tableDescr.actionsMenu"
               >
                 <template v-slot:activator="{ props }">
-                  <VBtn
-                    v-bind="props"
-                    icon="mdi-dots-vertical"
-                    variant="text"
-                    @click="() => onClickThreeDots(internalItem.raw.id)"
-                  />
-                </template>
-
-                <template v-slot:default="{ isActive }">
-                  <v-list
-                    @mouseleave="
-                      (e) => {
-                        isActive.value = false;
-                      }
-                    "
-                  >
-                    <v-list-item
+                  <div class="d-flex">
+                    <VBtn
                       v-for="action in getActionsMenu(internalItem)"
                       :key="action.title"
+                      variant="text"
                       @click="() => action.action(internalItem.raw)"
                     >
-                      <v-icon :icon="action.icon" size="x-small" />
-                      {{ action.title }}
-                    </v-list-item>
-                  </v-list>
+                      <v-icon :icon="action.icon"  size="large" />
+                    </VBtn>
+                  </div>
                 </template>
               </v-menu>
             </template>
@@ -227,7 +217,7 @@ function onRowClickHandler(row: ITableRow) {
   onRowClick(row);
   emit("onOpen", row.id);
 }
-
+// selectedColumns
 const {
   tableElem,
   selected,
@@ -235,7 +225,6 @@ const {
   itemsPerPage,
   selectStrategy,
   _headers,
-  accessibleColItems,
   selectedColumns,
   lineSelected,
   notAccessibleCols,

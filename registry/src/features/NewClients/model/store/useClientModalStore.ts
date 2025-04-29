@@ -35,6 +35,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
     activeTab: EClientTabs.profile as EClientTabs,
     actualAddress: {} as IProfileActualAddress,
     permanentAddress: {} as IProfileActualAddress,
+    toastErrorText: "" as string,
     userInfo: {
       avatarPreview: "",
       photoId: null,
@@ -806,11 +807,11 @@ export const useClientModalStore = defineStore("clientModalStore", {
           const hasSpaces = /\s/.test(value);
 
           if (
-            (
-            value.length >= 2 &&
-            value.length <= 128 &&
-            !hasNumbers &&
-            !hasSpaces)
+            value.length === 0 ||
+            (value.length >= 2 &&
+              value.length <= 128 &&
+              !hasNumbers &&
+              !hasSpaces)
           ) {
             return true;
           }
@@ -825,16 +826,92 @@ export const useClientModalStore = defineStore("clientModalStore", {
           }
           return false;
         }
+        function isValidatedPassportSeria(value: string) {
+          const numberPattern = /^\d{2} \d{2}$/;
+
+          if (numberPattern.test(value) || value.length === 0) {
+            return true;
+          }
+          return false;
+        }
+
+        function isValidatedPassportNumber(value: string) {
+          const numberPattern = /^\d{6}$/;
+
+          if (numberPattern.test(value) || value.length === 0) {
+            return true;
+          }
+          return false;
+        }
+
+        function isValidatedPassportCode(value: string) {
+          const numberPattern = /^\d{3}-\d{3}$/;
+
+          if (numberPattern.test(value) || value.length === 0) {
+            return true;
+          }
+          return false;
+        }
+
+        function isValidatedNumber(value: string | undefined, number: number) {
+          if (value) {
+            const isNumber = /^\d*$/.test(value);
+            if (
+              (isNumber && value.length > 0 && value.length <= number) ||
+              value.length === 0
+            ) {
+              return true;
+            }
+            return false;
+          }
+          return true;
+        }
+
         if (
           !isValidatedName(userInfo.name) ||
           !isValidatedName(userInfo.surname) ||
           !isValidatedPatronymic(userInfo.patronymic) ||
-          !isValidatedEmail(userInfo.contacts.mainEmail)
+          !isValidatedEmail(userInfo.contacts.mainEmail) ||
+          !isValidatedPassportSeria(userInfo.documents.mainDocumentSeries) ||
+          !isValidatedPassportNumber(userInfo.documents.mainDocumentNumber) ||
+          !isValidatedPassportCode(userInfo.documents.mainDocumentWhoCode) ||
+          !isValidatedNumber(
+            userInfo.addresses.permanentRegistration?.building,
+            16
+          ) ||
+          !isValidatedNumber(
+            userInfo.addresses.permanentRegistration?.corp,
+            8
+          ) ||
+          !isValidatedNumber(
+            userInfo.addresses.permanentRegistration?.flat,
+            8
+          ) ||
+          !isValidatedNumber(userInfo.addresses.mainAddress.building, 16) ||
+          !isValidatedNumber(userInfo.addresses.mainAddress.corp, 8) ||
+          !isValidatedNumber(userInfo.addresses.mainAddress.flat, 8)
         ) {
           isError = true;
         }
         return isError;
       }
+      this.toastErrorText = "";
+
+      if (
+        this.userInfo.name.length === 0 ||
+        this.userInfo.surname.length === 0
+      ) {
+        this.toastErrorText = "Заполните обязательные поля";
+      } else {
+        if (isValidated(this.userInfo)) {
+          this.toastErrorText = "Укажите поля в нужном формате";
+        }
+        if (isEqual(this.userInfo, this.notChangedUserInfo)) {
+          this.toastErrorText = "Внесите изменения";
+        }
+      }
+
+      console.log(" ");
 
       return (
         !isEqual(this.userInfo, this.notChangedUserInfo) &&
@@ -905,20 +982,21 @@ export const useClientModalStore = defineStore("clientModalStore", {
     },
 
     getIsClientChanged(): boolean {
-      const { name, patronymic, surname, gender, birthdate } = this.userInfo;
+      const { name, patronymic, surname, selectedGender, birthdate } =
+        this.userInfo;
 
       const {
         name: defName,
         patronymic: defPatronymic,
         surname: defSurname,
-        gender: defGender,
+        selectedGender: defGender,
         birthdate: defBirthdate,
       } = this.notChangedUserInfo;
 
       const isNameEqual = name === defName;
       const isPatronymicEqual = patronymic === defPatronymic;
       const isSurnameEqual = surname === defSurname;
-      const isGenderEqual = gender === defGender;
+      const isGenderEqual = selectedGender === defGender;
       const isBirthdateEqual = birthdate === defBirthdate;
 
       if (
@@ -932,23 +1010,28 @@ export const useClientModalStore = defineStore("clientModalStore", {
       }
       return true;
     },
+
     getIsAddressesChanged(): boolean {
-      const { addressesEqual, mainAddress, permanentRegistration } = this.userInfo.addresses;
+      const { addressesEqual, mainAddress, permanentRegistration } =
+        this.userInfo.addresses;
 
       const {
         addressesEqual: defAddressesEqual,
-        mainAddress: defMainAddress, 
-        permanentRegistration: defPermanentRegistration
+        mainAddress: defMainAddress,
+        permanentRegistration: defPermanentRegistration,
       } = this.notChangedUserInfo.addresses;
 
       const isAddressesEqual = addressesEqual === defAddressesEqual;
-      const isMainAddressEqual = JSON.stringify(mainAddress) === JSON.stringify(defMainAddress);
-      const isPermanentRegistrationEqual = JSON.stringify(permanentRegistration) === JSON.stringify(defPermanentRegistration);
+      const isMainAddressEqual =
+        JSON.stringify(mainAddress) === JSON.stringify(defMainAddress);
+      const isPermanentRegistrationEqual =
+        JSON.stringify(permanentRegistration) ===
+        JSON.stringify(defPermanentRegistration);
 
       if (
         isAddressesEqual &&
         isMainAddressEqual &&
-        isPermanentRegistrationEqual 
+        isPermanentRegistrationEqual
       ) {
         return false;
       }
@@ -958,19 +1041,14 @@ export const useClientModalStore = defineStore("clientModalStore", {
     getIsAvatarChanged(): boolean {
       const { avatarPreview } = this.userInfo;
 
-      const {
-        avatarPreview: defAvatarPreview
-      } = this.notChangedUserInfo;
+      const { avatarPreview: defAvatarPreview } = this.notChangedUserInfo;
 
       const isAvatarEqual = avatarPreview === defAvatarPreview;
 
-      if (
-        isAvatarEqual
-      ) {
+      if (isAvatarEqual) {
         return false;
       }
       return true;
     },
-    
   },
 });

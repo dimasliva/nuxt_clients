@@ -1,4 +1,6 @@
 import type { ITableColumn, ITableRow } from "../types/pagetable";
+import { useCookie } from "#app";
+import { ref, reactive, computed, watch } from "vue";
 
 export const usePageTable = (props: IPageTableProps) => {
   const tableElem = ref<Ref | null>(null);
@@ -7,7 +9,13 @@ export const usePageTable = (props: IPageTableProps) => {
   const itemsPerPage = ref(10);
   const selectStrategy: TSelectStrategy = "page";
   const lineSelected = ref<string | null>(null);
-  const {keys} = useTableHeader()
+  const { keys } = useTableHeader();
+
+  const store = useEmployeesStore();
+  const { updateAppProfileParams } = storeToRefs(store);
+  const { setUpdateAppProfileParams } = store;
+
+  const { updateAppProfile } = useUpdateAppProfile();
 
   const pagesCount = computed(() => {
     if (props.rows.length % itemsPerPage.value === 0)
@@ -15,26 +23,38 @@ export const usePageTable = (props: IPageTableProps) => {
     else return Math.floor(props.rows.length / itemsPerPage.value) + 1;
   });
 
-  const selectedColumns = reactive<string[]>(props.columns.map((col) => col.key));
-  
+  const cookie = useCookie<string>("selectedColumns");
+  console.log("cookie", cookie.value);
+
+  // Попробуем безопасно разобрать значение куки
+
+  // Удаляем дубликаты из массива
+  const uniqueInitialColumns = Array.from(new Set(cookie.value));
+  const selectedColumns = reactive<string[]>(
+    uniqueInitialColumns.length > 0
+      ? uniqueInitialColumns
+      : props.columns.map((col) => col.key)
+  );
+
   const _headers = computed(() => {
     const res: ITableColumn[] = [];
-
-    props.allColumns.forEach((col) => {
-      if (selectedColumns.includes(col.key)) {
-        res.push(col);
-      }
-    });
     res.push({
       key: "actions",
-      align: "start",
+      align: "center",
       width: "100px",
       sortable: false,
       title: "",
       selected: true,
     });
+    props.allColumns.forEach((col) => {
+      if (selectedColumns.includes(col.key)) {
+        res.push(col);
+      }
+    });
+
     return res;
   });
+
   const accessibleCols = computed(() => {
     return props.allColumns
       .filter((col) => selectedColumns.includes(col.key))
@@ -62,56 +82,69 @@ export const usePageTable = (props: IPageTableProps) => {
     }
   };
 
-  const toggleSelectColumn = (isHidden: boolean, colName: string) => {
-    const index = selectedColumns.indexOf(colName);
+  function onUpdateAppProfile() {
+    console.log("selectedColumns", selectedColumns);
+    setUpdateAppProfileParams({
+      compSettings: {},
+      pageSettings: {
+        "/list/new/clients": {
+          tcols: ["fio", "bd", "mainPhone", "mainEmail", "gen"],
+        },
+      },
+    });
+    updateAppProfile();
+  }
+
+  const toggleSelectColumn = (isHidden: boolean, colKey: string) => {
+    const index = selectedColumns.indexOf(colKey);
     if (isHidden) {
-      selectedColumns.push(colName);
+      selectedColumns.push(colKey);
     } else {
       selectedColumns.splice(index, 1);
     }
+    onUpdateAppProfile();
+
+    cookie.value = JSON.stringify(Array.from(new Set(selectedColumns)));
   };
 
   const onRowClick = (item: ITableRow) => {
     lineSelected.value = item.id;
   };
-  
+
   const onClickThreeDots = (id: string) => {
-    lineSelected.value = id
+    lineSelected.value = id;
   };
+
   const getActionsMenu = (item: any) => {
-    // item
-    return props.tableDescr.actionsMenu
-      ? props.tableDescr.actionsMenu()
-      : [];
+    return props.tableDescr.actionsMenu ? props.tableDescr.actionsMenu() : [];
   };
 
   const getDataAlignClass = (columnKey: string) => {
     const column = props.allColumns.find((col) => col.key === columnKey);
-    let classes: string[] = []
-    classes.push(columnKey === keys.snils ? 'max-w-32': '')
-    classes.push(columnKey === keys.birthdate ? 'w-22': '')
-    classes.push(columnKey === keys.fio ? 'max-w-10': '')
-    classes.push('truncate')
-    classes.push(column ? column.align : "start") 
-    return classes.join(' ');
+    let classes: string[] = [];
+    classes.push(columnKey === keys.snils ? "max-w-32" : "");
+    classes.push(columnKey === keys.birthdate ? "w-22" : "");
+    classes.push(columnKey === keys.fio ? "max-w-80" : "");
+    classes.push("truncate");
+    classes.push(column ? column.align : "start");
+    return classes.join(" ");
   };
 
   const formatRowText = (key: string, text: string) => {
-    if(key === keys.mainPhone) {
-      return formatPhoneNumber(text)
+    if (key === keys.mainPhone) {
+      return formatPhoneNumber(text);
     }
-    if(key === keys.birthdate) {
-      return formatDateToddMMyyyy(text)
+    if (key === keys.birthdate) {
+      return formatDateToddMMyyyy(text);
     }
-    return text
-    console.log("key", key)
-  }
+    return text;
+  };
 
   const rowsToSelectViewDictVal = () => {
     return selected.value.map((v) => {
-      let obj = props.rows.find((row) => row.id === v)
-      let title = obj?.fio || 'ФИО не указан';
-  
+      let obj = props.rows.find((row) => row.id === v);
+      let title = obj?.fio || "ФИО не указан";
+
       return { value: v, title: title };
     });
   };
@@ -122,11 +155,19 @@ export const usePageTable = (props: IPageTableProps) => {
 
   const resetSelectedColumns = () => {
     selectedColumns.length = 0;
+    cookie.value = JSON.stringify(selectedColumns);
   };
-  
-  watchEffect(() => {
-    selectedColumns.push(...props.columns.map((col) => col.key));
-  });
+
+  watch(
+    props.columns,
+    () => {
+      if (!cookie.value) {
+        selectedColumns.push(...props.columns.map((col) => col.key));
+        cookie.value = JSON.stringify(Array.from(new Set(selectedColumns))); // Сохраняем в куки
+      }
+    },
+    { immediate: true }
+  );
 
   return {
     tableElem,

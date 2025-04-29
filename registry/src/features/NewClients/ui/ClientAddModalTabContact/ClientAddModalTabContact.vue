@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useClientAddModalTabContact } from "../../model/hooks/useClientAddModalTabContact";
 
-const { userInfo } = useClientAddModalTabContact();
+const { userInfo, textRules } = useClientAddModalTabContact();
 </script>
 <template>
   <div class="d-flex flex-column w-100">
@@ -27,6 +27,7 @@ const { userInfo } = useClientAddModalTabContact();
         :type="ELabelInput.email"
         :label="$t('email')"
         :placeholder="$t('email')"
+        :rules="[]"
         :class-name="'w-100'"
         v-model:value="userInfo.contacts.mainEmail"
       />

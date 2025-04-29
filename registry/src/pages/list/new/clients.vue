@@ -8,8 +8,15 @@
       @onAdd="onAddModal"
       @onAddAndClose="onAddAndCloseModal"
     />
+    <ConfirmModal 
+      v-model:isOpen="openDeleteConfirmModal.isOpen"
+      :message="`Вы уверены, что хотите удалить <b> ${openDeleteConfirmModal.value}</b>?`"
+      :loading="isPendingDeleteClient"
+      @cancel="onCancelDeleteModal"
+      @agree="onConfirmDelete"
+    />
     <PageTable
-      :table-descr="tableDescr"dwdw
+      :table-descr="tableDescr"
       :columns="tableData.columns"
       :allColumns="allTableColumns"
       :rows="tableData.rows"
@@ -20,21 +27,26 @@
   </div>
 </template>
 <script setup lang="ts">
+import ConfirmModal from '~/src/widgets/ConfirmModal/ui/ConfirmModal.vue';
+
 const {
-  allTableColumns,
   tableData,
   tableDescr,
-  selectedTitleCol,
   isOpenAddModal,
+  allTableColumns,
+  selectedTitleCol,
+  isPendingDeleteClient,
+  openDeleteConfirmModal,
+  onAddModal,
+  onRowClicked,
   saveAddModal,
   closeAddModal,
-  onRowClicked,
-  onAddModal,
+  onConfirmDelete,
   onAddAndCloseModal,
+  onCancelDeleteModal,
 } = useNewClients();
 
 definePageMeta({
   layout: "page",
 });
-
 </script>

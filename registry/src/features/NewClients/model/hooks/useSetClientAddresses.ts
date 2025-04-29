@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/vue-query";
+import { toast } from "vue-sonner";
 
 export const useSetClientAddresses = () => {
   const store = useClientModalStore();
@@ -13,9 +14,11 @@ export const useSetClientAddresses = () => {
       mutationFn: () => ClientService.setClientAddresses(getParamsSetClientAddresses.value),
       onSuccess: (response) => {
         setAddressesChangedAt(response.result.changedAt)
-        console.log("dwdw33dwd3")
+        toast.success("Адрес клиента успешно изменён!");
       },
-      onError: (error: any) => {},
+      onError: (error: any) => {
+        toast.error("Ошибка при изменении адреса клиента!");
+      },
     });
 
   return {

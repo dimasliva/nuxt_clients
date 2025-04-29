@@ -12,7 +12,7 @@
         hide-default-footer
         v-model:page="currentPage"
         :items="props.rows"
-        height="calc(100vh - 270px)"
+        height="calc(100vh - 280px)"
         class="elevation-1"
         fixed-header
         :selectStrategy="selectStrategy"
@@ -57,7 +57,7 @@
                               ></v-checkbox-btn>
                             </VListItemAction>
                           </template>
-                          <VListItemTitle>{{ val.title || "" }}</VListItemTitle>
+                          <VListItemTitle>{{ val.title || "" }} </VListItemTitle>
                         </VListItem>
                       </VList>
                       <div class="d-flex align-center mb-2 mx-2">
@@ -122,16 +122,32 @@
                 v-if="props.tableDescr.actionsMenu"
               >
                 <template v-slot:activator="{ props }">
-                  <div class="d-flex">
-                    <VBtn
+                  <VBtn
+                    v-bind="props"
+                    icon="mdi-dots-vertical"
+                    variant="text"
+                    @click="() => onClickThreeDots(internalItem.raw.id)"
+                  />
+                </template>
+
+                <template v-slot:default="{ isActive }">
+                  <v-list
+                    @mouseleave="
+                      (e) => {
+                        isActive.value = false;
+                      }
+                    "
+                  >
+                    <v-list-item
                       v-for="action in getActionsMenu(internalItem)"
                       :key="action.title"
-                      variant="text"
                       @click="() => action.action(internalItem.raw)"
+                      class="flex items-center"
                     >
-                      <v-icon :icon="action.icon"  size="large" />
-                    </VBtn>
-                  </div>
+                      <v-icon :icon="action.icon" size=""/>
+                      {{ action.title }}
+                    </v-list-item>
+                  </v-list>
                 </template>
               </v-menu>
             </template>
@@ -178,7 +194,7 @@
         class="pl-0 pr-0"
         style="min-width: 650px"
       >
-        <v-row justify="end">
+        <v-row justify="space-between">
           <v-pagination
             ref="refPag"
             v-model="currentPage"
@@ -196,7 +212,7 @@
           ></v-select>
         </v-row>
       </VCol>
-      <v-col />
+      <!-- <v-col /> -->
     </v-row>
   </div>
 </template>

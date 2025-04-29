@@ -8,6 +8,11 @@ import { useQueryClient } from "@tanstack/vue-query";
 export const useNewClients = () => {
   const selectedTitleCol = ref<string>("fio");
   const isOpenAddModal = ref<boolean>(false);
+  const openDeleteConfirmModal = reactive<IConfirmModal>({
+    id: "",
+    isOpen: false,
+    value: "",
+  });
 
   const { tableData } = useGetClients();
 
@@ -21,6 +26,7 @@ export const useNewClients = () => {
     getIsAddressesChanged,
     getIsAvatarChanged,
   } = storeToRefs(store);
+
   const {
     resetUserInfo,
     setDefaultActiveTab,
@@ -41,7 +47,7 @@ export const useNewClients = () => {
 
   const { updateClient } = useUpdateClient();
   const { uploadFile } = useUploadFile();
-  const { deleteClient } = useDeleteClient();
+  const { deleteClient, isPendingDeleteClient } = useDeleteClient();
   const { updateClientContacts } = useUpdateClientContacts();
   const { updateSetClientSd } = useSetClientSd();
   const { updateSetClientDocuments } = useSetClientDocuments();
@@ -51,7 +57,6 @@ export const useNewClients = () => {
   const queryClient = useQueryClient();
 
   const getClients = () => {
-    
     queryClient.invalidateQueries({
       queryKey: ["get clients"],
     });
@@ -111,7 +116,6 @@ export const useNewClients = () => {
     updateContactsHandler();
     updateDocumentsHandler();
     updateAddressHandler();
-    
   }
 
   const saveAddModal = async () => {
@@ -187,7 +191,7 @@ export const useNewClients = () => {
 
     const whereClause = conditions.length
       ? conditions.join(" and ")
-      : "changedAt <= '3000-01-01'"; 
+      : "changedAt <= '3000-01-01'";
 
     let filterParams: IClientParams = {
       limit: 0,
@@ -270,6 +274,16 @@ export const useNewClients = () => {
 
   setCurrentPage(currentPage);
 
+  const onConfirmDelete = () => {
+    deleteClient(openDeleteConfirmModal.id);
+    getClients();
+  };
+  const onCancelDeleteModal = () => {
+    openDeleteConfirmModal.id = "";
+    openDeleteConfirmModal.isOpen = false;
+    openDeleteConfirmModal.value = "";
+  }
+
   const tableDescr: ITableDescription = {
     headers: tableData.columns,
     actionsMenu: () => [
@@ -289,8 +303,9 @@ export const useNewClients = () => {
         title: "Удалить",
         icon: "mdi-delete",
         action: async (selectedItem: ITableRow) => {
-          deleteClient(selectedItem.id);
-          getClients();
+          openDeleteConfirmModal.id = selectedItem.id;
+          openDeleteConfirmModal.isOpen = true;
+          openDeleteConfirmModal.value = selectedItem.fio;
           return "";
         },
         disabled: false,
@@ -309,17 +324,27 @@ export const useNewClients = () => {
     }
   });
 
+  watch(isPendingDeleteClient, () => {
+    if(!isPendingDeleteClient.value && openDeleteConfirmModal.isOpen) {
+      onCancelDeleteModal()
+    }
+  })
+
   return {
     tableData,
     tableDescr,
     isOpenAddModal,
     allTableColumns,
     selectedTitleCol,
-    closeAddModal,
-    saveAddModal,
+    isPendingDeleteClient,
+    openDeleteConfirmModal,
     openModal,
-    onRowClicked,
     onAddModal,
+    saveAddModal,
+    onRowClicked,
+    closeAddModal,
+    onConfirmDelete,
     onAddAndCloseModal,
+    onCancelDeleteModal,
   };
 };

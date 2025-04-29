@@ -3,11 +3,11 @@ import { useGetClientAvatar } from "./useGetClientAvatar";
 export const useClientAddModal = () => {
   const store = useClientModalStore();
   const {
-    
+    toastErrorText,
     openUserId,
     userInfo,
     notChangedUserInfo,
-    getIsUserInfoValidated: getIsUserInfoChanged,
+    getIsUserInfoValidated,
   } = storeToRefs(store);
   const activeTab = ref(EClientTabs.profile)
 
@@ -21,8 +21,9 @@ export const useClientAddModal = () => {
   // }, {deep: true});
 
   return {
+    toastErrorText,
     activeTab,
     openUserId,
-    getIsUserInfoChanged,
+    getIsUserInfoValidated,
   };
 };

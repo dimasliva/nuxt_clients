@@ -11,7 +11,7 @@ const value = defineModel()
 <template>
   <v-text-field
     v-model="value"
-    :rules="[emailRules.required, emailRules.email]"
+    :rules="[emailRules.email]"
     :label="label"
   ></v-text-field>
 </template>

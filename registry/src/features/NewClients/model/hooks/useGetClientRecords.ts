@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/vue-query";
+import { toast } from "vue-sonner";
 
 export const useGetClientRecords = () => {
   const store = useClientModalStore();
@@ -6,8 +7,14 @@ export const useGetClientRecords = () => {
 
   const { data, refetch, isLoading, isError, error, isPending } = useQuery({
     queryKey: ["get client records ", openUserId.value],
-    queryFn: () => RecordService.getClientRecords(openUserId.value),
-    enabled: openUserId.value !== '-1'
+    queryFn: async () => {
+      try {
+        return await RecordService.getClientRecords(openUserId.value);
+      } catch (err) {
+        toast.error("Ошибка при получении данных клиента!");
+      }
+    },
+    enabled: openUserId.value !== "-1",
   });
 
   return {

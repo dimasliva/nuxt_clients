@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { toast } from "vue-sonner";
 
 export const useDeleteClient = () => {
   const queryClient = useQueryClient();
@@ -8,11 +9,14 @@ export const useDeleteClient = () => {
       mutationKey: ["delete client"],
       mutationFn: (id: string) => ClientService.deleteClient(id),
       onSuccess: (response) => {
+        toast.success("Клиент успешно удалён!");
         queryClient.invalidateQueries({
           queryKey: ["get clients"],
         });
       },
-      onError: (error: any) => {},
+      onError: (error: any) => {
+      toast.error("Ошибка при удалении клиента!");
+      },
     });
 
   return {

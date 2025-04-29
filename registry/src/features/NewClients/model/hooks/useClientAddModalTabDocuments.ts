@@ -13,6 +13,7 @@ export const useClientAddModalTabDocuments = () => {
     { text: string; onClick: (doc: IRectsOtherDocument) => void }[]
   >([]);
 
+  const {numberRules} = useRules()
   const store = useClientModalStore();
   const { setIsEditDocument, setEditOtherDocument, addOtherDocument, removeOtherDocument } = store;
   const { userInfo, notChangedUserInfo } = storeToRefs(store);
@@ -96,6 +97,7 @@ export const useClientAddModalTabDocuments = () => {
     selectType,
     addedItems,
     userInfo,
+    numberRules,
     addInputs,
     removeDocument,
     getTypecodeText,

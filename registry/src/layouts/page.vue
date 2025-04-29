@@ -2,6 +2,7 @@
   <div style="height: 100dvh">
     <v-app>
       <v-main class="h-100">
+        <Toaster position="bottom-right" :expand="true" closeButton richColors />
         <Navbar />
         <Sidebar />
         <v-sheet
@@ -26,8 +27,12 @@
           </v-row>
         </v-sheet>
       </v-main>
+
     </v-app>
   </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { Toaster } from 'vue-sonner';
+
+</script>

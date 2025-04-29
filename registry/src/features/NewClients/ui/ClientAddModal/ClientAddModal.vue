@@ -17,7 +17,8 @@ interface IEmits {
 const { isOpen } = defineProps<IProps>();
 
 const emit = defineEmits<IEmits>();
-const { activeTab, openUserId, getIsUserInfoChanged } = useClientAddModal();
+const { activeTab, openUserId, getIsUserInfoValidated, toastErrorText } = useClientAddModal();
+
 </script>
 
 <template>
@@ -26,7 +27,8 @@ const { activeTab, openUserId, getIsUserInfoChanged } = useClientAddModal();
     :title="$t('clientProfile')"
     :addTitle="$t('createClient')"
     :isAdd="openUserId === '-1'"
-    :isDisableSave="!getIsUserInfoChanged"
+    :isDisableSave="!getIsUserInfoValidated"
+    :tooltipDisableBtnText="toastErrorText"
     @onClose="() => emit('onClose')"
     @onSave="() => emit('onSave')"
     @onSaveAndClose="() => emit('onSaveAndClose')"

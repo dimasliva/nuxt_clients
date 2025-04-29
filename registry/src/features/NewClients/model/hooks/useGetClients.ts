@@ -25,8 +25,8 @@ export const useGetClients = () => {
         const responseRows: string[][] = response.result.data;
         const responseHeaders: string[] = response.result.headers;
 
-        tableData.rows = [];
-        tableData.columns = [];
+        tableData.rows.length = 0;
+        tableData.columns.length = 0;
 
         responseRows.forEach((val) => {
           tableData.rows.push({

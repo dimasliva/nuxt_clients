@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 const {
   serial,
   number,
@@ -9,11 +8,11 @@ const {
   selectType,
   userInfo,
   doLists,
+  numberRules,
   getTypecodeText,
   addInputs,
   t,
 } = useClientAddModalTabDocuments();
-
 </script>
 
 <template>
@@ -25,12 +24,18 @@ const {
             <LabelInput
               v-model:value="serial"
               :label="$t('seria')"
+              :rules="[
+                numberRules.isNumber(serial),
+              ]"
               :placeholder="$t('seria')"
               :class-name="'w-100'"
             />
             <LabelInput
               v-model:value="number"
               :label="$t('number')"
+              :rules="[
+                numberRules.isNumber(number),
+              ]"
               :placeholder="$t('number')"
               :class-name="'w-100'"
             />
@@ -82,8 +87,7 @@ const {
             <th class="text-left">
               {{ $t("comment") }}
             </th>
-            <th class="text-right">
-            </th>
+            <th class="text-right"></th>
           </tr>
         </thead>
         <tbody>
@@ -119,6 +123,6 @@ const {
         </tbody>
       </v-table>
     </div>
-    <FeatureNewClientsUiClientEditDocumentSidebar/>
+    <FeatureNewClientsUiClientEditDocumentSidebar />
   </div>
 </template>

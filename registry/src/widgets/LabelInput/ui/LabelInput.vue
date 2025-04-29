@@ -9,11 +9,17 @@ interface IProps {
   type?: ELabelInput;
   required?: boolean;
   rules?: ValidationRule[];
+  mask?: string;
   selectItems?: string[];
 }
-const { label, className, placeholder } = defineProps<IProps>();
+const { label, className, placeholder, mask } = defineProps<IProps>();
+  const options = { mask: '' };
 
 const value = defineModel("value") as Ref<string>;
+
+onMounted(() => {
+  options.mask = mask || ''
+})
 </script>
 <template>
   <div :class="className">
@@ -25,6 +31,7 @@ const value = defineModel("value") as Ref<string>;
     <v-text-field
       v-if="!type || type === ELabelInput.text"
       v-model="value"
+      v-maska:[options]
       :placeholder="placeholder"
       :rules="rules"
     ></v-text-field>

@@ -39,9 +39,11 @@ export const useRules = () => {
     required: (value) => !!value || t("required"),
     isNumber: (value) => !isNaN(Number(value)) || "Значение должно быть числом",
     min: (value, min) =>
-      Number(value.length) >= min || `Не меньше ${min} символов`,
+      Number(value.length) >= min || `Не меньше ${min} ${getNoun(min, "символ", "символа", "символов")}`,
     max: (value, max) =>
-      Number(value.length) <= max || `Не больше ${max} символов`,
+      Number(value.length) <= max || `Не больше ${max} ${getNoun(max, "символ", "символа", "символов")}`,
+    equal: (value, equal) =>
+      (value.length === equal ||value.length === 0 ) || `Должно быть ${equal} ${getNoun(equal, "символ", "символа", "символов")} `,
   };
 
   const textRules = {

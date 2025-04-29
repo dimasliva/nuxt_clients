@@ -8,15 +8,16 @@ const server = mainApiServer
 const port = mainApiServerPort
 export const SERVER_URL = `https://${server}:${port}`
 
- export const apiV1 = "/api/v1"
+ const apiV1 = "api/v1"
 
  export const API_URL = {
     root: (url = "") => `${url ? url : ""}`,
     auth: (url = "") => API_URL.root(`api/auth/auth${url}`),
-    dictionaries: (url = "") => API_URL.root(`api/v1/Dictionaries${url}`),
-    files: (url = "") => API_URL.root(`api/v1/Files${url}`),
-    clients: (url = "") => API_URL.root(`api/v1/Clients${url}`),
-    records: (url = "") => API_URL.root(`api/v1/Records${url}`),
+    dictionaries: (url = "") => API_URL.root(`${apiV1}/Dictionaries${url}`),
+    files: (url = "") => API_URL.root(`${apiV1}/Files${url}`),
+    employees: (url = "") => API_URL.root(`${apiV1}/Employees${url}`),
+    clients: (url = "") => API_URL.root(`${apiV1}/Clients${url}`),
+    records: (url = "") => API_URL.root(`${apiV1}/Records${url}`),
   };
 
 const options: CreateAxiosDefaults = {

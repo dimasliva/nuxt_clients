@@ -54,6 +54,7 @@ export interface IClientParams {
   select: string;
   where: string;
 }
+
 export interface IAddClientParams {
   name: string;
   surname: string;

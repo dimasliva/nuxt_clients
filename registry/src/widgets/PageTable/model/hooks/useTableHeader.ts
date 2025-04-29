@@ -93,8 +93,8 @@ export const useTableHeader = () => {
     key: keys.fio,
     title: t("fio"),
     sortable: true,
-    align: "start",
-    width: "200px",
+    align: "d-none",
+    width: "320px",
   };
 
   const tableHeader: ITableHeader = {

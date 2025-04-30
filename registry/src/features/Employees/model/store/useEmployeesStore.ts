@@ -11,7 +11,7 @@ export const useEmployeesStore = defineStore("employeesStore", {
   },
   actions: {
     setUpdateAppProfileParams(val: IUpdateAppProfileParamsRequestParams) {
-
+      this.updateAppProfileParams = val
     },
 
   },

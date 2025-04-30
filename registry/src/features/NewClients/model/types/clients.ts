@@ -231,7 +231,7 @@ export interface IUpdateClient {
   surname: string;
   patronymic: string;
   gender: "m" | "f" | null;
-  birthdate: string;
+  birthdate: string | null;
   notActive: boolean | null;
   advData: any | null;
 }

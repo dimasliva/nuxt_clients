@@ -3,3 +3,8 @@ export interface IConfirmModal {
     isOpen: boolean;
     value?: string;
 }
+export interface IConfirmMultipleModal {
+    ids: string[];
+    isOpen: boolean;
+    value?: string;
+}

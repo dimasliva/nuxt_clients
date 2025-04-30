@@ -1,21 +1,33 @@
 import type {
+  ISeletedRow,
   ITableDescription,
   ITableRow,
 } from "~/src/widgets/PageTable/model/types/pagetable";
 import { useGetClients } from "./useGetClients";
 import { useQueryClient } from "@tanstack/vue-query";
+import type PageTable from "~/src/widgets/PageTable/ui/PageTable.vue";
 
 export const useNewClients = () => {
   const selectedTitleCol = ref<string>("fio");
   const isOpenAddModal = ref<boolean>(false);
+  const pageTableRef = ref<InstanceType<typeof PageTable> | null>(null);
   const openDeleteConfirmModal = reactive<IConfirmModal>({
     id: "",
     isOpen: false,
     value: "",
   });
+  const openMultipleDeleteConfirmModal = reactive<IConfirmMultipleModal>({
+    ids: [],
+    isOpen: false,
+    value: "",
+  });
 
   const { tableData } = useGetClients();
-
+  const {lockRecord} = useLockRecord()
+  const {unLockRecord} = useUnLockRecord()
+  
+  // unLockRecord
+  const { setRecordId } = useRecordStore()
   const store = useClientModalStore();
   const {
     userInfo,
@@ -76,8 +88,18 @@ export const useNewClients = () => {
     }
   };
 
+  const onDeleteListHandler = async (rows: ISeletedRow[]) => {
+    openMultipleDeleteConfirmModal.ids = rows.map((val) => val.value);
+    openMultipleDeleteConfirmModal.isOpen = true;
+    openMultipleDeleteConfirmModal.value = rows
+      .map((val) => val.title)
+      .join("</br> ");
+
+  };
+
   function updateAddressHandler() {
     if (getIsAddressesChanged.value) {
+      console.log('getIsAddressesChanged.value', getIsAddressesChanged.value)
       updateSetClientAddresses();
     }
   }
@@ -129,6 +151,7 @@ export const useNewClients = () => {
 
   const closeAddModal = () => {
     isOpenAddModal.value = false;
+    unLockRecord()
   };
 
   const onAddModal = () => {
@@ -141,8 +164,10 @@ export const useNewClients = () => {
   };
 
   function onRowClicked(id: string) {
+    setRecordId(id)
     setOpenUserId(id);
     openModal();
+    lockRecord()
   }
 
   function openModal() {
@@ -189,10 +214,7 @@ export const useNewClients = () => {
     if (mainEmail) conditions.push(`mainEmail='${mainEmail}'`);
     if (snils) conditions.push(`snils='${snils}'`);
 
-    const whereClause = conditions.length
-      ? conditions.join(" and ")
-      : "changedAt <= '3000-01-01'";
-
+    let whereClause;
     let filterParams: IClientParams = {
       limit: 0,
       orderBy: "changedAt desc",
@@ -200,6 +222,15 @@ export const useNewClients = () => {
         "id,name,surname,patronymic,birthdate,gender,mainPhone,mainEmail,snils",
       where: whereClause,
     };
+
+    if (conditions.length) {
+      whereClause = conditions.join(" and ");
+    } else {
+      whereClause = "changedAt <= '3000-01-01'";
+      filterParams.limit = 100;
+    }
+
+    filterParams.where = whereClause;
 
     setTableFilter(filterParams);
     getClients();
@@ -276,13 +307,26 @@ export const useNewClients = () => {
 
   const onConfirmDelete = () => {
     deleteClient(openDeleteConfirmModal.id);
-    getClients();
   };
+
+  const onConfirmMultipleDelete = () => {
+    openMultipleDeleteConfirmModal.ids.forEach((id) => {
+      deleteClient(id);
+    });
+    openMultipleDeleteConfirmModal.ids.length = 0;
+  };
+
   const onCancelDeleteModal = () => {
     openDeleteConfirmModal.id = "";
     openDeleteConfirmModal.isOpen = false;
     openDeleteConfirmModal.value = "";
-  }
+  };
+  const onCancelMultipleDeleteModal = () => {
+
+    openMultipleDeleteConfirmModal.ids = [];
+    openMultipleDeleteConfirmModal.isOpen = false;
+    openMultipleDeleteConfirmModal.value = "";
+  };
 
   const tableDescr: ITableDescription = {
     headers: tableData.columns,
@@ -292,8 +336,7 @@ export const useNewClients = () => {
         title: "Изменить",
         icon: "mdi-square-edit-outline",
         action: (selectedItem: ITableRow) => {
-          setOpenUserId(selectedItem.id);
-          openModal();
+          onRowClicked(selectedItem.id)
           return "";
         },
         disabled: false,
@@ -325,19 +368,37 @@ export const useNewClients = () => {
   });
 
   watch(isPendingDeleteClient, () => {
-    if(!isPendingDeleteClient.value && openDeleteConfirmModal.isOpen) {
-      onCancelDeleteModal()
+    if (!isPendingDeleteClient.value && openDeleteConfirmModal.isOpen) {
+      onCancelDeleteModal();
+      getClients();
     }
-  })
+    console.log(
+      "openMultipleDeleteConfirmModal.ids.length",
+      openMultipleDeleteConfirmModal.ids.length
+    );
+    if (
+      !isPendingDeleteClient.value &&
+      openMultipleDeleteConfirmModal.isOpen &&
+      openMultipleDeleteConfirmModal.ids.length === 0
+    ) {
+      if(pageTableRef.value) {
+        pageTableRef.value.onClearSelectedHandler();
+      }
+      onCancelMultipleDeleteModal();
+      getClients();
+    }
+  });
 
   return {
     tableData,
     tableDescr,
+    pageTableRef,
     isOpenAddModal,
     allTableColumns,
     selectedTitleCol,
     isPendingDeleteClient,
     openDeleteConfirmModal,
+    openMultipleDeleteConfirmModal,
     openModal,
     onAddModal,
     saveAddModal,
@@ -346,5 +407,8 @@ export const useNewClients = () => {
     onConfirmDelete,
     onAddAndCloseModal,
     onCancelDeleteModal,
+    onDeleteListHandler,
+    onConfirmMultipleDelete,
+    onCancelMultipleDeleteModal,
   };
 };

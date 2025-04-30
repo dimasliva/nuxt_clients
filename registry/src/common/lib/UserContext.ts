@@ -84,6 +84,11 @@ export class UserContext {
       this._userFeatureAccess = new BitList(FEATURES_SIZE).fromBase64(appEmployeeContext.userFeatureAccess);
       this._RecordsRestricions = appEmployeeContext.recordRestrictions;
       this._AuthorityData = authorityData;
+      
+      const store = useEmployeesStore();
+      const { setUpdateAppProfileParams } = store;
+      setUpdateAppProfileParams(appEmployeeContext.employeeAppProfile)
+      
       saveRefreshTokenStorage(authorityData.refreshToken)
       saveAccessTokenStorage(authorityData.token)
       saveUserToStorage(appEmployeeContext.employee)

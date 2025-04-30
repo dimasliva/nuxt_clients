@@ -1,6 +1,6 @@
 <template>
-  <div style="height: 100%" class="d-flex flex-column">
-    <div class="flex-grow-1" style="min-height: 10rem">
+  <div style="height: 100%" class="d-flex flex-column position-relative">
+    <div class="flex-grow-1 relative" style="min-height: 10rem">
       <VDataTable
         ref="tableElem"
         v-model="selected"
@@ -8,21 +8,17 @@
         item-value="id"
         v-model:items-per-page="itemsPerPage"
         hover
-        :headers="_headers"
+        :headers="filteredHeaders"
         hide-default-footer
         v-model:page="currentPage"
         :items="props.rows"
         height="calc(100vh - 280px)"
         class="elevation-1"
+        :no-data-text="notFoundRow ? notFoundRow : 'Нет данных'"
         fixed-header
         :selectStrategy="selectStrategy"
         style="width: 100%"
       >
-        <template v-slot:no-data>
-          <div class="text-center py-6">
-            {{ notFoundRow ? notFoundRow : "Нет данных" }}
-          </div>
-        </template>
         <!-- меню действий-->
         <template v-slot:header.actions="{ column }">
           <VMenu :close-on-content-click="false">
@@ -57,14 +53,16 @@
                               ></v-checkbox-btn>
                             </VListItemAction>
                           </template>
-                          <VListItemTitle>{{ val.title || "" }} </VListItemTitle>
+                          <VListItemTitle
+                            >{{ val.title || "" }}
+                          </VListItemTitle>
                         </VListItem>
                       </VList>
                       <div class="d-flex align-center mb-2 mx-2">
                         <VBtn
                           color="primary"
                           variant="text"
-                          @click="$emit('onColumnsChanged', props.columns)"
+                          @click="reloadSelectedColumn"
                         >
                           {{ $t("reload") }}
                         </VBtn>
@@ -92,7 +90,7 @@
             :class="
               internalItem.raw.id == lineSelected ? 'lineSelectedRow' : ''
             "
-            @dblclick="() => onRowClickHandler(internalItem.raw)"
+            @click="() => onRowClickHandler(internalItem.raw)"
           >
             <!-- Выводим доступные колонки -->
             <template
@@ -144,7 +142,7 @@
                       @click="() => action.action(internalItem.raw)"
                       class="flex items-center"
                     >
-                      <v-icon :icon="action.icon" size=""/>
+                      <v-icon :icon="action.icon" size="" />
                       {{ action.title }}
                     </v-list-item>
                   </v-list>
@@ -157,6 +155,7 @@
         <template v-slot:bottom />
       </VDataTable>
     </div>
+
     <!-- Нижняя строка статистики -->
     <v-row
       class="pt-5 w-100 mb-1 pr-0"
@@ -168,8 +167,9 @@
         <!-- Кнопка отображения выбранных элементов -->
         <SelectedItemsView
           :items="rowsToSelectViewDictVal()"
+          @onDeleteList="onDeleteListHandler"
           @onRemoveItem="(item, inx) => selected.splice(inx, 1)"
-          @onClearList="() => (selected.length = 0)"
+          @onClearList="onClearSelected"
         >
           <template #activator="{ props }">
             <VBtn
@@ -218,34 +218,63 @@
 </template>
 
 <script setup lang="ts">
-import { usePageTable } from "../model/hooks/usePageTable";
-import type { IPageTableProps, ITableRow } from "../model/types/pagetable";
+import type {
+  IPageTableProps,
+  ISeletedRow,
+  ITableRow,
+} from "../model/types/pagetable";
 const props = defineProps<IPageTableProps>();
 
 interface IEmits {
   (e: "onOpen", columns: string): void;
-  (e: "onColumnsChanged", columns: ITableColumn[]): void;
+  (e: "onDeleteList", columns: ISeletedRow[]): void;
 }
 
 const emit = defineEmits<IEmits>();
 
-function onRowClickHandler(row: ITableRow) {
-  onRowClick(row);
-  emit("onOpen", row.id);
+let clckInterval: NodeJS.Timeout | undefined = undefined;
+
+function onDeleteListHandler() {
+  emit("onDeleteList", rowsToSelectViewDictVal());
 }
-// selectedColumns
+
+function onRowClickHandler(row: ITableRow) {
+  if (!clckInterval)
+    clckInterval = setInterval(() => {
+      //click
+      clearInterval(clckInterval);
+      clckInterval = undefined;
+      // emit("onRowClick", row.id);
+    }, 300);
+  else {
+    //dblclick
+    clearInterval(clckInterval);
+    clckInterval = undefined;
+    emit("onOpen", row.id);
+  }
+}
+
+function onClearSelectedHandler() {
+  onClearSelected();
+}
+defineExpose({
+  onClearSelectedHandler,
+});
+
 const {
   tableElem,
   selected,
   currentPage,
   itemsPerPage,
   selectStrategy,
-  _headers,
+  filteredHeaders,
   selectedColumns,
   lineSelected,
   notAccessibleCols,
   accessibleCols,
   pagesCount,
+  reloadSelectedColumn,
+  onClearSelected,
   rowsToSelectViewDictVal,
   resetSelectedColumns,
   onItemsPerPageChange,

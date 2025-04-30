@@ -80,7 +80,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
           settlementType: 0,
           street: "",
           zip: "",
-          countryText: "",
+          countryText: "Россия",
           regionText: "",
           settlementText: "",
         },
@@ -134,7 +134,7 @@ export const useClientModalStore = defineStore("clientModalStore", {
           settlementType: 0,
           street: "",
           zip: "",
-          countryText: "",
+          countryText: "Россия",
           regionText: "",
           settlementText: "",
         },
@@ -375,7 +375,6 @@ export const useClientModalStore = defineStore("clientModalStore", {
 
       this.userInfo.contacts = createContactObject(data);
       this.notChangedUserInfo.contacts = createContactObject(data);
-      console.log("this.userInfo.contacts", this.userInfo.contacts);
     },
 
     setDocument(data: IRecData1 | null) {
@@ -429,33 +428,32 @@ export const useClientModalStore = defineStore("clientModalStore", {
       this.userInfo.addresses = {} as IClientAddresses;
       this.notChangedUserInfo.addresses = {} as IClientAddresses;
 
+      const setAddressData = (
+        addressData: IClientAddress,
+        target: IClientAddresses
+      ) => {
+        target.mainAddress = { ...addressData };
+        target.permanentRegistration = { ...addressData };
+        if (data) {
+          target.changedAt = data.changedAt;
+          target.id = data.id;
+          target.addressesEqual = data.addressesEqual;
+        }
+
+        this.setMainCountryText(addressData.country);
+        this.setPermanentCountryText(addressData.country);
+        this.setMainRegionText(addressData.regionCode);
+        this.setPermanentRegionText(addressData.regionCode);
+        this.setMainSettlementText(addressData.settlementType);
+        this.setPermanentSettlementText(addressData.settlementType);
+      };
+
       if (data) {
-        let permanentRegistration: IClientAddress = data.permanentRegistration;
-        let mainRegistration: IClientAddress = data.mainAddress;
-        this.userInfo.addresses.mainAddress = { ...mainRegistration };
-        this.userInfo.addresses.permanentRegistration = {
-          ...permanentRegistration,
-        };
-        this.userInfo.addresses.changedAt = data.changedAt;
-        this.userInfo.addresses.id = data.id;
-        this.userInfo.addresses.addressesEqual = data.addressesEqual;
-
-        this.notChangedUserInfo.addresses.mainAddress = { ...mainRegistration };
-        this.notChangedUserInfo.addresses.permanentRegistration = {
-          ...permanentRegistration,
-        };
-        this.notChangedUserInfo.addresses.changedAt = data.changedAt;
-        this.notChangedUserInfo.addresses.id = data.id;
-        this.notChangedUserInfo.addresses.addressesEqual = data.addressesEqual;
-
-        this.setMainCountryText(mainRegistration.country);
-        this.setPermanentCountryText(permanentRegistration.country);
-
-        this.setMainRegionText(mainRegistration.regionCode);
-        this.setPermanentRegionText(permanentRegistration.regionCode);
-
-        this.setMainSettlementText(mainRegistration.settlementType);
-        this.setPermanentSettlementText(permanentRegistration.settlementType);
+        setAddressData(data.mainAddress, this.userInfo.addresses);
+        setAddressData(
+          data.permanentRegistration,
+          this.notChangedUserInfo.addresses
+        );
       } else {
         const emptyAddress = {
           building: "",
@@ -466,17 +464,23 @@ export const useClientModalStore = defineStore("clientModalStore", {
           regionCode: 1,
           settlement: "",
           settlementType: 1,
-          countryText: "",
+          countryText: "Россия",
           regionText: "",
           settlementText: "",
           street: "",
           zip: "",
         };
-        this.userInfo.addresses.mainAddress = emptyAddress;
-        this.userInfo.addresses.permanentRegistration = emptyAddress;
-        this.userInfo.addresses.changedAt = "";
-        this.userInfo.addresses.id = "";
-        this.userInfo.addresses.addressesEqual = false;
+
+        const setEmptyAddress = (target: IClientAddresses) => {
+          target.mainAddress = emptyAddress;
+          target.permanentRegistration = emptyAddress;
+          target.changedAt = "";
+          target.id = "";
+          target.addressesEqual = false;
+        };
+
+        setEmptyAddress(this.userInfo.addresses);
+        setEmptyAddress(this.notChangedUserInfo.addresses);
       }
     },
 
@@ -597,21 +601,24 @@ export const useClientModalStore = defineStore("clientModalStore", {
   },
   getters: {
     getUser(): IUpdateClient {
-      let date = new Date(this.userInfo.birthdate);
-      date.setDate(date.getDate() + 1);
-      let formattedBirthdate = date.toISOString().split("T")[0];
-
-      return {
+      const res: IUpdateClient = {
         id: this.userInfo.id,
         changedAt: this.userInfo.changedAt,
         name: this.userInfo.name,
         surname: this.userInfo.surname,
         patronymic: this.userInfo.patronymic,
         gender: this.userInfo.gender,
-        birthdate: formattedBirthdate,
+        birthdate: null,
         notActive: null,
         advData: null,
       };
+      if(this.userInfo.birthdate) {
+        let date = new Date(this.userInfo.birthdate);
+        date.setDate(date.getDate() + 1);
+        let formattedBirthdate = date.toISOString().split("T")[0];
+        res.birthdate = formattedBirthdate
+      }
+      return res
     },
     getParamsUpdateClientContacts(): IUpdateClientContacts {
       const res: IUpdateClientContacts = {
@@ -911,8 +918,6 @@ export const useClientModalStore = defineStore("clientModalStore", {
         }
       }
 
-      console.log(" ");
-
       return (
         !isEqual(this.userInfo, this.notChangedUserInfo) &&
         !isValidated(this.userInfo)
@@ -1027,6 +1032,16 @@ export const useClientModalStore = defineStore("clientModalStore", {
       const isPermanentRegistrationEqual =
         JSON.stringify(permanentRegistration) ===
         JSON.stringify(defPermanentRegistration);
+
+      console.log("");
+      console.log("addressesEqual", addressesEqual);
+      console.log("mainAddress", mainAddress);
+      console.log("permanentRegistration", permanentRegistration);
+
+      console.log("defAddressesEqual", defAddressesEqual);
+      console.log("defMainAddress", defMainAddress);
+      console.log("defPermanentRegistration", defPermanentRegistration);
+      console.log("");
 
       if (
         isAddressesEqual &&

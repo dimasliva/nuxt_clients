@@ -22,6 +22,11 @@ export interface ITableRow {
   snils? : string;
 }
 
+export interface ISeletedRow{
+  value: string;
+  title: string;
+}
+
 interface ITableMenu {
   id: string;
   title: string;

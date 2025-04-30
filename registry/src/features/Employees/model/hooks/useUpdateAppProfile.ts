@@ -12,7 +12,8 @@ export const useUpdateAppProfile = () => {
     mutationFn: () => EmployeesService.updateAppProfile(updateAppProfileParams.value),
     onSuccess: (response) => {
         console.log('profile updated')
-    },
+        toast.success("Выбранные колонки успешно сохранены!");
+      },
     onError: (error: any) => {
       toast.error("Ошибка при обновлении профиля!");
     },

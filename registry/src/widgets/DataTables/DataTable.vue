@@ -312,11 +312,11 @@ const addCurrPage = (step: number) => {
 
 const onRowClick = (dtitem: any) => {
   lineSelected.value = dtitem.raw.id;
-
   if (!clckInterval)
     clckInterval = setInterval(() => {
       //click
       clearInterval(clckInterval);
+      console.log("clckInterval", clckInterval);
       clckInterval = null;
       emit("onRowClick", dtitem);
     }, 300);
